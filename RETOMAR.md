@@ -368,6 +368,13 @@ DRC limpio en Koch, Sierpinski, Yagi y array). Toca volver a **los cupones de va
    terceros), `fase0/README.md` corregido y código muerto quitado (`geometria.minkowski`,
    `exportar._piezas_cobre`). **Subido** al repositorio privado https://github.com/sqtactical/chirptenna
    (107 ficheros, sin Gerber). Renombrado a **Chirptenna** (04-11; descartados Fractalia —empresa española— y nombres con Fract-/Hertz por marcas). Logo en `docs/logo/` (grillo con antenas de Koch, `generar_logo.py`). Antes de hacerlo público: el usuario debe buscar «Chirptenna» en TMview.
+0. **Preparación para publicar (04-11)**: interfaz solo en 127.0.0.1; `.claude/launch.json` y `settings.json`
+   fuera del repositorio; **historial reescrito** (filter-branch) para quitar de todos los commits esos dos
+   archivos con la ruta personal, y subido con `--force-with-lease` (los identificadores de commit cambiaron:
+   el último antiguo era `b89a709`, el nuevo `aa7c6eb`). Copia del historial anterior:
+   `%LOCALAPPDATA%\antenas\copia_git_20261104_145210.bundle`. Pendiente antes de hacerlo público: TMview,
+   medir placas reales, capturas en el README, ordenar `RETOMAR.md` y decidir qué hacer con
+   `vna/medidas` y `vna/calibraciones` (calibración de un latiguillo concreto, medidas de la Scout).
 0. **Interfaz nueva, biblioteca, asistente del NanoVNA y aligerado (04-11, petición del usuario)**:
    - Interfaz por fases: barra fija (nombre, tipo, banda, «Guardar diseño»; naranja si hay cambios sin
      guardar) y pestañas Diseño / Simulación / Fabricar / Medir / Mis diseños. Probada en el navegador
