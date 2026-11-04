@@ -3,6 +3,12 @@ contact_links:
   - name: "📖 Instalación paso a paso / Installation guide"
     url: https://github.com/sqtactical/chirptenna/blob/main/INSTALAR.md
     about: "Antes de abrir un fallo de instalación, mira «Problemas frecuentes» · Check the troubleshooting section first"
+  - name: "💬 Preguntas e ideas / Questions and ideas"
+    url: https://github.com/sqtactical/chirptenna/discussions
+    about: "Dudas de uso, medidas informales y propuestas abiertas · Usage questions, informal measurements and open ideas"
+  - name: "🔒 Fallo de seguridad / Security vulnerability"
+    url: https://github.com/sqtactical/chirptenna/security/advisories/new
+    about: "En privado, no en una issue pública · Privately, not in a public issue"
   - name: "⚠️ Problemas conocidos / Known issues"
     url: https://github.com/sqtactical/chirptenna/blob/main/README.md
     about: "Lo que ya se sabe que falla en cada tipo de antena · What is already known to fail per antenna type"

@@ -8,7 +8,7 @@ hecho hasta ahora (validaciones, simulaciones, fallos y decisiones) está en
 ## Estado
 
 - **Versión publicada: v0.1.1-alpha** (pre-release en GitHub, código AGPL-3.0; la v0.1.0-alpha salió con
-  GPL-3.0). Repositorio **privado**. Nombre comprobado en TMview: libre.
+  GPL-3.0). Repositorio **público** desde el 04-11 (alpha abierto). Nombre comprobado en TMview: libre.
 - **Programa completo de principio a fin**, validado **solo en simulación** (εr 4,5 supuesta):
   - 16 tipos de antena; `herramientas/comprobar_tipos.py` los genera y exporta a 868 y 2441,75 MHz con DRC limpio (32/32).
   - Simulación y ajuste con openEMS.
@@ -34,11 +34,12 @@ hecho hasta ahora (validaciones, simulaciones, fallos y decisiones) está en
    - [x] `RETOMAR.md` ordenado.
    - [x] Descripción y temas del repositorio.
    - [x] Medidas y calibraciones fuera del repositorio.
-   - [ ] El usuario: hacer público el repositorio (Settings → Danger Zone).
-   - [ ] El usuario: subir la imagen para compartir (Settings → Social preview, `docs/logo/chirptenna_texto.png`).
-   - [ ] Proteger `main` contra borrados y `push --force` (cuando sea público).
+   - [x] Repositorio público (04-11) con imagen para compartir.
+   - [x] `main` protegida (ruleset «Proteger main»: sin borrados ni `push --force`).
+   - [x] Secret scanning, push protection, Dependabot, aviso privado de vulnerabilidades y `SECURITY.md`.
+   - [x] Discussions activadas (enlazadas desde la página de nueva issue).
    - [ ] Opcional: pedir a GitHub que purgue los commits antiguos de antes de reescribir el historial (tenían el usuario de Windows).
-   - [ ] Para los beta testers mientras sea privado: una organización gratuita con permiso Read (en un repo personal, los colaboradores tienen escritura).
+   - [ ] Anunciarlo (comunidad Meshtastic: foro, Discord, Reddit) pidiendo medidas reales.
 2. **Cuando lleguen las placas de JLC:**
    1. Medir los cupones y meter la εr real en `antenas/materiales.py`.
    2. Medir las 7 antenas y comparar simulado frente a medido.
