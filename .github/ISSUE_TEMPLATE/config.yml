@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: "📖 Instalación paso a paso / Installation guide"
+    url: https://github.com/sqtactical/chirptenna/blob/main/INSTALAR.md
+    about: "Antes de abrir un fallo de instalación, mira «Problemas frecuentes» · Check the troubleshooting section first"
+  - name: "⚠️ Problemas conocidos / Known issues"
+    url: https://github.com/sqtactical/chirptenna/blob/main/README.md
+    about: "Lo que ya se sabe que falla en cada tipo de antena · What is already known to fail per antenna type"

@@ -4,6 +4,10 @@
 
 *[Versión en castellano](README.md)*
 
+> **Status: alpha (v0.1.0-alpha).** Validated in simulation only: no manufactured board has been
+> measured yet. **Real measurements wanted**: if you build an antenna and measure it, share it with
+> the [“Real measurement”](../../issues/new/choose) template. How to contribute: [CONTRIBUTING.md](CONTRIBUTING.md).
+
 **Chirptenna** (from *chirp*, LoRa's modulation, and *antenna*) is a program that generates **PCB-printed antennas** (fractal, directional and reference designs)
 for a target frequency, **tunes them by simulating with openEMS** (FDTD) and **exports them to
 KiCad, Gerber and DXF**, ready to manufacture. It has a browser-based GUI and command-line tools.

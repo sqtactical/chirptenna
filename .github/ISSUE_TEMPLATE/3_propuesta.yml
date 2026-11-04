@@ -1,0 +1,30 @@
+name: "💡 Propuesta / Feature request"
+description: "Un tipo de antena nuevo, una opción, una mejora de la interfaz… · A new antenna type, option or improvement"
+title: "[Propuesta] "
+labels: ["propuesta"]
+body:
+  - type: textarea
+    id: que
+    attributes:
+      label: "Qué propones · What do you propose"
+    validations:
+      required: true
+  - type: textarea
+    id: para_que
+    attributes:
+      label: "Para qué lo usarías · What would you use it for"
+      description: "El caso concreto ayuda a decidir cómo hacerlo (banda, tamaño de placa, conector, ganancia…)."
+    validations:
+      required: true
+  - type: textarea
+    id: referencias
+    attributes:
+      label: "Referencias · References"
+      description: "Artículos, fotos de una antena comercial, enlaces… si los hay."
+  - type: checkboxes
+    id: ayuda
+    attributes:
+      label: "¿Puedes ayudar? · Can you help?"
+      options:
+        - label: "Puedo fabricar y medir prototipos · I can build and measure prototypes"
+        - label: "Puedo preparar una pull request · I can open a pull request"

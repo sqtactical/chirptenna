@@ -1,0 +1,66 @@
+name: "🐞 Fallo / Bug"
+description: "El programa falla, se cuelga o da un resultado claramente erróneo · The program fails, hangs or gives a clearly wrong result"
+title: "[Fallo] "
+labels: ["fallo"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias por avisar. Cuanto más concreto, antes se arregla. Puedes escribir en castellano o en inglés.
+        *Thanks for reporting. The more specific, the faster it gets fixed. Spanish or English are both fine.*
+
+        Si lo que quieres compartir es una **antena fabricada y medida**, usa mejor la plantilla «Medida real».
+  - type: dropdown
+    id: parte
+    attributes:
+      label: "¿Dónde ocurre? · Where does it happen?"
+      options:
+        - "Instalación (instalar.bat) · Installation"
+        - "Pestaña Diseño · Design tab"
+        - "Simulación (openEMS) · Simulation"
+        - "Fabricar / exportar (KiCad, Gerber, DXF, DRC) · Manufacture / export"
+        - "Medir / NanoVNA · Measure"
+        - "Mis diseños · My designs"
+        - "Línea de comandos · Command line"
+        - "Otro · Other"
+    validations:
+      required: true
+  - type: input
+    id: tipo
+    attributes:
+      label: "Tipo de antena y frecuencia · Antenna type and frequency"
+      placeholder: "p. ej. Yagi con boom, 2450 MHz, 2 directores"
+  - type: textarea
+    id: pasos
+    attributes:
+      label: "Pasos para reproducirlo · Steps to reproduce"
+      description: "Qué hiciste, en orden. Si puedes, adjunta el `diseno.json` del diseño (Documentos\\Chirptenna\\disenos\\<nombre>)."
+      placeholder: |
+        1. Elijo …
+        2. Pulso …
+        3. Aparece …
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: "Qué esperabas y qué pasó · Expected vs actual"
+    validations:
+      required: true
+  - type: textarea
+    id: registro
+    attributes:
+      label: "Mensajes de error · Error messages"
+      description: "Copia lo que salga en la ventana negra o en el registro de la simulación. Se formatea solo como código."
+      render: text
+  - type: input
+    id: version
+    attributes:
+      label: "Versión · Version"
+      description: "Aparece en la cabecera de la interfaz (p. ej. v0.1.0-alpha)."
+      placeholder: "v0.1.0-alpha"
+  - type: input
+    id: sistema
+    attributes:
+      label: "Sistema · System"
+      placeholder: "Windows 11, KiCad 10.0.1"

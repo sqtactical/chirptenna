@@ -8,3 +8,6 @@ Módulos:
   fabricacion  – comprobaciones de reglas del fabricante (pista/hueco mínimos)
   exportar     – huella y placa de KiCad, Gerber (kicad-cli), DXF y vista previa
 """
+
+# Versión del programa (alpha: validado solo en simulación). Subirla en cada release de GitHub.
+__version__ = '0.1.0-alpha'

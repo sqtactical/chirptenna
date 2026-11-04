@@ -22,6 +22,7 @@ sys.path.insert(0, RAIZ)
 from nicegui import app, ui, run, background_tasks   # noqa: E402
 
 from antenas import tipos, vista, fabricacion, exportar, consejos, graficas, ajuste, biblioteca, problemas   # noqa: E402
+from antenas import __version__   # noqa: E402
 from antenas.materiales import ancho_microstrip, eps_eff_microstrip   # noqa: E402
 
 sys.path.insert(0, os.path.join(RAIZ, 'vna'))   # driver del NanoVNA y calibración del PC
@@ -126,6 +127,8 @@ def pagina():
             ui.image(LOGO).classes('w-9 h-9')
         ui.label('Chirptenna').classes('text-h6')
         ui.label('antenas impresas para PCB').classes('text-caption text-blue-grey-2 gt-xs')
+        ui.badge(f'v{__version__}', color='orange-9').props('outline').classes('gt-xs') \
+            .tooltip('Alpha: validado solo en simulación. Mide siempre la antena fabricada.')
         ui.space()
         lbl_diseno = ui.label().classes('text-subtitle2')
         lbl_resumen = ui.label().classes('text-caption text-blue-grey-2 gt-sm')

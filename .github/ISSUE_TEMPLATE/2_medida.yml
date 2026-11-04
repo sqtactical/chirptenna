@@ -1,0 +1,71 @@
+name: "📡 Medida real / Real measurement"
+description: "Fabricaste una antena de Chirptenna y la mediste: compártela para comparar con la simulación · You built and measured an antenna"
+title: "[Medida] "
+labels: ["medida"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Esto es lo que más ayuda ahora mismo.** El proyecto está en alpha y todo está validado solo en
+        simulación: cada medida real permite comprobar y calibrar el programa.
+        *This is the most useful contribution right now: everything is validated in simulation only.*
+
+        Lo ideal: el `.s1p` de la medida, el `diseno.json` del diseño y una foto de la placa con el conector.
+        En la interfaz, pestaña **Medir**, cada medida se guarda como `.s1p` en
+        `Documentos\Chirptenna\disenos\<nombre>\medidas` (botón de descarga junto a cada medida).
+        Arrastra los archivos al cuadro de texto para adjuntarlos (GitHub no admite `.s1p`: comprímelo en `.zip`
+        o cámbiale la extensión a `.txt`).
+  - type: input
+    id: tipo
+    attributes:
+      label: "Tipo de antena y frecuencia objetivo · Antenna type and target frequency"
+      placeholder: "Monopolo de Koch, 2441,75 MHz, iteración 2, ajustable"
+    validations:
+      required: true
+  - type: textarea
+    id: fabricacion
+    attributes:
+      label: "Fabricación · Manufacturing"
+      description: "Fabricante, material, grosor, acabado, conector y cualquier cambio respecto al diseño (cortes, puentes, red en π…)."
+      placeholder: |
+        JLCPCB, FR4 1,6 mm, HASL, SMA de canto
+        Sin cortar / cortado en la marca 2450 / puente 1 cerrado…
+    validations:
+      required: true
+  - type: textarea
+    id: medida
+    attributes:
+      label: "Cómo se midió · How it was measured"
+      description: "Equipo, calibración (dónde estaba el plano de referencia), latiguillo, montaje (en la mano, en una mesa, con carcasa…)."
+      placeholder: |
+        NanoVNA-H (DiSlord 1.2.42), calibración OSL al final de un latiguillo RG316 de 15 cm
+        Antena colgando lejos de objetos metálicos
+    validations:
+      required: true
+  - type: textarea
+    id: resultado
+    attributes:
+      label: "Resultado · Result"
+      description: "Resonancia medida, banda a −10 dB, |S11| en la frecuencia objetivo y, si la tienes, la simulación del programa para comparar."
+      placeholder: |
+        Medida: mínimo −18 dB en 2410 MHz, −10 dB de 2350 a 2470 MHz
+        Simulación: centro 2445 MHz, −10 dB de 2380 a 2510 MHz
+    validations:
+      required: true
+  - type: textarea
+    id: adjuntos
+    attributes:
+      label: "Archivos · Files"
+      description: "Adjunta el .s1p (en .zip), el diseno.json y una foto."
+  - type: input
+    id: version
+    attributes:
+      label: "Versión de Chirptenna · Version"
+      placeholder: "v0.1.0-alpha"
+  - type: checkboxes
+    id: licencia
+    attributes:
+      label: "Permiso · Permission"
+      options:
+        - label: "Acepto que estos datos se usen en el proyecto para validar y calibrar el programa (y que se publiquen en él). · I agree these data may be used and published in the project."
+          required: true
