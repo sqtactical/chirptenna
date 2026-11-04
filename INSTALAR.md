@@ -61,11 +61,11 @@ El instalador no toca nada fuera de tu usuario y no necesita permisos de adminis
 2. La primera versión de la lista es la más reciente (lleva la etiqueta *Pre-release* mientras el proyecto
    esté en alpha). Baja hasta su apartado **Assets** y pulsa **Source code (zip)**. No hace falta tener
    cuenta en GitHub.
-3. El archivo queda en tu carpeta **Descargas**, con un nombre como `chirptenna-0.1.1-alpha.zip`.
+3. El archivo queda en tu carpeta **Descargas**, con un nombre como `chirptenna-0.1.2-alpha.zip`.
 4. **Descomprímelo** (no lo abras con doble clic; así solo se ve por dentro y el instalador no funciona):
    clic derecho sobre el zip → **Extraer todo…** → elige una carpeta que vayas a conservar, por ejemplo
    `Documentos` → **Extraer**.
-5. Te queda una carpeta como `Documentos\chirptenna-0.1.1-alpha`. Esa es **la carpeta del programa**. Dentro
+5. Te queda una carpeta como `Documentos\chirptenna-0.1.2-alpha`. Esa es **la carpeta del programa**. Dentro
    tiene que haber, entre otras cosas, `instalar.bat`, `iniciar.bat` y las carpetas `antenas` y `gui`.
 
 > **¿Dónde la pongo?** Vale cualquier carpeta, también dentro de OneDrive. Evita solo las rutas muy

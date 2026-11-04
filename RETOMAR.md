@@ -7,7 +7,7 @@ hecho hasta ahora (validaciones, simulaciones, fallos y decisiones) está en
 
 ## Estado
 
-- **Versión publicada: v0.1.1-alpha** (pre-release en GitHub, código AGPL-3.0; la v0.1.0-alpha salió con
+- **Versión publicada: v0.1.2-alpha** (pre-release en GitHub, código AGPL-3.0; la v0.1.0-alpha salió con
   GPL-3.0). Repositorio **público** desde el 04-11 (alpha abierto). Nombre comprobado en TMview: libre.
 - **Programa completo de principio a fin**, validado **solo en simulación** (εr 4,5 supuesta):
   - 16 tipos de antena; `herramientas/comprobar_tipos.py` los genera y exporta a 868 y 2441,75 MHz con DRC limpio (32/32).

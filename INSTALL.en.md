@@ -61,11 +61,11 @@ The installer stays inside your user account and needs no administrator rights:
 1. Go to the releases page: **https://github.com/sqtactical/chirptenna/releases**
 2. The first release in the list is the latest (tagged *Pre-release* while the project is in alpha). Scroll to
    its **Assets** section and click **Source code (zip)**. You don't need a GitHub account.
-3. The file lands in your **Downloads** folder, named like `chirptenna-0.1.1-alpha.zip`.
+3. The file lands in your **Downloads** folder, named like `chirptenna-0.1.2-alpha.zip`.
 4. **Extract it** (don't just double-click it: that only shows what is inside and the installer won't work):
    right-click the zip → **Extract All…** → pick a folder you will keep, for example `Documents` →
    **Extract**.
-5. You get a folder like `Documents\chirptenna-0.1.1-alpha`. That is **the program folder**. It must contain,
+5. You get a folder like `Documents\chirptenna-0.1.2-alpha`. That is **the program folder**. It must contain,
    among other things, `instalar.bat`, `iniciar.bat` and the `antenas` and `gui` folders.
 
 > **Where should it go?** Any folder works, OneDrive included. Just avoid very long paths or odd characters.
