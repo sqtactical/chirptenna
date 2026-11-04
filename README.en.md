@@ -1,8 +1,10 @@
-# PCB antenna generator
+<p align="center"><img src="docs/logo/chirptenna_texto.png" alt="Chirptenna" width="560"></p>
+
+# Chirptenna: PCB antenna generator
 
 *[Versión en castellano](README.md)*
 
-A program that generates **PCB-printed antennas** (fractal, directional and reference designs)
+**Chirptenna** (from *chirp*, LoRa's modulation, and *antenna*) is a program that generates **PCB-printed antennas** (fractal, directional and reference designs)
 for a target frequency, **tunes them by simulating with openEMS** (FDTD) and **exports them to
 KiCad, Gerber and DXF**, ready to manufacture. It has a browser-based GUI and command-line tools.
 Aimed at Meshtastic LoRa nodes (433 / 868 MHz) and at 2.4 GHz.
@@ -125,6 +127,7 @@ with thin traces). They are cached in `%TEMP%\antenas_sim`.
 | `referencias/` | Models of commercial antennas, to compare simulation and measurement |
 | `herramientas/` | Simulation queue, estimate calibration, diagnostics |
 | `analisis/`, `placa_sim/` | Tools to study existing boards from their Gerbers |
+| `docs/logo/` | Logo (a cricket with Koch-curve antennae) and the script that draws it |
 
 `salidas/` (exports), `placas/` (third-party Gerbers) and the generated coupons are not in the
 repository: they are regenerated with the program.

@@ -366,8 +366,8 @@ DRC limpio en Koch, Sierpinski, Yagi y array). Toca volver a **los cupones de va
    sacado de la licencia de numpy), `LICENSE-DISENOS.md` (CC BY-NC 4.0 para los diseños publicados),
    `.gitignore` (sin Gerber, `salidas/`, `placas/`, cupones generados ni resultados derivados de placas de
    terceros), `fase0/README.md` corregido y código muerto quitado (`geometria.minkowski`,
-   `exportar._piezas_cobre`). **Subido** al repositorio privado https://github.com/sqtactical/generador-antenas-pcb
-   (107 ficheros, sin Gerber). El usuario quiere buscarle luego un nombre más interesante (`gh repo rename`).
+   `exportar._piezas_cobre`). **Subido** al repositorio privado https://github.com/sqtactical/chirptenna
+   (107 ficheros, sin Gerber). Renombrado a **Chirptenna** (04-11; descartados Fractalia —empresa española— y nombres con Fract-/Hertz por marcas). Logo en `docs/logo/` (grillo con antenas de Koch, `generar_logo.py`). Antes de hacerlo público: el usuario debe buscar «Chirptenna» en TMview.
 0. **Cola FIFO (01-11, `herramientas/cola.py`)**, a petición del usuario: sustituye a las colas encadenadas
    del scratchpad. Orden cargado: verificar pedido 2,4 GHz → Minkowski it3 2,4 → Minkowski it3 868 → array
    de parches 2×2 → Hilbert 2,4 → Hilbert 868 → Yagi comercial con vías. Dos trabajadores arrancan al

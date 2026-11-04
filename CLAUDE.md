@@ -1,4 +1,4 @@
-# Generador de antenas fractales para PCB
+# Chirptenna: generador de antenas fractales para PCB
 
 Objetivo final: un programa que genere antenas (fractales) impresas en PCB para una
 frecuencia objetivo. Las ajusta simulando con openEMS, exporta a KiCad/DXF/Gerber y tiene
@@ -31,7 +31,7 @@ archivos modificados después de la última revisión. La marca de esa revisión
   (importan módulos hermanos). El paquete `antenas/` se usa desde la raíz (`gui/app.py` añade la
   raíz a `sys.path`). Interfaz: `python gui/app.py` → http://localhost:8080
   (`.claude/launch.json`: "generador-antenas").
-- Está en OneDrive y en el repositorio git privado https://github.com/sqtactical/generador-antenas-pcb
+- Está en OneDrive y en el repositorio git privado https://github.com/sqtactical/chirptenna
   (rama `main`). git y gh son portables: `%LOCALAPPDATA%\Programs\MinGit\cmd\git.exe` y
   `%LOCALAPPDATA%\Programs\gh\bin\gh.exe` (no están en el PATH; para gh, `GH_CONFIG_DIR` =
   `%LOCALAPPDATA%\Programs\gh\config`). Commits con el correo noreply de GitHub, nunca el personal. Documentación pública: `README.md`
