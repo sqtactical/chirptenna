@@ -284,6 +284,10 @@ archivos modificados después de la última revisión. La marca de esa revisión
     veía negro con el navegador en tema oscuro. Tema automático/claro/oscuro con el botón de la cabecera
     (`ui.dark_mode`; preferencia en `app.storage.general`, carpeta `.nicegui/` ignorada por git). Toda figura
     de Plotly pasa por `T(fig)` para adaptarse al tema; una gráfica nueva sin `T()` sale blanca en oscuro.
+    **No usar las clases de color de Quasar para texto** (`text-grey-8`, `text-blue-grey-9`, `color=` de
+    `ui.icon`…): en NiceGUI 3 van en un `@layer` con `!important` y ninguna regla propia las puede cambiar en
+    oscuro. Usar las propias de `gui/app.py`: `texto-sec`, `texto-aviso`, `texto-violeta`, `icono-titulo`,
+    `pestanas` (cada una con su variante `.body--dark`).
 39. Parches (`parche_rectangular`, `parche_minkowski`): `alimentacion` 0 = por el borde con transformador
     λ/4; 1 = por ranura (inset) hasta R = R_borde·cos²(π·d/L) = 50 Ω (`muesca` en mm, 0 = estimada;
     `hueco_muesca`). Con ranura la línea solo cruza el margen de masa (se ignora `largo_alimentacion`) y

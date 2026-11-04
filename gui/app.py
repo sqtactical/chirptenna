@@ -92,7 +92,7 @@ ICONOS_CONSEJO = {'banda': ('podcasts', 'deep-orange'), 'diseño': ('lightbulb',
 def _titulo_card(texto, icono=None):
     with ui.row().classes('items-center gap-1 no-wrap'):
         if icono:
-            ui.icon(icono, color='blue-grey-7')
+            ui.icon(icono).classes('icono-titulo')
         ui.label(texto).classes('text-subtitle1 text-weight-medium')
 
 
@@ -101,12 +101,23 @@ def pagina():
     ui.add_css('''
         body.body--light { background: #eef1f3; }
         body.body--dark { background: #121417; }
-        .body--dark .text-grey-7, .body--dark .text-grey-8 { color: #aab4bb !important; }
-        .body--dark .text-blue-grey-9 { color: #cfd8dc !important; }
-        .body--dark .text-orange-10 { color: #ffb74d !important; }
-        .body--dark .text-deep-purple { color: #b39ddb !important; }
+        /* Colores propios: los de Quasar (text-grey-8…) van en un @layer con !important y no se pueden
+           cambiar para el tema oscuro, así que aquí no se usan. */
+        .texto-sec { color: #5f6b73; }
+        .body--dark .texto-sec { color: #b4c0c8; }
+        .texto-aviso { color: #bf360c; }
+        .body--dark .texto-aviso { color: #ffb74d; }
+        .texto-violeta { color: #5e35b1; }
+        .body--dark .texto-violeta { color: #c5b3f0; }
+        .icono-titulo { color: #546e7a; }
+        .body--dark .icono-titulo { color: #90a4ae; }
+        .pestanas { color: #37474f; }
+        .body--dark .pestanas { color: #e3e9ed; }
+        .pestanas .q-tab--active { color: #1976d2; }
+        .body--dark .pestanas .q-tab--active { color: #64b5f6; }
+        .body--dark .q-field__label { color: #b4c0c8; }
+        .body--dark .q-table tbody td { color: #e6ebee; }
         .q-field__label { font-size: 0.82rem; }
-        .barra-diseno { position: sticky; top: 0; z-index: 10; }
         .q-tab__label { font-size: 0.85rem; }
     ''')
     # ================================================================== cabecera
@@ -189,20 +200,20 @@ def pagina():
             sel_tipo = ui.select({k: t.nombre for k, t in tipos.CATALOGO.items()}, value=estado['clave'],
                                  label='Tipo de antena').classes('w-72')
             with ui.column().classes('gap-0'):
-                ui.label('Banda de uso').classes('text-caption text-grey-7')
+                ui.label('Banda de uso').classes('text-caption texto-sec')
                 banda = ui.toggle(list(BANDAS), value='2,4 GHz').props('dense no-caps')
             f_in = ui.number('Centro [MHz]', value=estado['f_MHz'], min=100, max=10000, step=0.005,
                              format='%.3f').classes('w-32')
             bw_in = ui.number('Ancho [MHz]', value=estado['bw_MHz'], min=0.05, max=5000, step=0.05,
                               format='%.2f').classes('w-28')
-            rango = ui.label().classes('text-caption text-grey-8 self-center')
+            rango = ui.label().classes('text-caption texto-sec self-center')
             ui.space()
             btn_guardar = ui.button('Guardar diseño', icon='save').props('color=primary no-caps')
-        desc = ui.label().classes('text-caption text-grey-8')
+        desc = ui.label().classes('text-caption texto-sec')
         cont_problemas = ui.column().classes('w-full gap-0')
 
     # ================================================================== pestañas
-    with ui.tabs().classes('w-full text-blue-grey-9').props('align=left inline-label no-caps') as pestanas:
+    with ui.tabs().classes('w-full pestanas').props('align=left inline-label no-caps') as pestanas:
         t_diseno = ui.tab('Diseño', icon='architecture')
         t_sim = ui.tab('Simulación', icon='insights')
         t_fab = ui.tab('Fabricar', icon='precision_manufacturing')
@@ -247,7 +258,7 @@ def pagina():
                 ui.label('Rápida: para tantear (±3 %). Normal: diseño. Fina: comprobación final (más lenta). '
                          'Cada simulación tarda de 1 a 15 min según el tamaño; el ajuste hace 2–5. '
                          'Si el diseño está guardado, el resultado se guarda con él.'
-                         ).classes('text-caption text-grey-8')
+                         ).classes('text-caption texto-sec')
                 registro = ui.log(max_lines=200).classes('w-full h-32 text-caption')
             res_sim = ui.column().classes('w-full gap-2 q-mt-sm')
 
@@ -263,7 +274,7 @@ def pagina():
                     _titulo_card('Exportar', 'download')
                     ui.label('Guarda el diseño y exporta la placa de prueba KiCad, la huella, los Gerber para JLC '
                              '(con taladros) y el DXF en la carpeta «fabricacion» del diseño. Pasa el DRC de KiCad.'
-                             ).classes('text-caption text-grey-8')
+                             ).classes('text-caption texto-sec')
                     btn_export = ui.button('Exportar KiCad + Gerber + DXF', icon='download') \
                         .props('color=positive no-caps').classes('w-full q-mt-sm')
                     res_export = ui.column().classes('w-full gap-1')
@@ -278,7 +289,7 @@ def pagina():
                         # ---- 1. conectar
                         with ui.step('Conectar el NanoVNA', icon='usb'):
                             ui.label('Conéctalo por USB. Solo se lee su estado: su calibración y sus slots '
-                                     'guardados no se tocan.').classes('text-caption text-grey-8')
+                                     'guardados no se tocan.').classes('text-caption texto-sec')
                             info_vna = ui.label().classes('text-caption')
                             with ui.stepper_navigation():
                                 btn_conectar = ui.button('Buscar el NanoVNA', icon='search').props('color=teal no-caps')
@@ -287,7 +298,7 @@ def pagina():
                         # ---- 2. calibrar
                         with ui.step('Calibración', icon='tune'):
                             ui.label('Calibra al final del latiguillo que vayas a usar con la antena: el plano de '
-                                     'medida queda ahí.').classes('text-caption text-grey-8')
+                                     'medida queda ahí.').classes('text-caption texto-sec')
                             modo_cal = ui.toggle({0: 'Usar una guardada', 1: 'Calibrar ahora'}, value=0) \
                                 .props('dense no-caps')
                             cont_cal_guardada = ui.column().classes('w-full gap-1')
@@ -320,7 +331,7 @@ def pagina():
                         # ---- 3. comprobar
                         with ui.step('Comprobar la calibración', icon='fact_check'):
                             ui.label('Pon la CARGA de 50 Ω al final del latiguillo. Bien calibrado, |S11| queda '
-                                     'por debajo de −30 dB.').classes('text-caption text-grey-8')
+                                     'por debajo de −30 dB.').classes('text-caption texto-sec')
                             res_verif = ui.label().classes('text-caption')
                             with ui.stepper_navigation():
                                 btn_verif = ui.button('Comprobar', icon='fact_check').props('color=teal no-caps')
@@ -330,7 +341,7 @@ def pagina():
                         with ui.step('Medir y ajustar', icon='straighten'):
                             ui.label('Conecta la antena. Cada medida se guarda en el diseño con su etiqueta; el modo '
                                      'en vivo repite la medida cerca de la banda mientras cortas o cambias la red '
-                                     'en π, sin guardarla.').classes('text-caption text-grey-8')
+                                     'en π, sin guardarla.').classes('text-caption texto-sec')
                             etiqueta_in = ui.input('Etiqueta', placeholder='p. ej. sin cortar, tras la marca 2') \
                                 .classes('w-full')
                             notas_medida = ui.input('Notas (opcional)').classes('w-full')
@@ -357,7 +368,7 @@ def pagina():
                         _titulo_card('Asistente de ajuste', 'build')
                         ui.label('A partir de una medida te dice qué marca cortar, cuántos puentes cerrar o qué '
                                  'poner en la red en π. Pulsa «Analizar» en una medida.'
-                                 ).classes('text-caption text-grey-8')
+                                 ).classes('text-caption texto-sec')
                         res_asist = ui.column().classes('w-full gap-1')
 
         # -------------------------------------------------------------- 5. Mis diseños
@@ -366,7 +377,7 @@ def pagina():
                 with ui.row().classes('w-full items-center'):
                     _titulo_card('Mis diseños', 'folder_special')
                     ui.space()
-                    ui.label(biblioteca.carpeta_base()).classes('text-caption text-grey-7')
+                    ui.label(biblioteca.carpeta_base()).classes('text-caption texto-sec')
                     ui.button(icon='folder_open', on_click=lambda: os.startfile(biblioteca.carpeta_base())) \
                         .props('flat round dense').tooltip('Abrir la carpeta')
                     ui.button(icon='refresh', on_click=lambda: refrescar_biblioteca()).props('flat round dense') \
@@ -499,7 +510,7 @@ def pagina():
                 if vacio or k in ('avisos', 'ancho_banda_estimado', 'ajuste'):
                     continue
                 with ui.row().classes('w-full no-wrap justify-between'):
-                    ui.label(ETIQUETAS_INFO.get(k, k)).classes('text-caption text-grey-8')
+                    ui.label(ETIQUETAS_INFO.get(k, k)).classes('text-caption texto-sec')
                     ui.label(_fmt(v)).classes('text-caption text-weight-medium text-right')
         lista_consejos.clear()
         with lista_consejos:
@@ -513,8 +524,8 @@ def pagina():
         actualizar_cabecera()
 
     ICONOS_PROBLEMA = {'grave': ('error', 'negative', 'text-negative'),
-                       'aviso': ('warning', 'orange-8', 'text-orange-10'),
-                       'info': ('info', 'blue-grey-6', 'text-grey-8')}
+                       'aviso': ('warning', 'orange-8', 'texto-aviso'),
+                       'info': ('info', 'blue-grey-6', 'texto-sec')}
 
     def mostrar_problemas():
         """Problemas conocidos del tipo con estos parámetros (lo que ha fallado en simulación)."""
@@ -542,7 +553,7 @@ def pagina():
                     ui.label('Problema conocido: ' + t).classes('text-caption text-negative')
             with ui.row().classes('items-start no-wrap'):
                 ui.icon('science', color='blue-grey-6')
-                ui.label(problemas.AVISO_GENERAL).classes('text-caption text-grey-8')
+                ui.label(problemas.AVISO_GENERAL).classes('text-caption texto-sec')
             colores = {'ok': 'positive', 'aviso': 'warning', 'error': 'negative', 'info': 'teal'}
             iconos = {'ok': 'check_circle', 'aviso': 'warning', 'error': 'error', 'info': 'build'}
             mensajes = (fabricacion.comprobar(a, estado['reglas']) + [('aviso', m) for m in a.info.get('avisos', [])]
@@ -874,7 +885,7 @@ def pagina():
                              ).classes('text-caption text-weight-medium')
                 with ui.grid(columns=2).classes('w-full gap-x-4 gap-y-0'):
                     for k, v in filas:
-                        ui.label(k).classes('text-caption text-grey-8')
+                        ui.label(k).classes('text-caption texto-sec')
                         ui.label(v).classes('text-caption text-weight-medium')
                 if r.get('historial'):
                     ui.label('Ajuste: ' + ' → '.join(f"{h['escala_mm']} mm: {h['f_resonancia_MHz']} MHz "
@@ -922,13 +933,13 @@ def pagina():
         if not n:
             with lista_medidas:
                 ui.label('Guarda el diseño (o haz una medida) para ver aquí sus medidas y su simulación.'
-                         ).classes('text-caption text-grey-7')
+                         ).classes('text-caption texto-sec')
             return
         ms = biblioteca.medidas(n)
         sim_g = biblioteca.leer_simulacion(n)
         with lista_medidas:
             if not ms and not sim_g:
-                ui.label('Este diseño aún no tiene simulación ni medidas.').classes('text-caption text-grey-7')
+                ui.label('Este diseño aún no tiene simulación ni medidas.').classes('text-caption texto-sec')
             if sim_g:
                 r = sim_g[0]
                 ui.checkbox(f"Simulación ({r['f_resonancia_MHz']:g} MHz, {r.get('precision', '')})",
@@ -1006,7 +1017,7 @@ def pagina():
                     d = rec['f_medida_MHz'] - ra['f_medida_MHz']
                     ui.label(f'Respecto a «{etiqueta_a}»: resonancia {ra["f_medida_MHz"]:g} → {rec["f_medida_MHz"]:g} MHz '
                              f'({d:+.1f} MHz); en el objetivo {ra["s11_en_f_obj_dB"]:g} → {rec["s11_en_f_obj_dB"]:g} dB'
-                             ).classes('text-caption text-deep-purple')
+                             ).classes('text-caption texto-violeta')
                 except Exception:
                     pass
             ui.label(f'{origen}: resonancia medida {rec["f_medida_MHz"]:g} MHz ({rec["desvio_%"]:+g} % respecto a '
