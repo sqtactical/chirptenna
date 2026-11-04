@@ -1352,6 +1352,9 @@ def pagina():
 
 
 if __name__ in {'__main__', '__mp_main__'}:
-    # CHIRPTENNA_ABRIR=1 (lo pone iniciar.bat) abre el navegador al arrancar
-    ui.run(title='Chirptenna', port=8080, reload=False, show=os.environ.get('CHIRPTENNA_ABRIR') == '1', favicon=LOGO if os.path.exists(LOGO) else '📡',
+    # CHIRPTENNA_ABRIR=1 (lo pone iniciar.bat) abre el navegador al arrancar.
+    # Solo se escucha en este ordenador: NiceGUI usa 0.0.0.0 por defecto y cualquiera en la misma red podría
+    # simular, escribir archivos o usar el NanoVNA. CHIRPTENNA_HOST=0.0.0.0 lo abre a la red a propósito.
+    ui.run(title='Chirptenna', host=os.environ.get('CHIRPTENNA_HOST', '127.0.0.1'), port=8080, reload=False,
+           show=os.environ.get('CHIRPTENNA_ABRIR') == '1', favicon=LOGO if os.path.exists(LOGO) else '📡',
            dark=False)

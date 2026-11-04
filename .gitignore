@@ -41,6 +41,10 @@ vna/calibraciones/sd_backup/
 
 # --- Herramientas locales
 .code-review-graph/
+# Configuración local de Claude Code (rutas de este ordenador)
+.claude/launch.json
+.claude/settings.json
+.claude/settings.local.json
 # Preferencias de la interfaz (tema) que guarda NiceGUI
 .nicegui/
 .claude/ultima_revision_claude_md

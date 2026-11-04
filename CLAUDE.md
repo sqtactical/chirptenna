@@ -36,7 +36,9 @@ archivos modificados después de la última revisión. La marca de esa revisión
 - Los scripts de `fase0/`, `vna/`, `cupon/`, `placa_sim/` se ejecutan desde su propia carpeta
   (importan módulos hermanos). El paquete `antenas/` se usa desde la raíz (`gui/app.py` añade la
   raíz a `sys.path`). Interfaz: `python gui/app.py` → http://localhost:8080
-  (`.claude/launch.json`: "generador-antenas").
+  (`.claude/launch.json`: "generador-antenas"). Escucha solo en 127.0.0.1 (NiceGUI usa 0.0.0.0 por defecto y
+  dejaba la interfaz abierta a la red local); `CHIRPTENNA_HOST=0.0.0.0` la abre a propósito.
+  `.claude/launch.json` y `.claude/settings.json` son locales (rutas de este ordenador) y no van al repositorio.
 - Está en OneDrive y en el repositorio git privado https://github.com/sqtactical/chirptenna
   (rama `main`). git y gh son portables: `%LOCALAPPDATA%\Programs\MinGit\cmd\git.exe` y
   `%LOCALAPPDATA%\Programs\gh\bin\gh.exe` (no están en el PATH; para gh, `GH_CONFIG_DIR` =
