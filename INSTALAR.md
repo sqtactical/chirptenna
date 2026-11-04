@@ -17,9 +17,9 @@ administrador del ordenador. Hay un instalador que lo descarga y lo prepara todo
 
 1. Entra en la página de versiones del proyecto: https://github.com/sqtactical/chirptenna/releases
 2. En la versión más reciente (arriba), abre **Assets** y pulsa **Source code (zip)**.
-3. Busca el archivo en tu carpeta **Descargas** (por ejemplo, `chirptenna-0.1.0-alpha.zip`).
+3. Busca el archivo en tu carpeta **Descargas** (por ejemplo, `chirptenna-0.1.1-alpha.zip`).
 4. Haz clic derecho sobre él → **Extraer todo…** → elige una carpeta que vayas a conservar,
-   por ejemplo `Documentos`. Te quedará una carpeta como `chirptenna-0.1.0-alpha`: es la carpeta del programa.
+   por ejemplo `Documentos`. Te quedará una carpeta como `chirptenna-0.1.1-alpha`: es la carpeta del programa.
 
 > ¿Quieres lo último aunque esté sin probar? En la página principal del proyecto, botón verde
 > **Code** → **Download ZIP** (`chirptenna-main`). Para usar el programa, mejor una versión publicada.

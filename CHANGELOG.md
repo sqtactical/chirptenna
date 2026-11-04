@@ -3,7 +3,9 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); versiones con
 [versionado semántico](https://semver.org/lang/es/). *English summary under each version.*
 
-## [Sin publicar] · Unreleased
+## [0.1.1-alpha] · 2026-11
+
+Igual que la 0.1.0-alpha salvo la licencia del código. *Same as 0.1.0-alpha except for the code licence.*
 
 ### Cambiado
 
@@ -61,4 +63,5 @@ export with DRC and a silkscreen logo, post-manufacture tuning aids, a NanoVNA c
 assistant, a design library, a dark mode and a Windows installer. Windows only; Spanish GUI. See “Known issues”
 in the README.
 
+[0.1.1-alpha]: https://github.com/sqtactical/chirptenna/releases/tag/v0.1.1-alpha
 [0.1.0-alpha]: https://github.com/sqtactical/chirptenna/releases/tag/v0.1.0-alpha

@@ -368,6 +368,11 @@ DRC limpio en Koch, Sierpinski, Yagi y array). Toca volver a **los cupones de va
    terceros), `fase0/README.md` corregido y código muerto quitado (`geometria.minkowski`,
    `exportar._piezas_cobre`). **Subido** al repositorio privado https://github.com/sqtactical/chirptenna
    (107 ficheros, sin Gerber). Renombrado a **Chirptenna** (04-11; descartados Fractalia —empresa española— y nombres con Fract-/Hertz por marcas). Logo en `docs/logo/` (grillo con antenas de Koch, `generar_logo.py`). Antes de hacerlo público: el usuario debe buscar «Chirptenna» en TMview.
+0. **v0.1.1-alpha publicada (04-11)**: igual que la 0.1.0 pero con el código en **AGPL-3.0** (la 0.1.0-alpha
+   queda con GPL-3.0). **TMview comprobado por el usuario: nada parecido a «Chirptenna».** Repositorio aún
+   privado. Plan acordado: alpha cerrado con los beta testers (recomendado: organización de GitHub gratuita
+   y testers con permiso Read; en un repo personal los colaboradores tienen escritura) y alpha abierto
+   (público) cuando haya medidas reales de las placas de JLC, capturas en el README y `RETOMAR.md` ordenado.
 0. **Release v0.1.0-alpha preparada (04-11)**: `CHANGELOG.md`, guías de instalación apuntando a Releases,
    `herramientas/comprobar_tipos.py` (32/32 bien: 16 tipos × 868/2441,75 MHz, DRC limpio, todos con logo) y la
    release creada en GitHub **como borrador** (pre-release; el usuario la publica, y al publicarla se crea la

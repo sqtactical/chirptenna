@@ -61,7 +61,7 @@ body:
     id: version
     attributes:
       label: "Versión de Chirptenna · Version"
-      placeholder: "v0.1.0-alpha"
+      placeholder: "v0.1.1-alpha"
   - type: checkboxes
     id: licencia
     attributes:
