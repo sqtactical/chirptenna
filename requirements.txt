@@ -1,0 +1,11 @@
+numpy
+h5py
+matplotlib
+pyserial
+gerbonara
+shapely
+nicegui
+plotly
+ezdxf
+# openEMS y CSXCAD se instalan desde las wheels del paquete de Windows:
+#   python -m pip install --no-index --find-links %LOCALAPPDATA%\Programs\openEMS\openEMS\python openEMS

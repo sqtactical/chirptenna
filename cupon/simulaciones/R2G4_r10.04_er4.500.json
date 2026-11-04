@@ -1,0 +1,13 @@
+{
+  "anillo": "R2G4",
+  "er": 4.5,
+  "picos": [
+    {
+      "f_GHz": 2.3971,
+      "S21_dB": -14.6
+    }
+  ],
+  "f_diseno_modos_GHz": [
+    2.4
+  ]
+}

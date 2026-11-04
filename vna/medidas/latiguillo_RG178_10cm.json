@@ -1,0 +1,17 @@
+{
+  "latiguillo": "latiguillo_RG178_10cm",
+  "fecha": "2026-10-25T22:32:26",
+  "calibracion": "PC: completa_50k_2700M",
+  "barrido_MHz": [
+    0.05,
+    2700.0,
+    1010
+  ],
+  "retardo_ps": 603.7,
+  "longitud_electrica_mm": 181.0,
+  "perdida_1GHz_dB": 0.1,
+  "perdida_2_4GHz_dB": 0.01,
+  "residuo_fase_max_grados": 13.0,
+  "longitud_fisica_mm": 100.0,
+  "factor_velocidad": 0.553
+}

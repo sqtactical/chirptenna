@@ -1,0 +1,15 @@
+{
+  "latiguillo": "latiguillo_RG178_cortado",
+  "fecha": "2026-10-30T16:20:14",
+  "calibracion": "PC: completa_50k_2700M",
+  "barrido_MHz": [
+    0.05,
+    2700.0,
+    1010
+  ],
+  "retardo_ps": 558.2,
+  "longitud_electrica_mm": 167.3,
+  "perdida_1GHz_dB": 0.09,
+  "perdida_2_4GHz_dB": 0.91,
+  "residuo_fase_max_grados": 13.8
+}

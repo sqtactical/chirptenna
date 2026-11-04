@@ -1,0 +1,76 @@
+{
+  "medida": "scout_pista1_B+_toma2",
+  "fecha": "2026-10-30T16:28:20",
+  "calibracion": "completa_50k_2700M",
+  "latiguillo": "latiguillo_RG178_cortado",
+  "retardo_descontado_ps": 558.2,
+  "longitud_pista_mm": 81.4,
+  "resonancias": [
+    {
+      "orden_cuartos_onda": 1,
+      "tipo": "λ/4 impar (corto)",
+      "f_MHz": 289.15,
+      "eps_eff_aprox": 10.14
+    },
+    {
+      "orden_cuartos_onda": 2,
+      "tipo": "λ/2 (abierto)",
+      "f_MHz": 373.7,
+      "eps_eff_aprox": 24.282
+    },
+    {
+      "orden_cuartos_onda": 3,
+      "tipo": "λ/4 impar (corto)",
+      "f_MHz": 390.02,
+      "eps_eff_aprox": 50.159
+    },
+    {
+      "orden_cuartos_onda": 4,
+      "tipo": "λ/2 (abierto)",
+      "f_MHz": 666.92,
+      "eps_eff_aprox": 30.496
+    },
+    {
+      "orden_cuartos_onda": 5,
+      "tipo": "λ/4 impar (corto)",
+      "f_MHz": 762.39,
+      "eps_eff_aprox": 36.464
+    },
+    {
+      "orden_cuartos_onda": 6,
+      "tipo": "λ/2 (abierto)",
+      "f_MHz": 807.02,
+      "eps_eff_aprox": 46.861
+    },
+    {
+      "orden_cuartos_onda": 7,
+      "tipo": "λ/4 impar (corto)",
+      "f_MHz": 974.12,
+      "eps_eff_aprox": 43.777
+    },
+    {
+      "orden_cuartos_onda": 8,
+      "tipo": "λ/2 (abierto)",
+      "f_MHz": 1038.92,
+      "eps_eff_aprox": 50.267
+    },
+    {
+      "orden_cuartos_onda": 9,
+      "tipo": "λ/4 impar (corto)",
+      "f_MHz": 1116.36,
+      "eps_eff_aprox": 55.1
+    },
+    {
+      "orden_cuartos_onda": 10,
+      "tipo": "λ/2 (abierto)",
+      "f_MHz": 1466.28,
+      "eps_eff_aprox": 39.431
+    },
+    {
+      "orden_cuartos_onda": 11,
+      "tipo": "λ/4 impar (corto)",
+      "f_MHz": 2382.89,
+      "eps_eff_aprox": 18.066
+    }
+  ]
+}

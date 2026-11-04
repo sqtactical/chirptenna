@@ -1,0 +1,398 @@
+{
+  "colineal_franklin": {
+    "puntos": [
+      [
+        2365.0,
+        0.6804
+      ]
+    ],
+    "n": 1,
+    "dispersion_%": null,
+    "muestras": [
+      {
+        "clave": "colineal_franklin",
+        "origen": "salidas\\_validacion4\\colineal_franklin_2441.75MHz",
+        "f_formula_MHz": 3475.7,
+        "f_simulada_MHz": 2364.99,
+        "factor": 0.6804,
+        "criterio": "centro de la banda a −10 dB"
+      }
+    ]
+  },
+  "dipolo@it0": {
+    "puntos": [
+      [
+        2464.8,
+        0.9864
+      ]
+    ],
+    "n": 2,
+    "dispersion_%": 4.1,
+    "muestras": [
+      {
+        "clave": "dipolo@it0",
+        "origen": "salidas\\_validacion4\\dipolo_2441.75MHz_alimentacion0",
+        "f_formula_MHz": 2398.1,
+        "f_simulada_MHz": 2465.47,
+        "factor": 1.0281,
+        "criterio": "centro de la banda a −10 dB"
+      },
+      {
+        "clave": "dipolo@it0",
+        "origen": "salidas\\_validacion4\\dipolo_2441.75MHz_alimentacion1",
+        "f_formula_MHz": 2603.9,
+        "f_simulada_MHz": 2464.21,
+        "factor": 0.9464,
+        "criterio": "centro de la banda a −10 dB"
+      }
+    ]
+  },
+  "jpole": {
+    "puntos": [
+      [
+        2490.2,
+        1.0795
+      ]
+    ],
+    "n": 2,
+    "dispersion_%": 2.3,
+    "muestras": [
+      {
+        "clave": "jpole",
+        "origen": "salidas\\_validacion2\\jpole_2441.75MHz",
+        "f_formula_MHz": 2308.3,
+        "f_simulada_MHz": 2434.55,
+        "factor": 1.0547,
+        "criterio": "reactancia nula en los terminales (no llega a −10 dB)"
+      },
+      {
+        "clave": "jpole",
+        "origen": "salidas\\_validacion3\\jpole_2441.75MHz",
+        "f_formula_MHz": 2305.5,
+        "f_simulada_MHz": 2547.17,
+        "factor": 1.1048,
+        "criterio": "reactancia nula en los terminales (no llega a −10 dB cerca del objetivo)"
+      }
+    ]
+  },
+  "jpole_koch@it2": {
+    "puntos": [
+      [
+        2459.5,
+        1.3103
+      ],
+      [
+        893.6,
+        1.1978
+      ]
+    ],
+    "n": 2,
+    "dispersion_%": null,
+    "muestras": [
+      {
+        "clave": "jpole_koch@it2",
+        "origen": "salidas\\_validacion2\\jpole_koch_2441.75MHz",
+        "f_formula_MHz": 1877.1,
+        "f_simulada_MHz": 2459.5,
+        "factor": 1.3103,
+        "criterio": "centro de la banda a −10 dB"
+      },
+      {
+        "clave": "jpole_koch@it2",
+        "origen": "salidas\\_validacion4\\jpole_koch_866.5MHz",
+        "f_formula_MHz": 746.1,
+        "f_simulada_MHz": 893.63,
+        "factor": 1.1978,
+        "criterio": "reactancia nula en los terminales (no llega a −10 dB cerca del objetivo)"
+      }
+    ]
+  },
+  "monopolo_hilbert": {
+    "puntos": [
+      [
+        867.9,
+        0.9141
+      ]
+    ],
+    "n": 1,
+    "dispersion_%": null,
+    "muestras": [
+      {
+        "clave": "monopolo_hilbert",
+        "origen": "salidas\\_validacion4\\monopolo_hilbert_866.5MHz_lado10.6",
+        "f_formula_MHz": 949.4,
+        "f_simulada_MHz": 867.87,
+        "factor": 0.9141,
+        "criterio": "reactancia nula en los terminales (no llega a −10 dB cerca del objetivo)"
+      }
+    ]
+  },
+  "monopolo_koch@it2": {
+    "puntos": [
+      [
+        2327.8,
+        0.9864
+      ],
+      [
+        834.7,
+        1.0432
+      ]
+    ],
+    "n": 2,
+    "dispersion_%": null,
+    "muestras": [
+      {
+        "clave": "monopolo_koch@it2",
+        "origen": "salidas\\_validacion2\\monopolo_koch_2441.75MHz_ajuste1",
+        "f_formula_MHz": 2359.9,
+        "f_simulada_MHz": 2327.76,
+        "factor": 0.9864,
+        "criterio": "centro de la banda a −10 dB"
+      },
+      {
+        "clave": "monopolo_koch@it2",
+        "origen": "salidas\\_validacion4\\monopolo_koch_866.5MHz_ajuste1",
+        "f_formula_MHz": 800.1,
+        "f_simulada_MHz": 834.66,
+        "factor": 1.0432,
+        "criterio": "centro de la banda a −10 dB"
+      }
+    ]
+  },
+  "monopolo_meandro": {
+    "puntos": [
+      [
+        2451.3,
+        1.1832
+      ],
+      [
+        844.4,
+        1.1237
+      ]
+    ],
+    "n": 3,
+    "dispersion_%": 7.8,
+    "muestras": [
+      {
+        "clave": "monopolo_meandro",
+        "origen": "salidas\\_validacion2\\monopolo_meandro_2441.75MHz",
+        "f_formula_MHz": 2071.7,
+        "f_simulada_MHz": 2451.32,
+        "factor": 1.1832,
+        "criterio": "centro de la banda a −10 dB"
+      },
+      {
+        "clave": "monopolo_meandro",
+        "origen": "salidas\\_validacion4\\monopolo_meandro_866.5MHz_ajuste1",
+        "f_formula_MHz": 706.2,
+        "f_simulada_MHz": 857.85,
+        "factor": 1.2147,
+        "criterio": "centro de la banda a −10 dB"
+      },
+      {
+        "clave": "monopolo_meandro",
+        "origen": "salidas\\_validacion4\\monopolo_meandro_866.5MHz_ajuste1_red_pi0_puente0_masa0_largo_masa55_ancho_placa90_vueltas3_ancho_meandro16_alto30",
+        "f_formula_MHz": 799.6,
+        "f_simulada_MHz": 831.21,
+        "factor": 1.0395,
+        "criterio": "reactancia nula en los terminales (no llega a −10 dB cerca del objetivo)"
+      }
+    ]
+  },
+  "monopolo_recto": {
+    "puntos": [
+      [
+        2445.0,
+        1.0113
+      ],
+      [
+        866.9,
+        1.0508
+      ]
+    ],
+    "n": 2,
+    "dispersion_%": null,
+    "muestras": [
+      {
+        "clave": "monopolo_recto",
+        "origen": "salidas\\_validacion4\\monopolo_recto_2441.75MHz_conector1",
+        "f_formula_MHz": 2417.6,
+        "f_simulada_MHz": 2445.01,
+        "factor": 1.0113,
+        "criterio": "mínimo de S11 (no llega a −10 dB)"
+      },
+      {
+        "clave": "monopolo_recto",
+        "origen": "salidas\\_validacion4\\monopolo_recto_866.5MHz",
+        "f_formula_MHz": 825.0,
+        "f_simulada_MHz": 866.9,
+        "factor": 1.0508,
+        "criterio": "centro de la banda a −10 dB"
+      }
+    ]
+  },
+  "monopolo_sierpinski@it2": {
+    "puntos": [
+      [
+        2461.9,
+        0.9609
+      ]
+    ],
+    "n": 1,
+    "dispersion_%": null,
+    "muestras": [
+      {
+        "clave": "monopolo_sierpinski@it2",
+        "origen": "salidas\\_validacion3\\monopolo_sierpinski_2441.75MHz",
+        "f_formula_MHz": 2562.1,
+        "f_simulada_MHz": 2461.87,
+        "factor": 0.9609,
+        "criterio": "centro de la banda a −10 dB"
+      }
+    ]
+  },
+  "parche_minkowski@it1": {
+    "puntos": [
+      [
+        2442.4,
+        0.9498
+      ]
+    ],
+    "n": 2,
+    "dispersion_%": 2.0,
+    "muestras": [
+      {
+        "clave": "parche_minkowski@it1",
+        "origen": "salidas\\_validacion2\\parche_minkowski_2441.75MHz",
+        "f_formula_MHz": 2610.0,
+        "f_simulada_MHz": 2429.44,
+        "factor": 0.9308,
+        "criterio": "centro de la banda a −10 dB"
+      },
+      {
+        "clave": "parche_minkowski@it1",
+        "origen": "salidas\\_validacion3\\parche_minkowski_2441.75MHz",
+        "f_formula_MHz": 2533.8,
+        "f_simulada_MHz": 2455.5,
+        "factor": 0.9691,
+        "criterio": "centro de la banda a −10 dB"
+      }
+    ]
+  },
+  "parche_minkowski@it3": {
+    "puntos": [
+      [
+        2418.4,
+        1.1304
+      ]
+    ],
+    "n": 1,
+    "dispersion_%": null,
+    "muestras": [
+      {
+        "clave": "parche_minkowski@it3",
+        "origen": "salidas\\_validacion4\\parche_minkowski_2441.75MHz_alimentacion1_iteracion3",
+        "f_formula_MHz": 2139.5,
+        "f_simulada_MHz": 2418.45,
+        "factor": 1.1304,
+        "criterio": "reactancia nula en los terminales (no llega a −10 dB cerca del objetivo)"
+      }
+    ]
+  },
+  "parche_rectangular": {
+    "puntos": [
+      [
+        2433.5,
+        0.9606
+      ]
+    ],
+    "n": 1,
+    "dispersion_%": null,
+    "muestras": [
+      {
+        "clave": "parche_rectangular",
+        "origen": "salidas\\_validacion3\\parche_rectangular_2441.75MHz",
+        "f_formula_MHz": 2533.3,
+        "f_simulada_MHz": 2433.54,
+        "factor": 0.9606,
+        "criterio": "centro de la banda a −10 dB"
+      }
+    ]
+  },
+  "yagi_boom@it0": {
+    "puntos": [
+      [
+        2381.2,
+        0.9962
+      ]
+    ],
+    "n": 3,
+    "dispersion_%": 2.4,
+    "muestras": [
+      {
+        "clave": "yagi_boom@it0",
+        "origen": "salidas\\_validacion3\\yagi_boom_2441.75MHz_alimentacion1",
+        "f_formula_MHz": 2371.6,
+        "f_simulada_MHz": 2437.6,
+        "factor": 1.0278,
+        "criterio": "centro de la banda a −10 dB"
+      },
+      {
+        "clave": "yagi_boom@it0",
+        "origen": "salidas\\_validacion3\\yagi_boom_2441.75MHz_unir_boom1",
+        "f_formula_MHz": 2387.8,
+        "f_simulada_MHz": 2315.79,
+        "factor": 0.9698,
+        "criterio": "reactancia nula en los terminales (no llega a −10 dB cerca del objetivo)"
+      },
+      {
+        "clave": "yagi_boom@it0",
+        "origen": "salidas\\_validacion4\\yagi_boom_2441.75MHz_iteracion0_directores3",
+        "f_formula_MHz": 2411.4,
+        "f_simulada_MHz": 2391.75,
+        "factor": 0.9919,
+        "criterio": "centro de la banda a −10 dB"
+      }
+    ]
+  },
+  "yagi_boom@it2": {
+    "puntos": [
+      [
+        2774.6,
+        1.2232
+      ]
+    ],
+    "n": 1,
+    "dispersion_%": null,
+    "muestras": [
+      {
+        "clave": "yagi_boom@it2",
+        "origen": "salidas\\_validacion4\\yagi_boom_2441.75MHz_iteracion2_directores3",
+        "f_formula_MHz": 2268.4,
+        "f_simulada_MHz": 2774.64,
+        "factor": 1.2232,
+        "criterio": "centro de la banda a −10 dB"
+      }
+    ]
+  },
+  "yagi_koch@it2": {
+    "puntos": [
+      [
+        2484.5,
+        1.0177
+      ]
+    ],
+    "n": 1,
+    "dispersion_%": null,
+    "muestras": [
+      {
+        "clave": "yagi_koch@it2",
+        "origen": "salidas\\_validacion4\\yagi_koch_2441.75MHz_directores1",
+        "f_formula_MHz": 2441.4,
+        "f_simulada_MHz": 2484.5,
+        "factor": 1.0177,
+        "criterio": "reactancia nula en los terminales (no llega a −10 dB cerca del objetivo)"
+      }
+    ]
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "prueba": "Monopolo impreso FR4 1,6 mm, ajuste automático",
+  "f_objetivo_GHz": 2.45,
+  "er": 4.4,
+  "tand": 0.02,
+  "h_mm": 1.6,
+  "placa_mm": [
+    40.0,
+    68.63
+  ],
+  "ancho_linea_50ohm_mm": 3.059,
+  "l_estimada_mm": 18.617,
+  "iteraciones": [
+    {
+      "l_mono_mm": 18.617,
+      "f_resonancia_GHz": 3.1367,
+      "R_resonancia_ohm": 46.1,
+      "f_centro_banda_GHz": 3.1096,
+      "f_min_S11_GHz": 3.157,
+      "S11_min_dB": -30.3,
+      "tiempo_s": null,
+      "celdas": [
+        117,
+        124,
+        71
+      ],
+      "banda_-10dB_GHz": [
+        2.854,
+        3.388
+      ]
+    },
+    {
+      "l_mono_mm": 23.629,
+      "f_resonancia_GHz": 2.8762,
+      "R_resonancia_ohm": 74.6,
+      "f_centro_banda_GHz": 2.4633,
+      "f_min_S11_GHz": 2.7396,
+      "S11_min_dB": -16.8,
+      "tiempo_s": 250.1,
+      "celdas": [
+        117,
+        125,
+        71
+      ],
+      "banda_-10dB_GHz": [
+        2.02,
+        3.004
+      ]
+    }
+  ],
+  "final": {
+    "l_mono_mm": 23.629,
+    "f_resonancia_GHz": 2.8762,
+    "R_resonancia_ohm": 74.6,
+    "f_centro_banda_GHz": 2.4633,
+    "f_min_S11_GHz": 2.7396,
+    "S11_min_dB": -16.8,
+    "tiempo_s": 262.5,
+    "celdas": [
+      117,
+      125,
+      71
+    ],
+    "banda_-10dB_GHz": [
+      2.02,
+      3.004
+    ],
+    "directividad_dBi": 3.57,
+    "eficiencia_radiacion_%": 89.7,
+    "eficiencia_total_%": 85.3,
+    "ganancia_dBi": 3.1
+  },
+  "resultado": "OK"
+}

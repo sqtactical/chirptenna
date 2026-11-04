@@ -1,0 +1,50 @@
+# --- Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# --- Salidas del generador (se regeneran; ningún Gerber va al repositorio)
+salidas/
+*.gbr
+*.gtl
+*.gbl
+*.gts
+*.gbs
+*.gto
+*.gbo
+*.gm1
+*.gko
+*.gbrjob
+*.drl
+*.zip
+**/gerber/
+**/gerber_reflector/
+*.kicad_pcb
+*.kicad_prl
+*.kicad_mod
+*.kicad_pcb.drc.json
+*.dxf
+
+# Cupones generados por cupon/generar_cupon.py
+cupon/cupon_A/
+cupon/cupon_B/
+cupon/_antiguo_185x100/
+
+# --- Placas de terceros (Gerber de EasyEDA/JLC) y lo que se deriva de ellas
+placas/
+analisis/resultados/
+placa_sim/resultados/
+
+# --- Datos del NanoVNA propio (copias de su SD)
+vna/calibraciones/sd_backup/
+
+# --- Herramientas locales
+.code-review-graph/
+.claude/ultima_revision_claude_md
+.claude/settings.local.json
+
+# --- Sistema
+Thumbs.db
+desktop.ini
+.DS_Store

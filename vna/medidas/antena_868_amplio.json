@@ -1,0 +1,24 @@
+{
+  "antena": "antena_868_amplio",
+  "fecha": "2026-10-25T21:38:46",
+  "barrido_MHz": [
+    400.0,
+    1500.0,
+    101
+  ],
+  "calibracion_equipo": [
+    "load isoln Es Er Et cal'ed"
+  ],
+  "f_min_S11_MHz": 862.0,
+  "S11_min_dB": -27.46,
+  "ROE_min": 1.09,
+  "Z_en_min_ohm": [
+    52.8,
+    -3.4
+  ],
+  "banda_-10dB_MHz": [
+    796.0,
+    895.0
+  ],
+  "ancho_banda_-10dB_MHz": 99.0
+}

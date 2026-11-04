@@ -1,0 +1,16 @@
+{
+  "prueba": "Dipolo λ/2 en espacio libre",
+  "L_mm": 60.0,
+  "ancho_mm": 1.0,
+  "f_resonancia_GHz": 2.2778,
+  "L_sobre_lambda": 0.4559,
+  "R_resonancia_ohm": 73.0,
+  "esperado": "L/λ entre 0,46 y 0,49; R entre 60 y 80 Ω",
+  "resultado": "FUERA DE RANGO",
+  "malla_celdas": [
+    49,
+    37,
+    95
+  ],
+  "tiempo_s": 29.3
+}

@@ -1,0 +1,29 @@
+{
+  "nombre": "completa_50k_2700M",
+  "inicio": "2026-10-25T22:25:36",
+  "f_ini_Hz": 50000.0,
+  "f_fin_Hz": 2700000000.0,
+  "puntos": 1010,
+  "equipo": {
+    "version": [
+      "1.2.42"
+    ],
+    "bandwidth": [
+      "bandwidth 3 (1000Hz)"
+    ],
+    "edelay": [
+      "0.000000000"
+    ],
+    "cal_en_equipo": [
+      "load isoln Es Er Et cal'ed"
+    ]
+  },
+  "calibrar_equipo": true,
+  "medidos": [
+    "load",
+    "open",
+    "short",
+    "thru"
+  ],
+  "fin": "2026-10-25T22:29:01"
+}
