@@ -130,8 +130,10 @@ def placa_kicad(antena, ruta, titulo='', etiqueta=None):
     conv = _Conversor(antena)
     nets = ['', 'GND', 'ANT']
     cuerpo = []
-    cuerpo.append(f'  (gr_poly (pts {_xy(conv.anillo(antena.contorno.exterior.coords))}) '
-                  f'(stroke (width 0.1) (type default)) (fill none) (layer "Edge.Cuts") (uuid "{_u()}"))')
+    # borde exterior y, si la placa va aligerada, cada ventana como contorno interior (se fresa)
+    for anillo in [antena.contorno.exterior] + list(antena.contorno.interiors):
+        cuerpo.append(f'  (gr_poly (pts {_xy(conv.anillo(anillo.coords))}) '
+                      f'(stroke (width 0.1) (type default)) (fill none) (layer "Edge.Cuts") (uuid "{_u()}"))')
     cobre_sup, cobre_inf = antena.cobre('F.Cu'), antena.cobre('B.Cu')
     pasante = antena.puerto.get('tipo') == 'pasante'
     taladros = list(antena.taladros)

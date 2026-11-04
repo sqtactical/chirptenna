@@ -1,4 +1,4 @@
-# Antenas fractales para PCB — estado a 30-10-2026
+# Chirptenna (antenas para PCB) — estado a 04-11-2026
 
 ## Hecho
 
@@ -368,6 +368,24 @@ DRC limpio en Koch, Sierpinski, Yagi y array). Toca volver a **los cupones de va
    terceros), `fase0/README.md` corregido y código muerto quitado (`geometria.minkowski`,
    `exportar._piezas_cobre`). **Subido** al repositorio privado https://github.com/sqtactical/chirptenna
    (107 ficheros, sin Gerber). Renombrado a **Chirptenna** (04-11; descartados Fractalia —empresa española— y nombres con Fract-/Hertz por marcas). Logo en `docs/logo/` (grillo con antenas de Koch, `generar_logo.py`). Antes de hacerlo público: el usuario debe buscar «Chirptenna» en TMview.
+0. **Interfaz nueva, biblioteca, asistente del NanoVNA y aligerado (04-11, petición del usuario)**:
+   - Interfaz por fases: barra fija (nombre, tipo, banda, «Guardar diseño»; naranja si hay cambios sin
+     guardar) y pestañas Diseño / Simulación / Fabricar / Medir / Mis diseños. Probada en el navegador
+     (cambiar tipo, aligerado, guardar, abrir desde la tabla, comparación de medidas, «Analizar»).
+   - Biblioteca (`antenas/biblioteca.py`) en `Documentos\Chirptenna\disenos\<nombre>` (fuera del repo):
+     `diseno.json`, `simulacion/` (se copia sola si el diseño estaba guardado y sin cambios al lanzar),
+     `fabricacion/` (la exportación va ahí), `medidas/*.s1p` + `medidas.json` (etiqueta, origen, notas).
+     Archivar = mover a `_archivados` (no se borra nada).
+   - Asistente del NanoVNA (pestaña Medir, `vna/asistente_vna.py`): conectar (solo lee) → calibración
+     guardada o nueva OSL guiada (rango sugerido ±40 % de f, máx. 2,7 GHz; guarda en `vna/calibraciones`)
+     → comprobar con la carga (< −25 dB) → medir y guardar con etiqueta, o modo en vivo (ventana ±25 %,
+     sin guardar) con resonancia, S11 en el objetivo y la acción sugerida; compara con la medida anterior.
+     **Sin probar con el equipo**: hacerlo con el usuario delante.
+   - Aligerado (`aligerado` en Yagi con boom, quasi-Yagi y panel): ventanas sin FR4 a `margen_aligerado` del
+     cobre con nervios de `nervio` mm; aire en la simulación, Edge.Cuts interiores al exportar. DRC limpio en
+     yagi_boom 2450 (8 ventanas, 47 % de FR4 quitado), quasi-Yagi (30 %), panel 2×2 (65 %), yagi_boom 866
+     (69 %). **Sin simular** (el usuario pidió no simular de momento): el desplazamiento de frecuencia es
+     desconocido; simular una Yagi aligerada antes de fabricarla.
 0. **Cola FIFO (01-11, `herramientas/cola.py`)**, a petición del usuario: sustituye a las colas encadenadas
    del scratchpad. Orden cargado: verificar pedido 2,4 GHz → Minkowski it3 2,4 → Minkowski it3 868 → array
    de parches 2×2 → Hilbert 2,4 → Hilbert 868 → Yagi comercial con vías. Dos trabajadores arrancan al

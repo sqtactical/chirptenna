@@ -207,6 +207,13 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
     fr4 = CSX.AddMaterial('sustrato', epsilon=er, kappa=kappa)
     cx, cy = antena.contorno.exterior.xy
     fr4.AddLinPoly(points=[np.array(cx[:-1]), np.array(cy[:-1])], norm_dir='z', elevation=0, length=h, priority=0)
+    if antena.contorno.interiors:
+        # recortes para aligerar: aire dentro de cada hueco del contorno (por encima del FR4, por debajo del cobre)
+        aire = CSX.AddMaterial('recortes', epsilon=1.0)
+        for hueco in antena.contorno.interiors:
+            hx, hy = hueco.xy
+            aire.AddLinPoly(points=[np.array(hx[:-1]), np.array(hy[:-1])], norm_dir='z', elevation=0, length=h,
+                            priority=1)
     cobre = CSX.AddMetal('cobre')
     for geom, z in ((inf, 0.0), (sup, h)):
         for pol in poligonos(geom):

@@ -51,7 +51,7 @@ archivos modificados después de la última revisión. La marca de esa revisión
 | `vna/` | Control del NanoVNA y medidas (detalle abajo). Las salidas van a `vna/medidas/` (`.s1p` + `.json` + `.png`) y a `vna/calibraciones/` |
 | `analisis/` | `analizar_placas.py` busca en los Gerber de EasyEDA pistas aptas para medir εr. `pines.py` lista los pines de componentes desde `FlyingProbeTesting.json`. `ver_aptas.py` filtra `resumen.json` |
 | `antenas/` | **Paquete del generador (Fase 1).** `geometria` (sistemas L: Koch, Minkowski; Hilbert; Sierpinski; meandro; isla de Minkowski hacia dentro; `sin_agujeros`), `materiales` (sustratos JLC FR4/RO4350B, síntesis microstrip), `modelo` (`Antena`: capas F.Cu/B.Cu, radiador, contorno, puerto, zona libre, info, vías, taladros, reflector), `tipos` (catálogo `CATALOGO`, `generar`, `estimar_f`, `dimensionar`), `directivas` (quasi-Yagi de Koch, Yagi de doble cara con boom, arrays de parches 2×2/4×4 y panel de dipolos 2×2/4×4 sobre reflector), `fabricacion` (reglas JLC), `ancho_banda` (estimación −10 dB), `consejos` (recomendaciones), `simulacion` (modelo openEMS de cualquier `Antena`, `simular`, `ajustar` por secante; caché en `%TEMP%\antenas_sim\<hash>`), `simular_cli` (proceso aparte: `python -m antenas.simular_cli trabajo.json` → `resultado.json` + `datos.npz`), `graficas` (Plotly: S11, Smith, cortes polares, 3D), `jpole` (J-pole y J-pole de Koch, sin masa, puerto coaxial), `dipolos` (dipolo recto/Koch con SMA y balun impreso o coaxial al centro; colineal COCO: tramos λg/2 de dos tiras superpuestas que se cruzan con 2 vías en cada unión; colineal Franklin: λ/4 sobre masa + elementos λ/2 con horquillas λ/4 alternas), `ajuste` (red en π, marcas de corte, tramos con puentes, asistente con `.s1p`, redes L con valores E24), `tipos_base` (`Parametro`), `validar_lote` (`python -m antenas.validar_lote <salida> [--malla adaptada] [--paralelo 2] [--hilos 6]`: simula y ajusta varios tipos, seguidos o N a la vez; `ANTENAS_HILOS` limita los hilos de openEMS), `comparar_mallas` (malla uniforme frente a adaptada sobre un lote), `conector` (parámetro `conector`: SMA de canto o IPEX/U.FL encima de la placa; con IPEX la línea arranca en su pad central y el puerto de la simulación va ahí; fija la masa y el ancho mínimos de los monopolos), `exportar` (placa/huella KiCad, Gerber, DRC, DXF; con reflector, segunda placa `<nombre>_reflector`), `vista` (PNG y Plotly) |
-| `gui/` | `app.py`: interfaz NiceGUI (tipo, banda, sustrato, reglas, parámetros, ajuste a la frecuencia, vista, comprobaciones, exportación) |
+| `gui/` | `app.py`: interfaz NiceGUI por fases: barra fija (nombre, tipo, banda, guardar) y pestañas Diseño / Simulación / Fabricar / Medir (asistente del NanoVNA) / Mis diseños. `antenas/biblioteca.py` guarda cada diseño en `Documentos\Chirptenna\disenos\<nombre>` (`diseno.json`, `simulacion/`, `fabricacion/`, `medidas/`); `CHIRPTENNA_DISENOS` cambia la ruta (úsala en pruebas para no ensuciar la del usuario) |
 | `cupon/` | Cupones de εr en placas de 100 × 100 mm: `generar_cupon.py` → `cupon_A/` (anillos 868 MHz y 2,4 GHz) y `cupon_B/` (anillo 5,8 GHz n=3, líneas abiertas S80/S30, líneas en L L64/L17, CPWG de 50 Ω con valla de vías y microstrip de 100 Ω), cada una con placa, Gerber, zip para JLC, DRC, `diseno.json` y leyenda en la serigrafía inferior; radios de los anillos ×0,93 (`CORRECCION_ANILLO`). `vista_gerber.py <cupón>`, `simular_anillo.py <anillo>` (openEMS con puertos MSL; caché por radio). `_antiguo_185x100/`: el cupón anterior |
 | `placa_sim/` | Importador Gerber → openEMS de una placa entera (`simular_placa.py`) y `comparar_sim.py` |
 | `salidas/` | Exportaciones de la interfaz (`salidas/<nombre>/`); `_pruebas/` son pruebas internas |
@@ -72,6 +72,9 @@ archivos modificados después de la última revisión. La marca de esa revisión
   <MHz_fin> <puntos> [--equipo]` → `open` / `short` / `load` / `isoln` / `thru` →
   `terminar`. `verificar [nombre]` comprueba una calibración ya guardada. Detecta
   estándares mal puestos comparándolos con el OPEN.
+- `asistente_vna.py`: operaciones para la interfaz (info del equipo, `CalibracionGuiada` OSL, verificar con
+  la carga, medir en una ventana de la rejilla de calibración); cerrojo para no hablar con el equipo dos veces
+  a la vez. `calibracion.comprobar_estandar` detecta estándares mal puestos (lo usan esto y `calibrar_pc.py`).
 - `calibrar.py`: calibración SOL antigua, solo en la RAM del equipo, con 101 puntos.
   Queda sustituida por `calibrar_pc.py`.
 - `medir_antena.py <nombre> <MHz_ini> <MHz_fin> [centro ini fin]`: genera S11, ROE, Smith
@@ -273,6 +276,12 @@ archivos modificados después de la última revisión. La marca de esa revisión
     acabar, `ajustar` guarda en los parámetros `k_sim` = f simulada sin cortar / estimada (`tipos.k_sim`), y
     los generadores con marcas (monopolos, parche, J-pole, quasi-Yagi) lo aplican solo a los rótulos; la
     geometría de las marcas es relativa y no cambia.
+46. Aligerado (`tipos._aligerar`, `geometria.ventanas_aligerado`): las ventanas son **huecos del contorno**
+    (`contorno.interiors`). Todo lo que use el contorno debe mirar también los interiores: simulación (aire con
+    prioridad 1 sobre el FR4), Edge.Cuts, vista y distancia del cobre al borde (`contorno.boundary`). Evitan
+    taladros, el SMA y el coaxial pasante, y dejan una espina central y nervios cada `paso`.
+47. Interfaz: el fondo de la página debe fijarse en CSS (`body { background }`): con el panel del navegador en
+    tema oscuro, el body transparente se veía negro aunque `dark=False`.
 39. Parches (`parche_rectangular`, `parche_minkowski`): `alimentacion` 0 = por el borde con transformador
     λ/4; 1 = por ranura (inset) hasta R = R_borde·cos²(π·d/L) = 50 Ω (`muesca` en mm, 0 = estimada;
     `hueco_muesca`). Con ranura la línea solo cruza el margen de masa (se ignora `largo_alimentacion`) y

@@ -163,6 +163,44 @@ def contorno_placa(partes, modo, recorte=None, redondeo=1.5):
     return c
 
 
+def ventanas_aligerado(contorno, cobre, margen=2.0, nervio=3.0, evitar=(), paso=30.0, radio=1.0, area_min=30.0):
+    """Ventanas (recortes de la placa) donde no hay cobre, para aligerar.
+
+    Deja un marco de ancho `nervio` en el borde, aparta las ventanas `margen` del cobre de las dos caras y
+    de los taladros (`evitar`: [(x, y, diámetro)]), quita un nervio central en x = 0 (las antenas
+    directivas son simétricas y así la placa conserva una espina) y parte las ventanas largas con nervios
+    cada `paso` mm. Las esquinas se redondean con `radio` (la fresa no hace esquinas vivas) y se descartan
+    las ventanas de menos de `area_min` mm² o más estrechas que 2·radio. Devuelve la lista de polígonos.
+    """
+    libre = contorno.buffer(-nervio, join_style='mitre')
+    if libre.is_empty:
+        return []
+    libre = libre.difference(cobre.buffer(margen, join_style='round'))
+    for x, y, d in evitar:
+        libre = libre.difference(LineString([(x, y), (x, y)]).buffer(d/2 + nervio))
+    x0, y0, x1, y1 = contorno.bounds
+    libre = libre.difference(box(-nervio/2, y0 - 1, nervio/2, y1 + 1))
+    ventanas = []
+    for pieza in poligonos(libre):
+        bx0, by0, bx1, by1 = pieza.bounds
+        largo_x, largo_y = bx1 - bx0, by1 - by0
+        # nervios transversales al lado largo, repartidos por igual
+        n = int(max(largo_x, largo_y)//paso)
+        for k in range(1, n + 1):
+            if largo_x >= largo_y:
+                xc = bx0 + k*largo_x/(n + 1)
+                pieza = pieza.difference(box(xc - nervio/2, by0 - 1, xc + nervio/2, by1 + 1))
+            else:
+                yc = by0 + k*largo_y/(n + 1)
+                pieza = pieza.difference(box(bx0 - 1, yc - nervio/2, bx1 + 1, yc + nervio/2))
+        for v in poligonos(pieza):
+            v = v.buffer(-radio, join_style='round').buffer(radio, join_style='round')
+            for w in poligonos(v):
+                if w.area >= area_min:
+                    ventanas.append(w)
+    return ventanas
+
+
 def sin_agujeros(pol):
     """Parte un polígono con agujeros en trozos sin agujeros (KiCad y CSXCAD no admiten huecos)."""
     from shapely.ops import split

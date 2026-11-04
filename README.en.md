@@ -31,6 +31,12 @@ manufactured boards.
    silkscreen.
 5. It can add **post-manufacture tuning** without components: an overlength with cut marks
    labelled in MHz, and segments closed with solder bridges (or an optional π network).
+6. It saves each design in **My designs** (`Documents\Chirptenna\disenos`) with its simulation,
+   export and measurements, and a **NanoVNA assistant** walks you through calibrating over the
+   antenna's range, checking, measuring (also live while you trim) and what to cut or fit in the
+   π network, with the measured curve overlaid on the simulated one.
+7. Yagis and the panel can have **lightening cutouts**: FR4-free windows between the copper and the
+   edge (not simulated yet: the frequency may rise slightly).
 
 ## Antenna types
 
@@ -83,6 +89,9 @@ python -m venv %LOCALAPPDATA%\antenas\venv
 ```bash
 %LOCALAPPDATA%\antenas\venv\Scripts\python.exe gui/app.py
 ```
+
+The tabs follow the workflow: **Design → Simulation → Manufacture → Measure → My designs** (the
+interface is in Spanish). Set `CHIRPTENNA_DISENOS` to store designs elsewhere.
 
 **Simulate and tune several designs from the command line**:
 

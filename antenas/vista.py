@@ -30,8 +30,9 @@ def dibujar_png(antena, ruta, titulo=None):
     if antena.reflector:
         x, y = antena.reflector['contorno'].exterior.xy
         ax.plot(x, y, '--', color='#888', lw=1)
-    x, y = antena.contorno.exterior.xy
-    ax.plot(x, y, 'k-', lw=1)
+    for anillo in [antena.contorno.exterior] + list(antena.contorno.interiors):   # con las ventanas de aligerado
+        x, y = anillo.xy
+        ax.plot(x, y, 'k-', lw=1)
     pintar(antena.cobre('B.Cu'), '#9db3e0', 0.5)
     pintar(antena.cobre('F.Cu'), '#c8892b', 0.95)
     bx, by = antena.puerto['borde']
@@ -64,8 +65,12 @@ def figura_plotly(antena):
         fig.add_trace(go.Scatter(x=list(x), y=list(y), mode='lines', line=dict(color='#888', width=1.5, dash='dash'),
                                  name=f'Reflector (a {antena.reflector["separacion_mm"]:.1f} mm por detrás)',
                                  hoverinfo='skip'))
-    x, y = antena.contorno.exterior.xy
-    fig.add_trace(go.Scatter(x=list(x), y=list(y), mode='lines', line=dict(color='#444', width=1.5),
+    xs, ys = [], []
+    for anillo in [antena.contorno.exterior] + list(antena.contorno.interiors):   # con las ventanas de aligerado
+        x, y = anillo.xy
+        xs += list(x) + [None]
+        ys += list(y) + [None]
+    fig.add_trace(go.Scatter(x=xs, y=ys, mode='lines', line=dict(color='#444', width=1.5),
                              name='Contorno de la placa', hoverinfo='skip'))
     taladros = list(antena.taladros)
     if antena.puerto.get('tipo') == 'pasante':

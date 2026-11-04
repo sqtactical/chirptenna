@@ -20,6 +20,31 @@ def s11(f, s, banda=None):
     return fig
 
 
+COLORES_MEDIDAS = ['#00897b', '#e53935', '#1e88e5', '#f9a825', '#6d4c41', '#8e24aa']
+
+
+def s11_comparada(curvas, banda=None, titulo='|S11| simulado frente a medido'):
+    """Varias curvas |S11| superpuestas: curvas = [(nombre, f [Hz], s11 complejo, simulada?)]."""
+    fig = go.Figure()
+    if banda:
+        fig.add_vrect(x0=banda[0]/1e6, x1=banda[1]/1e6, fillcolor='orange', opacity=0.2, line_width=0,
+                      annotation_text='banda', annotation_position='top left')
+    fig.add_hline(y=-10, line_dash='dash', line_color='grey', line_width=1)
+    i = 0
+    for nombre, f, s, simulada in curvas:
+        if simulada:
+            linea = dict(color='#5e35b1', width=2, dash='dash')
+        else:
+            linea = dict(color=COLORES_MEDIDAS[i % len(COLORES_MEDIDAS)], width=2)
+            i += 1
+        fig.add_trace(go.Scatter(x=np.asarray(f)/1e6, y=20*np.log10(np.abs(s)), mode='lines', line=linea, name=nombre,
+                                 hovertemplate='%{x:.1f} MHz<br>%{y:.1f} dB<extra>' + nombre + '</extra>'))
+    fig.update_layout(title=titulo, xaxis_title='MHz', yaxis_title='dB', margin=_MARGEN, plot_bgcolor='white',
+                      legend=dict(orientation='h', y=-0.25))
+    fig.update_xaxes(gridcolor='#eee'); fig.update_yaxes(gridcolor='#eee')
+    return fig
+
+
 def smith(f, s):
     fig = go.Figure()
     t = np.linspace(0, 2*np.pi, 200)

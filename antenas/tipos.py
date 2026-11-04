@@ -83,6 +83,17 @@ PARAMS_MUESCA = [
     Parametro('hueco_muesca', 'Hueco a cada lado de la línea en la ranura [mm]', 1.0, 0.3, 5, 0.1),
 ]
 
+# Recortes para aligerar (Yagi y panel): ventanas sin FR4 donde no hay cobre
+PARAMS_ALIGERADO = [
+    Parametro('aligerado', 'Recortes para aligerar', 0, 0, 1, 1, True,
+              opciones={0: 'No', 1: 'Sí: ventanas sin FR4 entre el borde y el centro'},
+              ayuda='Menos peso y algo menos de pérdidas; quitar FR4 sube un poco la frecuencia: vuelve a simular'),
+    Parametro('margen_aligerado', 'Distancia de las ventanas al cobre [mm]', 2.0, 1.0, 20, 0.5),
+    Parametro('nervio', 'Ancho del marco y de los nervios [mm]', 3.0, 1.5, 20, 0.5,
+              ayuda='Marco del borde, nervio central y nervios que parten las ventanas largas'),
+]
+PARAMS_SOLO_ALIGERADO = {'margen_aligerado', 'nervio'}
+
 # Comunes a todos los tipos: forma de la placa de prueba
 PARAMS_CONTORNO = [
     Parametro('contorno', 'Contorno de la placa', 1, 0, 1, 1, True,
@@ -658,6 +669,27 @@ for _t in CATALOGO.values():
     if _t.familia not in ('jpole', 'panel') and _t.clave != 'colineal_coco':
         _t.parametros = _t.parametros + [PARAM_CONECTOR]
     _t.parametros = _t.parametros + ajuste.parametros_para(GRUPO_AJUSTE[_t.clave])
+    if _t.familia in ('yagi', 'panel'):
+        _t.parametros = _t.parametros + PARAMS_ALIGERADO
+
+
+def _aligerar(a, p):
+    """Abre en el contorno las ventanas de `geometria.ventanas_aligerado` (lejos del cobre de las dos caras,
+    de los taladros y del conector). La simulación pone aire en ellas y la exportación las fresa."""
+    evitar = list(a.taladros)
+    if a.puerto.get('tipo') == 'pasante':
+        evitar.append((*a.puerto['alimentacion'], a.puerto.get('taladro_mm', 2.0)))
+    bx, by = a.puerto['borde']
+    evitar.append((bx, by, 16.0))                       # el SMA y su soldadura
+    cobre = unary_union([a.cobre('F.Cu'), a.cobre('B.Cu')])
+    ventanas = g.ventanas_aligerado(a.contorno, cobre, p['margen_aligerado'], p['nervio'], evitar)
+    if ventanas:
+        antes = a.contorno.area
+        a.contorno = a.contorno.difference(unary_union(ventanas))
+        a.info['ventanas_aligerado'] = len(ventanas)
+        a.info['fr4_quitado_%'] = round(100*(1 - a.contorno.area/antes), 1)
+    else:
+        a.info.setdefault('avisos', []).append('Recortes: no cabe ninguna ventana con ese margen y ese nervio.')
 
 
 def sustrato(nombre=None):
@@ -693,6 +725,8 @@ def generar(clave, parametros=None, nombre_sustrato=None):
         a = directivas.generar_array(p, s, lambda: poligono_parche(mink, p), f_el, R)
     else:
         a = _generar_parche(tipo, p, s)
+    if int(p.get('aligerado', 0)) == 1:
+        _aligerar(a, p)
     if conector.tipo(p) == conector.IPEX and a.puerto.get('tipo') not in ('coaxial', 'pasante'):
         conector.aplicar_ipex(a, ancho_microstrip(50, s.er, s.h))
     f_est = estimar_f(clave, p, nombre_sustrato)

@@ -41,27 +41,10 @@ def guardar_sesion(info, d):
 
 def comprobar(paso, s11, s21, d):
     """Detecta estándares equivocados comparando con el OPEN ya medido."""
-    m = np.abs(s11)
-    if paso == 'open':
-        return None if np.median(m) > 0.05 else 'casi no hay reflexión: ¿está puesto el OPEN?'
-    ref = d.get('open_s11')
-    if ref is None:
-        return 'mide primero el OPEN'
-    rel = s11/ref
-    mag = np.median(np.abs(rel))
-    fase = np.degrees(np.median(np.abs(np.angle(rel))))
-    print(f'  respecto al OPEN: |Γ| x{mag:.2f}, desfase mediano {fase:.0f}°')
-    if paso == 'short':
-        if mag < 0.5:
-            return 'refleja mucho menos que el OPEN: ¿está puesta la CARGA?'
-        if fase < 90:
-            return 'misma fase que el OPEN: ¿sigue puesto el OPEN?'
-    if paso in ('load', 'isoln') and mag > 0.3:
-        return 'refleja casi como OPEN/SHORT: ¿está puesta la CARGA de 50 Ω en CH0?'
-    if paso == 'thru':
-        if 'isoln_s21' in d and np.median(np.abs(s21)) < 10*np.median(np.abs(d['isoln_s21'])):
-            return 'apenas llega señal a CH1: ¿está conectado el THRU entre CH0 y CH1?'
-    return None
+    aviso, texto = cal.comprobar_estandar(paso, s11, s21, d)
+    if texto and paso != 'open':
+        print(f'  {texto}')
+    return aviso
 
 
 def main():

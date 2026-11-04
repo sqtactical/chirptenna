@@ -60,18 +60,32 @@ class Calibracion:
         self.ex = self.brutos['isoln'][1] if 'isoln' in self.brutos else np.zeros_like(o)
         self.et = (self.brutos['thru'][1] - self.ex) if 'thru' in self.brutos else None
 
-    def corregir(self, s11m, s21m=None):
-        d = s11m - self.ed
-        s11 = d/(self.er + self.es*d)
+    def corregir(self, s11m, s21m=None, idx=slice(None)):
+        d = s11m - self.ed[idx]
+        s11 = d/(self.er[idx] + self.es[idx]*d)
         if s21m is None or self.et is None:
             return s11, None
-        return s11, (s21m - self.ex)/self.et
+        return s11, (s21m - self.ex[idx])/self.et[idx]
 
-    def medir(self, vna):
-        """Mide con esta calibración. Devuelve (f, S11, S21 corregidos)."""
-        s11m, s21m = medir_bruto(vna, self.f)
-        s11, s21 = self.corregir(s11m, s21m)
-        return self.f, s11, s21
+    def medir(self, vna, f_min=None, f_max=None):
+        """Mide con esta calibración. Devuelve (f, S11, S21 corregidos).
+
+        Con f_min/f_max solo mide los puntos de la rejilla de calibración dentro de ese
+        intervalo (más rápido: sirve para medir en vivo mientras se ajusta la antena).
+        """
+        idx = slice(None)
+        if f_min is not None or f_max is not None:
+            m = np.nonzero((self.f >= (f_min or 0)) & (self.f <= (f_max or np.inf)))[0]
+            if len(m) < 2:
+                raise ValueError('El intervalo pedido no está dentro del rango de la calibración')
+            idx = slice(m[0], m[-1] + 1)
+        s11m, s21m = medir_bruto(vna, self.f[idx])
+        s11, s21 = self.corregir(s11m, s21m, idx)
+        return self.f[idx], s11, s21
+
+    @property
+    def rango_Hz(self):
+        return float(self.f[0]), float(self.f[-1])
 
     def guardar(self, nombre):
         os.makedirs(DIR_CAL, exist_ok=True)
@@ -90,6 +104,42 @@ class Calibracion:
         ruta_info = os.path.join(DIR_CAL, nombre + '.json')
         info = json.load(open(ruta_info, encoding='utf-8')) if os.path.exists(ruta_info) else {}
         return cls(d['f'], brutos, info)
+
+
+def comprobar_estandar(paso, s11, s21, d):
+    """Detecta un estándar mal puesto comparándolo con el OPEN ya medido.
+
+    d: {'open_s11': ..., 'isoln_s21': ...} con lo medido hasta ahora.
+    Devuelve (aviso o None, texto informativo).
+    """
+    m = np.abs(s11)
+    if paso == 'open':
+        return (None if np.median(m) > 0.05 else 'casi no hay reflexión: ¿está puesto el OPEN?'), \
+            f'|Γ| mediano {np.median(m):.2f}'
+    ref = d.get('open_s11')
+    if ref is None:
+        return 'mide primero el OPEN', ''
+    rel = s11/ref
+    mag = np.median(np.abs(rel))
+    fase = np.degrees(np.median(np.abs(np.angle(rel))))
+    texto = f'respecto al OPEN: |Γ| ×{mag:.2f}, desfase mediano {fase:.0f}°'
+    if paso == 'short':
+        if mag < 0.5:
+            return 'refleja mucho menos que el OPEN: ¿está puesta la CARGA?', texto
+        if fase < 90:
+            return 'misma fase que el OPEN: ¿sigue puesto el OPEN?', texto
+    if paso in ('load', 'isoln') and mag > 0.3:
+        return 'refleja casi como OPEN/SHORT: ¿está puesta la CARGA de 50 Ω en CH0?', texto
+    if paso == 'thru':
+        if 'isoln_s21' in d and np.median(np.abs(s21)) < 10*np.median(np.abs(d['isoln_s21'])):
+            return 'apenas llega señal a CH1: ¿está conectado el THRU entre CH0 y CH1?', texto
+    return None, texto
+
+
+def autocomprobacion(c):
+    """Error máximo de los propios estándares corregidos (debe ser ~1e-15)."""
+    return {k: float(np.max(np.abs(c.corregir(c.brutos[k][0])[0] - ideal)))
+            for k, ideal in (('open', 1), ('short', -1), ('load', 0)) if k in c.brutos}
 
 
 def listar():

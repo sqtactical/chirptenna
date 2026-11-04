@@ -32,7 +32,7 @@ def comprobar(antena, nombre_reglas=REGLAS_POR_DEFECTO):
         if relleno > s*s*2:
             res.append(('error', f'{nombre}: hay huecos más estrechos que {s} mm ({relleno:.3f} mm²)'))
         # Distancia al borde de la placa
-        d_borde = antena.contorno.exterior.distance(cobre)
+        d_borde = antena.contorno.boundary.distance(cobre)       # borde exterior y ventanas de aligerado
         if d_borde < r['borde_min'] - 1e-6 and capa == 'B.Cu':
             res.append(('aviso', f'{nombre}: cobre a {d_borde:.2f} mm del borde (mínimo {r["borde_min"]} mm)'))
     # Vueltas de la pista que se pisan (el área real es menor que largo × ancho)

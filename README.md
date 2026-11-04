@@ -28,6 +28,12 @@ las placas fabricadas.
    DXF y huella para usarla dentro de otra placa. Pasa el DRC de KiCad y rotula la serigrafía.
 5. Puede añadir **ajuste tras fabricar** sin componentes: sobrelargo con marcas de corte rotuladas
    en MHz y tramos que se cierran con un puente de estaño (o red en π opcional).
+6. Guarda cada diseño en **Mis diseños** (`Documentos\Chirptenna\disenos`) con su simulación, su
+   exportación y sus medidas, y un **asistente del NanoVNA** te guía: calibrar en el rango de la
+   antena, comprobar, medir (también en vivo mientras cortas) y qué cortar o qué poner en la red en π,
+   con la curva medida superpuesta a la simulada.
+7. Las Yagi y el panel pueden llevar **recortes de aligerado**: ventanas sin FR4 entre el cobre y el
+   borde (sin simular todavía: la frecuencia puede subir un poco).
 
 ## Tipos de antena
 
@@ -83,6 +89,9 @@ python -m venv %LOCALAPPDATA%\antenas\venv
 ```bash
 %LOCALAPPDATA%\antenas\venv\Scripts\python.exe gui/app.py
 ```
+
+Las pestañas siguen el orden de trabajo: **Diseño → Simulación → Fabricar → Medir → Mis diseños**.
+La carpeta de los diseños se puede cambiar con la variable de entorno `CHIRPTENNA_DISENOS`.
 
 **Simular y ajustar varios diseños desde la línea de comandos** (resultados en la carpeta indicada):
 
