@@ -31,7 +31,10 @@ archivos modificados después de la última revisión. La marca de esa revisión
   (importan módulos hermanos). El paquete `antenas/` se usa desde la raíz (`gui/app.py` añade la
   raíz a `sys.path`). Interfaz: `python gui/app.py` → http://localhost:8080
   (`.claude/launch.json`: "generador-antenas").
-- Está en OneDrive y va a un repositorio git privado de GitHub. Documentación pública: `README.md`
+- Está en OneDrive y en el repositorio git privado https://github.com/sqtactical/generador-antenas-pcb
+  (rama `main`). git y gh son portables: `%LOCALAPPDATA%\Programs\MinGit\cmd\git.exe` y
+  `%LOCALAPPDATA%\Programs\gh\bin\gh.exe` (no están en el PATH; para gh, `GH_CONFIG_DIR` =
+  `%LOCALAPPDATA%\Programs\gh\config`). Commits con el correo noreply de GitHub, nunca el personal. Documentación pública: `README.md`
   (castellano) y `README.en.md` (inglés); licencias: `LICENSE` (código, GPL-3.0) y `LICENSE-DISENOS.md`
   (diseños publicados, CC BY-NC 4.0). El `.gitignore` deja fuera `salidas/`, `placas/` (Gerber de
   terceros), los cupones generados y **cualquier Gerber**: el repositorio es el generador, no sus salidas.
