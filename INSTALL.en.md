@@ -15,18 +15,21 @@ be an administrator. An installer downloads and sets up everything; it takes abo
 
 ## 1. Download the program
 
-1. Go to the project page on GitHub: https://github.com/sqtactical/chirptenna
-2. Click the green **Code** button, then **Download ZIP**.
-3. Find the file in your **Downloads** folder (`chirptenna-main.zip`).
+1. Go to the project's releases page: https://github.com/sqtactical/chirptenna/releases
+2. In the latest release (at the top), open **Assets** and click **Source code (zip)**.
+3. Find the file in your **Downloads** folder (e.g. `chirptenna-0.1.0-alpha.zip`).
 4. Right-click it → **Extract All…** → choose a folder you will keep, for example `Documents`.
-   You will get a `chirptenna-main` folder.
+   You will get a folder like `chirptenna-0.1.0-alpha`: that is the program folder.
+
+> Want the very latest, untested code? On the main project page, green **Code** button → **Download
+> ZIP** (`chirptenna-main`). For normal use, prefer a published release.
 
 > If you later delete or move that folder, the desktop shortcut will stop working: run the
 > installer again from the new location.
 
 ## 2. Run the installer
 
-1. Open the `chirptenna-main` folder and **double-click `instalar.bat`**.
+1. Open the program folder and **double-click `instalar.bat`**.
 2. Windows may show a blue warning: **“Windows protected your PC”**. This is normal for programs
    downloaded from the internet that are not sold in a store. Click **More info** →
    **Run anyway**.
@@ -89,7 +92,7 @@ are not touched.
 
 ## Uninstalling
 
-1. Delete the program folder (`chirptenna-main`) and the desktop shortcut.
+1. Delete the program folder and the desktop shortcut.
 2. Delete these folders (paste the path into the File Explorer address bar):
    - `%LOCALAPPDATA%\antenas` (Python environment, downloads and simulation cache)
    - `%LOCALAPPDATA%\Programs\openEMS`

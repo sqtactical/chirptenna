@@ -1,0 +1,52 @@
+# Cambios · Changelog
+
+Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); versiones con
+[versionado semántico](https://semver.org/lang/es/). *English summary under each version.*
+
+## [0.1.0-alpha] · 2026-11
+
+Primera versión pública. **Alpha: todo está validado solo en simulación**; todavía no se ha medido
+ninguna placa fabricada. Se buscan medidas reales (plantilla de issue «Medida real»).
+
+### Qué incluye
+
+- **16 tipos de antena** para PCB, dimensionados para cualquier frecuencia (433 / 868 MHz, 2,4 GHz u otra):
+  monopolos (recto, meandro, Koch, Hilbert, Sierpinski), parches (rectangular, Minkowski; alimentación por
+  el borde o por ranura), dipolo impreso (balun impreso o coaxial al centro), J-pole y J-pole de Koch,
+  colineales (COCO, Franklin), directivas (Yagi de doble cara con boom, quasi-Yagi de Koch, array de parches
+  2×2/4×4, panel de dipolos 2×2/4×4 sobre reflector).
+- **Simulación con openEMS** desde la interfaz: S11, ROE, carta de Smith con la banda marcada, diagrama de
+  radiación (cortes y 3D con la placa dentro), ganancia y eficiencia; **ajuste automático** a la frecuencia
+  (y a la adaptación en los tipos que lo necesitan). Estimaciones calibradas con simulaciones anteriores.
+- **Fabricación**: comprobación de reglas de JLC, placa de prueba de KiCad con SMA de canto o IPEX, Gerber con
+  taladros para JLC, DXF y huella; DRC de KiCad automático. Serigrafía con el logo de Chirptenna (grande,
+  pequeño u opcional) e inscripciones a elegir. Recortes para aligerar Yagi y paneles.
+- **Ajuste tras fabricar** sin componentes: marcas de corte rotuladas en MHz, tramos con puente de estaño y
+  red en π opcional.
+- **NanoVNA-H**: asistente para conectar, calibrar en el PC (OSL guiada), comprobar, medir (también en vivo) y
+  saber qué cortar o qué poner en la red en π, con la medida superpuesta a la simulación.
+- **Mis diseños**: biblioteca en `Documentos\Chirptenna\disenos` con geometría, simulación, exportación,
+  medidas y notas de cada diseño.
+- Interfaz en el navegador (NiceGUI) por fases, con modo claro/oscuro; avisos de los problemas conocidos de
+  cada tipo.
+- **Instalador para Windows** (`instalar.bat`, sin permisos de administrador) y guía paso a paso.
+- Cupones de calibración para medir la εr real del FR4 (`cupon/`).
+
+### Limitaciones conocidas
+
+- Validado solo en simulación, con εr 4,5 para el FR4 de JLC.
+- Tipos que no funcionan bien en simulación: J-pole recta, colineal Franklin, quasi-Yagi de Koch, Yagi con
+  elementos de Koch, parche de Minkowski de iteración ≥ 2, Hilbert sin red en π. Detalle en
+  «Problemas conocidos» del README.
+- Solo Windows; interfaz solo en castellano; sin pruebas automáticas en CI (hay una comprobación manual:
+  `python herramientas/comprobar_tipos.py`).
+
+### English summary
+
+First public release. **Alpha: validated in simulation only**; no manufactured board has been measured yet.
+Includes 16 PCB antenna types for any frequency, openEMS simulation with automatic tuning, KiCad/Gerber/DXF
+export with DRC and a silkscreen logo, post-manufacture tuning aids, a NanoVNA calibration and measurement
+assistant, a design library, a dark mode and a Windows installer. Windows only; Spanish GUI. See “Known issues”
+in the README.
+
+[0.1.0-alpha]: https://github.com/sqtactical/chirptenna/releases/tag/v0.1.0-alpha

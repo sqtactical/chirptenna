@@ -7,6 +7,7 @@
 > **Status: alpha (v0.1.0-alpha).** Validated in simulation only: no manufactured board has been
 > measured yet. **Real measurements wanted**: if you build an antenna and measure it, share it with
 > the [“Real measurement”](../../issues/new/choose) template. How to contribute: [CONTRIBUTING.md](CONTRIBUTING.md).
+> Release notes: [CHANGELOG.md](CHANGELOG.md).
 
 **Chirptenna** (from *chirp*, LoRa's modulation, and *antenna*) is a program that generates **PCB-printed antennas** (fractal, directional and reference designs)
 for a target frequency, **tunes them by simulating with openEMS** (FDTD) and **exports them to
@@ -97,7 +98,8 @@ before trusting it. The GUI shows these warnings when you pick the type and when
 
 ## Installation
 
-**No Python knowledge needed:** download the ZIP, double-click **`instalar.bat`**, then open the
+**No Python knowledge needed:** download the ZIP of the latest version from
+[Releases](https://github.com/sqtactical/chirptenna/releases), double-click **`instalar.bat`**, then open the
 program with the desktop shortcut or **`iniciar.bat`**. The installer downloads Python and openEMS
 from their official sites (checking the signature and SHA-256), creates the environment and installs
 the packages, without administrator rights. Step-by-step guide, troubleshooting, uninstalling and

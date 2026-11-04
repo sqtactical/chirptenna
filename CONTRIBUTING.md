@@ -46,9 +46,9 @@ Una sola medida bien documentada vale más que muchas líneas de código ahora m
 
 ### Si tocas un tipo de antena
 
-1. Genera y exporta el tipo con sus valores por defecto **a 868 MHz y a 2,4 GHz** (desde la interfaz o con
-   `antenas.tipos.generar` + `antenas.exportar.exportar_todo`) y comprueba que el **DRC de KiCad sale limpio**
-   y que `fabricacion.comprobar` no da errores.
+1. Pasa la comprobación de todos los tipos, que los genera y exporta **a 868 MHz y a 2,4 GHz** con el DRC de
+   KiCad y las reglas de fabricación (unos 2 min; debe salir todo «OK»):
+   `python herramientas/comprobar_tipos.py` (o `--solo tipo1,tipo2`).
 2. Si cambia la geometría que se simula, **simúlalo** (`python -m antenas.validar_lote …`) e indica en la PR
    la resonancia, la banda a −10 dB, la ganancia y la eficiencia antes y después.
 3. Un tipo nuevo necesita: su entrada en `tipos.CATALOGO`, `info['pista_minima_mm']` y

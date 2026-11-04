@@ -7,7 +7,7 @@
 <!-- Marca lo que aplique y deja los resultados. Ver CONTRIBUTING.md -->
 
 - [ ] La interfaz arranca y el cambio funciona en ella (`iniciar.bat`)
-- [ ] Tipos afectados generados y exportados a 868 MHz y 2,4 GHz, con el **DRC de KiCad limpio**
+- [ ] `python herramientas/comprobar_tipos.py` sale todo «OK» (genera y exporta todos los tipos a 868 MHz y 2,4 GHz con el **DRC de KiCad**)
 - [ ] Simulado (si cambia la geometría que se simula): resonancia, banda −10 dB, ganancia y η antes / después
 - [ ] Medido en una placa real (¡mejor aún!)
 - [ ] No aplica (documentación, textos…)

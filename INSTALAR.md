@@ -15,18 +15,21 @@ administrador del ordenador. Hay un instalador que lo descarga y lo prepara todo
 
 ## 1. Descarga el programa
 
-1. Entra en la página del proyecto en GitHub: https://github.com/sqtactical/chirptenna
-2. Pulsa el botón verde **Code** y luego **Download ZIP**.
-3. Busca el archivo en tu carpeta **Descargas** (se llama `chirptenna-main.zip`).
+1. Entra en la página de versiones del proyecto: https://github.com/sqtactical/chirptenna/releases
+2. En la versión más reciente (arriba), abre **Assets** y pulsa **Source code (zip)**.
+3. Busca el archivo en tu carpeta **Descargas** (por ejemplo, `chirptenna-0.1.0-alpha.zip`).
 4. Haz clic derecho sobre él → **Extraer todo…** → elige una carpeta que vayas a conservar,
-   por ejemplo `Documentos`. Te quedará una carpeta `chirptenna-main`.
+   por ejemplo `Documentos`. Te quedará una carpeta como `chirptenna-0.1.0-alpha`: es la carpeta del programa.
+
+> ¿Quieres lo último aunque esté sin probar? En la página principal del proyecto, botón verde
+> **Code** → **Download ZIP** (`chirptenna-main`). Para usar el programa, mejor una versión publicada.
 
 > Si más adelante borras o mueves esa carpeta, el acceso directo del escritorio dejará de
 > funcionar: vuelve a ejecutar el instalador desde el sitio nuevo.
 
 ## 2. Ejecuta el instalador
 
-1. Abre la carpeta `chirptenna-main` y haz **doble clic en `instalar.bat`**.
+1. Abre la carpeta del programa y haz **doble clic en `instalar.bat`**.
 2. Windows puede mostrar un aviso azul: **«Windows protegió su PC»**. Es normal con programas
    descargados de internet que no se venden en una tienda. Pulsa **Más información** →
    **Ejecutar de todas formas**.
@@ -89,7 +92,7 @@ Tus diseños no se tocan.
 
 ## Desinstalar
 
-1. Borra la carpeta del programa (`chirptenna-main`) y el acceso directo del escritorio.
+1. Borra la carpeta del programa y el acceso directo del escritorio.
 2. Borra estas carpetas (pega la ruta en la barra del Explorador de archivos):
    - `%LOCALAPPDATA%\antenas` (entorno de Python, descargas y caché de simulaciones)
    - `%LOCALAPPDATA%\Programs\openEMS`

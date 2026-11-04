@@ -368,6 +368,11 @@ DRC limpio en Koch, Sierpinski, Yagi y array). Toca volver a **los cupones de va
    terceros), `fase0/README.md` corregido y código muerto quitado (`geometria.minkowski`,
    `exportar._piezas_cobre`). **Subido** al repositorio privado https://github.com/sqtactical/chirptenna
    (107 ficheros, sin Gerber). Renombrado a **Chirptenna** (04-11; descartados Fractalia —empresa española— y nombres con Fract-/Hertz por marcas). Logo en `docs/logo/` (grillo con antenas de Koch, `generar_logo.py`). Antes de hacerlo público: el usuario debe buscar «Chirptenna» en TMview.
+0. **Release v0.1.0-alpha preparada (04-11)**: `CHANGELOG.md`, guías de instalación apuntando a Releases,
+   `herramientas/comprobar_tipos.py` (32/32 bien: 16 tipos × 868/2441,75 MHz, DRC limpio, todos con logo) y la
+   release creada en GitHub **como borrador** (pre-release; el usuario la publica, y al publicarla se crea la
+   etiqueta `v0.1.0-alpha`). Para la siguiente versión: subir `antenas.__version__`, añadir sección al
+   CHANGELOG, pasar `comprobar_tipos.py` y crear otra release.
 0. **Preparación para publicar (04-11)**: interfaz solo en 127.0.0.1; `.claude/launch.json` y `settings.json`
    fuera del repositorio; **historial reescrito** (filter-branch) para quitar de todos los commits esos dos
    archivos con la ruta personal, y subido con `--force-with-lease` (los identificadores de commit cambiaron:

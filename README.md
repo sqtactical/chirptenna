@@ -7,6 +7,7 @@
 > **Estado: alpha (v0.1.0-alpha).** Validado solo en simulación: todavía no se ha medido ninguna
 > placa fabricada. **Se buscan medidas reales**: si fabricas una antena y la mides, compártela con
 > la plantilla [«Medida real»](../../issues/new/choose). Cómo colaborar: [CONTRIBUTING.md](CONTRIBUTING.md).
+> Cambios de cada versión: [CHANGELOG.md](CHANGELOG.md).
 
 **Chirptenna** (de *chirp*, la modulación de LoRa, y *antenna*) es un programa que genera **antenas impresas en PCB** (fractales, directivas y de referencia) para una
 frecuencia objetivo, las **ajusta simulándolas con openEMS** (FDTD) y las **exporta a KiCad,
@@ -99,7 +100,8 @@ Los detalles de cada simulación y los errores encontrados por el camino están 
 
 ## Instalación
 
-**Sin saber nada de Python:** descarga el ZIP, haz doble clic en **`instalar.bat`** y luego abre el
+**Sin saber nada de Python:** descarga el ZIP de la última versión en
+[Releases](https://github.com/sqtactical/chirptenna/releases), haz doble clic en **`instalar.bat`** y luego abre el
 programa con el acceso directo del escritorio o con **`iniciar.bat`**. El instalador descarga Python y
 openEMS de sus páginas oficiales (comprobando la firma y el SHA-256), crea el entorno e instala los
 paquetes, sin permisos de administrador. Guía paso a paso, problemas frecuentes, desinstalación e
