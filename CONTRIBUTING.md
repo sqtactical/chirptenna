@@ -5,6 +5,9 @@
 Gracias por querer ayudar. Chirptenna está en **alpha**: funciona de principio a fin, pero todo está
 validado solo en simulación. Por eso hay dos formas de colaborar, y la primera no requiere programar.
 
+Al participar aceptas el [código de conducta](CODE_OF_CONDUCT.md). Los fallos de seguridad se avisan en
+privado ([SECURITY.md](SECURITY.md)) y las dudas van a [Discussions](https://github.com/sqtactical/chirptenna/discussions).
+
 ## 1. Medidas reales (lo que más falta)
 
 Si fabricas una antena generada con Chirptenna y la mides con un VNA, abre un issue con la plantilla
@@ -90,3 +93,5 @@ For code: open an issue first for anything non-trivial; set up with `instalar.ba
 change an antenna type, export it at 868 MHz and 2.4 GHz with a clean KiCad DRC, simulate it if the
 geometry changes, and update `antenas/problemas.py` and both READMEs. Never send `save` to the NanoVNA.
 Contributions are licensed under AGPL-3.0 (code) and CC BY-NC 4.0 (published designs).
+By taking part you agree to the [Code of Conduct](CODE_OF_CONDUCT.md); report security issues privately
+([SECURITY.md](SECURITY.md)) and ask questions in [Discussions](https://github.com/sqtactical/chirptenna/discussions).
