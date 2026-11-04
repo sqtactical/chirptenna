@@ -71,7 +71,7 @@ Una sola medida bien documentada vale más que muchas líneas de código ahora m
 
 ## Licencias
 
-- El **código** es GPL-3.0 ([LICENSE](LICENSE)); los **diseños de antena publicados** en el proyecto, CC BY-NC 4.0
+- El **código** es AGPL-3.0 ([LICENSE](LICENSE)); los **diseños de antena publicados** en el proyecto, CC BY-NC 4.0
   ([LICENSE-DISENOS.md](LICENSE-DISENOS.md)).
 - Al enviar una PR aceptas que tu aportación se publique con esas mismas licencias. Al compartir una medida con
   la plantilla, aceptas que los datos se usen y se publiquen en el proyecto.
@@ -89,4 +89,4 @@ For code: open an issue first for anything non-trivial; set up with `instalar.ba
 (issues and PRs can be in English). Never commit Gerbers or other generated manufacturing files. If you
 change an antenna type, export it at 868 MHz and 2.4 GHz with a clean KiCad DRC, simulate it if the
 geometry changes, and update `antenas/problemas.py` and both READMEs. Never send `save` to the NanoVNA.
-Contributions are licensed under GPL-3.0 (code) and CC BY-NC 4.0 (published designs).
+Contributions are licensed under AGPL-3.0 (code) and CC BY-NC 4.0 (published designs).

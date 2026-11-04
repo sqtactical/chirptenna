@@ -166,6 +166,8 @@ repository: they are regenerated with the program.
 
 ## Licence
 
-- **Code:** [GNU GPL v3.0](LICENSE).
+- **Code:** [GNU AGPL v3.0](LICENSE) (v0.1.0-alpha was released under GPL v3.0; later versions, under AGPL).
+  You may use, modify and sell it, but if you distribute a modified version **or offer it as a network
+  service**, you must publish its source code under the same licence.
 - **Designs published by the author** (exported antennas and coupons): [CC BY-NC 4.0](LICENSE-DISENOS.md).
 - Designs you generate yourself with the program are yours.

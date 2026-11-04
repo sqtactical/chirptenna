@@ -19,4 +19,4 @@
 - [ ] Sin rutas ni datos personales
 - [ ] `antenas/problemas.py` y la tabla de los README actualizados si cambia el estado de un tipo
 - [ ] Si toca `vna/`: nunca se envía `save` y se restaura el estado del equipo
-- [ ] Acepto que esta aportación se publique con las licencias del proyecto (GPL-3.0 / CC BY-NC 4.0)
+- [ ] Acepto que esta aportación se publique con las licencias del proyecto (AGPL-3.0 / CC BY-NC 4.0)

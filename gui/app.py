@@ -1,5 +1,7 @@
 """Interfaz gráfica de Chirptenna (NiceGUI, se abre en el navegador).
 
+Chirptenna · Copyright (C) 2026 sqtactical · Software libre bajo la GNU AGPL v3.0 (ver LICENSE).
+
 Uso: python gui/app.py   ->   http://localhost:8080
 
 Organización por fases: una barra fija con el diseño (nombre, tipo y banda) y pestañas
@@ -30,6 +32,9 @@ from antenas.simulacion import PRECISIONES   # noqa: E402
 from antenas.materiales import SUSTRATOS, SUSTRATO_POR_DEFECTO   # noqa: E402
 
 DIR_SALIDAS = os.path.join(RAIZ, 'salidas')
+URL_PROYECTO = 'https://github.com/sqtactical/chirptenna'
+# Si publicas una versión modificada como servicio por red, la AGPL-3.0 te obliga a ofrecer su código:
+# cambia URL_PROYECTO por la dirección de tu código.
 LOGO = os.path.join(RAIZ, 'docs', 'logo', 'chirptenna.png')
 # Bandas de uso: (inicio, fin) en MHz. La antena se centra en el centro de la banda.
 # Los canales LoRa sueltos van en «Otra» (centro + ancho)
@@ -444,6 +449,14 @@ def pagina():
                 notas_in = ui.textarea(placeholder='Pedido, fecha de fabricación, qué se cortó, resultados…') \
                     .classes('w-full').props('autogrow')
                 btn_notas = ui.button('Guardar notas', icon='save').props('outline no-caps')
+
+    # Pie: versión, licencia y enlace al código fuente (la AGPL pide ofrecerlo a quien use el programa por red)
+    with ui.row().classes('w-full justify-center items-center gap-2 q-pa-md text-caption texto-sec'):
+        ui.label(f'Chirptenna v{__version__} · software libre')
+        ui.link('código fuente', URL_PROYECTO, new_tab=True)
+        ui.label('·')
+        ui.link('licencia AGPL-3.0', URL_PROYECTO + '/blob/main/LICENSE', new_tab=True)
+        ui.label('· diseños publicados: CC BY-NC 4.0')
 
     entradas = {}
 

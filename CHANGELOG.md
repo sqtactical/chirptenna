@@ -3,6 +3,18 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); versiones con
 [versionado semántico](https://semver.org/lang/es/). *English summary under each version.*
 
+## [Sin publicar] · Unreleased
+
+### Cambiado
+
+- **Licencia del código: de GPL-3.0 a AGPL-3.0.** Igual que la GPL, pero quien ofrezca una versión
+  modificada como servicio por internet también tiene que publicar su código. La v0.1.0-alpha sigue
+  disponible con GPL-3.0. Los diseños publicados siguen con CC BY-NC 4.0.
+- La interfaz enlaza al código fuente y a la licencia (pie de la página).
+
+*Code licence changed from GPL-3.0 to AGPL-3.0 (network use also requires sharing the source of modified
+versions). v0.1.0-alpha remains available under GPL-3.0.*
+
 ## [0.1.0-alpha] · 2026-11
 
 Primera versión pública. **Alpha: todo está validado solo en simulación**; todavía no se ha medido

@@ -1,5 +1,7 @@
 """Generador de antenas (fractales) impresas en PCB.
 
+Chirptenna · Copyright (C) 2026 sqtactical · Software libre bajo la GNU AGPL v3.0 (ver LICENSE).
+
 Módulos:
   geometria    – curvas fractales (sistemas L, Hilbert, Sierpinski) y utilidades de polígonos
   materiales   – sustratos (FR4 y Rogers de JLC) y síntesis de microstrip

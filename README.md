@@ -168,6 +168,8 @@ repositorio: se regeneran con el programa.
 
 ## Licencia
 
-- **Código:** [GNU GPL v3.0](LICENSE).
+- **Código:** [GNU AGPL v3.0](LICENSE) (la v0.1.0-alpha se publicó con GPL v3.0; las siguientes, con AGPL).
+  Puedes usarlo, modificarlo y venderlo, pero si distribuyes una versión modificada **o la ofreces como
+  servicio por internet**, tienes que publicar su código fuente con la misma licencia.
 - **Diseños publicados por el autor** (antenas y cupones exportados): [CC BY-NC 4.0](LICENSE-DISENOS.md).
 - Los diseños que generes tú con el programa son tuyos.

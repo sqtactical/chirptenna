@@ -43,7 +43,7 @@ archivos modificados después de la última revisión. La marca de esa revisión
   (rama `main`). git y gh son portables: `%LOCALAPPDATA%\Programs\MinGit\cmd\git.exe` y
   `%LOCALAPPDATA%\Programs\gh\bin\gh.exe` (no están en el PATH; para gh, `GH_CONFIG_DIR` =
   `%LOCALAPPDATA%\Programs\gh\config`). Commits con el correo noreply de GitHub, nunca el personal. Documentación pública: `README.md`
-  (castellano) y `README.en.md` (inglés); licencias: `LICENSE` (código, GPL-3.0) y `LICENSE-DISENOS.md`
+  (castellano) y `README.en.md` (inglés); licencias: `LICENSE` (código, AGPL-3.0 desde el 04-11; la v0.1.0-alpha salió con GPL-3.0) y `LICENSE-DISENOS.md`
   (diseños publicados, CC BY-NC 4.0). El `.gitignore` deja fuera `salidas/`, `placas/` (Gerber de
   terceros), los cupones generados y **cualquier Gerber**: el repositorio es el generador, no sus salidas.
   Al cambiar tipos o su estado, actualizar la tabla de tipos de los dos README.
@@ -288,7 +288,7 @@ archivos modificados después de la última revisión. La marca de esa revisión
     1.ª línea, resto de líneas, tamaño. `logo`: 'grande' (14 → 7 mm, luego el pequeño), 'pequeno' (6 → 4 mm,
     solo el grillo en placas estrechas) o None; con logo, si no cabe ni el grillo, la palabra «Chirptenna».
     **Decisión del usuario (04-11): logo grande por defecto, pero se puede quitar**, con un aviso amable que pide
-    mencionar el proyecto (`AVISO_SIN_LOGO`). No forzarlo: es GPL (se quita igual) y la placa es del usuario.
+    mencionar el proyecto (`AVISO_SIN_LOGO`). No forzarlo: es software libre (AGPL; se quita igual) y la placa es del usuario.
     La selección (`serigrafia` en `diseno.json`; `logo` antes era bool) se recupera al abrir. La huella
     `.kicad_mod` no lleva logo.
 38. Las marcas de corte y `f_sin_cortar_MHz` se rotulan con la estimación analítica, que falla un ~5 %. Al
