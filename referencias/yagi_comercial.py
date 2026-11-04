@@ -199,8 +199,10 @@ def main():
                     progreso=lambda m: print('PROGRESO', m, flush=True))
     f, s11 = r['f_Hz'], r['s11']
     db = 20*np.log10(np.abs(s11))
-    fm, sm = leer_s1p(MEDIDA)
-    dbm = 20*np.log10(np.abs(sm))
+    medida = os.path.exists(MEDIDA)          # las medidas son locales (no van al repositorio)
+    if medida:
+        fm, sm = leer_s1p(MEDIDA)
+        dbm = 20*np.log10(np.abs(sm))
     flo, fhi = r['banda_Hz']
     resumen = {'f_resonancia_MHz': round(r['f_resonancia_Hz']/1e6, 1),
                'banda_MHz': None if flo is None else [round(flo/1e6, 1), round(fhi/1e6, 1)],
@@ -222,7 +224,8 @@ def main():
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
     fig, ax = plt.subplots(figsize=(10, 5), tight_layout=True)
-    ax.plot(fm/1e6, dbm, label='Medida (NanoVNA, calibración del PC)')
+    if medida:
+        ax.plot(fm/1e6, dbm, label='Medida (NanoVNA, calibración del PC)')
     ax.plot(f/1e6, db, label=f'Simulación (openEMS, variante {variante})')
     ax.axhline(-10, ls='--', c='gray'); ax.set_xlim(1500, 3300); ax.grid(True); ax.legend()
     ax.set_xlabel('MHz'); ax.set_ylabel('S11 [dB]'); ax.set_title('Yagi comercial: medida frente a simulación')

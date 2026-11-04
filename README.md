@@ -42,6 +42,29 @@ las placas fabricadas.
 7. Las Yagi y el panel pueden llevar **recortes de aligerado**: ventanas sin FR4 entre el cobre y el
    borde (sin simular todavía: la frecuencia puede subir un poco).
 
+## Capturas
+
+**Diseño**: eliges tipo y banda, y el programa dimensiona la antena y avisa de sus problemas conocidos.
+
+![Pestaña Diseño con un monopolo de Sierpinski a 2,4 GHz](docs/capturas/diseno.png)
+
+**Simulación con openEMS**: S11, ROE, carta de Smith con la banda marcada, diagrama de radiación y
+diagrama 3D con la placa dentro (aquí, una Yagi de 2450 MHz: 7,2 dBi hacia los directores).
+
+![Pestaña Simulación de una Yagi de 2450 MHz](docs/capturas/simulacion.png)
+
+**Fabricar**: reglas de JLC, exportación a KiCad, Gerber y DXF, y las inscripciones de la serigrafía.
+
+![Pestaña Fabricar con las comprobaciones, la exportación y la serigrafía](docs/capturas/fabricar.png)
+
+La placa resultante (render de KiCad): cara superior y cara inferior con el logo y las inscripciones.
+
+<p align="center"><img src="docs/capturas/placa_yagi.png" alt="Placa de la Yagi: cara superior e inferior" width="640"></p>
+
+**Medir**: asistente del NanoVNA (conectar, calibrar, comprobar, medir) con la medida superpuesta a la simulación.
+
+![Pestaña Medir con el asistente del NanoVNA](docs/capturas/medir.png)
+
 ## Tipos de antena
 
 | Tipo | Familia | Estado en simulación |
@@ -86,7 +109,8 @@ antes de darla por buena. La interfaz muestra estos avisos al elegir el tipo y a
 | Fuera de 2,4 GHz | Solo los monopolos recto, meandro y Koch están validados también a 868 MHz. |
 
 Los detalles de cada simulación y los errores encontrados por el camino están en
-[`CLAUDE.md`](CLAUDE.md) (lecciones aprendidas) y [`RETOMAR.md`](RETOMAR.md) (estado).
+[`CLAUDE.md`](CLAUDE.md) (lecciones aprendidas), [`RETOMAR.md`](RETOMAR.md) (estado) y
+[`docs/desarrollo/historial.md`](docs/desarrollo/historial.md) (diario de desarrollo).
 
 ## Requisitos
 

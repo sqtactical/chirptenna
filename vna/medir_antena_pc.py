@@ -1,7 +1,7 @@
 """Mide el S11 de una antena con una calibración guardada en el PC (no la del equipo).
 
 Uso: python medir_antena_pc.py <nombre> [calibración] [--zoom MHz_ini MHz_fin]
-Mide en todo el rango de la calibración (por defecto completa_50k_2700M) y guarda en medidas/:
+Mide en todo el rango de la calibración (por defecto, la última guardada en calibraciones/) y guarda en medidas/:
 <nombre>.s1p, <nombre>.json (bandas a −10 dB, mínimos, comprobación de |S11| ≤ 0 dB) y
 <nombre>.png (S11 completo, zoom y resistencia/reactancia). La calibración.medir restaura el
 barrido y el estado del equipo al terminar; no se envía «save».
@@ -47,7 +47,13 @@ def main():
     if not args:
         sys.exit(__doc__)
     nombre = args[0]
-    nombre_cal = args[1] if len(args) > 1 else 'completa_50k_2700M'
+    if len(args) > 1:
+        nombre_cal = args[1]
+    else:
+        guardadas = cal.listar()
+        if not guardadas:
+            sys.exit('No hay ninguna calibración guardada: haz una con calibrar_pc.py o con el asistente de la interfaz.')
+        nombre_cal = guardadas[-1]
     c = cal.Calibracion.cargar(nombre_cal)
     with nv.NanoVNA() as vna:
         f, s11, _ = c.medir(vna)

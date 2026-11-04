@@ -36,8 +36,10 @@ placas/
 analisis/resultados/
 placa_sim/resultados/
 
-# --- Datos del NanoVNA propio (copias de su SD)
-vna/calibraciones/sd_backup/
+# --- Datos del NanoVNA propio: calibraciones (valen solo para un equipo y un latiguillo concretos) y
+# medidas. Son de cada usuario: cada uno hace las suyas (asistente de la interfaz o vna/calibrar_pc.py)
+vna/calibraciones/
+vna/medidas/
 
 # --- Herramientas locales
 .code-review-graph/
@@ -48,7 +50,6 @@ vna/calibraciones/sd_backup/
 # Preferencias de la interfaz (tema) que guarda NiceGUI
 .nicegui/
 .claude/ultima_revision_claude_md
-.claude/settings.local.json
 
 # --- Sistema
 Thumbs.db

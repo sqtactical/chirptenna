@@ -44,6 +44,29 @@ manufactured boards.
 7. Yagis and the panel can have **lightening cutouts**: FR4-free windows between the copper and the
    edge (not simulated yet: the frequency may rise slightly).
 
+## Screenshots
+
+**Design** (*Diseño*): pick the type and band; the program sizes the antenna and warns about known issues.
+
+![Design tab with a 2.4 GHz Sierpinski monopole](docs/capturas/diseno.png)
+
+**openEMS simulation** (*Simulación*): S11, VSWR, Smith chart with the band marked, radiation pattern and a
+3D pattern with the board inside (here a 2450 MHz Yagi: 7.2 dBi towards the directors).
+
+![Simulation tab of a 2450 MHz Yagi](docs/capturas/simulacion.png)
+
+**Manufacture** (*Fabricar*): JLC rules, KiCad/Gerber/DXF export and the silkscreen labels.
+
+![Manufacture tab with checks, export and silkscreen](docs/capturas/fabricar.png)
+
+The resulting board (KiCad render): top side and bottom side with the logo and labels.
+
+<p align="center"><img src="docs/capturas/placa_yagi.png" alt="Yagi board: top and bottom sides" width="640"></p>
+
+**Measure** (*Medir*): NanoVNA assistant (connect, calibrate, check, measure) with the measurement overlaid on the simulation.
+
+![Measure tab with the NanoVNA assistant](docs/capturas/medir.png)
+
 ## Antenna types
 
 | Type | Family | Simulation status |

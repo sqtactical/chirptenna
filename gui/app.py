@@ -118,8 +118,13 @@ def _titulo_card(texto, icono=None):
         ui.label(texto).classes('text-subtitle1 text-weight-medium')
 
 
+PESTANAS_URL = ('diseno', 'simulacion', 'fabricar', 'medir', 'disenos')
+
+
 @ui.page('/')
-def pagina():
+def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
+    """Página única. Parámetros de la URL (opcionales), p. ej. `/?diseno=mi_yagi&pestana=simulacion`:
+    pestana (una de PESTANAS_URL), diseno (nombre en «Mis diseños») y tema ('claro'/'oscuro', sin guardarlo)."""
     ui.add_css('''
         body.body--light { background: #eef1f3; }
         body.body--dark { background: #121417; }
@@ -158,7 +163,8 @@ def pagina():
     # ================================================================== tema claro / oscuro
     # 'auto' sigue al sistema; la preferencia se guarda en app.storage.general (.nicegui/ en la raíz)
     modo_oscuro = ui.dark_mode()
-    tema = {'modo': app.storage.general.get('tema', 'auto'), 'oscuro': False}
+    tema_url = {'claro': 'claro', 'oscuro': 'oscuro'}.get(tema)
+    tema = {'modo': tema_url or app.storage.general.get('tema', 'auto'), 'oscuro': False}
     if tema['modo'] != 'auto':              # modo fijo: se aplica ya, antes de dibujar nada
         tema['oscuro'] = tema['modo'] == 'oscuro'
         modo_oscuro.value = tema['oscuro']
@@ -726,7 +732,7 @@ def pagina():
                 ui.button('Sí', on_click=lambda: (dlg.close(), accion())).props('color=primary no-caps')
         dlg.open()
 
-    def abrir_diseno(nombre):
+    def abrir_diseno(nombre, avisar=True):
         d = biblioteca.cargar(nombre)
         if not d or d.get('tipo') not in tipos.CATALOGO:
             ui.notify(f'No se puede abrir «{nombre}»', type='negative')
@@ -768,7 +774,8 @@ def pagina():
             pintar_simulacion(*sim_g)
         mostrar_medidas()
         pestanas.value = t_diseno
-        ui.notify(f'Diseño «{nombre}» abierto', type='positive')
+        if avisar:
+            ui.notify(f'Diseño «{nombre}» abierto', type='positive')
 
     def refrescar_biblioteca():
         filas = []
@@ -1492,12 +1499,25 @@ def pagina():
     pintar_pasos_cal()
     sugerir_calibracion()
     mostrar_info_cal()
+    # Parámetros de la URL: abrir un diseño y una pestaña concretos
+    if diseno and biblioteca.existe(diseno):
+        abrir_diseno(diseno, avisar=False)
+    if pestana in PESTANAS_URL:
+        pestanas.value = (t_diseno, t_sim, t_fab, t_medir, t_bib)[PESTANAS_URL.index(pestana)]
 
 
 if __name__ in {'__main__', '__mp_main__'}:
     # CHIRPTENNA_ABRIR=1 (lo pone iniciar.bat) abre el navegador al arrancar.
     # Solo se escucha en este ordenador: NiceGUI usa 0.0.0.0 por defecto y cualquiera en la misma red podría
     # simular, escribir archivos o usar el NanoVNA. CHIRPTENNA_HOST=0.0.0.0 lo abre a la red a propósito.
-    ui.run(title='Chirptenna', host=os.environ.get('CHIRPTENNA_HOST', '127.0.0.1'), port=8080, reload=False,
+    # Opciones: --puerto N (por defecto 8080) y --disenos <carpeta> (otra biblioteca, p. ej. para pruebas o capturas)
+    import argparse
+    _ap = argparse.ArgumentParser(description='Interfaz de Chirptenna')
+    _ap.add_argument('--puerto', type=int, default=int(os.environ.get('CHIRPTENNA_PUERTO', 8080)))
+    _ap.add_argument('--disenos', default='', help='carpeta de la biblioteca de diseños')
+    _args, _ = _ap.parse_known_args()
+    if _args.disenos:
+        os.environ['CHIRPTENNA_DISENOS'] = os.path.abspath(_args.disenos)
+    ui.run(title='Chirptenna', host=os.environ.get('CHIRPTENNA_HOST', '127.0.0.1'), port=_args.puerto, reload=False,
            show=os.environ.get('CHIRPTENNA_ABRIR') == '1', favicon=LOGO if os.path.exists(LOGO) else '📡',
            dark=False)
