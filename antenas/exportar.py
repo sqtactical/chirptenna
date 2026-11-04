@@ -11,6 +11,7 @@ import shutil
 import zipfile
 import subprocess
 
+from shapely import affinity
 from shapely.geometry import Point, Polygon, box
 
 from . import conector
@@ -148,8 +149,11 @@ def _ipex(conv, puerto, n_net):
     return lineas
 
 
-def placa_kicad(antena, ruta, titulo='', etiqueta=None):
-    """Placa de prueba completa: antena + alimentación + masa + conector (SMA de canto o IPEX)."""
+def placa_kicad(antena, ruta, titulo='', etiqueta=None, logo=True):
+    """Placa de prueba completa: antena + alimentación + masa + conector (SMA de canto o IPEX).
+
+    Serigrafía inferior: las líneas de `etiqueta` y, con `logo`, el logo de Chirptenna. Devuelve qué se
+    ha podido colocar ({'logo_mm': alto o None, 'lineas': [...], 'quitadas': [...]})."""
     from shapely.geometry import Point
     conv = _Conversor(antena)
     nets = ['', 'GND', 'ANT']
@@ -318,10 +322,12 @@ def placa_kicad(antena, ruta, titulo='', etiqueta=None):
     else:
         cuerpo += _sma(conv, antena.puerto['borde'], antena.puerto['direccion'], 1 if corto else 2)
     cuerpo += _componentes_ajuste(aj, conv, nets, net_en, antena.contorno.buffer(-0.6))
-    lineas = etiqueta or ([titulo] if titulo else [])
-    if lineas:
-        cuerpo += _rotulo(antena, conv, lineas)
+    # etiqueta None = el título; [] = sin texto (el usuario ha quitado todas las inscripciones)
+    lineas = etiqueta if etiqueta is not None else ([titulo] if titulo else [])
+    kicad, info = _serigrafia(antena, conv, lineas, con_logo=logo)
+    cuerpo += kicad
     _escribir_pcb(ruta, nets, cuerpo, antena)
+    return info
 
 
 def _zona_rotulo(antena):
@@ -357,37 +363,138 @@ def _hueco_texto(zona, n_lineas, n_car):
     return None
 
 
-def _rotulo(antena, conv, lineas):
-    """Texto de varias líneas en la serigrafía inferior, donde quepa dentro de la zona libre
-    (_zona_rotulo); si no cabe todo, se quitan líneas por el final."""
+ALTOS_LOGO = (14.0, 12.0, 10.0, 9.0, 8.0, 7.0)    # mm, del más grande al más pequeño que se prueba
+ALTOS_ICONO = (8.0, 7.0, 6.0, 5.0)                 # solo el grillo, si no cabe el logo con el nombre
+
+
+def _hueco_rect(zona, w, h, girar=True):
+    """Centro donde cabe un rectángulo w × h (horizontal o, con `girar`, girado 90°) dentro de la zona, lo
+    más cerca posible de su centro. Devuelve (cx, cy, girado) o None."""
+    from shapely.prepared import prep
+    if zona.is_empty:
+        return None
+    z = prep(zona)
+    for girado in ((False, True) if girar else (False,)):
+        ww, hh = (h, w) if girado else (w, h)
+        # los centros posibles quedan dentro de la zona encogida medio lado corto (condición necesaria)
+        nucleo = zona.buffer(-min(ww, hh)/2, join_style='mitre')
+        if nucleo.is_empty:
+            continue
+        paso = max(0.5, min(ww, hh)/4)
+        x0, y0, x1, y1 = nucleo.bounds
+        c = zona.representative_point() if zona.geom_type != 'Polygon' else zona.centroid
+        nz = prep(nucleo)
+        cand = [(x0 + i*paso, y0 + j*paso) for i in range(int((x1 - x0)/paso) + 1)
+                for j in range(int((y1 - y0)/paso) + 1)]
+        cand = [p for p in cand if nz.contains(Point(p))]
+        cand.sort(key=lambda p: (p[0] - c.x)**2 + (p[1] - c.y)**2)
+        for cx, cy in cand:
+            if z.contains(box(cx - ww/2, cy - hh/2, cx + ww/2, cy + hh/2)):
+                return cx, cy, girado
+    return None
+
+
+def _caja_texto(hueco, lineas):
+    cx, cy, tam, girado = hueco
+    largo, ancho = 0.8*tam*max(len(t) for t in lineas) + 0.6, 1.6*tam*len(lineas)
+    hx, hy = (ancho/2, largo/2) if girado else (largo/2, ancho/2)
+    return box(cx - hx, cy - hy, cx + hx, cy + hy)
+
+
+def _serigrafia(antena, conv, lineas, con_logo=True):
+    """Serigrafía inferior: logo de Chirptenna y líneas de texto, sin solaparse.
+
+    Prueba a poner primero el logo y luego el texto, y al revés, y se queda con lo que coloque más líneas,
+    luego el logo y luego el logo más grande. Zonas: sobre la masa o lejos del cobre superior y, si no cabe,
+    la cara inferior entera salvo junto al conector (la tinta por detrás del FR4 no afecta a la antena)."""
+    from . import logo as lg
     zona = _zona_rotulo(antena)
-    # si no cabe ni el nombre (placas muy estrechas sin masa, como el dipolo con coaxial), se admite la
-    # cara inferior entera salvo junto al conector: la tinta (micras) por detrás del FR4 no afecta
     bx, by = antena.puerto['borde']
     alternativa = antena.contorno.buffer(-1.0).difference(Point(bx, by).buffer(4.0))
-    lineas = list(lineas)
-    hueco = None
-    while lineas and hueco is None:
-        for z in (zona, alternativa):
-            if not z.is_empty:
-                hueco = _hueco_texto(z, len(lineas), max(len(t) for t in lineas))
-                if hueco:
-                    break
-        if hueco is None:
-            lineas.pop()                     # no cabe: se quita la última línea
-    if hueco is None:
-        return []
-    cx, cy, tam, girado = hueco
+    lineas = [t for t in lineas if t and t.strip()]
+
+    def poner_texto(zonas):
+        ls = list(lineas)
+        while ls:
+            for z in zonas:
+                if not z.is_empty:
+                    h = _hueco_texto(z, len(ls), max(len(t) for t in ls))
+                    if h:
+                        return ls, h
+            ls.pop()
+        return [], None
+
+    def poner_logo(zonas):
+        lado = min(antena.contorno.bounds[2] - antena.contorno.bounds[0],
+                   antena.contorno.bounds[3] - antena.contorno.bounds[1])
+        # primero sin girar y de 9 mm para arriba (se lee mejor); luego cualquier tamaño, girado si hace falta
+        pruebas = [(a, d, False) for a in ALTOS_LOGO if a >= 9.0 for d in ('horizontal', 'vertical')] + \
+                  [(a, d, True) for a in ALTOS_LOGO for d in ('horizontal', 'vertical')] + \
+                  [(a, 'icono', True) for a in ALTOS_ICONO]
+        for alto, disp, girar in pruebas:
+            if alto > 0.45*lado and alto > lg.ALTO_MIN_MM:
+                continue                     # que el logo no domine la placa
+            geom = lg.bloque(alto, disp)
+            x0, y0, x1, y1 = geom.bounds
+            for z in zonas:
+                r = _hueco_rect(z, x1 - x0, y1 - y0, girar)
+                if r:
+                    return geom, r, (alto, disp)
+        return None, None, None
+
+    opciones = []
+    for orden in (('logo', 'texto'), ('texto', 'logo')):
+        zonas = [zona, alternativa]
+        res = {'lineas': [], 'hueco': None, 'logo': None, 'alto': None}
+        for cosa in orden:
+            if cosa == 'texto' and lineas:
+                res['lineas'], res['hueco'] = poner_texto(zonas)
+                if res['hueco']:
+                    ocupado = _caja_texto(res['hueco'], res['lineas']).buffer(1.0)
+                    zonas = [z.difference(ocupado) for z in zonas]
+            elif cosa == 'logo' and con_logo:
+                geom, sitio, alto = poner_logo(zonas)
+                if geom is not None:
+                    res['logo'], res['alto'] = (geom, sitio), alto
+                    cx, cy, girado = sitio
+                    x0, y0, x1, y1 = geom.bounds
+                    hx, hy = ((y1 - y0)/2, (x1 - x0)/2) if girado else ((x1 - x0)/2, (y1 - y0)/2)
+                    ocupado = box(cx - hx, cy - hy, cx + hx, cy + hy).buffer(1.0)
+                    zonas = [z.difference(ocupado) for z in zonas]
+        opciones.append(res)
+    # prioridad: la primera línea (qué antena es), luego el logo, luego el resto de líneas, luego logo más grande
+    puntos_logo = {'horizontal': 2, 'vertical': 2, 'icono': 1}
+    mejor = max(opciones, key=lambda r: (min(len(r['lineas']), 1),
+                                         puntos_logo[r['alto'][1]] if r['alto'] else 0,
+                                         len(r['lineas']), r['alto'][0] if r['alto'] else 0))
+
     salida = []
-    for i, t in enumerate(lineas):
-        d = (i - (len(lineas) - 1)/2)*1.6*tam
-        # cara inferior espejada: con el texto girado, las líneas se apilan en x
-        px, py = (cx - d, cy) if girado else (cx, cy - d)
-        tx, ty = conv.p(px, py)
-        salida.append(f'  (gr_text "{t}" (at {tx:.3f} {ty:.3f} {90 if girado else 0}) (layer "B.SilkS") (uuid "{_u()}")\n'
-                      f'    (effects (font (size {tam:.2f} {tam:.2f}) (thickness {max(0.15, 0.15*tam):.3f})) '
-                      f'(justify mirror)))')     # 0,15 mm: trazo mínimo de serigrafía de JLC
-    return salida
+    if mejor['logo']:
+        geom, (cx, cy, girado) = mejor['logo']
+        if girado:
+            # -90°: se lee de arriba abajo, en el mismo sentido que el texto girado de KiCad
+            geom = affinity.rotate(geom, -90, origin=(0, 0))
+        # cara inferior: se dibuja espejado en x para que se lea al dar la vuelta a la placa
+        geom = affinity.translate(affinity.scale(geom, -1, 1, origin=(0, 0)), cx, cy)
+        for pol in poligonos(geom):
+            for trozo in sin_agujeros(pol):
+                salida.append(f'  (gr_poly (pts {_xy(conv.anillo(trozo.exterior.coords))}) '
+                              f'(stroke (width 0) (type solid)) (fill solid) (layer "B.SilkS") (uuid "{_u()}"))')
+    if mejor['hueco']:
+        cx, cy, tam, girado = mejor['hueco']
+        for i, t in enumerate(mejor['lineas']):
+            d = (i - (len(mejor['lineas']) - 1)/2)*1.6*tam
+            # cara inferior espejada: con el texto girado, las líneas se apilan en x
+            px, py = (cx - d, cy) if girado else (cx, cy - d)
+            tx, ty = conv.p(px, py)
+            t = t.replace('"', "'")
+            salida.append(f'  (gr_text "{t}" (at {tx:.3f} {ty:.3f} {90 if girado else 0}) (layer "B.SilkS") (uuid "{_u()}")\n'
+                          f'    (effects (font (size {tam:.2f} {tam:.2f}) (thickness {max(0.15, 0.15*tam):.3f})) '
+                          f'(justify mirror)))')     # 0,15 mm: trazo mínimo de serigrafía de JLC
+    info = {'logo_mm': mejor['alto'][0] if mejor['alto'] else None,
+            'logo_forma': mejor['alto'][1] if mejor['alto'] else None, 'lineas': mejor['lineas'],
+            'quitadas': lineas[len(mejor['lineas']):]}
+    return salida, info
 
 
 def placa_reflector(antena, ruta, titulo=''):
@@ -636,14 +743,15 @@ def dxf(antena, ruta):
     doc.saveas(ruta)
 
 
-def exportar_todo(antena, carpeta, nombre, titulo='', etiqueta=None):
+def exportar_todo(antena, carpeta, nombre, titulo='', etiqueta=None, logo=True):
     """Genera en la carpeta: placa .kicad_pcb, huella .kicad_mod, Gerber .zip, DXF y .json.
 
-    etiqueta: líneas de texto para la serigrafía inferior (por defecto, el título)."""
+    etiqueta: líneas de texto para la serigrafía inferior (None = el título; [] = ninguna).
+    logo: el logo de Chirptenna en la serigrafía inferior (si cabe). rutas['serigrafia'] dice qué se puso."""
     os.makedirs(carpeta, exist_ok=True)
     rutas = {}
     rutas['placa'] = os.path.join(carpeta, f'{nombre}.kicad_pcb')
-    placa_kicad(antena, rutas['placa'], titulo or nombre, etiqueta)
+    rutas['serigrafia'] = placa_kicad(antena, rutas['placa'], titulo or nombre, etiqueta, logo)
     rutas['huella'] = os.path.join(carpeta, 'Antenas.pretty', f'{nombre}.kicad_mod')
     huella_kicad(antena, rutas['huella'], nombre)
     rutas['dxf'] = os.path.join(carpeta, f'{nombre}.dxf')

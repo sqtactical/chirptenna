@@ -280,6 +280,14 @@ archivos modificados después de la última revisión. La marca de esa revisión
     dónde cabe (`_hueco_texto`, letra 1,2 → 0,8 mm, trazo ≥ 0,15 mm, girada si hace falta; quita líneas por
     el final si no cabe). «vivo»/«malla» y las referencias de los puentes buscan sitio dentro de la placa
     (en puntas estrechas, solo el número del puente). Comprobar con `kicad-cli pcb render`.
+    **Logo** (`exportar_todo(..., logo=True)`, `antenas/logo.py`): el grillo y «Chirptenna» como polígonos de
+    shapely (texto con `TextPath` de DejaVu Sans Bold, par-impar para los huecos de las letras), trazos ≥ 0,16 mm,
+    `gr_poly` rellenos en B.SilkS espejados en x; girado −90° para leerse como el texto girado de KiCad. Hay que
+    pasar la geometría por `_valida` (make_valid + `set_precision` 1 µm): las Koch engordadas dan
+    «non-noded intersection» en GEOS. `_serigrafia` prueba logo→texto y texto→logo y prioriza: 1.ª línea, logo,
+    resto de líneas, tamaño (14 → 7 mm; si no cabe, solo el grillo hasta 5 mm). La selección de inscripciones
+    (`SERIGRAFIA_OPCIONES` en la interfaz) se guarda en `diseno.json` → `serigrafia`. La huella `.kicad_mod` no
+    lleva logo.
 38. Las marcas de corte y `f_sin_cortar_MHz` se rotulan con la estimación analítica, que falla un ~5 %. Al
     acabar, `ajustar` guarda en los parámetros `k_sim` = f simulada sin cortar / estimada (`tipos.k_sim`), y
     los generadores con marcas (monopolos, parche, J-pole, quasi-Yagi) lo aplican solo a los rótulos; la

@@ -31,8 +31,9 @@ manufactured boards.
 3. Optionally it **simulates it with openEMS** and adjusts its size until it resonates at the
    requested frequency (S11, Smith chart, radiation pattern, gain and efficiency).
 4. It exports it: a KiCad test board with an edge-mount SMA or IPEX, Gerbers and drill files for
-   JLC, DXF, and a footprint to embed it in another board. It passes KiCad's DRC and labels the
-   silkscreen.
+   JLC, DXF, and a footprint to embed it in another board. It passes KiCad's DRC and prints the
+   Chirptenna logo and the labels you choose on the silkscreen (type and frequency, simulation
+   result, licence, date, free text…).
 5. It can add **post-manufacture tuning** without components: an overlength with cut marks
    labelled in MHz, and segments closed with solder bridges (or an optional π network).
 6. It saves each design in **My designs** (`Documents\Chirptenna\disenos`) with its simulation,

@@ -47,6 +47,19 @@ estado = {
     'sucio': False,          # hay cambios sin guardar
 }
 
+# Inscripciones de la serigrafía (cara inferior): (clave, texto en la interfaz), en el orden en que se imprimen
+SERIGRAFIA_OPCIONES = [
+    ('logo', 'Logo de Chirptenna (grillo + nombre)'),
+    ('tipo', 'Tipo de antena y frecuencia'),
+    ('nombre', 'Nombre del diseño'),
+    ('sim', 'Resultado de la simulación (banda y ganancia), si está guardada'),
+    ('licencia', 'Licencia CC BY-NC 4.0 (diseños que vayas a publicar)'),
+    ('fecha', 'Fecha y versión del programa'),
+]
+SERIGRAFIA_DEFECTO = {'logo': True, 'tipo': True, 'nombre': False, 'sim': True, 'licencia': False, 'fecha': True,
+                      'libre': ''}
+estado['serigrafia'] = dict(SERIGRAFIA_DEFECTO)
+
 
 def _fmt(v):
     if isinstance(v, float):
@@ -281,6 +294,21 @@ def pagina():
                     btn_export = ui.button('Exportar KiCad + Gerber + DXF', icon='download') \
                         .props('color=positive no-caps').classes('w-full q-mt-sm')
                     res_export = ui.column().classes('w-full gap-1')
+                with ui.card().classes('grow basis-[340px]'):
+                    _titulo_card('Serigrafía (inscripciones)', 'format_paint')
+                    ui.label('Van en la cara de abajo, espejadas para leerse al darle la vuelta, donde no estorban: '
+                             'sobre la masa o lejos de la antena. Si no cabe todo, el programa mantiene la primera '
+                             'línea y el logo y quita las últimas líneas. Las marcas de corte, «vivo»/«malla» y las '
+                             'referencias de los componentes siempre se ponen.').classes('text-caption texto-sec')
+                    chk_seri = {}
+                    for clave_s, texto_s in SERIGRAFIA_OPCIONES:
+                        chk_seri[clave_s] = ui.checkbox(texto_s, value=bool(estado['serigrafia'].get(clave_s)))
+                    seri_libre = ui.textarea('Texto libre (una línea por renglón)',
+                                             value=estado['serigrafia'].get('libre', '')) \
+                        .classes('w-full').props('autogrow dense')
+                    ui.label('Así quedará el texto:').classes('text-caption texto-sec q-mt-sm')
+                    seri_vista = ui.column().classes('w-full gap-0 q-pa-xs').style(
+                        'font-family: monospace; border: 1px dashed #8a9aa3; border-radius: 4px')
 
         # -------------------------------------------------------------- 4. Medir
         with ui.tab_panel(t_medir).classes('q-pa-sm'):
@@ -525,6 +553,7 @@ def pagina():
         mostrar_drc()
         mostrar_problemas()
         actualizar_cabecera()
+        mostrar_serigrafia()                # la primera línea lleva el tipo y la frecuencia
 
     ICONOS_PROBLEMA = {'grave': ('error', 'negative', 'text-negative'),
                        'aviso': ('warning', 'orange-8', 'texto-aviso'),
@@ -649,10 +678,12 @@ def pagina():
             return False
         a = estado['antena']
         biblioteca.guardar(nombre, estado['clave'], estado['params'], estado['sustrato'], estado['reglas'],
-                           estado['f_MHz'], estado['bw_MHz'], info=a.info if a else None)
+                           estado['f_MHz'], estado['bw_MHz'], info=a.info if a else None,
+                           serigrafia=estado['serigrafia'])
         estado['diseno'] = nombre
         estado['sucio'] = False
         actualizar_cabecera()
+        mostrar_serigrafia()
         refrescar_biblioteca()
         mostrar_medidas()
         notas_in.value = (biblioteca.cargar(nombre) or {}).get('notas', '')
@@ -702,8 +733,10 @@ def pagina():
         construir_params()
         estado['diseno'] = nombre
         regenerar()                          # sin reajustar: se respeta la geometría guardada
+        poner_serigrafia(d.get('serigrafia'))
         estado['sucio'] = False
         actualizar_cabecera()
+        mostrar_serigrafia()
         notas_in.value = d.get('notas', '')
         res_export.clear()
         res_asist.clear()
@@ -1270,6 +1303,61 @@ def pagina():
         f, s11 = vna['ultima']
         nueva_medida(f, s11, f'NanoVNA en vivo ({sel_cal.value})')
 
+    # ================================================================== serigrafía
+    def lineas_serigrafia():
+        """Líneas de texto de la serigrafía según lo elegido (la primera es la que más importa)."""
+        s = estado['serigrafia']
+        a = estado['antena']
+        lineas = []
+        if s.get('tipo'):
+            lineas.append(f"{tipos.CATALOGO[estado['clave']].nombre.split(' (')[0]} {estado['f_MHz']:g} MHz")
+        if s.get('nombre'):
+            lineas.append(nombre_actual())
+        if s.get('sim') and estado['diseno'] and not estado['sucio']:
+            r = biblioteca.leer_simulacion(estado['diseno'], solo_resultado=True)
+            if r:
+                banda_s = (f"{r['banda_MHz'][0]:g}-{r['banda_MHz'][1]:g} MHz" if r.get('banda_MHz')
+                           else f"{r['f_resonancia_MHz']:g} MHz")
+                lineas.append(f"sim {banda_s} {r['ganancia_dBi']:g} dBi")
+        lineas += [t.strip() for t in (s.get('libre') or '').splitlines() if t.strip()]
+        if s.get('licencia'):
+            lineas.append('CC BY-NC 4.0')
+        if s.get('fecha'):
+            lineas.append(f"{time.strftime('%Y-%m')} v{__version__}")
+        return lineas
+
+    def mostrar_serigrafia():
+        seri_vista.clear()
+        lineas = lineas_serigrafia()
+        with seri_vista:
+            if estado['serigrafia'].get('logo'):
+                ui.label('[logo: grillo + Chirptenna]').classes('text-caption texto-sec')
+            for t in lineas:
+                ui.label(t).classes('text-caption')
+            if not lineas and not estado['serigrafia'].get('logo'):
+                ui.label('(sin inscripciones)').classes('text-caption texto-sec')
+            if estado['serigrafia'].get('sim') and not any(t.startswith('sim ') for t in lineas):
+                ui.label('La línea de la simulación aparece cuando el diseño está guardado, sin cambios y '
+                         'simulado.').classes('text-caption texto-aviso')
+
+    def cambiar_serigrafia(clave_s, valor):
+        if estado.get('silencio'):
+            return
+        estado['serigrafia'][clave_s] = valor
+        marcar_cambio()
+        mostrar_serigrafia()
+
+    def poner_serigrafia(s):
+        estado['serigrafia'] = dict(SERIGRAFIA_DEFECTO, **(s or {}))
+        estado['silencio'] = True
+        try:
+            for clave_s, chk in chk_seri.items():
+                chk.value = bool(estado['serigrafia'].get(clave_s))
+            seri_libre.value = estado['serigrafia'].get('libre', '')
+        finally:
+            estado['silencio'] = False
+        mostrar_serigrafia()
+
     # ================================================================== exportación
     def exportar_click():
         a = estado['antena']
@@ -1279,7 +1367,8 @@ def pagina():
         carpeta = biblioteca.carpeta(nombre, 'fabricacion')
         try:
             titulo = f"{tipos.CATALOGO[a.tipo].nombre.split(' (')[0]} {a.info.get('f_estimada_MHz')} MHz"
-            r = exportar.exportar_todo(a, carpeta, nombre, titulo)
+            r = exportar.exportar_todo(a, carpeta, nombre, titulo, etiqueta=lineas_serigrafia(),
+                                       logo=bool(estado['serigrafia'].get('logo')))
         except Exception as ex:
             ui.notify(f'Error al exportar: {ex}', type='negative', multi_line=True)
             return
@@ -1298,6 +1387,15 @@ def pagina():
                     continue
                 ui.button(texto, icon='file_download', on_click=lambda r=r, c=clave: ui.download(r[c])) \
                     .props('flat dense no-caps').classes('w-full justify-start')
+            s = r.get('serigrafia') or {}
+            if estado['serigrafia'].get('logo'):
+                if s.get('logo_mm'):
+                    forma = 'solo el grillo' if s.get('logo_forma') == 'icono' else 'grillo + nombre'
+                    ui.label(f"Serigrafía: logo de {s['logo_mm']:g} mm ({forma})").classes('text-caption')
+                else:
+                    ui.label('Serigrafía: el logo no cabe en esta placa').classes('text-caption texto-aviso')
+            if s.get('quitadas'):
+                ui.label('No caben en la serigrafía: ' + ' · '.join(s['quitadas'])).classes('text-caption texto-aviso')
             if r['drc']:
                 ui.label(f'DRC de KiCad: {len(r["drc"])} infracciones').classes('text-caption text-negative')
                 for t, sev, d in r['drc'][:5]:
@@ -1319,6 +1417,9 @@ def pagina():
                             (estado.update(reglas=e.value), marcar_cambio(), mostrar_drc()))
     btn_ajustar.on_click(lambda: (marcar_cambio(), ajustar()))
     btn_export.on_click(exportar_click)
+    for _clave_s, _chk in chk_seri.items():
+        _chk.on_value_change(lambda e, c=_clave_s: cambiar_serigrafia(c, bool(e.value)))
+    seri_libre.on_value_change(lambda e: cambiar_serigrafia('libre', e.value or ''))
     btn_guardar.on_click(lambda: guardar_diseno())
     nombre_in.on('keydown.enter', lambda: guardar_diseno())
     subida.on_upload(subir_s1p)

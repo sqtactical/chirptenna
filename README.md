@@ -29,7 +29,9 @@ las placas fabricadas.
 3. Opcionalmente la **simula con openEMS** y ajusta su tamaño hasta que resuena en la frecuencia
    pedida (S11, carta de Smith, diagrama de radiación, ganancia y eficiencia).
 4. La exporta: placa de prueba de KiCad con SMA de canto o IPEX, Gerber con taladros para JLC,
-   DXF y huella para usarla dentro de otra placa. Pasa el DRC de KiCad y rotula la serigrafía.
+   DXF y huella para usarla dentro de otra placa. Pasa el DRC de KiCad y rotula la serigrafía con el
+   logo de Chirptenna y las inscripciones que elijas (tipo y frecuencia, resultado de la simulación,
+   licencia, fecha, texto libre…).
 5. Puede añadir **ajuste tras fabricar** sin componentes: sobrelargo con marcas de corte rotuladas
    en MHz y tramos que se cierran con un puente de estaño (o red en π opcional).
 6. Guarda cada diseño en **Mis diseños** (`Documentos\Chirptenna\disenos`) con su simulación, su
