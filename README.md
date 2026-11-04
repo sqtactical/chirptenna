@@ -83,29 +83,21 @@ Los detalles de cada simulación y los errores encontrados por el camino están 
 
 ## Requisitos
 
-- **Windows** (es donde se ha desarrollado; el código no depende de él salvo las rutas por defecto).
-- **Python 3.12 o posterior** (desarrollado con 3.14).
+- **Windows 10/11** de 64 bits (es donde se ha desarrollado; el código no depende de él salvo las
+  rutas por defecto).
+- **Python 3.13 o 3.14** (las wheels de openEMS 0.37 solo existen para esas versiones).
 - **openEMS v0.37** con sus wheels de Python (`openEMS`, `CSXCAD`).
-- **KiCad 10** (`kicad-cli`) para generar los Gerber y pasar el DRC. Sin él se exportan el
-  `.kicad_pcb` y el DXF, pero no los Gerber.
+- **KiCad 8 o posterior** (`kicad-cli`, probado con la 10) para generar los Gerber y pasar el DRC.
+  Sin él se exportan el `.kicad_pcb` y el DXF, pero no los Gerber.
 - Opcional: un **NanoVNA-H** (firmware DiSlord) para medir.
 
 ## Instalación
 
-Crea el entorno virtual **fuera de una ruta larga** (en OneDrive o carpetas profundas Windows
-supera los 260 caracteres y fallan las DLL de shapely):
-
-```bash
-python -m venv %LOCALAPPDATA%\antenas\venv
-```
-
-```bash
-%LOCALAPPDATA%\antenas\venv\Scripts\python.exe -m pip install -r requirements.txt
-```
-
-```bash
-%LOCALAPPDATA%\antenas\venv\Scripts\python.exe -m pip install --no-index --find-links %LOCALAPPDATA%\Programs\openEMS\openEMS\python openEMS
-```
+**Sin saber nada de Python:** descarga el ZIP, haz doble clic en **`instalar.bat`** y luego abre el
+programa con el acceso directo del escritorio o con **`iniciar.bat`**. El instalador descarga Python y
+openEMS de sus páginas oficiales (comprobando la firma y el SHA-256), crea el entorno e instala los
+paquetes, sin permisos de administrador. Guía paso a paso, problemas frecuentes, desinstalación e
+instalación manual: **[INSTALAR.md](INSTALAR.md)**.
 
 ## Uso
 

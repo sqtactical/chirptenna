@@ -16,7 +16,31 @@ from shapely.geometry import Point, Polygon, box
 from . import conector
 from .geometria import poligonos, sin_agujeros
 
-KICAD_CLI = r'C:\Program Files\KiCad\10.0\bin\kicad-cli.exe'
+def _buscar_kicad_cli():
+    """kicad-cli: variable KICAD_CLI, la versión más nueva en Program Files\\KiCad\\<versión>\\bin o el PATH.
+
+    Las placas se escriben en el formato de KiCad 8, así que vale KiCad 8 o posterior.
+    """
+    if os.environ.get('KICAD_CLI') and os.path.exists(os.environ['KICAD_CLI']):
+        return os.environ['KICAD_CLI']
+    candidatos = []
+    for base in {os.environ.get('ProgramFiles', r'C:\Program Files'), r'C:\Program Files'}:
+        dir_kicad = os.path.join(base, 'KiCad')
+        if os.path.isdir(dir_kicad):
+            for v in os.listdir(dir_kicad):
+                exe = os.path.join(dir_kicad, v, 'bin', 'kicad-cli.exe')
+                if os.path.exists(exe):
+                    try:
+                        clave = tuple(int(x) for x in v.split('.'))
+                    except ValueError:
+                        clave = (0,)
+                    candidatos.append((clave, exe))
+    if candidatos:
+        return max(candidatos)[1]
+    return shutil.which('kicad-cli') or r'C:\Program Files\KiCad\10.0\bin\kicad-cli.exe'
+
+
+KICAD_CLI = _buscar_kicad_cli()
 ORIGEN_X, ORIGEN_Y = 100.0, 150.0
 SMA_BORDE = 2.1           # huella Samtec SMA-J-P-H-ST-EM1: del origen al borde de la placa
 W_PAD_SMA = 1.27

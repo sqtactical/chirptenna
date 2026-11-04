@@ -1352,5 +1352,6 @@ def pagina():
 
 
 if __name__ in {'__main__', '__mp_main__'}:
-    ui.run(title='Chirptenna', port=8080, reload=False, show=False, favicon=LOGO if os.path.exists(LOGO) else '📡',
+    # CHIRPTENNA_ABRIR=1 (lo pone iniciar.bat) abre el navegador al arrancar
+    ui.run(title='Chirptenna', port=8080, reload=False, show=os.environ.get('CHIRPTENNA_ABRIR') == '1', favicon=LOGO if os.path.exists(LOGO) else '📡',
            dark=False)

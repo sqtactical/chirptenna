@@ -26,7 +26,13 @@ archivos modificados después de la última revisión. La marca de esa revisión
   `pip install --no-index --find-links %LOCALAPPDATA%\Programs\openEMS\openEMS\python openEMS`.
 - Dependencias en `requirements.txt` (numpy, h5py, matplotlib, pyserial, gerbonara, shapely,
   nicegui, plotly, ezdxf) + openEMS desde sus wheels. Comandos en `RETOMAR.md`.
-- KiCad 10.0.1: `C:\Program Files\KiCad\10.0\bin\kicad-cli.exe` (Gerber, taladros, DRC, SVG).
+- KiCad 10.0.1: `C:\Program Files\KiCad\10.0\bin\kicad-cli.exe` (Gerber, taladros, DRC, SVG). `exportar` busca
+  la versión más nueva en `Program Files\KiCad\*` (o `KICAD_CLI`, o el PATH); también hay una 9.0 instalada.
+- Instalador para usuarios (`instalar.bat` → `instalar/instalar.ps1`, guía en `INSTALAR.md` / `INSTALL.en.md`):
+  Python 3.14 de python.org (firma comprobada), openEMS 0.37 de GitHub (SHA-256 fijado), venv, paquetes, KiCad
+  (solo avisa), acceso directo a `iniciar.bat`. Idempotente; `-Comprobar` solo informa. El `.ps1` va en UTF-8
+  **con BOM** y CRLF (PowerShell 5.1; `.gitattributes`). Probado desde cero con `LOCALAPPDATA` temporal y
+  `-Python` (4 min). Si cambian las versiones de Python u openEMS, actualizar URL y SHA-256 del script.
 - Los scripts de `fase0/`, `vna/`, `cupon/`, `placa_sim/` se ejecutan desde su propia carpeta
   (importan módulos hermanos). El paquete `antenas/` se usa desde la raíz (`gui/app.py` añade la
   raíz a `sys.path`). Interfaz: `python gui/app.py` → http://localhost:8080

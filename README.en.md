@@ -83,29 +83,20 @@ before trusting it. The GUI shows these warnings when you pick the type and when
 
 ## Requirements
 
-- **Windows** (development platform; the code only depends on it for default paths).
-- **Python 3.12 or later** (developed with 3.14).
+- 64-bit **Windows 10/11** (development platform; the code only depends on it for default paths).
+- **Python 3.13 or 3.14** (openEMS 0.37 wheels only exist for those versions).
 - **openEMS v0.37** with its Python wheels (`openEMS`, `CSXCAD`).
-- **KiCad 10** (`kicad-cli`) to produce Gerbers and run the DRC. Without it, the `.kicad_pcb`
-  and DXF are still exported, but not the Gerbers.
+- **KiCad 8 or later** (`kicad-cli`, tested with 10) to produce Gerbers and run the DRC. Without
+  it, the `.kicad_pcb` and DXF are still exported, but not the Gerbers.
 - Optional: a **NanoVNA-H** (DiSlord firmware) for measurements.
 
 ## Installation
 
-Create the virtual environment **outside long paths** (inside OneDrive or deep folders Windows
-exceeds 260 characters and shapely's DLLs fail to load):
-
-```bash
-python -m venv %LOCALAPPDATA%\antenas\venv
-```
-
-```bash
-%LOCALAPPDATA%\antenas\venv\Scripts\python.exe -m pip install -r requirements.txt
-```
-
-```bash
-%LOCALAPPDATA%\antenas\venv\Scripts\python.exe -m pip install --no-index --find-links %LOCALAPPDATA%\Programs\openEMS\openEMS\python openEMS
-```
+**No Python knowledge needed:** download the ZIP, double-click **`instalar.bat`**, then open the
+program with the desktop shortcut or **`iniciar.bat`**. The installer downloads Python and openEMS
+from their official sites (checking the signature and SHA-256), creates the environment and installs
+the packages, without administrator rights. Step-by-step guide, troubleshooting, uninstalling and
+manual installation: **[INSTALL.en.md](INSTALL.en.md)**.
 
 ## Usage
 
