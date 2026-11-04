@@ -49,14 +49,17 @@ estado = {
 
 # Inscripciones de la serigrafía (cara inferior): (clave, texto en la interfaz), en el orden en que se imprimen
 SERIGRAFIA_OPCIONES = [
-    ('logo', 'Logo de Chirptenna (grillo + nombre)'),
     ('tipo', 'Tipo de antena y frecuencia'),
     ('nombre', 'Nombre del diseño'),
     ('sim', 'Resultado de la simulación (banda y ganancia), si está guardada'),
     ('licencia', 'Licencia CC BY-NC 4.0 (diseños que vayas a publicar)'),
     ('fecha', 'Fecha y versión del programa'),
 ]
-SERIGRAFIA_DEFECTO = {'logo': True, 'tipo': True, 'nombre': False, 'sim': True, 'licencia': False, 'fecha': True,
+LOGO_OPCIONES = {'grande': 'Grande (recomendado)', 'pequeno': 'Pequeño', 'ninguno': 'Sin logo'}
+AVISO_SIN_LOGO = ('Sin problema, el logo es opcional y la placa es tuya. Si la compartes o la vendes, nos ayudaría '
+                  'mucho que menciones Chirptenna (en la descripción, con un enlace al proyecto…). '
+                  'Así más gente puede encontrarlo y mejorarlo. ¡Gracias!')
+SERIGRAFIA_DEFECTO = {'logo': 'grande', 'tipo': True, 'nombre': False, 'sim': True, 'licencia': False, 'fecha': True,
                       'libre': ''}
 estado['serigrafia'] = dict(SERIGRAFIA_DEFECTO)
 
@@ -297,9 +300,13 @@ def pagina():
                 with ui.card().classes('grow basis-[340px]'):
                     _titulo_card('Serigrafía (inscripciones)', 'format_paint')
                     ui.label('Van en la cara de abajo, espejadas para leerse al darle la vuelta, donde no estorban: '
-                             'sobre la masa o lejos de la antena. Si no cabe todo, el programa mantiene la primera '
-                             'línea y el logo y quita las últimas líneas. Las marcas de corte, «vivo»/«malla» y las '
-                             'referencias de los componentes siempre se ponen.').classes('text-caption texto-sec')
+                             'sobre la masa o lejos de la antena. Si no cabe todo, se mantienen el logo y la primera '
+                             'línea y se quitan las últimas. Las marcas de corte, «vivo»/«malla» y las referencias de '
+                             'los componentes se ponen siempre.').classes('text-caption texto-sec')
+                    sel_logo = ui.select(LOGO_OPCIONES, value=estado['serigrafia'].get('logo', 'grande'),
+                                         label='Logo de Chirptenna').classes('w-full')
+                    aviso_logo = ui.label(AVISO_SIN_LOGO).classes('text-caption texto-violeta')
+                    aviso_logo.set_visibility(estado['serigrafia'].get('logo') == 'ninguno')
                     chk_seri = {}
                     for clave_s, texto_s in SERIGRAFIA_OPCIONES:
                         chk_seri[clave_s] = ui.checkbox(texto_s, value=bool(estado['serigrafia'].get(clave_s)))
@@ -1330,12 +1337,14 @@ def pagina():
         seri_vista.clear()
         lineas = lineas_serigrafia()
         with seri_vista:
-            if estado['serigrafia'].get('logo'):
-                ui.label('[logo: grillo + Chirptenna]').classes('text-caption texto-sec')
+            modo = estado['serigrafia'].get('logo', 'grande')
+            if modo != 'ninguno':
+                ui.label('[logo grande: grillo + Chirptenna]' if modo == 'grande'
+                         else '[logo pequeño de Chirptenna]').classes('text-caption texto-sec')
+            elif not lineas:
+                ui.label('(sin inscripciones)').classes('text-caption texto-sec')
             for t in lineas:
                 ui.label(t).classes('text-caption')
-            if not lineas and not estado['serigrafia'].get('logo'):
-                ui.label('(sin inscripciones)').classes('text-caption texto-sec')
             if estado['serigrafia'].get('sim') and not any(t.startswith('sim ') for t in lineas):
                 ui.label('La línea de la simulación aparece cuando el diseño está guardado, sin cambios y '
                          'simulado.').classes('text-caption texto-aviso')
@@ -1349,8 +1358,13 @@ def pagina():
 
     def poner_serigrafia(s):
         estado['serigrafia'] = dict(SERIGRAFIA_DEFECTO, **(s or {}))
+        logo_s = estado['serigrafia'].get('logo')
+        if logo_s is True or logo_s not in LOGO_OPCIONES:      # diseños guardados con el formato antiguo (bool)
+            estado['serigrafia']['logo'] = 'ninguno' if logo_s is False else 'grande'
         estado['silencio'] = True
         try:
+            sel_logo.value = estado['serigrafia']['logo']
+            aviso_logo.set_visibility(estado['serigrafia']['logo'] == 'ninguno')
             for clave_s, chk in chk_seri.items():
                 chk.value = bool(estado['serigrafia'].get(clave_s))
             seri_libre.value = estado['serigrafia'].get('libre', '')
@@ -1367,8 +1381,9 @@ def pagina():
         carpeta = biblioteca.carpeta(nombre, 'fabricacion')
         try:
             titulo = f"{tipos.CATALOGO[a.tipo].nombre.split(' (')[0]} {a.info.get('f_estimada_MHz')} MHz"
+            modo_logo = estado['serigrafia'].get('logo', 'grande')
             r = exportar.exportar_todo(a, carpeta, nombre, titulo, etiqueta=lineas_serigrafia(),
-                                       logo=bool(estado['serigrafia'].get('logo')))
+                                       logo=None if modo_logo == 'ninguno' else modo_logo)
         except Exception as ex:
             ui.notify(f'Error al exportar: {ex}', type='negative', multi_line=True)
             return
@@ -1388,12 +1403,14 @@ def pagina():
                 ui.button(texto, icon='file_download', on_click=lambda r=r, c=clave: ui.download(r[c])) \
                     .props('flat dense no-caps').classes('w-full justify-start')
             s = r.get('serigrafia') or {}
-            if estado['serigrafia'].get('logo'):
-                if s.get('logo_mm'):
-                    forma = 'solo el grillo' if s.get('logo_forma') == 'icono' else 'grillo + nombre'
-                    ui.label(f"Serigrafía: logo de {s['logo_mm']:g} mm ({forma})").classes('text-caption')
-                else:
-                    ui.label('Serigrafía: el logo no cabe en esta placa').classes('text-caption texto-aviso')
+            if s.get('logo_forma') == 'texto':
+                ui.label('Serigrafía: no cabe el grillo; va la palabra «Chirptenna»').classes('text-caption texto-aviso')
+            elif s.get('logo_mm'):
+                forma = 'solo el grillo' if s.get('logo_forma') == 'icono' else 'grillo + nombre'
+                ui.label(f"Serigrafía: logo de {s['logo_mm']:g} mm ({forma})").classes('text-caption')
+            else:
+                ui.label('Serigrafía sin logo. Si compartes la placa, menciona Chirptenna. ¡Gracias!') \
+                    .classes('text-caption texto-violeta')
             if s.get('quitadas'):
                 ui.label('No caben en la serigrafía: ' + ' · '.join(s['quitadas'])).classes('text-caption texto-aviso')
             if r['drc']:
@@ -1420,6 +1437,15 @@ def pagina():
     for _clave_s, _chk in chk_seri.items():
         _chk.on_value_change(lambda e, c=_clave_s: cambiar_serigrafia(c, bool(e.value)))
     seri_libre.on_value_change(lambda e: cambiar_serigrafia('libre', e.value or ''))
+
+    def cambiar_logo(e):
+        if estado.get('silencio') or e.value is None:
+            return
+        aviso_logo.set_visibility(e.value == 'ninguno')
+        if e.value == 'ninguno':
+            ui.notify(AVISO_SIN_LOGO, type='info', multi_line=True, timeout=9000)
+        cambiar_serigrafia('logo', e.value)
+    sel_logo.on_value_change(cambiar_logo)
     btn_guardar.on_click(lambda: guardar_diseno())
     nombre_in.on('keydown.enter', lambda: guardar_diseno())
     subida.on_upload(subir_s1p)

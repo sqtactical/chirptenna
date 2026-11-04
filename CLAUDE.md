@@ -284,10 +284,13 @@ archivos modificados después de la última revisión. La marca de esa revisión
     shapely (texto con `TextPath` de DejaVu Sans Bold, par-impar para los huecos de las letras), trazos ≥ 0,16 mm,
     `gr_poly` rellenos en B.SilkS espejados en x; girado −90° para leerse como el texto girado de KiCad. Hay que
     pasar la geometría por `_valida` (make_valid + `set_precision` 1 µm): las Koch engordadas dan
-    «non-noded intersection» en GEOS. `_serigrafia` prueba logo→texto y texto→logo y prioriza: 1.ª línea, logo,
-    resto de líneas, tamaño (14 → 7 mm; si no cabe, solo el grillo hasta 5 mm). La selección de inscripciones
-    (`SERIGRAFIA_OPCIONES` en la interfaz) se guarda en `diseno.json` → `serigrafia`. La huella `.kicad_mod` no
-    lleva logo.
+    «non-noded intersection» en GEOS. `_serigrafia` prueba logo→texto y texto→logo y prioriza: logo (si se pidió),
+    1.ª línea, resto de líneas, tamaño. `logo`: 'grande' (14 → 7 mm, luego el pequeño), 'pequeno' (6 → 4 mm,
+    solo el grillo en placas estrechas) o None; con logo, si no cabe ni el grillo, la palabra «Chirptenna».
+    **Decisión del usuario (04-11): logo grande por defecto, pero se puede quitar**, con un aviso amable que pide
+    mencionar el proyecto (`AVISO_SIN_LOGO`). No forzarlo: es GPL (se quita igual) y la placa es del usuario.
+    La selección (`serigrafia` en `diseno.json`; `logo` antes era bool) se recupera al abrir. La huella
+    `.kicad_mod` no lleva logo.
 38. Las marcas de corte y `f_sin_cortar_MHz` se rotulan con la estimación analítica, que falla un ~5 %. Al
     acabar, `ajustar` guarda en los parámetros `k_sim` = f simulada sin cortar / estimada (`tipos.k_sim`), y
     los generadores con marcas (monopolos, parche, J-pole, quasi-Yagi) lo aplican solo a los rótulos; la

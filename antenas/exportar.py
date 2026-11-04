@@ -152,8 +152,9 @@ def _ipex(conv, puerto, n_net):
 def placa_kicad(antena, ruta, titulo='', etiqueta=None, logo=True):
     """Placa de prueba completa: antena + alimentación + masa + conector (SMA de canto o IPEX).
 
-    Serigrafía inferior: las líneas de `etiqueta` y, con `logo`, el logo de Chirptenna. Devuelve qué se
-    ha podido colocar ({'logo_mm': alto o None, 'lineas': [...], 'quitadas': [...]})."""
+    Serigrafía inferior: las líneas de `etiqueta` y el logo de Chirptenna (`logo`: 'grande' por defecto,
+    'pequeno' o None/False para no ponerlo). Devuelve qué se ha podido colocar
+    ({'logo_mm', 'logo_forma', 'lineas', 'quitadas'})."""
     from shapely.geometry import Point
     conv = _Conversor(antena)
     nets = ['', 'GND', 'ANT']
@@ -365,6 +366,9 @@ def _hueco_texto(zona, n_lineas, n_car):
 
 ALTOS_LOGO = (14.0, 12.0, 10.0, 9.0, 8.0, 7.0)    # mm, del más grande al más pequeño que se prueba
 ALTOS_ICONO = (8.0, 7.0, 6.0, 5.0)                 # solo el grillo, si no cabe el logo con el nombre
+# Logo pequeño, el que va siempre aunque no se pida el grande (alto, disposición)
+LOGO_PEQUENO = ((6.0, 'horizontal'), (5.0, 'horizontal'), (6.0, 'vertical'), (5.0, 'vertical'),
+                (5.0, 'icono'), (4.0, 'icono'))
 
 
 def _hueco_rect(zona, w, h, girar=True):
@@ -401,13 +405,26 @@ def _caja_texto(hueco, lineas):
     return box(cx - hx, cy - hy, cx + hx, cy + hy)
 
 
-def _serigrafia(antena, conv, lineas, con_logo=True):
+def _modo_logo(logo):
+    """'grande', 'pequeno' o None (sin logo). Admite también True (grande) y False (sin logo)."""
+    if logo is True:
+        return 'grande'
+    if logo in ('grande', 'pequeno'):
+        return logo
+    return None
+
+
+def _serigrafia(antena, conv, lineas, con_logo='grande'):
     """Serigrafía inferior: logo de Chirptenna y líneas de texto, sin solaparse.
 
-    Prueba a poner primero el logo y luego el texto, y al revés, y se queda con lo que coloque más líneas,
-    luego el logo y luego el logo más grande. Zonas: sobre la masa o lejos del cobre superior y, si no cabe,
-    la cara inferior entera salvo junto al conector (la tinta por detrás del FR4 no afecta a la antena)."""
+    con_logo: 'grande' (14 → 7 mm, y si no cabe, el pequeño), 'pequeno' (6 → 4 mm) o None (sin logo; es
+    opcional, la interfaz pide amablemente que se mencione el proyecto). Con logo, si no cabe ni el grillo,
+    va la palabra «Chirptenna» en letra mínima. Prueba a poner primero el logo y luego el texto, y al revés;
+    prioridad: que haya logo (si se pidió), la primera línea, el resto de líneas y el tamaño del logo. Zonas:
+    sobre la masa o lejos del cobre superior y, si no cabe, la cara inferior entera salvo junto al conector
+    (la tinta por detrás del FR4 no afecta a la antena)."""
     from . import logo as lg
+    modo = _modo_logo(con_logo)
     zona = _zona_rotulo(antena)
     bx, by = antena.puerto['borde']
     alternativa = antena.contorno.buffer(-1.0).difference(Point(bx, by).buffer(4.0))
@@ -427,10 +444,13 @@ def _serigrafia(antena, conv, lineas, con_logo=True):
     def poner_logo(zonas):
         lado = min(antena.contorno.bounds[2] - antena.contorno.bounds[0],
                    antena.contorno.bounds[3] - antena.contorno.bounds[1])
-        # primero sin girar y de 9 mm para arriba (se lee mejor); luego cualquier tamaño, girado si hace falta
-        pruebas = [(a, d, False) for a in ALTOS_LOGO if a >= 9.0 for d in ('horizontal', 'vertical')] + \
-                  [(a, d, True) for a in ALTOS_LOGO for d in ('horizontal', 'vertical')] + \
-                  [(a, 'icono', True) for a in ALTOS_ICONO]
+        pruebas = []
+        if modo == 'grande':
+            # primero sin girar y de 9 mm para arriba (se lee mejor); luego cualquier tamaño, girado si hace falta
+            pruebas += [(a, d, False) for a in ALTOS_LOGO if a >= 9.0 for d in ('horizontal', 'vertical')] + \
+                       [(a, d, True) for a in ALTOS_LOGO for d in ('horizontal', 'vertical')] + \
+                       [(a, 'icono', True) for a in ALTOS_ICONO]
+        pruebas += [(a, d, True) for a, d in LOGO_PEQUENO]     # el pequeño (y último recurso del grande)
         for alto, disp, girar in pruebas:
             if alto > 0.45*lado and alto > lg.ALTO_MIN_MM:
                 continue                     # que el logo no domine la placa
@@ -452,7 +472,7 @@ def _serigrafia(antena, conv, lineas, con_logo=True):
                 if res['hueco']:
                     ocupado = _caja_texto(res['hueco'], res['lineas']).buffer(1.0)
                     zonas = [z.difference(ocupado) for z in zonas]
-            elif cosa == 'logo' and con_logo:
+            elif cosa == 'logo' and modo:
                 geom, sitio, alto = poner_logo(zonas)
                 if geom is not None:
                     res['logo'], res['alto'] = (geom, sitio), alto
@@ -462,13 +482,30 @@ def _serigrafia(antena, conv, lineas, con_logo=True):
                     ocupado = box(cx - hx, cy - hy, cx + hx, cy + hy).buffer(1.0)
                     zonas = [z.difference(ocupado) for z in zonas]
         opciones.append(res)
-    # prioridad: la primera línea (qué antena es), luego el logo, luego el resto de líneas, luego logo más grande
+    # prioridad: que haya logo (si se pidió), la primera línea (qué antena es), logo con nombre mejor que solo
+    # el grillo, el resto de líneas y, por último, el logo más grande
     puntos_logo = {'horizontal': 2, 'vertical': 2, 'icono': 1}
-    mejor = max(opciones, key=lambda r: (min(len(r['lineas']), 1),
+    mejor = max(opciones, key=lambda r: (r['logo'] is not None, min(len(r['lineas']), 1),
                                          puntos_logo[r['alto'][1]] if r['alto'] else 0,
                                          len(r['lineas']), r['alto'][0] if r['alto'] else 0))
 
     salida = []
+    if modo and not mejor['logo']:
+        # Ni el grillo pequeño cabe: la palabra «Chirptenna» en letra mínima, donde sea (sin pisar el texto)
+        libre = antena.contorno.buffer(-0.6).difference(Point(bx, by).buffer(2.5))
+        if mejor['hueco']:
+            libre = libre.difference(_caja_texto(mejor['hueco'], mejor['lineas']).buffer(0.5))
+        h = _hueco_texto(libre, 1, len('Chirptenna')) if not libre.is_empty else None
+        if h is None:
+            c = antena.contorno.representative_point()
+            x0, y0, x1, y1 = antena.contorno.bounds
+            h = (c.x, c.y, 0.8, (y1 - y0) > (x1 - x0))
+        cx, cy, tam, girado = h
+        tx, ty = conv.p(cx, cy)
+        salida.append(f'  (gr_text "Chirptenna" (at {tx:.3f} {ty:.3f} {90 if girado else 0}) (layer "B.SilkS") '
+                      f'(uuid "{_u()}")\n    (effects (font (size {tam:.2f} {tam:.2f}) (thickness 0.15) bold) '
+                      f'(justify mirror)))')
+        mejor['alto'] = (tam, 'texto')
     if mejor['logo']:
         geom, (cx, cy, girado) = mejor['logo']
         if girado:
@@ -747,7 +784,8 @@ def exportar_todo(antena, carpeta, nombre, titulo='', etiqueta=None, logo=True):
     """Genera en la carpeta: placa .kicad_pcb, huella .kicad_mod, Gerber .zip, DXF y .json.
 
     etiqueta: líneas de texto para la serigrafía inferior (None = el título; [] = ninguna).
-    logo: el logo de Chirptenna en la serigrafía inferior (si cabe). rutas['serigrafia'] dice qué se puso."""
+    logo: logo de Chirptenna en la serigrafía inferior: 'grande' (o True, por defecto), 'pequeno' o None/False
+    (sin logo). Si no cabe ni el grillo, la palabra «Chirptenna». rutas['serigrafia'] dice qué se puso."""
     os.makedirs(carpeta, exist_ok=True)
     rutas = {}
     rutas['placa'] = os.path.join(carpeta, f'{nombre}.kicad_pcb')
