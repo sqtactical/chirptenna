@@ -21,7 +21,7 @@ sys.path.insert(0, RAIZ)
 
 from nicegui import ui, run, background_tasks   # noqa: E402
 
-from antenas import tipos, vista, fabricacion, exportar, consejos, graficas, ajuste, biblioteca   # noqa: E402
+from antenas import tipos, vista, fabricacion, exportar, consejos, graficas, ajuste, biblioteca, problemas   # noqa: E402
 from antenas.materiales import ancho_microstrip, eps_eff_microstrip   # noqa: E402
 
 sys.path.insert(0, os.path.join(RAIZ, 'vna'))   # driver del NanoVNA y calibración del PC
@@ -131,6 +131,7 @@ def pagina():
             ui.space()
             btn_guardar = ui.button('Guardar diseño', icon='save').props('color=primary no-caps')
         desc = ui.label().classes('text-caption text-grey-8')
+        cont_problemas = ui.column().classes('w-full gap-0')
 
     # ================================================================== pestañas
     with ui.tabs().classes('w-full text-blue-grey-9').props('align=left inline-label no-caps') as pestanas:
@@ -440,7 +441,24 @@ def pagina():
                     ui.icon(icono, color=color).tooltip(cat)
                     ui.label(texto).classes('text-caption')
         mostrar_drc()
+        mostrar_problemas()
         actualizar_cabecera()
+
+    ICONOS_PROBLEMA = {'grave': ('error', 'negative', 'text-negative'),
+                       'aviso': ('warning', 'orange-8', 'text-orange-10'),
+                       'info': ('info', 'blue-grey-6', 'text-grey-8')}
+
+    def mostrar_problemas():
+        """Problemas conocidos del tipo con estos parámetros (lo que ha fallado en simulación)."""
+        cont_problemas.clear()
+        lista = problemas.problemas(estado['clave'], estado['params'], estado['f_MHz'])
+        with cont_problemas:
+            for nivel, texto in lista:
+                icono, color, clase = ICONOS_PROBLEMA[nivel]
+                with ui.row().classes('items-start no-wrap gap-1'):
+                    ui.icon(icono, color=color, size='xs').classes('q-mt-xs')
+                    ui.label(texto).classes(f'text-caption {clase}')
+        return lista
 
     def mostrar_drc():
         a = estado['antena']
@@ -448,6 +466,15 @@ def pagina():
         if a is None:
             return
         with lista_drc:
+            graves = [t for n, t in problemas.problemas(estado['clave'], estado['params'], estado['f_MHz'])
+                      if n in ('grave', 'aviso')]
+            for t in graves:
+                with ui.row().classes('items-start no-wrap'):
+                    ui.icon('report', color='negative')
+                    ui.label('Problema conocido: ' + t).classes('text-caption text-negative')
+            with ui.row().classes('items-start no-wrap'):
+                ui.icon('science', color='blue-grey-6')
+                ui.label(problemas.AVISO_GENERAL).classes('text-caption text-grey-8')
             colores = {'ok': 'positive', 'aviso': 'warning', 'error': 'negative', 'info': 'teal'}
             iconos = {'ok': 'check_circle', 'aviso': 'warning', 'error': 'error', 'info': 'build'}
             mensajes = (fabricacion.comprobar(a, estado['reglas']) + [('aviso', m) for m in a.info.get('avisos', [])]

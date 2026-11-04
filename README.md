@@ -53,6 +53,31 @@ las placas fabricadas.
 | Colineal coaxial impresa (COCO) | colineal | ⚠️ radia, pero las pérdidas del FR4 se comen la ganancia |
 | Colineal Franklin | colineal | ⚠️ experimental |
 
+## ⚠️ Problemas conocidos
+
+**Todo lo validado hasta ahora es en simulación**, con εr 4,5 para el FR4 de JLC. Todavía no se ha
+medido ninguna placa fabricada ni la εr real (para eso están los cupones). Mide siempre la antena
+antes de darla por buena. La interfaz muestra estos avisos al elegir el tipo y al exportar.
+
+| Tipo / opción | Problema |
+|---|---|
+| Monopolo de Hilbert | Resuena, pero sin red en π adapta muy mal (−2,7 dB a 2,4 GHz, −4,6 dB a 868 MHz). A 868 MHz cada simulación tarda más de 3 h. |
+| Monopolo en meandro | La frecuencia salta varios % con cambios pequeños del alto; con masa pequeña puede no llegar a −10 dB. |
+| Monopolos con IPEX | El monopolo recto con IPEX adaptó mal (−7 dB): la transición del pad central está en revisión. Con SMA va bien. |
+| Parche rectangular | Banda estrecha en FR4 de 1,6 mm (~36 MHz): no cubre toda la ISM de 2,4 GHz. η ~47 %. |
+| Parche de Minkowski | Iteración 1: η ~33 %. Iteración ≥ 2: impedancia de borde ~14 Ω, S11 ≈ −5 dB y η ~23 % (la ranura no lo arregla). |
+| J-pole recta | Resuena pero adapta mal (R ≈ 6–10 Ω). Usar la J-pole de Koch. |
+| Yagi con boom de Koch | Adapta mal y radia más hacia atrás que hacia los directores. Usar elementos rectos. |
+| Yagi con boom, dipolo plegado | Radia hacia atrás (F/B −3,6 dB). Usar alimentación directa (el reflector queda a ~0,39 λ0 y la placa es más larga). |
+| Yagi con boom, transformador λ/4 | Banda estrecha (~50 MHz) y η ~55 %. |
+| Quasi-Yagi de Koch | Radia hacia atrás y adapta mal (−3,5 dB). Experimental. |
+| Panel de dipolos | En simulación el haz sale ~9° inclinado (probablemente un artefacto). La disposición «simétrica» empeora la adaptación. |
+| Array de parches | Sin terminar de validar: el centro de banda salta mucho y cada simulación tarda horas. |
+| Colineal COCO | Radia, pero las pérdidas del FR4 dejan η ~53 % y ~1,9 dBi. |
+| Colineal Franklin | Adapta mal (−5,3 dB) y solo ~1,8 dBi. Experimental. |
+| Recortes de aligerado | Sin simular: quitar FR4 sube algo la frecuencia. |
+| Fuera de 2,4 GHz | Solo los monopolos recto, meandro y Koch están validados también a 868 MHz. |
+
 Los detalles de cada simulación y los errores encontrados por el camino están en
 [`CLAUDE.md`](CLAUDE.md) (lecciones aprendidas) y [`RETOMAR.md`](RETOMAR.md) (estado).
 

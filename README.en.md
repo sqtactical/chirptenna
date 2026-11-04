@@ -56,6 +56,31 @@ manufactured boards.
 | Printed coaxial collinear (COCO) | collinear | ⚠️ radiates, but FR4 losses eat the gain |
 | Franklin collinear | collinear | ⚠️ experimental |
 
+## ⚠️ Known issues
+
+**Everything validated so far is in simulation**, with εr 4.5 for JLC's FR4. No manufactured board
+and no real εr has been measured yet (that is what the coupons are for). Always measure an antenna
+before trusting it. The GUI shows these warnings when you pick the type and when you export.
+
+| Type / option | Issue |
+|---|---|
+| Hilbert monopole | Resonates, but matches very poorly without a π network (−2.7 dB at 2.4 GHz, −4.6 dB at 868 MHz). At 868 MHz each simulation takes over 3 h. |
+| Meander monopole | Frequency jumps a few % with small height changes; with a small ground plane it may not reach −10 dB. |
+| Monopoles with IPEX | The straight monopole with IPEX matched poorly (−7 dB): the centre-pad transition is under review. Fine with SMA. |
+| Rectangular patch | Narrowband on 1.6 mm FR4 (~36 MHz): does not cover the whole 2.4 GHz ISM band. η ~47 %. |
+| Minkowski patch | Iteration 1: η ~33 %. Iteration ≥ 2: edge impedance ~14 Ω, S11 ≈ −5 dB and η ~23 % (inset feed does not fix it). |
+| Straight J-pole | Resonates but matches poorly (R ≈ 6–10 Ω). Use the Koch J-pole. |
+| Yagi with boom, Koch elements | Poor match and radiates more backwards than towards the directors. Use straight elements. |
+| Yagi with boom, folded dipole | Radiates backwards (F/B −3.6 dB). Use direct feed (reflector at ~0.39 λ0, longer board). |
+| Yagi with boom, λ/4 transformer | Narrow band (~50 MHz) and η ~55 %. |
+| Koch quasi-Yagi | Radiates backwards and matches poorly (−3.5 dB). Experimental. |
+| Dipole panel | In simulation the beam tilts ~9° (probably an artefact). The “symmetric” layout worsens the match. |
+| Patch array | Validation not finished: the band centre jumps a lot and each simulation takes hours. |
+| COCO collinear | Radiates, but FR4 losses leave η ~53 % and ~1.9 dBi. |
+| Franklin collinear | Poor match (−5.3 dB) and only ~1.8 dBi. Experimental. |
+| Lightening cutouts | Not simulated: removing FR4 raises the frequency slightly. |
+| Outside 2.4 GHz | Only the straight, meander and Koch monopoles are also validated at 868 MHz. |
+
 ## Requirements
 
 - **Windows** (development platform; the code only depends on it for default paths).
