@@ -143,8 +143,8 @@ def pagina():
             fig.update_polars(bgcolor=fondo, radialaxis_gridcolor=rejilla, angularaxis_gridcolor=rejilla)
         for tr in fig.data:
             linea = getattr(tr, 'line', None)
-            if linea is not None and linea.color in ('#444', 'black', '#999'):
-                tr.line.color = '#cfd8dc' if linea.color != '#999' else '#777'
+            if linea is not None and linea.color in ('#444', 'black', '#999', '#ddd'):
+                tr.line.color = {'#999': '#777', '#ddd': '#3f4449'}.get(linea.color, '#cfd8dc')
             if getattr(tr, 'mode', None) == 'text':
                 tr.textfont.color = texto
         for sh in fig.layout.shapes or ():
@@ -834,6 +834,19 @@ def pagina():
         pintar_simulacion(r, dict(np.load(os.path.join(carpeta, 'datos.npz'))))
         ui.notify('Simulación terminada', type='positive')
 
+    def antena_simulada(r):
+        """Geometría que se simuló (con los parámetros ajustados, si los hay); si no se puede, la actual."""
+        clave = r.get('clave') or estado['clave']
+        q = {k: v for k, v in (r.get('parametros') or {}).items() if not str(k).startswith('_')}
+        if q and clave in tipos.CATALOGO:
+            try:
+                p = tipos.CATALOGO[clave].defectos()
+                p.update(q)
+                return tipos.generar(clave, p, estado['sustrato'])
+            except Exception:
+                pass
+        return estado['antena']
+
     def pintar_simulacion(r, d):
         sim['mostrada'] = (r, d)            # para repintarla al cambiar de tema
         lo, hi = banda_actual()
@@ -871,12 +884,17 @@ def pagina():
                               on_click=lambda q=r['parametros']: aplicar_ajustados(q)) \
                         .props('outline color=deep-purple no-caps')
             with ui.row().classes('w-full wrap gap-2'):
-                ui.plotly(T(graficas.s11(d['f'], d['s11'], (lo*1e6, hi*1e6)))).classes('grow basis-[320px] h-[300px]')
-                ui.plotly(T(graficas.smith(d['f'], d['s11']))).classes('grow basis-[300px] h-[300px]')
+                banda = (lo*1e6, hi*1e6)
+                f_obj = estado['f_MHz']*1e6
+                ui.plotly(T(graficas.s11(d['f'], d['s11'], banda))).classes('grow basis-[300px] h-[300px]')
+                ui.plotly(T(graficas.roe(d['f'], d['s11'], banda, f_obj))).classes('grow basis-[300px] h-[300px]')
+                ui.plotly(T(graficas.smith(d['f'], d['s11'], banda, f_obj))).classes('grow basis-[300px] h-[300px]')
             if d['d'].size:
                 with ui.row().classes('w-full wrap gap-2'):
-                    ui.plotly(T(graficas.cortes_polares(d['theta'], d['phi'], d['d']))).classes('grow basis-[320px] h-[340px]')
-                    ui.plotly(T(graficas.diagrama_3d(d['theta'], d['phi'], d['d']))).classes('grow basis-[320px] h-[340px]')
+                    ui.plotly(T(graficas.cortes_polares(d['theta'], d['phi'], d['d']))).classes('grow basis-[320px] h-[420px]')
+                    ui.plotly(T(graficas.diagrama_3d(d['theta'], d['phi'], d['d'], antena=antena_simulada(r),
+                                                     h_mm=tipos.sustrato(estado['sustrato']).h))
+                              ).classes('grow basis-[420px] h-[420px]')
 
     def repintar_graficas():
         """Vuelve a dibujar las gráficas visibles con el tema actual."""
@@ -1005,7 +1023,8 @@ def pagina():
                 for r_ in rec['redes']:
                     ui.label(f'· Z1 = {txt(r_["serie"])}, {r_["posicion"]} = {txt(r_["derivacion"])} → |S11| ≈ '
                              f'{r_["s11_dB"]} dB').classes('text-caption')
-            ui.plotly(T(graficas.smith(f, s11))).classes('w-full h-[300px]')
+            lo, hi = banda_actual()
+            ui.plotly(T(graficas.smith(f, s11, (lo*1e6, hi*1e6), estado['f_MHz']*1e6))).classes('w-full h-[300px]')
 
     def nueva_medida(f, s11, origen):
         """Guarda la medida en el diseño, la añade a la comparación y la analiza."""
