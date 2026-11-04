@@ -57,7 +57,7 @@ hecho hasta ahora (validaciones, simulaciones, fallos y decisiones) está en
    - Placa C de cupones (antenas de referencia).
    - Yagi comercial: la simulación no coincide con la medida (1856 frente a 2344 MHz); aparcada.
    - Rendimiento: reparto óptimo de hilos de openEMS (`ANTENAS_HILOS`).
-4. **Más adelante:** interfaz en inglés, pruebas automáticas en GitHub Actions, versión para Linux.
+4. **Más adelante:** interfaz en inglés, versión para Linux, `dependabot.yml` (ya hay CI y versiones fijadas).
 
 ## Cómo ejecutar
 

@@ -1,0 +1,82 @@
+# Comprobación automática: instala Chirptenna como lo haría un usuario (instalar.ps1), instala KiCad, genera y
+# exporta los 16 tipos a 868 MHz y 2,4 GHz con el DRC de KiCad, y abre todas las pestañas de la interfaz.
+# No simula con openEMS (tarda demasiado); solo comprueba que se importa.
+#   lock:   versiones exactas de requirements-lock.txt (lo que instala el instalador)
+#   rangos: las más nuevas que permite requirements.txt (avisa antes de que una versión nueva rompa algo)
+name: Comprobar
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 5 * * 1'      # los lunes: detecta paquetes nuevos que rompan algo aunque no haya commits
+
+permissions:
+  contents: read
+
+concurrency:
+  group: comprobar-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  comprobar:
+    name: Windows · ${{ matrix.paquetes }}
+    runs-on: windows-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        paquetes: [lock, rangos]
+    defaults:
+      run:
+        shell: powershell      # PowerShell 5.1, como en el ordenador de un usuario
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+
+      - name: Caché de la descarga de openEMS
+        uses: actions/cache@v4
+        with:
+          path: ~\AppData\Local\antenas\descargas
+          key: openems-0.37.0-E4F14FD6
+
+      - name: Instalador (instalar.ps1)
+        run: |
+          & .\instalar\instalar.ps1 -SinPreguntas -SinAccesoDirecto -Python "$env:pythonLocation\python.exe"
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+      - name: Paquetes más nuevos dentro de los rangos
+        if: matrix.paquetes == 'rangos'
+        run: |
+          & "$env:LOCALAPPDATA\antenas\venv\Scripts\python.exe" -m pip install --disable-pip-version-check -U -r requirements.txt
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          & "$env:LOCALAPPDATA\antenas\venv\Scripts\python.exe" -m pip freeze
+
+      - name: KiCad
+        run: |
+          choco install kicad -y --no-progress
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          Get-ChildItem 'C:\Program Files\KiCad\*\bin\kicad-cli.exe' | ForEach-Object { $_.FullName }
+
+      - name: Generar y exportar los 16 tipos (DRC de KiCad y reglas de JLC)
+        run: |
+          & "$env:LOCALAPPDATA\antenas\venv\Scripts\python.exe" herramientas\comprobar_tipos.py salidas\_comprobar_tipos
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+      - name: Interfaz (todas las pestañas, tema claro y oscuro)
+        run: |
+          & "$env:LOCALAPPDATA\antenas\venv\Scripts\python.exe" herramientas\prueba_interfaz.py
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+      - name: Guardar el resumen
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comprobar_tipos-${{ matrix.paquetes }}
+          path: salidas/_comprobar_tipos/resumen.json
+          if-no-files-found: ignore

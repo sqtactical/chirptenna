@@ -51,7 +51,8 @@ Una sola medida bien documentada vale más que muchas líneas de código ahora m
 
 1. Pasa la comprobación de todos los tipos, que los genera y exporta **a 868 MHz y a 2,4 GHz** con el DRC de
    KiCad y las reglas de fabricación (unos 2 min; debe salir todo «OK»):
-   `python herramientas/comprobar_tipos.py` (o `--solo tipo1,tipo2`).
+   `python herramientas/comprobar_tipos.py` (o `--solo tipo1,tipo2`). Si tocas la interfaz:
+   `python herramientas/prueba_interfaz.py`. La CI de GitHub pasa las dos en cada PR (Windows, ~20 min).
 2. Si cambia la geometría que se simula, **simúlalo** (`python -m antenas.validar_lote …`) e indica en la PR
    la resonancia, la banda a −10 dB, la ganancia y la eficiencia antes y después.
 3. Un tipo nuevo necesita: su entrada en `tipos.CATALOGO`, `info['pista_minima_mm']` y

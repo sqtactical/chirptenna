@@ -5,7 +5,7 @@ Se lanza con instalar.bat (doble clic). Hace, saltándose lo que ya esté hecho:
   1. Python 3.14 de python.org (instalación solo para el usuario; se comprueba la firma digital).
   2. openEMS 0.37 de su página oficial en GitHub (se comprueba el SHA-256) en %LOCALAPPDATA%\Programs\openEMS.
   3. Entorno de Python propio en %LOCALAPPDATA%\antenas\venv (fuera de OneDrive: rutas largas).
-  4. Paquetes de Python (requirements.txt) y los módulos de openEMS.
+  4. Paquetes de Python (versiones exactas de requirements-lock.txt) y los módulos de openEMS.
   5. Comprueba KiCad (opcional: hace falta para sacar los Gerber).
   6. Acceso directo «Chirptenna» en el escritorio.
 
@@ -196,7 +196,10 @@ try {
         } else { Falla 'Sin entorno'; [void]$faltan.Add('paquetes') }
     } else {
         Write-Host '   Instalando (la primera vez descarga ~150 MB, 2–5 min)...'
-        & $PyVenv -m pip install --disable-pip-version-check -q -r (Join-Path $Raiz 'requirements.txt')
+        # Versiones exactas probadas (requirements-lock.txt); si falta, los rangos de requirements.txt
+        $req = Join-Path $Raiz 'requirements-lock.txt'
+        if (-not (Test-Path $req)) { $req = Join-Path $Raiz 'requirements.txt' }
+        & $PyVenv -m pip install --disable-pip-version-check -q -r $req
         if ($LASTEXITCODE -ne 0) { throw 'Falló la instalación de los paquetes (¿hay conexión a internet?)' }
         & $PyVenv -m pip install --disable-pip-version-check -q --no-index --find-links (Join-Path $DirOpenEMS 'python') openEMS CSXCAD
         if ($LASTEXITCODE -ne 0) { throw 'Falló la instalación de los módulos de openEMS' }

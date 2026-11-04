@@ -2,6 +2,8 @@
 
 # Chirptenna: PCB antenna generator
 
+[![Comprobar](https://github.com/sqtactical/chirptenna/actions/workflows/comprobar.yml/badge.svg)](https://github.com/sqtactical/chirptenna/actions/workflows/comprobar.yml)
+
 *[Versión en castellano](README.md)*
 
 > **Status: alpha (v0.1.1-alpha).** Validated in simulation only: no manufactured board has been

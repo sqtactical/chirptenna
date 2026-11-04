@@ -25,7 +25,13 @@ archivos modificados después de la última revisión. La marca de esa revisión
   `openems-0.37.0` y `csxcad-0.7.0`. Se instalan con
   `pip install --no-index --find-links %LOCALAPPDATA%\Programs\openEMS\openEMS\python openEMS`.
 - Dependencias en `requirements.txt` (numpy, h5py, matplotlib, pyserial, gerbonara, shapely,
-  nicegui, plotly, ezdxf) + openEMS desde sus wheels. Comandos en `RETOMAR.md`.
+  nicegui, plotly, ezdxf; rango probado `>=actual,<siguiente mayor`) + openEMS desde sus wheels. El instalador usa
+  `requirements-lock.txt` (versiones exactas, `pip freeze` del venv sin openEMS/CSXCAD): **regenerarlo al subir
+  una dependencia** y ajustar el mínimo del rango. Comandos en `RETOMAR.md`.
+- CI (`.github/workflows/comprobar.yml`, Windows, en cada push/PR y los lunes): ejecuta `instalar.ps1`, instala
+  KiCad con choco, pasa `comprobar_tipos.py` y `herramientas/prueba_interfaz.py` (arranca la interfaz con una
+  biblioteca temporal y abre cada pestaña en claro y oscuro). Dos variantes: `lock` y `rangos` (lo más nuevo que
+  permiten los rangos; si solo falla esta, ha salido una versión de un paquete que rompe algo). No simula.
 - KiCad 10.0.1: `C:\Program Files\KiCad\10.0\bin\kicad-cli.exe` (Gerber, taladros, DRC, SVG). `exportar` busca
   la versión más nueva en `Program Files\KiCad\*` (o `KICAD_CLI`, o el PATH); también hay una 9.0 instalada.
 - Instalador para usuarios (`instalar.bat` → `instalar/instalar.ps1`, guía en `INSTALAR.md` / `INSTALL.en.md`):

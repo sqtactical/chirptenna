@@ -1,11 +1,14 @@
-numpy
-h5py
-matplotlib
-pyserial
-gerbonara
-shapely
-nicegui
-plotly
-ezdxf
+# Dependencias directas con el rango probado: la versión mínima es la que se usa en desarrollo y el tope es la
+# siguiente versión mayor (puede cambiar la API). El instalador usa requirements-lock.txt (versiones exactas,
+# incluidas las dependencias indirectas); la CI prueba los dos.
+numpy>=2.5,<3
+h5py>=3.16,<4
+matplotlib>=3.11,<4
+pyserial>=3.5,<4
+gerbonara>=1.6,<2
+shapely>=2.2,<3
+nicegui>=3.18,<4
+plotly>=7.1,<8
+ezdxf>=1.4,<2
 # openEMS y CSXCAD se instalan desde las wheels del paquete de Windows:
 #   python -m pip install --no-index --find-links %LOCALAPPDATA%\Programs\openEMS\openEMS\python openEMS
