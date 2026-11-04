@@ -280,8 +280,10 @@ archivos modificados después de la última revisión. La marca de esa revisión
     (`contorno.interiors`). Todo lo que use el contorno debe mirar también los interiores: simulación (aire con
     prioridad 1 sobre el FR4), Edge.Cuts, vista y distancia del cobre al borde (`contorno.boundary`). Evitan
     taladros, el SMA y el coaxial pasante, y dejan una espina central y nervios cada `paso`.
-47. Interfaz: el fondo de la página debe fijarse en CSS (`body { background }`): con el panel del navegador en
-    tema oscuro, el body transparente se veía negro aunque `dark=False`.
+47. Interfaz: el fondo de la página se fija en CSS (`body.body--light` / `body.body--dark`): transparente se
+    veía negro con el navegador en tema oscuro. Tema automático/claro/oscuro con el botón de la cabecera
+    (`ui.dark_mode`; preferencia en `app.storage.general`, carpeta `.nicegui/` ignorada por git). Toda figura
+    de Plotly pasa por `T(fig)` para adaptarse al tema; una gráfica nueva sin `T()` sale blanca en oscuro.
 39. Parches (`parche_rectangular`, `parche_minkowski`): `alimentacion` 0 = por el borde con transformador
     λ/4; 1 = por ranura (inset) hasta R = R_borde·cos²(π·d/L) = 50 Ω (`muesca` en mm, 0 = estimada;
     `hueco_muesca`). Con ranura la línea solo cruza el margen de masa (se ignora `largo_alimentacion`) y

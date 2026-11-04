@@ -19,7 +19,7 @@ import numpy as np
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, RAIZ)
 
-from nicegui import ui, run, background_tasks   # noqa: E402
+from nicegui import app, ui, run, background_tasks   # noqa: E402
 
 from antenas import tipos, vista, fabricacion, exportar, consejos, graficas, ajuste, biblioteca, problemas   # noqa: E402
 from antenas.materiales import ancho_microstrip, eps_eff_microstrip   # noqa: E402
@@ -99,7 +99,12 @@ def _titulo_card(texto, icono=None):
 @ui.page('/')
 def pagina():
     ui.add_css('''
-        body { background: #eef1f3; }
+        body.body--light { background: #eef1f3; }
+        body.body--dark { background: #121417; }
+        .body--dark .text-grey-7, .body--dark .text-grey-8 { color: #aab4bb !important; }
+        .body--dark .text-blue-grey-9 { color: #cfd8dc !important; }
+        .body--dark .text-orange-10 { color: #ffb74d !important; }
+        .body--dark .text-deep-purple { color: #b39ddb !important; }
         .q-field__label { font-size: 0.82rem; }
         .barra-diseno { position: sticky; top: 0; z-index: 10; }
         .q-tab__label { font-size: 0.85rem; }
@@ -113,6 +118,69 @@ def pagina():
         ui.space()
         lbl_diseno = ui.label().classes('text-subtitle2')
         lbl_resumen = ui.label().classes('text-caption text-blue-grey-2 gt-sm')
+        btn_tema = ui.button().props('flat round dense color=white')
+
+    # ================================================================== tema claro / oscuro
+    # 'auto' sigue al sistema; la preferencia se guarda en app.storage.general (.nicegui/ en la raíz)
+    modo_oscuro = ui.dark_mode()
+    tema = {'modo': app.storage.general.get('tema', 'auto'), 'oscuro': False}
+    if tema['modo'] != 'auto':              # modo fijo: se aplica ya, antes de dibujar nada
+        tema['oscuro'] = tema['modo'] == 'oscuro'
+        modo_oscuro.value = tema['oscuro']
+    ICONOS_TEMA = {'auto': ('brightness_auto', 'Tema: automático (como el sistema)'),
+                   'claro': ('light_mode', 'Tema: claro'), 'oscuro': ('dark_mode', 'Tema: oscuro')}
+
+    def T(fig):
+        """Adapta una figura de Plotly al tema actual (se llama en cada ui.plotly / update_figure)."""
+        if not tema['oscuro']:
+            return fig
+        fondo, rejilla, texto = '#1d2023', '#3a3f44', '#e0e0e0'
+        fig.update_layout(template='plotly_dark', paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor=fondo,
+                          font_color=texto)
+        fig.update_xaxes(gridcolor=rejilla, zerolinecolor='#555')
+        fig.update_yaxes(gridcolor=rejilla, zerolinecolor='#555')
+        if fig.layout.polar is not None:
+            fig.update_polars(bgcolor=fondo, radialaxis_gridcolor=rejilla, angularaxis_gridcolor=rejilla)
+        for tr in fig.data:
+            linea = getattr(tr, 'line', None)
+            if linea is not None and linea.color in ('#444', 'black', '#999'):
+                tr.line.color = '#cfd8dc' if linea.color != '#999' else '#777'
+            if getattr(tr, 'mode', None) == 'text':
+                tr.textfont.color = texto
+        for sh in fig.layout.shapes or ():
+            if sh.line is not None and sh.line.color == '#444':
+                sh.line.color = '#cfd8dc'
+        return fig
+
+    async def aplicar_tema(repintar=True):
+        modo = tema['modo']
+        if modo == 'auto':
+            modo_oscuro.value = None
+            try:
+                await ui.context.client.connected()
+                oscuro = bool(await ui.run_javascript(
+                    "window.matchMedia('(prefers-color-scheme: dark)').matches", timeout=3))
+            except Exception:
+                oscuro = False
+        else:
+            oscuro = modo == 'oscuro'
+            modo_oscuro.value = oscuro
+        icono, ayuda = ICONOS_TEMA[modo]
+        btn_tema.props(f'icon={icono}')
+        btn_tema.tooltip(ayuda)
+        cambia = oscuro != tema['oscuro']
+        tema['oscuro'] = oscuro
+        if repintar and cambia:
+            repintar_graficas()
+
+    async def cambiar_tema():
+        orden = ['auto', 'claro', 'oscuro']
+        tema['modo'] = orden[(orden.index(tema['modo']) + 1) % 3]
+        app.storage.general['tema'] = tema['modo']
+        await aplicar_tema()
+        ui.notify(ICONOS_TEMA[tema['modo']][1])
+
+    btn_tema.on_click(cambiar_tema)
 
     # ================================================================== barra del diseño (siempre visible)
     with ui.card().classes('w-full barra-diseno q-pa-sm').props('flat bordered'):
@@ -411,7 +479,7 @@ def pagina():
             ui.notify(f'No se puede generar: {ex}', type='negative')
             return
         estado['antena'] = a
-        grafico.update_figure(vista.figura_plotly(a))
+        grafico.update_figure(T(vista.figura_plotly(a)))
         lo, hi = banda_actual()
         tabla_info.clear()
         with tabla_info:
@@ -767,6 +835,7 @@ def pagina():
         ui.notify('Simulación terminada', type='positive')
 
     def pintar_simulacion(r, d):
+        sim['mostrada'] = (r, d)            # para repintarla al cambiar de tema
         lo, hi = banda_actual()
         res_sim.clear()
         with res_sim:
@@ -802,12 +871,21 @@ def pagina():
                               on_click=lambda q=r['parametros']: aplicar_ajustados(q)) \
                         .props('outline color=deep-purple no-caps')
             with ui.row().classes('w-full wrap gap-2'):
-                ui.plotly(graficas.s11(d['f'], d['s11'], (lo*1e6, hi*1e6))).classes('grow basis-[320px] h-[300px]')
-                ui.plotly(graficas.smith(d['f'], d['s11'])).classes('grow basis-[300px] h-[300px]')
+                ui.plotly(T(graficas.s11(d['f'], d['s11'], (lo*1e6, hi*1e6)))).classes('grow basis-[320px] h-[300px]')
+                ui.plotly(T(graficas.smith(d['f'], d['s11']))).classes('grow basis-[300px] h-[300px]')
             if d['d'].size:
                 with ui.row().classes('w-full wrap gap-2'):
-                    ui.plotly(graficas.cortes_polares(d['theta'], d['phi'], d['d'])).classes('grow basis-[320px] h-[340px]')
-                    ui.plotly(graficas.diagrama_3d(d['theta'], d['phi'], d['d'])).classes('grow basis-[320px] h-[340px]')
+                    ui.plotly(T(graficas.cortes_polares(d['theta'], d['phi'], d['d']))).classes('grow basis-[320px] h-[340px]')
+                    ui.plotly(T(graficas.diagrama_3d(d['theta'], d['phi'], d['d']))).classes('grow basis-[320px] h-[340px]')
+
+    def repintar_graficas():
+        """Vuelve a dibujar las gráficas visibles con el tema actual."""
+        if estado['antena'] is not None:
+            grafico.update_figure(T(vista.figura_plotly(estado['antena'])))
+        if sim.get('mostrada'):
+            pintar_simulacion(*sim['mostrada'])
+        pintar_comparacion()
+        res_asist.clear()                   # la carta de Smith del asistente se rehace al volver a analizar
 
     def aplicar_ajustados(q):
         marcar_cambio()
@@ -879,7 +957,7 @@ def pagina():
             fs = sim_g[1]['f']
             fig.update_xaxes(range=[fs.min()/1e6, fs.max()/1e6])
         with cont_comparacion:
-            ui.plotly(fig).classes('w-full h-[360px]')
+            ui.plotly(T(fig)).classes('w-full h-[360px]')
 
     def analizar_medida(fichero, texto):
         try:
@@ -927,7 +1005,7 @@ def pagina():
                 for r_ in rec['redes']:
                     ui.label(f'· Z1 = {txt(r_["serie"])}, {r_["posicion"]} = {txt(r_["derivacion"])} → |S11| ≈ '
                              f'{r_["s11_dB"]} dB').classes('text-caption')
-            ui.plotly(graficas.smith(f, s11)).classes('w-full h-[300px]')
+            ui.plotly(T(graficas.smith(f, s11))).classes('w-full h-[300px]')
 
     def nueva_medida(f, s11, origen):
         """Guarda la medida en el diseño, la añade a la comparación y la analiza."""
@@ -1125,7 +1203,7 @@ def pagina():
                 break
             vna['ultima'] = (f, s11)
             lo, hi = banda_actual()
-            vivo_graf.update_figure(graficas.s11(f, s11, (lo*1e6, hi*1e6)))
+            vivo_graf.update_figure(T(graficas.s11(f, s11, (lo*1e6, hi*1e6))))
             a = estado['antena']
             try:
                 s = tipos.sustrato(estado['sustrato'])
@@ -1235,6 +1313,7 @@ def pagina():
     actualizar_cabecera()
     refrescar_biblioteca()
     mostrar_medidas()
+    ui.timer(0.05, aplicar_tema, once=True)    # en «auto» pregunta al navegador si el sistema está en oscuro
     ui.context.client.on_disconnect(lambda: vna.update(vivo=False))   # no seguir midiendo sin nadie delante
     mostrar_modo_cal()
     pintar_pasos_cal()

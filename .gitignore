@@ -41,6 +41,8 @@ vna/calibraciones/sd_backup/
 
 # --- Herramientas locales
 .code-review-graph/
+# Preferencias de la interfaz (tema) que guarda NiceGUI
+.nicegui/
 .claude/ultima_revision_claude_md
 .claude/settings.local.json
 
