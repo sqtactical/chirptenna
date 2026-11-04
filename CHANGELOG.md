@@ -3,6 +3,25 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); versiones con
 [versionado semántico](https://semver.org/lang/es/). *English summary under each version.*
 
+## [Sin publicar]
+
+### Añadido
+
+- **Manual de uso** ([MANUAL.md](MANUAL.md)): cada pestaña, medir con el NanoVNA y ajustar la antena
+  fabricada (marcas, puentes y red en π con ejemplos, cómo leer la carta de Smith y qué componentes comprar).
+- Guía de instalación ampliada (requisitos, qué se instala y dónde, prueba de que funciona, más problemas
+  frecuentes, cómo pedir ayuda), en castellano e inglés.
+- CI en GitHub Actions: instalador, los 16 tipos con el DRC de KiCad y prueba de la interfaz.
+- `SECURITY.md`, código de conducta y Discussions.
+
+### Cambiado
+
+- Versiones de las dependencias fijadas: rangos en `requirements.txt` y versiones exactas en
+  `requirements-lock.txt`, que es lo que instala el instalador.
+
+*English: user manual (Spanish), expanded installation guide, CI, security policy, code of conduct and
+pinned dependency versions.*
+
 ## [0.1.1-alpha] · 2026-11
 
 Igual que la 0.1.0-alpha salvo la licencia del código. *Same as 0.1.0-alpha except for the code licence.*

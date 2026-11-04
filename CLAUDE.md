@@ -52,7 +52,10 @@ archivos modificados después de la última revisión. La marca de esa revisión
   (castellano) y `README.en.md` (inglés); licencias: `LICENSE` (código, AGPL-3.0 desde el 04-11; la v0.1.0-alpha salió con GPL-3.0) y `LICENSE-DISENOS.md`
   (diseños publicados, CC BY-NC 4.0). El `.gitignore` deja fuera `salidas/`, `placas/` (Gerber de
   terceros), los cupones generados y **cualquier Gerber**: el repositorio es el generador, no sus salidas.
-  Al cambiar tipos o su estado, actualizar la tabla de tipos de los dos README.
+  Al cambiar tipos o su estado, actualizar la tabla de tipos de los dos README. `MANUAL.md` (manual de uso,
+  solo en castellano) cita los textos de la interfaz y los valores por defecto del ajuste (`antenas/ajuste.py`):
+  **actualizarlo al cambiar etiquetas, pestañas o el asistente**; sus ejemplos de red en π salen de `ajuste.redes_l`.
+  `INSTALAR.md` e `INSTALL.en.md` van en paralelo (mismos apartados).
 - `code-review-graph` (en el Python 3.14 del sistema): grafo de código en `%LOCALAPPDATA%\antenas\crg`
   (`build --repo . --data-dir …`; para consultarlo, `CRG_DATA_DIR` con esa ruta). La carpeta vacía
   `.code-review-graph/` de la raíz es solo su marcador de proyecto.

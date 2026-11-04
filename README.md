@@ -133,6 +133,9 @@ openEMS de sus páginas oficiales (comprobando la firma y el SHA-256), crea el e
 paquetes, sin permisos de administrador. Guía paso a paso, problemas frecuentes, desinstalación e
 instalación manual: **[INSTALAR.md](INSTALAR.md)**.
 
+**Manual de uso:** **[MANUAL.md](MANUAL.md)**. Cubre cada pestaña, cómo medir con el NanoVNA y cómo
+ajustar la antena fabricada (marcas de corte, puentes y **red en π**, con ejemplos y qué componentes comprar).
+
 ## Uso
 
 **Interfaz gráfica** (http://localhost:8080):

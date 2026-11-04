@@ -130,6 +130,10 @@ from their official sites (checking the signature and SHA-256), creates the envi
 the packages, without administrator rights. Step-by-step guide, troubleshooting, uninstalling and
 manual installation: **[INSTALL.en.md](INSTALL.en.md)**.
 
+**User manual:** **[MANUAL.md](MANUAL.md)** (in Spanish, like the interface). It covers every tab, measuring
+with the NanoVNA and tuning the manufactured antenna (cut marks, solder bridges and the **π network**, with
+worked examples and which components to buy).
+
 ## Usage
 
 **GUI** (http://localhost:8080):
