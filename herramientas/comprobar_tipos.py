@@ -18,6 +18,11 @@ sys.path.insert(0, RAIZ)
 
 from antenas import tipos, exportar, fabricacion, __version__   # noqa: E402
 
+# Opciones que cambian la geometría de forma notable: se generan y exportan además de los valores por defecto
+VARIANTES = [('dipolo', {'forma': 1}), ('dipolo', {'forma': 2}), ('dipolo', {'forma': 2, 'alimentacion': 1}),
+             ('panel_dipolos', {'tamano': 1, 'elemento': 1}), ('panel_dipolos', {'tamano': 1, 'elemento': 2}),
+             ('panel_dipolos', {'tamano': 2, 'elemento': 2}), ('panel_dipolos', {'tamano': 4, 'elemento': 2})]
+
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -27,18 +32,19 @@ def main():
     a = ap.parse_args()
     bandas = [float(x) for x in a.bandas.split(',') if x]
     claves = [c for c in tipos.CATALOGO if not a.solo or c in a.solo.split(',')]
+    casos = [(c, {}) for c in claves] + [(c, x) for c, x in VARIANTES if c in claves]
     resumen, fallos = [], 0
-    print(f'Chirptenna {__version__}: {len(claves)} tipos × {len(bandas)} bandas -> {a.salida}')
-    for clave in claves:
+    print(f'Chirptenna {__version__}: {len(casos)} casos × {len(bandas)} bandas -> {a.salida}')
+    for clave, extra in casos:
         for f in bandas:
             t0 = time.time()
-            fila = {'tipo': clave, 'f_MHz': f}
+            fila = {'tipo': clave, 'f_MHz': f, 'variante': extra}
             try:
-                p = tipos.dimensionar(clave, f*1e6, {})
+                p = tipos.dimensionar(clave, f*1e6, dict(extra))
                 p.pop('_aviso', None)
                 ant = tipos.generar(clave, p)
                 errores_fab = [m for n, m in fabricacion.comprobar(ant) if n == 'error']
-                nombre = f'{clave}_{f:g}MHz'
+                nombre = f'{clave}{"".join(f"_{k}{v}" for k, v in extra.items())}_{f:g}MHz'
                 r = exportar.exportar_todo(ant, os.path.join(a.salida, nombre), nombre)
                 fila.update(placa_mm=ant.info.get('placa_mm'), drc=r['drc'], fabricacion=errores_fab,
                             logo_mm=r['serigrafia']['logo_mm'], ok=not r['drc'] and not errores_fab)

@@ -115,8 +115,13 @@ def problemas(clave, p=None, f_MHz=None):
     if clave == 'panel_dipolos' and int(p.get('simetrico', 0) or 0) == 1:
         out.append(('aviso', 'La disposición simétrica con cruce no corrige la inclinación del haz y empeora la '
                              'adaptación (−10 dB frente a −15,7 dB de la normal). Mejor «Todos iguales».'))
-    if clave == 'dipolo' and it > 0:
+    if clave == 'dipolo' and it > 0 and int(p.get('forma', 0) or 0) == 0:
         out.append(('info', 'Dipolo de Koch sin validar en simulación (el recto sí).'))
+    if (clave == 'dipolo' and int(p.get('forma', 0) or 0) > 0) or \
+            (clave == 'panel_dipolos' and (int(p.get('elemento', 0) or 0) > 0 or int(p.get('tamano', 2) or 2) == 1)):
+        out.append(('aviso', 'Bowtie, bowtie de Sierpinski y panel de un solo elemento: tipos nuevos, pendientes de '
+                             'validar en simulación (el tamaño inicial sale de una estimación sin calibrar). '
+                             'Simúlala y ajústala antes de fabricar.'))
     if int(p.get('conector', 0) or 0) == 1 and clave.startswith('monopolo'):
         out.append(('aviso', 'Con IPEX el monopolo recto adaptó mal en simulación (−7 dB): la transición del pad '
                              'central está en revisión. Con SMA va bien.'))

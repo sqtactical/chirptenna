@@ -61,7 +61,13 @@ hecho hasta ahora (validaciones, simulaciones, fallos y decisiones) está en
    - Placa C de cupones (antenas de referencia).
    - Yagi comercial: la simulación no coincide con la medida (1856 frente a 2344 MHz); aparcada.
    - Rendimiento: reparto óptimo de hilos de openEMS (`ANTENAS_HILOS`).
-4. **Tipos nuevos por implementar: bowtie de Sierpinski** (decidido el 05-11). Objetivo: tolerancia a desajustes
+4. **Bowtie de Sierpinski: implementados como opciones (05-11, rama `gpu-pruebas`), pendientes de simular.** Sin
+   catálogo propio todavía: `dipolo` con `forma` = 1 (bowtie) o 2 (bowtie de Sierpinski, `iteracion_s`, `apertura`) y
+   `panel_dipolos` con `elemento` = 0/1/2 y `tamano` = 1 (un solo elemento sobre reflector, sin red), 2 o 4. Pasan
+   DRC y reglas de JLC (18/18 en `comprobar_tipos.py`, que ahora incluye `VARIANTES`) pero **el tamaño inicial sale de una
+   estimación sin calibrar** (K = 0,85) y no se ha simulado ninguno: el lote `salidas/_validacion_gpu` los simula en GPU.
+   Si pasan, darles entrada propia en la galería (bowtie, bowtie con reflector, array de bowtie) y calibrar la estimación.
+   Texto original del plan: (decidido el 05-11). Objetivo: tolerancia a desajustes
    (εr, máscara, caja) gracias a su ancho de banda, no más ganancia. Sacarlos como experimentales en
    `problemas.py` hasta simularlos.
    1. **Bowtie sola** (dipolo de Sierpinski): parámetro «forma» del `dipolo` (recto / Koch / Sierpinski).

@@ -34,10 +34,11 @@ TIPOS = {
                            ['largo', 'ancho', 'alimentacion', 'conector', 'ajuste']),
     'yagi_boom': ('directiva', 'Yagi impresa con directores: 6–7 dBi hacia delante, en una placa plana.',
                   ['largo_brazo', 'directores', 'iteracion', 'alimentacion', 'conector', 'aligerado']),
-    'panel_dipolos': ('directiva', 'Dipolos sobre un reflector (segunda placa): 12–17 dBi para enlaces largos.',
-                      ['tamano', 'largo_brazo', 'simetrico', 'aligerado']),
-    'dipolo': ('sin_masa', 'Dipolo impreso con balun: no necesita plano de masa, radiación simétrica.',
-               ['largo_brazo', 'iteracion', 'alimentacion', 'conector']),
+    'panel_dipolos': ('directiva', 'Dipolos o bowtie sobre un reflector (segunda placa): 1 elemento o 2×2 / 4×4, '
+                      'hasta 17 dBi para enlaces largos.',
+                      ['tamano', 'elemento', 'largo_brazo', 'simetrico', 'aligerado']),
+    'dipolo': ('sin_masa', 'Dipolo impreso (recto, de Koch o bowtie) con balun: no necesita masa, radiación simétrica.',
+               ['largo_brazo', 'forma', 'iteracion', 'alimentacion', 'conector']),
     'jpole_koch': ('sin_masa', 'J-pole con radiador de Koch: sin masa, se alimenta con coaxial. Para mástil.',
                    ['largo_radiador', 'iteracion', 'ajuste']),
     'monopolo_hilbert': ('experimental', 'Curva de Hilbert: muy compacta, pero adapta mal sin red en π.',
@@ -160,8 +161,18 @@ AYUDAS_TIPO = {
                                     'sin lóbulos laterales grandes.',
                       'largo': 'Largo de cada parche: fija la frecuencia. Lo calcula «Ajustar».',
                       'iteracion': 'Iteración del fractal de Minkowski de cada parche (si el elemento es Minkowski).'},
-    'panel_dipolos': {'separacion': 'Distancia entre dipolos, en longitudes de onda. ~0,75 λ0 da la máxima ganancia.'},
-    'dipolo': {'hueco': 'Hueco entre los brazos en el centro, donde se suelda el coaxial (alimentación por coaxial).',
+    'panel_dipolos': {'separacion': 'Distancia entre dipolos, en longitudes de onda. ~0,75 λ0 da la máxima ganancia.',
+                      'tamano': 'Número de elementos: 1 = uno solo sobre el reflector (sin red, ~7–9 dBi), 2 = 2×2 '
+                                '(4 elementos) y 4 = 4×4 (16, ~4–5 dB más y placa 4 veces mayor).',
+                      'elemento': 'Forma de cada elemento: dipolo recto, bowtie (triángulos) o bowtie de Sierpinski. '
+                                  'La bowtie aguanta mejor los desajustes de frecuencia (más banda).',
+                      'iteracion_s': 'Nivel del Sierpinski de cada brazo (solo con «Bowtie de Sierpinski»). '
+                                     'Más iteración: más huecos, brazo más largo eléctricamente y algo menos de banda.'},
+    'dipolo': {'forma': 'Forma de los brazos: pista recta o de Koch (con la iteración de Koch), bowtie (dos '
+                        'triángulos) o bowtie de Sierpinski. La bowtie aguanta mejor los desajustes de frecuencia.',
+               'iteracion_s': 'Nivel del Sierpinski de cada brazo (solo con «Bowtie de Sierpinski»). '
+                              'Más iteración: más huecos y un brazo eléctricamente más largo.',
+               'hueco': 'Hueco entre los brazos en el centro, donde se suelda el coaxial (alimentación por coaxial).',
                'largo_alimentacion': 'Largo del balun impreso (la tira central): separa la antena del conector.',
                'alimentacion': 'Balun impreso: conector en el borde y una tira que hace de balun (todo en la placa). '
                                'Coaxial al centro: sueldas el coaxial directamente en el centro del dipolo.'},

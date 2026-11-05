@@ -294,9 +294,14 @@ TALADRO_SMA_PANEL = 6.5         # SMA hembra de panel (rosca 1/4-36) en el refle
 HUECO_CRUCE = 3.0               # hueco entre las dos tiras de una misma cara en el cruce (≥ 2 celdas de malla)
 
 
+K_BOWTIE_PANEL = 0.85           # sin calibrar: un brazo triangular ancho resuena con ~85 % del largo de uno recto
+
+
 def estimar_f_panel(p, eps_eff_impreso):
-    """Dipolo impreso con un brazo en cada cara: resuena cuando los brazos suman λ/2 efectiva."""
-    return K_DIPOLO_PANEL*C0/(2*2*p['largo_brazo']*1e-3*math.sqrt(eps_eff_impreso))
+    """Dipolo impreso con un brazo en cada cara: resuena cuando los brazos suman λ/2 efectiva.
+    Con bowtie (elemento 1 o 2) el brazo triangular es eléctricamente más corto."""
+    la = p['largo_brazo']/(K_BOWTIE_PANEL if int(p.get('elemento', 0)) else 1.0)
+    return K_DIPOLO_PANEL*C0/(2*2*la*1e-3*math.sqrt(eps_eff_impreso))
 
 
 def generar_panel_dipolos(p, s, eps_eff_impreso):
@@ -316,8 +321,9 @@ def generar_panel_dipolos(p, s, eps_eff_impreso):
     distinto las desfasa ~45°: el haz se inclinaba 9° en el plano E (−1,1 dB de frente en el 2×2).
     """
     n = int(p['tamano'])
-    if n not in (2, 4):
-        raise ValueError('El panel admite 2×2 o 4×4')
+    if n not in (1, 2, 4):
+        raise ValueError('El panel admite un solo elemento, 2×2 o 4×4')
+    elemento = int(p.get('elemento', 0))             # 0 = dipolo recto, 1 = bowtie, 2 = bowtie de Sierpinski
     h2 = s.h/2
     w100 = float(ancho_microstrip(50, s.er, h2))
     w70 = float(ancho_microstrip(50/math.sqrt(2), s.er, h2))
@@ -330,6 +336,17 @@ def generar_panel_dipolos(p, s, eps_eff_impreso):
     sup, inf = [], []
     vias = []
     avisos = []
+
+    def brazos(xc, yc, o):
+        """Los dos brazos de un elemento centrado en (xc, yc): (cara superior, cara inferior). o = +1: el de
+        arriba hacia +x (−1: espejado)."""
+        if elemento == 0:
+            return (g.rectangulo(xc - o*w100/2, yc - wd/2, xc + o*la, yc + wd/2),
+                    g.rectangulo(xc - o*la, yc - wd/2, xc + o*w100/2, yc + wd/2))
+        a = g.brazo_bowtie(la, p.get('apertura', 70), w100, int(p.get('iteracion_s', 2)) if elemento == 2 else 0,
+                           p.get('cuello_s', 1.0))
+        return tuple(affinity.translate(affinity.scale(a, xfact=sx, yfact=1, origin=(0, 0)), xc, yc)
+                     for sx in (o, -o))
 
     def tira(a, b, w):
         """Tramo de PSL: la misma tira en las dos caras."""
@@ -374,13 +391,22 @@ def generar_panel_dipolos(p, s, eps_eff_impreso):
             o = sx if simetrico else 1                  # hacia dónde va el brazo de la cara superior
             for sy in (-1, 1):
                 yc = cy + sy*dy/2
-                sup.append(g.rectangulo(xc - o*w100/2, yc - wd/2, xc + o*la, yc + wd/2))
-                inf.append(g.rectangulo(xc - o*la, yc - wd/2, xc + o*w100/2, yc + wd/2))
+                arriba, abajo = brazos(xc, yc, o)
+                sup.append(arriba)
+                inf.append(abajo)
                 tira((xc, cy), (xc, yc), w100)
             rama((xc, cy), (cx, cy), cruzada=simetrico and sx < 0)
 
     camino = {'100': dy/2 + dx/2 - l70, '70': l70}         # raíz -> dipolo (2×2)
-    if n == 2:
+    if n == 1:
+        # un solo elemento sobre el reflector: el coaxial llega directo al centro (vivo al brazo de arriba,
+        # malla al de abajo), sin red; la impedancia de un dipolo/bowtie sobre reflector se afina con la
+        # separación del reflector
+        arriba, abajo = brazos(0.0, 0.0, 1)
+        sup.append(arriba)
+        inf.append(abajo)
+        camino = {'100': 0.0, '70': 0.0}
+    elif n == 2:
         bloque(0.0, 0.0)
     else:
         for bx in (-dx, dx):
@@ -411,15 +437,17 @@ def generar_panel_dipolos(p, s, eps_eff_impreso):
     perdida = (perdida_linea_dB_mm(f_est, s2, w100, 50)*camino['100']
                + perdida_linea_dB_mm(f_est, s2, w70, 35.4)*camino['70'])
     d_elem = 7.5                                            # dipolo sobre reflector a ~λ/4
-    d_ideal = d_elem + 10*math.log10(n*n) - 0.5             # acoplo mutuo
+    d_ideal = d_elem + 10*math.log10(n*n) - (0.5 if n > 1 else 0.0)     # acoplo mutuo
     d_apertura = 10*math.log10(4*math.pi*(rx1 - rx0)*(ry1 - ry0)/lam0**2)
     d_est = min(d_ideal, d_apertura)
     if not 0.15 <= p['separacion_reflector'] <= 0.3:
         avisos.append(f'Reflector a {p["separacion_reflector"]:.2f} λ0: lo habitual es 0,2–0,25 λ0 (más cerca baja '
                       'la impedancia y la banda; más lejos el haz se deforma).')
-    if p['separacion'] > 0.9:
+    if n > 1 and p['separacion'] > 0.9:
         avisos.append('Separación entre dipolos > 0,9 λ0: aparecen lóbulos de difracción.')
-    if 2*la + 4 > dx:
+    if n > 1 and elemento and 2*la*math.tan(math.radians(p.get('apertura', 70))/2) + 4 > dy:
+        avisos.append('Las bowtie casi se tocan en vertical: sube la separación o cierra la apertura.')
+    if n > 1 and 2*la + 4 > dx:
         avisos.append('Los dipolos casi se tocan en la dirección de sus brazos: sube la separación.')
     if max(rx1 - rx0, ry1 - ry0) > 400:
         avisos.append('Reflector de más de 400 mm: mejor una chapa de aluminio que una PCB.')

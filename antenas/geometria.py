@@ -115,6 +115,24 @@ def sierpinski(iteraciones, base, alto, cuello=0.0):
     return unary_union([p.buffer(cuello/3.2, join_style='mitre') for p in pols]).intersection(Polygon(v))
 
 
+def brazo_bowtie(largo, apertura, ancho_alim, iteracion=0, cuello=1.0):
+    """Brazo de una bowtie (antena de pajarita) hacia +x como polígono.
+
+    El vértice (el punto de alimentación) está en el origen y la base, en x = largo. `apertura` es el
+    ángulo total del triángulo [°]. Con `iteracion` > 0 el triángulo es un Sierpinski (huecos triangulares,
+    con uniones de `cuello` mm). Un tramo corto de ancho `ancho_alim` sigue al vértice hacia +x, para que
+    la línea de alimentación se una a un ancho real y no a una punta de ancho cero.
+    """
+    medio = largo*math.tan(math.radians(apertura)/2)
+    if int(iteracion) <= 0:
+        cuerpo = Polygon([(0.0, 0.0), (largo, medio), (largo, -medio)])
+    else:
+        # sierpinski() tiene el vértice abajo y la base arriba: se gira (x, y) → (y, x)
+        cuerpo = affinity.affine_transform(sierpinski(int(iteracion), 2*medio, largo, cuello), [0, 1, 1, 0, 0, 0])
+    cuello_alim = box(0.0, -ancho_alim/2, ancho_alim, ancho_alim/2)
+    return unary_union([cuerpo, cuello_alim])
+
+
 # ------------------------------------------------------------------ polígonos
 def engordar(polilinea, ancho):
     """Convierte una polilínea en una pista de ancho dado (esquinas a inglete, extremos planos)."""

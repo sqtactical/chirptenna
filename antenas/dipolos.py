@@ -15,6 +15,7 @@ Estimaciones orientativas (y calibradas con simulaciones cuando las haya: tipos.
 """
 import math
 
+from shapely import affinity
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
@@ -42,8 +43,16 @@ def _info_placa(contorno, extra):
 
 
 # ------------------------------------------------------------------ dipolo
+K_BOWTIE = 0.85       # sin calibrar: un brazo triangular ancho resuena con ~85 % del largo de uno recto
+
+
 def estimar_f_dipolo(p, eps_impreso):
-    total = 2*_eq_koch(p['largo_brazo'], p.get('iteracion', 0)) + (p['hueco'] if int(p['alimentacion']) == 1 else 0)
+    forma = int(p.get('forma', 0))
+    if forma:
+        # bowtie / bowtie de Sierpinski: sin Koch, y el brazo ancho es eléctricamente más corto
+        total = 2*p['largo_brazo']/K_BOWTIE + (p['hueco'] if int(p['alimentacion']) == 1 else 0)
+    else:
+        total = 2*_eq_koch(p['largo_brazo'], p.get('iteracion', 0)) + (p['hueco'] if int(p['alimentacion']) == 1 else 0)
     return C0/(2*total*1e-3*math.sqrt(eps_impreso))
 
 
@@ -52,14 +61,27 @@ def generar_dipolo(p, s, eps_impreso):
     n, ang, la = int(p.get('iteracion', 0)), p.get('angulo', 60), p['largo_brazo']
     margen = p.get('margen_borde', 2.0)
     vias, avisos = [], []
+    forma = int(p.get('forma', 0))        # 0 = recto o Koch, 1 = bowtie, 2 = bowtie de Sierpinski
+
+    def brazo(lado, y_d, desp):
+        """Un brazo (lado = +1 derecho, −1 izquierdo), con el vértice de la bowtie o el inicio de la pista en
+        (lado·desp, y_d). Devuelve (polilínea o None, polígono)."""
+        if forma == 0:
+            pol = brazo_koch(n, la, ang, lado < 0, y_d) + [lado*desp, 0]
+            return pol, g.engordar(pol, w)
+        a = g.brazo_bowtie(la, p.get('apertura', 70), w, int(p.get('iteracion_s', 2)) if forma == 2 else 0,
+                           p.get('cuello_s', 1.0))
+        a = affinity.translate(affinity.scale(a, xfact=lado, yfact=1, origin=(0, 0)), lado*desp, y_d)
+        return None, a
+
     if int(p['alimentacion']) == 1:
         # Coaxial al centro: una cara; vivo al brazo derecho, malla al izquierdo
         hc = p['hueco']
         y_d = Y_COAXIAL
-        der = brazo_koch(n, la, ang, False, y_d) + [hc/2, 0]
-        izq = brazo_koch(n, la, ang, True, y_d) + [-hc/2, 0]
+        der, g_der = brazo(1, y_d, hc/2)
+        izq, g_izq = brazo(-1, y_d, hc/2)
         pads = [g.rectangulo(hc/2, y_d - 1.0, hc/2 + 2.0, y_d + 1.0), g.rectangulo(-hc/2 - 2.0, y_d - 1.0, -hc/2, y_d + 1.0)]
-        sup = unary_union([g.engordar(der, w), g.engordar(izq, w)] + pads)
+        sup = unary_union([g_der, g_izq] + pads)
         inf = Polygon()
         soporte = g.rectangulo(-4.0, 0, 4.0, y_d)          # sitio para el coaxial y su sujeción
         contorno = g.contorno_placa([sup.buffer(margen), soporte], int(p.get('contorno', 1)),
@@ -73,10 +95,10 @@ def generar_dipolo(p, s, eps_impreso):
         w50 = ancho_microstrip(50, s.er, s.h)
         wb = max(p['ancho_boom'], w50 + 3*s.h)
         y_d = BORDE_COBRE + p['largo_alimentacion']
-        der = brazo_koch(n, la, ang, False, y_d)
-        izq = brazo_koch(n, la, ang, True, y_d)
-        sup = unary_union([g.rectangulo(-w50/2, BORDE_COBRE, w50/2, y_d + w/2), g.engordar(der, w)])
-        inf = unary_union([g.rectangulo(-wb/2, BORDE_COBRE, wb/2, y_d + w/2), g.engordar(izq, w)])
+        der, g_der = brazo(1, y_d, 0.0)
+        izq, g_izq = brazo(-1, y_d, 0.0)
+        sup = unary_union([g.rectangulo(-w50/2, BORDE_COBRE, w50/2, y_d + w/2), g_der])
+        inf = unary_union([g.rectangulo(-wb/2, BORDE_COBRE, wb/2, y_d + w/2), g_izq])
         a_min = conector.ANCHO_MINIMO[conector.tipo(p)]
         contorno = g.contorno_placa([unary_union([sup, inf]).buffer(margen), g.rectangulo(-a_min/2, 0, a_min/2, 6.0)],
                                     int(p.get('contorno', 1)), recorte=(-1e4, 0, 1e4, 1e4))
@@ -86,7 +108,7 @@ def generar_dipolo(p, s, eps_impreso):
             avisos.append('Boom corto: el balun funciona mejor con la tira de masa de ~λg/4 bajo la línea.')
     interior = contorno.buffer(-BORDE_COBRE, join_style='mitre')
     sup, inf = sup.intersection(interior), inf.intersection(interior)
-    x0, _, x1, _ = unary_union([g.engordar(der, w), g.engordar(izq, w)]).bounds
+    x0, _, x1, _ = unary_union([g_der, g_izq]).bounds
     return Antena(tipo='dipolo', parametros=dict(p), capas={'F.Cu': sup, 'B.Cu': inf}, ajuste=ajuste.vacio(),
                   radiador=unary_union([sup, inf]), contorno=contorno, zona_libre=contorno, puerto=puerto, vias=vias,
                   info=_info_placa(contorno, {'radiador_mm': [round(x1 - x0, 2), round(w, 2)],
