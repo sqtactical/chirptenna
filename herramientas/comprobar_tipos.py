@@ -52,6 +52,11 @@ def main():
                                                     fila.get('fabricacion', [])[:2])
             print(f"  {estado} {clave:22s} {f:8g} MHz  placa {fila.get('placa_mm')}  logo {fila.get('logo_mm')}  "
                   f"{fila['s']:5.1f} s  {detalle}")
+    # Guía de la interfaz (galería, básicos y ayudas): cada tipo y parámetro tiene que estar documentado
+    from antenas import guia
+    for e in guia.comprobar():
+        print(f'  MAL guía: {e}')
+        fallos += 1
     os.makedirs(a.salida, exist_ok=True)
     with open(os.path.join(a.salida, 'resumen.json'), 'w', encoding='utf-8') as fh:
         json.dump({'version': __version__, 'fallos': fallos, 'casos': resumen}, fh, indent=2, ensure_ascii=False,

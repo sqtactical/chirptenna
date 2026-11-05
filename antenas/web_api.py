@@ -19,11 +19,11 @@ if sys.platform == 'emscripten':          # navegador (Pyodide): GEOS 3.12, oper
     from . import robusto
     robusto.activar()
 
-from . import tipos, fabricacion, consejos, problemas, presentacion, exportar as exp, __version__
+from . import tipos, fabricacion, consejos, problemas, presentacion, guia, exportar as exp, __version__
 from .geometria import poligonos
 from .materiales import SUSTRATOS, SUSTRATO_POR_DEFECTO
 
-VERSION_API = 1
+VERSION_API = 2          # 2: galería (grupo, resumen, estado), parámetros básicos y ayudas
 URL_PROYECTO = 'https://github.com/sqtactical/chirptenna'
 
 
@@ -54,17 +54,20 @@ def catalogo():
     """Tipos con sus parámetros, sustratos, reglas, bandas y textos de la serigrafía."""
     lista = []
     for clave, t in tipos.CATALOGO.items():
+        grupo, resumen, _ = guia.info_tipo(clave)
+        est, comentario = problemas.estado(clave)
         lista.append({
             'clave': clave, 'nombre': t.nombre, 'descripcion': t.descripcion, 'familia': t.familia,
+            'grupo': grupo, 'resumen': resumen, 'estado': est, 'estado_comentario': comentario,
             'parametros': [{'nombre': p.nombre, 'etiqueta': p.etiqueta, 'defecto': p.defecto, 'minimo': p.minimo,
-                            'maximo': p.maximo, 'paso': p.paso, 'entero': p.entero, 'ayuda': p.ayuda,
+                            'maximo': p.maximo, 'paso': p.paso, 'entero': p.entero, 'ayuda': guia.ayuda(clave, p),
                             'opciones': ({str(k): v for k, v in p.opciones.items()} if p.opciones else None)}
                            for p in t.parametros],
             'escalables': list(tipos.ESCALABLES.get(clave, ())),
         })
     return _json({
         'version': __version__, 'version_api': VERSION_API, 'url': URL_PROYECTO,
-        'tipos': lista, 'sustratos': list(SUSTRATOS), 'sustrato_defecto': SUSTRATO_POR_DEFECTO,
+        'tipos': lista, 'grupos': guia.GRUPOS, 'estados': problemas.ESTADO_TEXTO, 'sustratos': list(SUSTRATOS), 'sustrato_defecto': SUSTRATO_POR_DEFECTO,
         'reglas': list(fabricacion.REGLAS), 'reglas_defecto': fabricacion.REGLAS_POR_DEFECTO,
         'bandas': presentacion.BANDAS,
         'serigrafia_opciones': [o for o in presentacion.SERIGRAFIA_OPCIONES if o[0] != 'sim'],   # sin simulación
@@ -141,7 +144,8 @@ def generar(texto):
     try:
         a = tipos.generar(clave, p, e.get('sustrato'))
     except Exception as ex:      # geometría imposible con estos parámetros
-        return _json({'error': f'No se puede generar: {ex}', 'visibles': presentacion.parametros_visibles(clave, p)})
+        return _json({'error': f'No se puede generar: {ex}', 'visibles': presentacion.parametros_visibles(clave, p),
+                      'basicos': guia.basicos(clave, p)})
     bw = a.info.get('ancho_banda_estimado')
     banda = None
     if bw:
@@ -161,6 +165,7 @@ def generar(texto):
         'problemas': problemas.problemas(clave, p, f_MHz),
         'comprobaciones': comprobaciones,
         'visibles': presentacion.parametros_visibles(clave, p),
+        'basicos': guia.basicos(clave, p),
         'serigrafia': presentacion.lineas_serigrafia(s, clave, f_MHz, e.get('nombre', '')),
         'descripcion': tipos.CATALOGO[clave].descripcion,
     })

@@ -11,6 +11,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
   (`.kicad_pcb`, huella, DXF, `diseno.json` y un LÉEME con los pasos hasta los Gerber) sin instalar nada. Python
   corre en el navegador (Pyodide); no se envía nada a ningún servidor. Enlaces para compartir un diseño, abrir un
   `diseno.json` de la aplicación y tema claro/oscuro. No simula ni pasa el DRC de KiCad.
+- **Interfaz más sencilla** (escritorio y web): al entrar, una galería de tipos con miniatura, descripción y estado
+  («Validada», «Pendiente de validación», «No funciona»), agrupados por uso. Al elegir uno solo se ven los parámetros
+  básicos; el resto está en «Ajustes avanzados». Cada parámetro tiene un botón «?» que explica qué hace. El selector de
+  tipo también muestra la descripción y el estado de cada antena.
 - Prueba automática de la web en la CI: los 16 tipos a 868 MHz y 2,4 GHz generados dentro del navegador y con el DRC
   de KiCad.
 
@@ -20,7 +24,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 - Las comprobaciones de fabricación usan operaciones de geometría robustas (no fallan con geometrías delicadas).
 
 *English: web lite version (design in the browser and download for KiCad, no install, nothing leaves your
-browser), with a CI test that generates every type inside the browser and runs KiCad's DRC on it.*
+browser), with a CI test that generates every type inside the browser and runs KiCad's DRC on it. Simpler interface
+(desktop and web): a gallery of antenna types with thumbnails, descriptions and status; basic parameters first with
+the rest under “advanced settings”; a “?” help bubble on every parameter.*
 
 ## [0.1.2-alpha] · 2026-11-04
 

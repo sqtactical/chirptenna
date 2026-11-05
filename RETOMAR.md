@@ -104,6 +104,9 @@ hecho hasta ahora (validaciones, simulaciones, fallos y decisiones) está en
    - [x] Pages activado (build_type workflow) y publicada el 05-11: https://sqtactical.github.io/chirptenna/
      (`web.yml` vuelve a publicar con cada release o a mano: `gh workflow run web.yml`).
    - [x] `prueba_web.py` en la CI: 32/32 en Chromium con DRC de KiCad limpio (media 0,74 s, máx. 2,5 s por antena).
+   - [x] Interfaz simplificada (05-11, escritorio y web): galería de tipos con miniatura, resumen y estado, selector con
+     descripción, básicos + «Ajustes avanzados» y «?» con la ayuda de cada parámetro (`antenas/guia.py`).
+   - [ ] Rehacer las capturas del README con la galería (`docs/capturas/`).
    - [ ] Mejoras: caché sin conexión (service worker), versión en inglés, «Ajuste tras fabricar» explicado en la web.
 
 ## Cómo ejecutar

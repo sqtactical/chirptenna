@@ -9,6 +9,33 @@ README.en.md («Problemas conocidos») y con las lecciones de CLAUDE.md.
 # Tipos validados en simulación también a 868 MHz (el resto solo a 2,4 GHz)
 VALIDADOS_868 = {'monopolo_recto', 'monopolo_meandro', 'monopolo_koch'}
 
+# Estado de cada tipo para el selector y la galería: (estado, comentario breve). Estados: 'validada' (en
+# simulación), 'pendiente' (pendiente de validación) y 'no_funciona'. Mantener al día con FIJOS y los README.
+ESTADO = {
+    'monopolo_recto': ('validada', 'Validada en simulación (2,4 GHz y 868 MHz)'),
+    'monopolo_meandro': ('validada', 'Validada en simulación (2,4 GHz y 868 MHz)'),
+    'monopolo_koch': ('validada', 'Validada en simulación (2,4 GHz y 868 MHz)'),
+    'monopolo_hilbert': ('no_funciona', 'No funciona sin red en π'),
+    'monopolo_sierpinski': ('validada', 'Validada en simulación (2,4 GHz)'),
+    'parche_rectangular': ('validada', 'Validada en simulación (banda estrecha)'),
+    'parche_minkowski': ('pendiente', 'Pendiente de validación (eficiencia baja en FR4)'),
+    'yagi_koch': ('no_funciona', 'No funciona: radia hacia atrás'),
+    'yagi_boom': ('validada', 'Validada en simulación con elementos rectos'),
+    'array_parches': ('pendiente', 'Pendiente de validación'),
+    'panel_dipolos': ('validada', 'Validada en simulación (2,4 GHz)'),
+    'dipolo': ('validada', 'Validada en simulación (recto, 2,4 GHz)'),
+    'colineal_coco': ('pendiente', 'Pendiente de validación (poca ganancia en FR4)'),
+    'colineal_franklin': ('no_funciona', 'No funciona: adapta mal'),
+    'jpole': ('no_funciona', 'No funciona: adapta mal (usa la de Koch)'),
+    'jpole_koch': ('validada', 'Validada en simulación (2,4 GHz)'),
+}
+ESTADO_TEXTO = {'validada': 'Validada', 'pendiente': 'Pendiente de validación', 'no_funciona': 'No funciona'}
+
+
+def estado(clave):
+    """(estado, comentario) del tipo; los tipos nuevos sin entrada cuentan como pendientes de validación."""
+    return ESTADO.get(clave, ('pendiente', 'Pendiente de validación'))
+
 # Problemas que no dependen de los parámetros
 FIJOS = {
     'monopolo_meandro': [

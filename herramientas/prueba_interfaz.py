@@ -17,7 +17,7 @@ import subprocess
 import urllib.request
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PESTANAS = ('diseno', 'simulacion', 'fabricar', 'medir', 'disenos')
+PESTANAS = ('galeria', 'diseno', 'simulacion', 'fabricar', 'medir', 'disenos')
 
 
 def puerto_libre():

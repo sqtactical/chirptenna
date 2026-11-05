@@ -1,4 +1,6 @@
 // Chirptenna web lite: interfaz. El cálculo lo hace Python (antenas.web_api) dentro de motor.js.
+// Flujo: galería de tipos (sale al instante con catalogo.json y las miniaturas precalculadas, mientras Pyodide carga)
+// → diseño con los parámetros básicos (el resto en «Ajustes avanzados») → descarga para KiCad.
 // Chirptenna · Copyright (C) 2026 sqtactical · AGPL-3.0
 'use strict';
 
@@ -11,11 +13,12 @@ const ICONOS_CONSEJO = { banda: '📡', 'diseño': '💡', montaje: '🔧', medi
 const motor = new Worker('motor.js');
 const pendientes = new Map();
 let siguienteId = 1;
+let motorListo = false;
 motor.onmessage = (ev) => {
   const m = ev.data;
   if (m.progreso) { $('carga-texto').textContent = m.progreso; $('carga-barra').style.width = `${100 * m.fraccion}%`; return; }
-  if (m.fallo) { $('carga-texto').textContent = 'No se ha podido cargar el motor: ' + m.fallo; return; }
-  if (m.listo) return;
+  if (m.fallo) { $('carga').hidden = false; $('carga-texto').textContent = 'No se ha podido cargar el motor: ' + m.fallo; return; }
+  if (m.listo) { motorListo = true; $('carga').hidden = true; return; }
   const p = pendientes.get(m.id);
   if (!p) return;
   pendientes.delete(m.id);
@@ -30,24 +33,29 @@ function llamar(fn, arg) {
 }
 
 // ------------------------------------------------------------------ estado
-let cat = null;              // catálogo (tipos, sustratos, reglas, bandas, textos)
+let cat = null;              // catálogo (tipos, grupos, sustratos, reglas, bandas, textos): catalogo.json
 let ultimo = null;           // último resultado de generar
 const estado = {
   nombre: 'antena', clave: 'monopolo_koch', f_MHz: 2441.75, bw_MHz: 83.5, sustrato: null, reglas: null,
   parametros: null, serigrafia: null,
 };
 
-function tipoActual() { return cat.tipos.find((t) => t.clave === estado.clave); }
-function defectos(clave) {
-  const t = cat.tipos.find((x) => x.clave === clave);
-  return Object.fromEntries(t.parametros.map((p) => [p.nombre, p.defecto]));
-}
+function tipoDe(clave) { return cat.tipos.find((t) => t.clave === clave); }
+function tipoActual() { return tipoDe(estado.clave); }
+function defectos(clave) { return Object.fromEntries(tipoDe(clave).parametros.map((p) => [p.nombre, p.defecto])); }
+function nombreCorto(t) { return t.nombre.split(' (')[0]; }
 function entrada(extra = {}) {
   return { clave: estado.clave, f_MHz: estado.f_MHz, bw_MHz: estado.bw_MHz, sustrato: estado.sustrato,
     reglas: estado.reglas, parametros: estado.parametros, serigrafia: estado.serigrafia, nombre: estado.nombre, ...extra };
 }
 function guardarLocal() {
   try { localStorage.setItem(CLAVE_LOCAL, JSON.stringify(estado)); } catch (e) { /* sin almacenamiento */ }
+}
+function el(etiqueta, clase, texto) {
+  const e = document.createElement(etiqueta);
+  if (clase) e.className = clase;
+  if (texto !== undefined) e.textContent = texto;
+  return e;
 }
 
 // ------------------------------------------------------------------ avisos
@@ -60,12 +68,10 @@ function avisar(texto, error = false, ms = 4500) {
   clearTimeout(temporizadorAviso);
   temporizadorAviso = setTimeout(() => { t.hidden = true; }, ms);
 }
-function lista(el, filas) {
-  el.replaceChildren(...filas.map(([nivel, texto, icono]) => {
-    const li = document.createElement('li');
-    li.className = 'n-' + nivel;
+function lista(contenedor, filas) {
+  contenedor.replaceChildren(...filas.map(([nivel, texto, icono]) => {
+    const li = el('li', 'n-' + nivel, texto);
     li.dataset.icono = icono || ICONOS[nivel] || '•';
-    li.textContent = texto;
     return li;
   }));
 }
@@ -83,6 +89,140 @@ $('btn-tema').onclick = () => {
   aplicarTema(oscuro ? 'light' : 'dark');
 };
 try { const t = localStorage.getItem('chirptenna-tema'); if (t) aplicarTema(t); } catch (e) { /* nada */ }
+
+// ------------------------------------------------------------------ vistas: galería / diseño
+function mostrarGaleria() {
+  cerrarLista(); cerrarBurbuja();
+  $('app').hidden = true;
+  $('galeria').hidden = false;
+  $('btn-galeria').hidden = true;
+  $('carga').hidden = true;
+  const b = $('btn-continuar');
+  b.hidden = !estado.parametros;
+  b.textContent = `Seguir con «${estado.nombre}» (${nombreCorto(tipoActual())})`;
+  window.scrollTo(0, 0);
+}
+function mostrarDiseno() {
+  $('galeria').hidden = true;
+  $('app').hidden = false;
+  $('btn-galeria').hidden = false;
+  $('carga').hidden = motorListo;
+  window.scrollTo(0, 0);
+}
+function chapa(t) {
+  return el('span', 'chapa ' + t.estado, cat.estados[t.estado]);
+}
+function construirGaleria() {
+  const cont = $('grupos');
+  cont.replaceChildren();
+  for (const [g, titulo, desc] of cat.grupos) {
+    const tipos = cat.tipos.filter((t) => t.grupo === g);
+    if (!tipos.length) continue;
+    const sec = el('section', 'grupo-galeria');
+    sec.append(el('h2', '', titulo), el('p', 'sec pequeno', desc));
+    const rejilla = el('div', 'rejilla');
+    for (const t of tipos) {
+      const f = el('button', 'ficha');
+      f.type = 'button';
+      const img = el('img'); img.src = `miniaturas/${t.clave}.svg`; img.alt = ''; img.loading = 'lazy';
+      f.append(img, el('span', 'titulo', nombreCorto(t)), el('span', 'resumen', t.resumen));
+      if (t.estado !== 'validada') f.append(el('span', 'comentario ' + t.estado, '⚠ ' + t.estado_comentario));
+      f.append(chapa(t));
+      f.title = t.estado_comentario;
+      f.onclick = () => elegirTipo(t.clave, true);
+      rejilla.append(f);
+    }
+    sec.append(rejilla);
+    cont.append(sec);
+  }
+}
+
+// ------------------------------------------------------------------ selector de tipo con descripción
+function construirLista() {
+  const lst = $('tipo-lista');
+  lst.replaceChildren();
+  for (const [g, titulo] of cat.grupos) {
+    const tipos = cat.tipos.filter((t) => t.grupo === g);
+    if (!tipos.length) continue;
+    lst.append(el('div', 'cabeza-grupo', titulo));
+    for (const t of tipos) {
+      const o = el('div', 'opcion-tipo');
+      o.setAttribute('role', 'option');
+      o.tabIndex = 0;
+      o.dataset.clave = t.clave;
+      const img = el('img'); img.src = `miniaturas/${t.clave}.svg`; img.alt = ''; img.loading = 'lazy';
+      const tit = el('div', 'titulo', nombreCorto(t));
+      if (t.estado !== 'validada') tit.append(chapa(t));
+      o.append(img, tit, el('div', 'resumen', t.resumen));
+      if (t.estado !== 'validada') o.append(el('div', 'comentario ' + t.estado, '⚠ ' + t.estado_comentario));
+      o.onclick = () => { cerrarLista(); elegirTipo(t.clave, false); };
+      o.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); o.click(); } };
+      lst.append(o);
+    }
+  }
+}
+function abrirLista() {
+  const lst = $('tipo-lista');
+  for (const o of lst.querySelectorAll('.opcion-tipo')) o.classList.toggle('activa', o.dataset.clave === estado.clave);
+  lst.hidden = false;
+  $('tipo-boton').setAttribute('aria-expanded', 'true');
+  (lst.querySelector('.opcion-tipo.activa') || lst.querySelector('.opcion-tipo')).focus();
+}
+function cerrarLista() {
+  $('tipo-lista').hidden = true;
+  $('tipo-boton').setAttribute('aria-expanded', 'false');
+}
+$('tipo-boton').onclick = (e) => { e.stopPropagation(); $('tipo-lista').hidden ? abrirLista() : cerrarLista(); };
+function elegirTipo(clave, desdeGaleria) {
+  const cambia = clave !== estado.clave || !estado.parametros;
+  estado.clave = clave;
+  if (cambia) {
+    estado.parametros = defectos(clave);
+    $('aviso-ajuste').textContent = '';
+    visiblesActuales = '';
+  }
+  ponerBarra();
+  mostrarDiseno();
+  if (cambia) dimensionar(); else if (desdeGaleria && !ultimo) regenerar(true);
+}
+
+// ------------------------------------------------------------------ burbuja de ayuda
+let botonBurbuja = null;
+function abrirBurbuja(boton, texto) {
+  const b = $('burbuja');
+  if (botonBurbuja === boton) { cerrarBurbuja(); return; }
+  cerrarBurbuja();
+  b.textContent = texto;
+  b.hidden = false;
+  const r = boton.getBoundingClientRect();
+  const vw = document.documentElement.clientWidth;
+  const ancho = Math.min(320, vw - 24);
+  if (r.right + 8 + ancho <= vw) {             // a la derecha del icono
+    b.style.left = `${r.right + 8 + window.scrollX}px`;
+    b.style.top = `${r.top + window.scrollY - 4}px`;
+  } else {                                      // sin sitio (móvil): debajo, pegada al borde derecho
+    b.style.left = `${Math.max(12, r.right - ancho) + window.scrollX}px`;
+    b.style.top = `${r.bottom + 6 + window.scrollY}px`;
+  }
+  botonBurbuja = boton;
+  boton.setAttribute('aria-expanded', 'true');
+}
+function cerrarBurbuja() {
+  $('burbuja').hidden = true;
+  if (botonBurbuja) botonBurbuja.setAttribute('aria-expanded', 'false');
+  botonBurbuja = null;
+}
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.ayuda') && !e.target.closest('#burbuja')) cerrarBurbuja();
+  if (!e.target.closest('#selector-tipo')) cerrarLista();
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { cerrarBurbuja(); cerrarLista(); } });
+// en el móvil, desplazarse dispara «resize» (la barra de direcciones aparece y desaparece): solo se cierra si
+// cambia el ancho
+let anchoVentana = window.innerWidth;
+window.addEventListener('resize', () => {
+  if (window.innerWidth !== anchoVentana) { anchoVentana = window.innerWidth; cerrarBurbuja(); }
+});
 
 // ------------------------------------------------------------------ vista (SVG)
 let caja = null;             // viewBox actual {x, y, w, h}
@@ -116,22 +256,23 @@ function dibujar(v, encajar) {
     s += `<text x="${mk.pos[0]}" y="${-mk.pos[1]}" font-size="${letra}" fill="var(--texto)" text-anchor="middle" dominant-baseline="middle">${svgEsc(mk.texto)}</text>`;
   }
   const [px, py] = v.puerto; const t = 3 * g + letra / 3;
-  s += `<path d="M${px - t},${-py - t}L${px + t},${-py}L${px - t},${-py + t}Z" fill="red"><title>${svgEsc(v.tipo_puerto === 'coaxial' || v.tipo_puerto === 'pasante' ? 'Toma del coaxial' : 'Conector ' + v.conector)}</title></path>`;
+  const coax = v.tipo_puerto === 'coaxial' || v.tipo_puerto === 'pasante';
+  s += `<path d="M${px - t},${-py - t}L${px + t},${-py}L${px - t},${-py + t}Z" fill="red"><title>${svgEsc(coax ? 'Toma del coaxial' : 'Conector ' + v.conector)}</title></path>`;
   $('vista').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${caja.x} ${caja.y} ${caja.w} ${caja.h}" preserveAspectRatio="xMidYMid meet">${s}</svg>`;
   const ley = [['var(--cobre)', 'Cobre (cara superior)'], ['var(--masa)', 'Masa (cara inferior)']];
   if (v.pads.length) ley.push(['var(--pads)', 'Componentes de ajuste']);
   if (v.marcas.length) ley.push(['var(--texto)', 'Marcas de corte (MHz)']);
   if (v.reflector) ley.push(['var(--sec)', `Reflector (a ${v.separacion_reflector_mm.toFixed(1)} mm por detrás)`]);
-  ley.push(['red', v.tipo_puerto === 'coaxial' || v.tipo_puerto === 'pasante' ? 'Toma del coaxial' : `Conector (${v.conector})`]);
+  ley.push(['red', coax ? 'Toma del coaxial' : `Conector (${v.conector})`]);
   $('leyenda').innerHTML = ley.map(([c, t2]) => `<span><i style="background:${c}"></i>${svgEsc(t2)}</span>`).join('');
 }
 function ponerCaja() { const svg = $('vista').querySelector('svg'); if (svg) svg.setAttribute('viewBox', `${caja.x} ${caja.y} ${caja.w} ${caja.h}`); }
 (function zoomYArrastre() {
-  const el = $('vista');
-  el.addEventListener('wheel', (e) => {
+  const v = $('vista');
+  v.addEventListener('wheel', (e) => {
     if (!caja) return;
     e.preventDefault();
-    const r = el.getBoundingClientRect();
+    const r = v.getBoundingClientRect();
     const k = Math.exp(e.deltaY * 0.0015);
     const esc = Math.max(caja.w / r.width, caja.h / r.height);
     const ox = caja.x + (caja.w - r.width * esc) / 2, oy = caja.y + (caja.h - r.height * esc) / 2;
@@ -140,53 +281,64 @@ function ponerCaja() { const svg = $('vista').querySelector('svg'); if (svg) svg
     ponerCaja();
   }, { passive: false });
   let ini = null;
-  el.addEventListener('pointerdown', (e) => { if (caja) { ini = { x: e.clientX, y: e.clientY, c: { ...caja } }; el.setPointerCapture(e.pointerId); } });
-  el.addEventListener('pointermove', (e) => {
+  v.addEventListener('pointerdown', (e) => { if (caja) { ini = { x: e.clientX, y: e.clientY, c: { ...caja } }; v.setPointerCapture(e.pointerId); } });
+  v.addEventListener('pointermove', (e) => {
     if (!ini) return;
-    const r = el.getBoundingClientRect();
+    const r = v.getBoundingClientRect();
     const esc = Math.max(ini.c.w / r.width, ini.c.h / r.height);
     caja = { ...ini.c, x: ini.c.x - (e.clientX - ini.x) * esc, y: ini.c.y - (e.clientY - ini.y) * esc };
     ponerCaja();
   });
-  el.addEventListener('pointerup', () => { ini = null; });
-  el.addEventListener('dblclick', () => { if (cajaInicial) { caja = { ...cajaInicial }; ponerCaja(); } });
+  v.addEventListener('pointerup', () => { ini = null; });
+  v.addEventListener('dblclick', () => { if (cajaInicial) { caja = { ...cajaInicial }; ponerCaja(); } });
 })();
 
-// ------------------------------------------------------------------ parámetros
+// ------------------------------------------------------------------ parámetros (básicos + avanzados, con ayuda)
 let visiblesActuales = '';
-function construirParametros(visibles) {
-  const cont = $('parametros');
-  const t = tipoActual();
-  visiblesActuales = visibles.join(',');
-  cont.replaceChildren();
-  for (const p of t.parametros) {
-    if (!visibles.includes(p.nombre)) continue;
-    const valor = estado.parametros[p.nombre] ?? p.defecto;
-    const lab = document.createElement('label');
-    lab.textContent = p.etiqueta;
-    if (p.ayuda) lab.title = p.ayuda;
-    let campo;
-    if (p.opciones) {
-      campo = document.createElement('select');
-      for (const [k, txt] of Object.entries(p.opciones)) campo.add(new Option(txt, k, false, Number(k) === Number(valor)));
-      campo.onchange = () => cambiarParametro(p, Number(campo.value));
-    } else {
-      campo = document.createElement('input');
-      Object.assign(campo, { type: 'number', min: p.minimo, max: p.maximo, step: p.paso, value: valor });
-      campo.onchange = () => {
-        let v = Number(campo.value);
-        if (!Number.isFinite(v)) return;
-        v = Math.min(p.maximo, Math.max(p.minimo, v));
-        cambiarParametro(p, p.entero ? Math.round(v) : v);
-      };
-    }
-    campo.dataset.nombre = p.nombre;
-    lab.append(campo);
-    cont.append(lab);
+function campoParametro(p) {
+  const valor = estado.parametros[p.nombre] ?? p.defecto;
+  const fila = el('div', 'fila-param');
+  const lab = el('label', '', p.etiqueta);
+  let campo;
+  if (p.opciones) {
+    campo = document.createElement('select');
+    for (const [k, txt] of Object.entries(p.opciones)) campo.add(new Option(txt, k, false, Number(k) === Number(valor)));
+    campo.onchange = () => cambiarParametro(p, Number(campo.value));
+  } else {
+    campo = document.createElement('input');
+    Object.assign(campo, { type: 'number', min: p.minimo, max: p.maximo, step: p.paso, value: valor });
+    campo.onchange = () => {
+      let v = Number(campo.value);
+      if (!Number.isFinite(v)) return;
+      v = Math.min(p.maximo, Math.max(p.minimo, v));
+      cambiarParametro(p, p.entero ? Math.round(v) : v);
+    };
   }
+  campo.dataset.nombre = p.nombre;
+  lab.append(campo);
+  const ayuda = el('button', 'ayuda', '?');
+  ayuda.type = 'button';
+  ayuda.title = 'Qué hace este parámetro';
+  ayuda.setAttribute('aria-label', 'Ayuda: ' + p.etiqueta);
+  ayuda.setAttribute('aria-expanded', 'false');
+  ayuda.onclick = (e) => { e.stopPropagation(); abrirBurbuja(ayuda, p.ayuda); };
+  fila.append(lab, ayuda);
+  return fila;
+}
+function construirParametros(visibles, basicos) {
+  const t = tipoActual();
+  visiblesActuales = visibles.join(',') + '|' + basicos.join(',');
+  cerrarBurbuja();
+  const vis = t.parametros.filter((p) => visibles.includes(p.nombre));
+  const bas = vis.filter((p) => basicos.includes(p.nombre));
+  const av = vis.filter((p) => !basicos.includes(p.nombre));
+  $('parametros').replaceChildren(...bas.map(campoParametro));
+  $('parametros-avanzados').replaceChildren(...av.map(campoParametro));
+  $('avanzados').hidden = !av.length;
+  $('n-avanzados').textContent = `(${av.length})`;
 }
 function ponerValores() {
-  for (const campo of $('parametros').querySelectorAll('[data-nombre]')) {
+  for (const campo of document.querySelectorAll('#parametros [data-nombre], #parametros-avanzados [data-nombre]')) {
     const v = estado.parametros[campo.dataset.nombre];
     if (v !== undefined) campo.value = campo.tagName === 'SELECT' ? String(Math.round(v)) : v;
   }
@@ -225,7 +377,7 @@ async function dimensionar(ampliar = false) {
   } catch (err) { avisar(err.message, true); }
 }
 function mostrar(r, encajar) {
-  if (r.visibles.join(',') !== visiblesActuales) construirParametros(r.visibles);
+  if (r.visibles.join(',') + '|' + r.basicos.join(',') !== visiblesActuales) construirParametros(r.visibles, r.basicos);
   if (r.error) { avisar(r.error, true); return; }
   ultimo = r;
   dibujar(r.vista, encajar);
@@ -237,10 +389,8 @@ function mostrar(r, encajar) {
     b.className = 'pequeno n-' + (r.banda.estado === 'holgado' ? 'ok' : r.banda.estado === 'justo' ? 'aviso' : 'error');
   } else b.textContent = '';
   $('info').replaceChildren(...r.info.map(([k, v]) => {
-    const tr = document.createElement('tr');
-    const a = document.createElement('td'); a.textContent = k;
-    const c = document.createElement('td'); c.textContent = v;
-    tr.append(a, c);
+    const tr = el('tr');
+    tr.append(el('td', '', k), el('td', '', v));
     return tr;
   }));
   lista($('consejos'), r.consejos.map(([cat_, t]) => ['info', t, ICONOS_CONSEJO[cat_] || '•']));
@@ -265,8 +415,10 @@ function marcarBanda() {
   for (const b of $('bandas').children) b.classList.toggle('activa', b.dataset.banda === actual);
 }
 function ponerBarra() {
+  const t = tipoActual();
   $('nombre').value = estado.nombre;
-  $('tipo').value = estado.clave;
+  $('tipo-nombre').replaceChildren(document.createTextNode(nombreCorto(t)));
+  if (t.estado !== 'validada') $('tipo-nombre').append(' ', chapa(t));
   $('f').value = estado.f_MHz;
   $('bw').value = estado.bw_MHz;
   $('sustrato').value = estado.sustrato;
@@ -311,13 +463,7 @@ function cargarDiseno(d) {
   if (typeof s.logo === 'boolean') s.logo = s.logo ? 'grande' : 'ninguno';     // diseños antiguos
   estado.serigrafia = s;
 }
-$('btn-enlace').onclick = async () => {
-  const url = location.href.split('#')[0] + '#d=' + aBase64Url(JSON.stringify(estado));
-  history.replaceState(null, '', url);
-  try { await navigator.clipboard.writeText(url); avisar('Enlace copiado: quien lo abra verá este mismo diseño.'); }
-  catch (e) { avisar('Enlace listo en la barra de direcciones: cópialo desde ahí.'); }
-};
-$('abrir').onchange = async (ev) => {
+async function abrirArchivo(ev) {
   const f = ev.target.files[0];
   ev.target.value = '';
   if (!f) return;
@@ -325,14 +471,23 @@ $('abrir').onchange = async (ev) => {
     cargarDiseno(JSON.parse(await f.text()));
     visiblesActuales = '';
     ponerBarra();
+    mostrarDiseno();
     await regenerar(true);
     avisar(`Abierto «${estado.nombre}».`);
   } catch (err) { avisar('No se puede abrir: ' + err.message, true); }
+}
+$('abrir').onchange = abrirArchivo;
+$('abrir-galeria').onchange = abrirArchivo;
+$('btn-enlace').onclick = async () => {
+  const url = location.href.split('#')[0] + '#d=' + aBase64Url(JSON.stringify(estado));
+  history.replaceState(null, '', url);
+  try { await navigator.clipboard.writeText(url); avisar('Enlace copiado: quien lo abra verá este mismo diseño.'); }
+  catch (e) { avisar('Enlace listo en la barra de direcciones: cópialo desde ahí.'); }
 };
 $('btn-exportar').onclick = async () => {
   const b = $('btn-exportar');
   b.disabled = true;
-  $('estado-exportar').textContent = 'Generando la placa…';
+  $('estado-exportar').textContent = motorListo ? 'Generando la placa…' : 'Esperando a que termine de cargar el motor…';
   try {
     const { zip, info } = await llamar('exportar', entrada());
     const url = URL.createObjectURL(new Blob([zip], { type: 'application/zip' }));
@@ -354,18 +509,16 @@ $('btn-exportar').onclick = async () => {
 
 // ------------------------------------------------------------------ arranque
 async function iniciar() {
-  cat = await llamar('catalogo');
+  cat = await (await fetch('catalogo.json', { cache: 'no-cache' })).json();
   $('version').textContent = 'v' + cat.version;
   $('pie-version').textContent = 'Chirptenna v' + cat.version;
   $('aviso-general').textContent = cat.aviso_general;
-  for (const t of cat.tipos) $('tipo').add(new Option(t.nombre, t.clave));
   for (const s of cat.sustratos) $('sustrato').add(new Option(s, s));
   for (const r of cat.reglas) $('reglas').add(new Option(r, r));
   for (const [k, txt] of Object.entries(cat.logo_opciones)) $('logo').add(new Option(txt, k));
   $('aviso-logo').textContent = cat.aviso_sin_logo;
   for (const [k, txt] of cat.serigrafia_opciones) {
-    const lab = document.createElement('label');
-    lab.className = 'casilla';
+    const lab = el('label', 'casilla');
     const c = document.createElement('input');
     c.type = 'checkbox'; c.dataset.clave = k;
     c.onchange = () => { estado.serigrafia[k] = c.checked; regenerar(); };
@@ -373,8 +526,8 @@ async function iniciar() {
     $('seri-opciones').append(lab);
   }
   for (const n of Object.keys(cat.bandas)) {
-    const b = document.createElement('button');
-    b.className = 'opcion'; b.textContent = n; b.dataset.banda = n;
+    const b = el('button', 'opcion', n);
+    b.dataset.banda = n;
     b.onclick = () => {
       const rango = cat.bandas[n];
       if (rango) { estado.f_MHz = (rango[0] + rango[1]) / 2; estado.bw_MHz = rango[1] - rango[0]; }
@@ -383,29 +536,21 @@ async function iniciar() {
     };
     $('bandas').append(b);
   }
+  construirGaleria();
+  construirLista();
 
   // estado inicial: enlace compartido > último diseño de este navegador > valores por defecto
   estado.sustrato = cat.sustrato_defecto;
   estado.reglas = cat.reglas_defecto;
   estado.serigrafia = { ...cat.serigrafia_defecto };
-  estado.parametros = defectos(estado.clave);
-  let origen = null;
+  let enlace = null, guardado = null;
   try {
-    if (location.hash.startsWith('#d=')) origen = JSON.parse(deBase64Url(location.hash.slice(3)));
-    else origen = JSON.parse(localStorage.getItem(CLAVE_LOCAL) || 'null');
-  } catch (e) { origen = null; }
-  let nuevo = true;
-  if (origen) { try { cargarDiseno(origen); nuevo = false; } catch (e) { avisar('No se ha podido abrir el diseño del enlace.', true); } }
-  ponerBarra();
+    if (location.hash.startsWith('#d=')) enlace = JSON.parse(deBase64Url(location.hash.slice(3)));
+    else guardado = JSON.parse(localStorage.getItem(CLAVE_LOCAL) || 'null');
+  } catch (e) { /* nada */ }
+  try { if (enlace || guardado) cargarDiseno(enlace || guardado); } catch (e) { avisar('No se ha podido abrir el diseño guardado.', true); }
 
   $('nombre').onchange = () => { estado.nombre = $('nombre').value.trim() || 'antena'; regenerar(); };
-  $('tipo').onchange = () => {
-    estado.clave = $('tipo').value;
-    estado.parametros = defectos(estado.clave);
-    $('aviso-ajuste').textContent = '';
-    visiblesActuales = '';
-    dimensionar();
-  };
   $('f').onchange = () => {
     const v = Number($('f').value);
     if (v > 0) { estado.f_MHz = v; mostrarRango(); marcarBanda(); regenerar(); $('aviso-ajuste').textContent = 'Frecuencia cambiada: pulsa «Ajustar tamaño a la frecuencia».'; }
@@ -415,6 +560,8 @@ async function iniciar() {
   $('reglas').onchange = () => { estado.reglas = $('reglas').value; regenerar(); };
   $('btn-ajustar').onclick = () => dimensionar();
   $('btn-banda').onclick = () => dimensionar(true);
+  $('btn-galeria').onclick = mostrarGaleria;
+  $('btn-continuar').onclick = () => { ponerBarra(); mostrarDiseno(); if (!ultimo) regenerar(true); };
   $('logo').onchange = () => {
     estado.serigrafia.logo = $('logo').value;
     $('aviso-logo').hidden = estado.serigrafia.logo !== 'ninguno';
@@ -423,8 +570,12 @@ async function iniciar() {
   };
   $('seri-libre').onchange = () => { estado.serigrafia.libre = $('seri-libre').value; regenerar(); };
 
-  $('carga').hidden = true;
-  $('app').hidden = false;
-  if (nuevo) await dimensionar(); else await regenerar(true);
+  if (enlace) {            // un enlace compartido abre directamente su diseño
+    ponerBarra();
+    mostrarDiseno();
+    await regenerar(true);
+  } else {
+    mostrarGaleria();
+  }
 }
-iniciar().catch((e) => { $('carga-texto').textContent = 'Error al arrancar: ' + e.message; });
+iniciar().catch((e) => { $('carga').hidden = false; $('carga-texto').textContent = 'Error al arrancar: ' + e.message; });

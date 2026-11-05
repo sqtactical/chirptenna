@@ -16,8 +16,8 @@ import importlib.util
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Módulos del núcleo que usa la web (si un tipo nuevo necesita otro módulo, añadirlo aquí)
 NUCLEO = ['__init__', 'ajuste', 'ancho_banda', 'conector', 'consejos', 'dipolos', 'directivas', 'exportar',
-          'fabricacion', 'geometria', 'jpole', 'logo', 'materiales', 'modelo', 'presentacion', 'problemas', 'robusto',
-          'tipos', 'tipos_base', 'web_api']
+          'fabricacion', 'geometria', 'guia', 'jpole', 'logo', 'materiales', 'modelo', 'presentacion', 'problemas',
+          'robusto', 'tipos', 'tipos_base', 'web_api']
 DATOS = ['calibracion_estimaciones.json', 'logo_texto.json']
 # Lo que el núcleo no puede importar en el navegador
 PROHIBIDOS = ('CSXCAD', 'openEMS', 'serial', 'nicegui', 'matplotlib', 'plotly', 'h5py', 'gerbonara')
@@ -50,6 +50,16 @@ def main():
             z.write(os.path.join(RAIZ, 'antenas', m + '.py'), f'antenas/{m}.py')
         for d in DATOS:
             z.write(os.path.join(RAIZ, 'antenas', d), f'antenas/{d}')
+    # Catálogo y miniaturas precalculados: la galería sale al instante, mientras Pyodide todavía carga
+    from antenas import web_api, guia
+    errores = guia.comprobar()
+    if errores:
+        raise SystemExit('Guía incompleta (antenas/guia.py):\n  ' + '\n  '.join(errores))
+    with open(os.path.join(salida, 'catalogo.json'), 'w', encoding='utf-8') as fh:
+        fh.write(web_api.catalogo())
+    sys.path.insert(0, os.path.join(RAIZ, 'herramientas'))
+    import generar_miniaturas
+    generar_miniaturas.generar(os.path.join(salida, 'miniaturas'))
     spec = importlib.util.spec_from_file_location('ver', os.path.join(RAIZ, 'antenas', '__init__.py'))
     ver = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(ver)

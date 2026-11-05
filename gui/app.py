@@ -24,6 +24,7 @@ sys.path.insert(0, RAIZ)
 from nicegui import app, ui, run, background_tasks   # noqa: E402
 
 from antenas import tipos, vista, fabricacion, exportar, consejos, graficas, ajuste, biblioteca, problemas   # noqa: E402
+from antenas import guia   # noqa: E402
 from antenas import __version__   # noqa: E402
 from antenas.materiales import ancho_microstrip, eps_eff_microstrip   # noqa: E402
 
@@ -66,7 +67,49 @@ def _titulo_card(texto, icono=None):
         ui.label(texto).classes('text-subtitle1 text-weight-medium')
 
 
-PESTANAS_URL = ('diseno', 'simulacion', 'fabricar', 'medir', 'disenos')
+PESTANAS_URL = ('galeria', 'diseno', 'simulacion', 'fabricar', 'medir', 'disenos')
+DIR_MINIATURAS = os.path.join(RAIZ, 'antenas', 'miniaturas')
+COLOR_ESTADO = {'validada': 'positive', 'pendiente': 'orange-8', 'no_funciona': 'negative'}
+
+
+def _orden_galeria():
+    """Claves de los tipos en el orden de la galería (por grupo de uso)."""
+    orden = [g[0] for g in guia.GRUPOS]
+    return sorted(tipos.CATALOGO, key=lambda k: orden.index(guia.info_tipo(k)[0]))
+
+
+def _etiqueta_tipo(clave):
+    """Etiqueta del selector de tipos: «nombre|resumen|estado|comentario» (la parte el slot de la lista)."""
+    est, comentario = problemas.estado(clave)
+    return '|'.join([tipos.CATALOGO[clave].nombre, guia.info_tipo(clave)[1], est, comentario])
+
+
+def _miniatura(clave):
+    """SVG de la galería (antenas/miniaturas, generadas con herramientas/generar_miniaturas.py)."""
+    ruta = os.path.join(DIR_MINIATURAS, f'{clave}.svg')
+    if os.path.exists(ruta):
+        with open(ruta, encoding='utf-8') as fh:
+            return fh.read()
+    from antenas import miniaturas
+    return miniaturas.svg(clave)
+
+
+# Lista desplegable de tipos con descripción y estado (Quasar): la etiqueta lleva los campos separados por «|»
+SLOT_OPCION_TIPO = r'''
+<q-item v-bind="props.itemProps">
+  <q-item-section>
+    <q-item-label>
+      {{ props.opt.label.split('|')[0] }}
+      <q-badge v-if="props.opt.label.split('|')[2] !== 'validada'" class="q-ml-xs"
+               :color="props.opt.label.split('|')[2] === 'no_funciona' ? 'negative' : 'orange-8'">
+        {{ props.opt.label.split('|')[2] === 'no_funciona' ? 'No funciona' : 'Pendiente de validación' }}
+      </q-badge>
+    </q-item-label>
+    <q-item-label caption>{{ props.opt.label.split('|')[1] }}</q-item-label>
+    <q-item-label caption v-if="props.opt.label.split('|')[2] !== 'validada'">⚠ {{ props.opt.label.split('|')[3] }}</q-item-label>
+  </q-item-section>
+</q-item>'''
+SLOT_ELEGIDO_TIPO = r'''<span>{{ props.opt.label.split('|')[0] }}</span>'''
 
 
 @ui.page('/')
@@ -92,6 +135,12 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         .body--dark .pestanas .q-tab--active { color: #64b5f6; }
         .body--dark .q-field__label { color: #b4c0c8; }
         .body--dark .q-table tbody td { color: #e6ebee; }
+        .tarjeta-tipo { transition: box-shadow .15s, transform .15s; }
+        .tarjeta-tipo .q-badge { margin-top: auto; align-self: flex-start; }
+        .tarjeta-tipo:hover { box-shadow: 0 3px 10px rgba(0,0,0,.18); transform: translateY(-2px); }
+        .miniatura svg { width: 200px; height: 110px; display: block; }
+        .ayuda-param { color: #78909c; cursor: help; }
+        .body--dark .ayuda-param { color: #90a4ae; }
         .q-field__label { font-size: 0.82rem; }
         .q-tab__label { font-size: 0.85rem; }
     ''')
@@ -175,8 +224,10 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
     with ui.card().classes('w-full barra-diseno q-pa-sm').props('flat bordered'):
         with ui.row().classes('w-full items-end wrap gap-x-3 gap-y-1'):
             nombre_in = ui.input('Nombre del diseño', value='antena').classes('w-48')
-            sel_tipo = ui.select({k: t.nombre for k, t in tipos.CATALOGO.items()}, value=estado['clave'],
-                                 label='Tipo de antena').classes('w-72')
+            sel_tipo = ui.select({k: _etiqueta_tipo(k) for k in _orden_galeria()}, value=estado['clave'],
+                                 label='Tipo de antena').classes('w-80')
+            sel_tipo.add_slot('option', SLOT_OPCION_TIPO)
+            sel_tipo.add_slot('selected-item', SLOT_ELEGIDO_TIPO)
             with ui.column().classes('gap-0'):
                 ui.label('Banda de uso').classes('text-caption texto-sec')
                 banda = ui.toggle(list(BANDAS), value='2,4 GHz').props('dense no-caps')
@@ -192,13 +243,41 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
 
     # ================================================================== pestañas
     with ui.tabs().classes('w-full pestanas').props('align=left inline-label no-caps') as pestanas:
+        t_gal = ui.tab('Elegir antena', icon='apps')
         t_diseno = ui.tab('Diseño', icon='architecture')
         t_sim = ui.tab('Simulación', icon='insights')
         t_fab = ui.tab('Fabricar', icon='precision_manufacturing')
         t_medir = ui.tab('Medir', icon='settings_input_antenna')
         t_bib = ui.tab('Mis diseños', icon='folder_special')
 
-    with ui.tab_panels(pestanas, value=t_diseno).classes('w-full bg-transparent'):
+    with ui.tab_panels(pestanas, value=t_gal).classes('w-full bg-transparent'):
+        # -------------------------------------------------------------- 0. Galería de tipos
+        with ui.tab_panel(t_gal).classes('q-pa-sm'):
+            with ui.row().classes('w-full items-center gap-2'):
+                ui.label('Elige el tipo de antena').classes('text-h6')
+                ui.space()
+                ui.button('Abrir un diseño guardado', icon='folder_open',
+                          on_click=lambda: pestanas.set_value(t_bib)).props('outline no-caps')
+            ui.label('Al elegirla se dimensiona para la banda de la barra de arriba. Solo verás los parámetros '
+                     'básicos; el resto está en «Ajustes avanzados». Todo está validado solo en simulación.'
+                     ).classes('text-caption texto-sec')
+            for g_clave, g_titulo, g_desc in guia.GRUPOS:
+                claves = [k for k in _orden_galeria() if guia.info_tipo(k)[0] == g_clave]
+                if not claves:
+                    continue
+                ui.label(g_titulo).classes('text-subtitle1 text-weight-medium q-mt-md')
+                ui.label(g_desc).classes('text-caption texto-sec')
+                with ui.row().classes('w-full wrap gap-3 items-stretch'):
+                    for k in claves:
+                        est, comentario = problemas.estado(k)
+                        with ui.card().classes('w-60 cursor-pointer tarjeta-tipo q-pa-sm') \
+                                .on('click', lambda k=k: elegir_tipo(k)):
+                            ui.html(_miniatura(k), sanitize=False).classes('miniatura self-center')
+                            ui.label(tipos.CATALOGO[k].nombre.split(' (')[0]).classes('text-weight-medium')
+                            ui.label(guia.info_tipo(k)[1]).classes('text-caption')
+                            ui.badge(problemas.ESTADO_TEXTO[est], color=COLOR_ESTADO[est]) \
+                                .props('outline' if est == 'validada' else '').tooltip(comentario)
+
         # -------------------------------------------------------------- 1. Diseño
         with ui.tab_panel(t_diseno).classes('q-pa-sm'):
             with ui.row().classes('w-full wrap items-start gap-4'):
@@ -434,20 +513,38 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         desc.text = tipo.descripcion
         p_act = estado['params']
         visibles = set(presentacion.parametros_visibles(estado['clave'], p_act))
-        with cont_params:
-            for p in tipo.parametros:
-                if p.nombre not in visibles:
-                    continue            # no aplica con estos valores (masa automática, sin ajuste…)
-                valor = p_act.get(p.nombre, p.defecto)
+        basicos = set(guia.basicos(estado['clave'], p_act))
+        visibles_p = [p for p in tipo.parametros if p.nombre in visibles]   # el resto no aplica con estos valores
+
+        def campo(p):
+            valor = p_act.get(p.nombre, p.defecto)
+            with ui.row().classes('w-full no-wrap items-center gap-1'):
                 if p.opciones:
-                    n = ui.select(p.opciones, value=int(valor), label=p.etiqueta).classes('w-full')
+                    n = ui.select(p.opciones, value=int(valor), label=p.etiqueta).classes('grow')
                 else:
                     n = ui.number(p.etiqueta, value=valor, min=p.minimo, max=p.maximo, step=p.paso,
-                                  format='%.0f' if p.entero else '%.2f').classes('w-full')
-                if p.ayuda:
-                    n.tooltip(p.ayuda)
-                n.on_value_change(lambda e, nombre=p.nombre, entero=p.entero: cambiar_param(nombre, e.value, entero))
-                entradas[p.nombre] = n
+                                  format='%.0f' if p.entero else '%.2f').classes('grow')
+                # ayuda del parámetro: burbuja al pinchar el icono (se cierra al pinchar fuera)
+                texto_ayuda = guia.ayuda(estado['clave'], p)
+                with ui.button(icon='help_outline').props('flat round dense size=sm').classes('ayuda-param'):
+                    with ui.menu().props('anchor="top right" self="top left"').classes('q-pa-sm'):
+                        ui.label(texto_ayuda).classes('text-body2').style('max-width: 320px')
+            n.on_value_change(lambda e, nombre=p.nombre, entero=p.entero: cambiar_param(nombre, e.value, entero))
+            entradas[p.nombre] = n
+
+        with cont_params:
+            for p in visibles_p:
+                if p.nombre in basicos:
+                    campo(p)
+            avanzados = [p for p in visibles_p if p.nombre not in basicos]
+            if avanzados:
+                exp_av = ui.expansion(f'Ajustes avanzados ({len(avanzados)})', icon='tune',
+                                      value=estado.get('avanzados_abiertos', False)).classes('w-full q-mt-sm') \
+                    .props('dense')
+                exp_av.on_value_change(lambda e: estado.update(avanzados_abiertos=bool(e.value)))
+                with exp_av:
+                    for p in avanzados:
+                        campo(p)
 
     def cambiar_param(nombre, valor, entero):
         if valor is None or estado.get('silencio'):
@@ -553,6 +650,12 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
                 with ui.row().classes('items-start no-wrap'):
                     ui.icon(iconos[nivel], color=colores[nivel])
                     ui.label(msg).classes('text-caption')
+
+    def elegir_tipo(clave):
+        """Desde la galería: pone el tipo (lo dimensiona para la banda actual) y pasa a la pestaña Diseño."""
+        if sel_tipo.value != clave:
+            sel_tipo.value = clave           # dispara cambiar_tipo
+        pestanas.set_value(t_diseno)
 
     def cambiar_tipo(e):
         if estado.get('silencio'):
@@ -1398,6 +1501,13 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
     sw_vivo.on_value_change(cambiar_vivo)
     btn_guardar_vivo.on_click(guardar_vivo)
     pestanas.on_value_change(lambda e: (sugerir_calibracion(), mostrar_info_cal()) if e.value == 'Medir' else None)
+
+    def al_entrar_en_diseno(e):
+        # Plotly no se inicializa si la figura se pone con la pestaña oculta (el programa arranca en la galería):
+        # se vuelve a enviar al entrar
+        if e.value == 'Diseño' and estado.get('antena') is not None:
+            grafico.update_figure(T(vista.figura_plotly(estado['antena'])))
+    pestanas.on_value_change(al_entrar_en_diseno)
     btn_abrir.on_click(lambda: (n := seleccionado()) and abrir_diseno(n))
     btn_carpeta.on_click(lambda: (n := seleccionado()) and os.startfile(biblioteca.carpeta(n)))
     btn_renombrar.on_click(renombrar_click)
@@ -1420,9 +1530,9 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
     mostrar_info_cal()
     # Parámetros de la URL: abrir un diseño y una pestaña concretos
     if diseno and biblioteca.existe(diseno):
-        abrir_diseno(diseno, avisar=False)
+        abrir_diseno(diseno, avisar=False)          # abre en la pestaña Diseño
     if pestana in PESTANAS_URL:
-        pestanas.value = (t_diseno, t_sim, t_fab, t_medir, t_bib)[PESTANAS_URL.index(pestana)]
+        pestanas.value = (t_gal, t_diseno, t_sim, t_fab, t_medir, t_bib)[PESTANAS_URL.index(pestana)]
 
 
 if __name__ in {'__main__', '__mp_main__'}:

@@ -83,12 +83,16 @@ Diseño ──► Simulación ──► Fabricar ──► (JLC) ──► monta
 
 ## 3. La barra del diseño
 
-Está siempre arriba:
+Al abrir el programa sale la pestaña **Elegir antena**: los tipos agrupados por uso (nodo portátil, enlace fijo, sin
+plano de masa y experimentales), cada uno con un dibujo, una descripción y su estado: **Validada** (en simulación),
+**Pendiente de validación** o **No funciona**. Al pinchar uno se dimensiona para la banda elegida y se pasa a Diseño.
+
+La barra está siempre arriba:
 
 | Campo | Qué es |
 |---|---|
 | **Nombre del diseño** | El nombre de la carpeta en *Mis diseños*. Cambiarlo y guardar crea un diseño nuevo (sirve para hacer variantes) |
-| **Tipo de antena** | Ver [qué antena elegir](#12-qué-antena-elegir). Bajo la barra aparecen los **problemas conocidos** del tipo: léelos |
+| **Tipo de antena** | Ver [qué antena elegir](#12-qué-antena-elegir). La lista muestra la descripción y el estado de cada tipo. Bajo la barra aparecen los **problemas conocidos** del tipo: léelos |
 | **Banda de uso** | 433, 868 o 2,4 GHz rellenan el centro y el ancho. Con **Otra** los pones a mano (p. ej. 915 MHz en América) |
 | **Centro [MHz]** | La frecuencia objetivo. Para Meshtastic, pon la frecuencia real de tu canal (en EU_868 con LongFast, 869,525 MHz; mírala en la app de Meshtastic) |
 | **Ancho [MHz]** | El ancho que tiene que cubrir la antena. Pon el de tu canal o tu banda; el programa añade margen |
@@ -114,10 +118,11 @@ Está siempre arriba:
 
 ### Parámetros
 
-Cambian según el tipo. Los más habituales:
+Cambian según el tipo. Primero salen los **básicos**; el resto está plegado en **Ajustes avanzados** (márgenes,
+huecos, anchos de pista, opciones finas del ajuste…), y normalmente no hace falta tocarlos. Cada parámetro tiene un
+botón **?**: púlsalo para ver qué hace. Los más habituales:
 
-- **Medidas de la antena** (largo, ancho de pista, iteración del fractal…). Al pasar el ratón por encima se
-  ve una ayuda. La **iteración** de un fractal la hace más compacta, pero suele estrechar la banda y bajar
+- **Medidas de la antena** (largo, ancho de pista, iteración del fractal…). La **iteración** de un fractal la hace más compacta, pero suele estrechar la banda y bajar
   la eficiencia.
 - **Plano de masa** (monopolos): un plano de masa de **λ/4 o más** es lo ideal. Uno más corto encoge la
   placa, pero obliga a alargar el radiador y hace la antena más sensible a lo que se conecte detrás.

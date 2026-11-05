@@ -16,6 +16,7 @@
       <span id="version" class="sec"></span>
     </div>
     <span class="hueco"></span>
+    <button id="btn-galeria" class="secundario pequeno" hidden>▦ Elegir antena</button>
     <a href="https://github.com/sqtactical/chirptenna/blob/main/MANUAL.md" target="_blank" rel="noopener">Manual</a>
     <a href="https://github.com/sqtactical/chirptenna" target="_blank" rel="noopener">GitHub</a>
     <button id="btn-tema" class="boton-icono" title="Tema claro/oscuro" aria-label="Cambiar tema">◐</button>
@@ -31,14 +32,37 @@
   <div id="carga" class="carga">
     <div class="carga-texto" id="carga-texto">Cargando…</div>
     <div class="barra"><div id="carga-barra"></div></div>
-    <div class="sec">La primera vez descarga unos 15 MB; después queda en la caché del navegador. Todo se calcula en tu
-      navegador: no se envía nada a ningún servidor.</div>
+    <div class="sec pequeno">La primera vez descarga unos 15 MB; después queda en la caché del navegador. Todo se calcula en
+      tu navegador: no se envía nada a ningún servidor.</div>
   </div>
+
+  <!-- Galería: lo primero que se ve -->
+  <main id="galeria" hidden>
+    <div class="galeria-cabecera">
+      <div>
+        <h1>Elige el tipo de antena</h1>
+        <p class="sec pequeno">Al elegirla se dimensiona para la banda que elijas después. Solo verás los parámetros
+          básicos; el resto está en «Ajustes avanzados». Pincha en <span class="ayuda-icono-ejemplo">?</span> junto a cada
+          parámetro para saber qué hace.</p>
+      </div>
+      <div class="botonera">
+        <button id="btn-continuar" class="primario-compacto" hidden></button>
+        <label class="boton secundario">Abrir diseño (.json)<input id="abrir-galeria" type="file" accept=".json,application/json" hidden></label>
+      </div>
+    </div>
+    <div id="grupos"></div>
+  </main>
 
   <main id="app" hidden>
     <section class="tarjeta barra-diseno">
       <label>Nombre del diseño<input id="nombre" value="antena" maxlength="60"></label>
-      <label class="ancho">Tipo de antena<select id="tipo"></select></label>
+      <div class="grupo selector ancho" id="selector-tipo">
+        <span class="sec pequeno">Tipo de antena</span>
+        <button id="tipo-boton" class="selector-boton" aria-haspopup="listbox" aria-expanded="false">
+          <span id="tipo-nombre"></span><span class="flecha">▾</span>
+        </button>
+        <div id="tipo-lista" class="selector-lista" role="listbox" hidden></div>
+      </div>
       <div class="grupo">
         <span class="sec pequeno">Banda de uso</span>
         <div id="bandas" class="botonera"></div>
@@ -62,6 +86,10 @@
         <section class="tarjeta">
           <h2>Parámetros</h2>
           <div id="parametros"></div>
+          <details id="avanzados" class="avanzados" hidden>
+            <summary>Ajustes avanzados <span id="n-avanzados" class="sec"></span></summary>
+            <div id="parametros-avanzados"></div>
+          </details>
         </section>
       </div>
 
@@ -126,6 +154,7 @@
     todo se calcula en tu navegador
   </footer>
 
+  <div id="burbuja" class="burbuja" role="tooltip" hidden></div>
   <div id="aviso" class="toast" role="status" hidden></div>
   <script src="app.js"></script>
 </body>
