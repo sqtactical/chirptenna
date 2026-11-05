@@ -101,8 +101,9 @@ hecho hasta ahora (validaciones, simulaciones, fallos y decisiones) está en
    mejoras de la web lite (abajo).
 8. **Web lite** (05-11, hecha; `web/`, ver CLAUDE.md): 32/32 casos en Pyodide (~0,6 s por antena), zip del navegador
    con DRC de KiCad limpio, móvil y tema oscuro probados. Pendiente:
-   - [ ] Activar Pages (Settings → Pages → Source: GitHub Actions) y publicar (`web.yml`, con la próxima release o a mano).
-   - [ ] Ver la primera ejecución de `prueba_web.py` en la CI (no se pudo lanzar en local: pip falla en el sandbox).
+   - [x] Pages activado (build_type workflow) y publicada el 05-11: https://sqtactical.github.io/chirptenna/
+     (`web.yml` vuelve a publicar con cada release o a mano: `gh workflow run web.yml`).
+   - [x] `prueba_web.py` en la CI: 32/32 en Chromium con DRC de KiCad limpio (media 0,74 s, máx. 2,5 s por antena).
    - [ ] Mejoras: caché sin conexión (service worker), versión en inglés, «Ajuste tras fabricar» explicado en la web.
 
 ## Cómo ejecutar
