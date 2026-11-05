@@ -97,7 +97,55 @@ hecho hasta ahora (validaciones, simulaciones, fallos y decisiones) está en
    - **NEC2 (`necpp`) como preoptimizador rápido** de la Yagi (no modela el FR4: solo con factor de velocidad) y
      posible tipo nuevo: Yagi de varillas metálicas para 868 MHz. Después de tener medidas reales.
    - Descartado: IA generativa, infraestructura de servidor, simuladores comerciales y 3D completo.
-7. **Más adelante:** interfaz en inglés, versión para Linux, `dependabot.yml` (ya hay CI y versiones fijadas),
+7. **A estudiar: aceleración por GPU de openEMS** (05-11; lo comentó Jorropo en Discord: de 150 a 4700 MC/s con una
+   Intel Arc A770). Comprobado en [thliebig/openEMS](https://github.com/thliebig/openEMS): **existe, pero solo en
+   `master`; la v0.37.0 que usamos no lo trae**, así que hay que compilar openEMS desde git.
+   - Estado (a 05-11): motor `--engine=gpu` fusionado en `master` el 17-10 (commit `c3a956b`, backends **HIP**, que en
+     Windows se compila como CUDA con `OPENEMS_HIP_AS_CUDA`, y **Metal**). Backends como plugins cargables.
+     **SYCL (Intel, Arc/Level Zero)** en la PR [#243](https://github.com/thliebig/openEMS/pull/243), en borrador
+     (plugin `openEMS_gpu_sycl`, se compila con `icpx` de oneAPI). Hay también PR de nf2ff con CUDA (#233).
+   - Uso: `openEMS caso.xml --engine=gpu`. Sin GPU utilizable falla (no vuelve solo a la CPU).
+     `--engine=gpu-reference` es una referencia en CPU para pruebas.
+   - Ganancias publicadas (MC/s, no comparables entre equipos): Arc B580 SYCL 13 374 (ideal) y 8 013 (PML) frente a
+     703 y 305 de una CPU Ultra 9 285K; RTX 3060 portátil 15–94× sobre la CPU multihilo (más con materiales
+     dispersivos); RX 6800 ~12–19×; **Apple M4 ~1×** (no compensa). Con un caso real (antena LTE, 28,7 M celdas):
+     209 → 1 950 MC/s en la B580. Los resultados son idénticos bit a bit a la CPU en los casos probados.
+   - Qué instalar para compilarlo (según la GPU; lo indicó la misma persona de Discord): **AMD** ROCm; **NVIDIA** CUDA
+     + HIP; **Apple Silicon** Metal integrado, sin toolkit; **Intel Arc** oneAPI + la PR #243 de SYCL (borrador).
+     Benchmark de comparación en el propio repositorio: `benchmark/README.md`. Medidas de esa persona (con algunos
+     parches): Arc A770 ~4 200 MC/s, RX 6600 ~2 270, Ryzen 5 3600 (CPU) ~183, es decir ~12–23× sobre la CPU.
+     Para comparar con nuestras simulaciones, usar siempre MC/s con el mismo caso.
+   - Interés para Chirptenna: alto. Ajustar es iterativo (1–3 simulaciones por tipo; la Hilbert a 868 MHz tarda >3 h
+     por iteración). Con 10× serían minutos.
+   - **Progreso (05-11)**, todo fuera del proyecto en `%LOCALAPPDATA%\Programs\gpu-build` (sin admin): CMake, Ninja,
+     CUDA 12.9 redistribuible (nvcc, cudart; sin instalar), cabeceras HIP 7.2.4 y vcpkg. Compilados `fparser`,
+     `CSXCAD` y `openEMS` de `master` (`opt\bin\openEMS.exe`, solo CPU). **Bloqueado:** el plugin `openEMS_gpu_hip_nvidia`
+     no se construye porque `nvcc` 12.9 no soporta el MSVC 14.51 de Visual Studio 18 (`cudafe++` da ACCESS_VIOLATION).
+     Hace falta un MSVC 14.4x (VS 2022 17.x): instalarlo desde el instalador de Visual Studio (componente «MSVC v143»)
+     o bajarlo portable; después, configurar con `-DCMAKE_CUDA_HOST_COMPILER=` apuntando a ese `cl.exe`.
+     Cuando funcione: la API de Python de `master` admite `FDTD.Run(..., engine='gpu', gpu_device=0)`, pero el wheel 0.37
+     no: o se recompila el wheel o se genera el XML con `setup_only=True` y se llama a `openEMS.exe --engine=gpu`.
+   - Por hacer, en orden:
+     1. Mirar qué GPU tiene el usuario y si hay que compilar HIP/CUDA (NVIDIA, AMD) o SYCL (Intel). Compilar openEMS
+        de `master` en Windows (MSVC, con CSXCAD y fparser) y probarlo con un caso de `fase0/` (dipolo): comparar S11 y
+        tiempo con la CPU. Hacerlo con el usuario presente; la compilación puede costar horas.
+     2. `simulacion.py` usa la API de Python (`FDTD.Run(..., numThreads=)`): comprobar si el motor se elige desde ahí
+        (argumentos extra) o si hay que llamar al ejecutable `openEMS` con `--engine=gpu`.
+     3. Botón/opción «Aceleración por GPU» en Simulación: detectar si el openEMS instalado la soporta, desactivarlo si
+        no, y caer a la CPU con aviso si falla. Revisar que la caché (`%TEMP%\antenas_sim\<hash>`) incluya el motor.
+     4. Instalador: ofrecer el openEMS con GPU como opción, no como obligación (el 0.37 de GitHub sigue siendo el
+        predeterminado y el SHA-256 está fijado). Mantener el límite de 2 simulaciones a la vez: con GPU, una sola.
+     5. Avisar de los límites: no hay ni GPU ni plugin en el openEMS oficial, simple precisión posible según el
+        backend, y habrá que revalidar la ganancia y eficiencia frente a la CPU (`comparar_mallas` sirve de modelo).
+   - Un usuario dijo también que hay **otra implementación de CPU que tiene en cuenta la caché** y podría ser mucho más
+     rápida que la actual: no la he encontrado en el repositorio (solo «SSE2 multihilo»). Preguntar a Jorropo cuál es.
+8. **Para la v0.2.0: idiomas con i18n** (05-11, decidido; de momento solo inglés además del castellano). Hoy los textos
+   están escritos a mano en castellano en `gui/app.py`, `antenas/presentacion.py`, `antenas/guia.py` (ayudas,
+   resúmenes), `antenas/problemas.py`, `antenas/consejos.py`, `web/app.js` y `web_api.py`. Plan: catálogo de textos por
+   clave (JSON `es`/`en`) compartido entre escritorio y web, selector de idioma que se recuerda, y la prueba de la CI
+   comprobando que no falte ninguna clave en `en`. Los nombres de tipo y de parámetro de `diseno.json` no se traducen
+   (son claves). `MANUAL.md` y `INSTALAR.md` ya tienen o tendrán su versión inglesa aparte.
+9. **Más adelante:** interfaz en inglés, versión para Linux, `dependabot.yml` (ya hay CI y versiones fijadas),
    mejoras de la web lite (abajo).
 8. **Web lite** (05-11, hecha; `web/`, ver CLAUDE.md): 32/32 casos en Pyodide (~0,6 s por antena), zip del navegador
    con DRC de KiCad limpio, móvil y tema oscuro probados. Pendiente:
