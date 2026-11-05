@@ -125,7 +125,22 @@ hecho hasta ahora (validaciones, simulaciones, fallos y decisiones) está en
      o bajarlo portable; después, configurar con `-DCMAKE_CUDA_HOST_COMPILER=` apuntando a ese `cl.exe`.
      Cuando funcione: la API de Python de `master` admite `FDTD.Run(..., engine='gpu', gpu_device=0)`, pero el wheel 0.37
      no: o se recompila el wheel o se genera el XML con `setup_only=True` y se llama a `openEMS.exe --engine=gpu`.
-   - Por hacer, en orden:
+   - **Resuelto (05-11): compilado y funcionando** en la rama local **`gpu-pruebas`** (no subida a GitHub). Ver
+     `antenas/gpu.py` (`ANTENAS_GPU=1`, `OPENEMS_GPU_DIR`), la casilla «Aceleración por GPU (experimental)» de
+     Simulación y `herramientas/comparar_gpu.py <tipo…> [--radiacion]`. Lo que hizo falta: **MSVC 14.44** portable
+     (con `vsdownload.py` de msvc-wine, en `gpu-build\msvc17`) porque nvcc 12.9 se cae con el 14.51 de VS 18, y copiar
+     junto al `openEMS.exe` las DLL de vcpkg y `cudart64_12.dll`. Como el wheel 0.37 no elige motor, se escribe el XML
+     con `FDTD.Write2XML` y se llama al `openEMS.exe` de `master` con `--engine=gpu`.
+   - **Medidas en la RTX 3050 Laptop (4 GB), 2,44 GHz, precisión normal, con diagrama** (CPU 0.37 → GPU):
+     monopolo recto 0,78 M celdas 203 → 15 s (13×); Koch 1,81 M 266 → 26 s (10×); meandro 2,82 M 680 → 60 s (11×);
+     dipolo 4,59 M 1 063 → 95 s (11×). Diferencias GPU–CPU: f de resonancia ≤ 0,06 %, S11 ≤ 0,6 dB en el máximo
+     (≤ 0,1 dB salvo Koch), Z ≤ 3 Ω, ganancia ±0,1 dBi, eficiencia ±0,5 %. No es idéntico bit a bit (el 0.37 y el
+     `master` difieren), pero queda por debajo del error de ajuste.
+   - **Corrección:** las primeras medidas (arriba) salieron con antenas sobredimensionadas porque el script pasó MHz a
+     `tipos.dimensionar`, que trabaja en **Hz** (el parche salió de 27 km y el motor abortó; no es un bug del
+     repositorio). Los monopolos topaban con el límite del parámetro. Sirven para comparar CPU y GPU sobre la misma
+     geometría, pero no representan el tamaño real: se rehacen en `salidas/_comparar_gpu/` con tamaños reales.
+   - Por hacer, en orden (los pasos 1–3 hechos en la rama; faltan 4–5 y revisar el parche):
      1. Mirar qué GPU tiene el usuario y si hay que compilar HIP/CUDA (NVIDIA, AMD) o SYCL (Intel). Compilar openEMS
         de `master` en Windows (MSVC, con CSXCAD y fparser) y probarlo con un caso de `fase0/` (dipolo): comparar S11 y
         tiempo con la CPU. Hacerlo con el usuario presente; la compilación puede costar horas.

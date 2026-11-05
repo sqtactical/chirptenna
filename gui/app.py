@@ -24,7 +24,7 @@ sys.path.insert(0, RAIZ)
 from nicegui import app, ui, run, background_tasks   # noqa: E402
 
 from antenas import tipos, vista, fabricacion, exportar, consejos, graficas, ajuste, biblioteca, problemas   # noqa: E402
-from antenas import guia   # noqa: E402
+from antenas import guia, gpu   # noqa: E402
 from antenas import __version__   # noqa: E402
 from antenas.materiales import ancho_microstrip, eps_eff_microstrip   # noqa: E402
 
@@ -311,6 +311,14 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
                 with ui.row().classes('w-full items-center wrap gap-2'):
                     sel_prec = ui.select(list(PRECISIONES), value='normal', label='Precisión').classes('w-32')
                     chk_ajustar = ui.checkbox('Ajustar a la frecuencia simulando', value=True)
+                    gpu_ok, gpu_motivo = gpu.disponible()
+                    chk_gpu = ui.checkbox('Aceleración por GPU (experimental)', value=gpu_ok)
+                    if gpu_ok:
+                        chk_gpu.tooltip('Usa el openEMS compilado con motor GPU (rama gpu-pruebas): '
+                                        'en las pruebas, ~9× más rápido. Si falla, usa la CPU.')
+                    else:
+                        chk_gpu.props('disable')
+                        chk_gpu.tooltip(f'No disponible: {gpu_motivo}. Hay que compilar openEMS con GPU (ver RETOMAR.md).')
                     btn_sim = ui.button('Simular', icon='play_arrow').props('color=deep-purple no-caps')
                 ui.label('Rápida: para tantear (±3 %). Normal: diseño. Fina: comprobación final (más lenta). '
                          'Cada simulación tarda de 1 a 15 min según el tamaño; el ajuste hace 2–5. '
@@ -901,8 +909,9 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
             json.dump(trabajo, fh, ensure_ascii=False, default=float)
         registro.clear()
         registro.push(f'Simulando {tipos.CATALOGO[estado["clave"]].nombre} a {estado["f_MHz"]:g} MHz '
-                      f'({sel_prec.value}{", con ajuste" if chk_ajustar.value else ""})…')
-        entorno = dict(os.environ, PYTHONIOENCODING='utf-8')
+                      f'({sel_prec.value}{", con ajuste" if chk_ajustar.value else ""}'
+                      f'{", GPU" if chk_gpu.value else ""})…')
+        entorno = dict(os.environ, PYTHONIOENCODING='utf-8', ANTENAS_GPU='1' if chk_gpu.value else '0')
         proc = subprocess.Popen([sys.executable, '-u', '-m', 'antenas.simular_cli', ruta], cwd=RAIZ, env=entorno,
                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding='utf-8',
                                 errors='replace', creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))

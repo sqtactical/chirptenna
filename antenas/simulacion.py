@@ -22,6 +22,7 @@ import tempfile
 import numpy as np
 from shapely.ops import unary_union
 
+from . import gpu
 from .geometria import poligonos, sin_agujeros
 from .materiales import C0, eps_eff_microstrip
 
@@ -336,9 +337,11 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
     if hecho:
         progreso('Resultado en caché: no se vuelve a simular')
     else:
-        progreso('Simulando con openEMS…')
-        # hilos: 0 = todos. ANTENAS_HILOS permite repartir la CPU entre dos simulaciones a la vez
-        FDTD.Run(sim_path, cleanup=True, verbose=0, numThreads=int(os.environ.get('ANTENAS_HILOS', '0')))
+        usar_gpu = gpu.activa()
+        progreso('Simulando con openEMS' + (' (GPU)…' if usar_gpu else '…'))
+        if not (usar_gpu and gpu.ejecutar(FDTD, sim_path, progreso)):
+            # hilos: 0 = todos. ANTENAS_HILOS permite repartir la CPU entre dos simulaciones a la vez
+            FDTD.Run(sim_path, cleanup=True, verbose=0, numThreads=int(os.environ.get('ANTENAS_HILOS', '0')))
     t_sim = time.time() - t0
 
     f = np.linspace(fmin, fmax, 1201)
