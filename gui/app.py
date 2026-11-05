@@ -36,9 +36,10 @@ URL_PROYECTO = 'https://github.com/sqtactical/chirptenna'
 # Si publicas una versión modificada como servicio por red, la AGPL-3.0 te obliga a ofrecer su código:
 # cambia URL_PROYECTO por la dirección de tu código.
 LOGO = os.path.join(RAIZ, 'docs', 'logo', 'chirptenna.png')
-# Bandas de uso: (inicio, fin) en MHz. La antena se centra en el centro de la banda.
-# Los canales LoRa sueltos van en «Otra» (centro + ancho)
-BANDAS = {'433': (433.05, 434.79), '868': (863.0, 870.0), '2,4 GHz': (2400.0, 2483.5), 'Otra': None}
+# Bandas, serigrafía, etiquetas y formatos: compartidos con la versión web (antenas/presentacion.py)
+from antenas import presentacion   # noqa: E402
+from antenas.presentacion import (BANDAS, SERIGRAFIA_OPCIONES, LOGO_OPCIONES, AVISO_SIN_LOGO,   # noqa: E402
+                                  SERIGRAFIA_DEFECTO)
 
 estado = {
     'clave': 'monopolo_koch',
@@ -52,61 +53,8 @@ estado = {
     'sucio': False,          # hay cambios sin guardar
 }
 
-# Inscripciones de la serigrafía (cara inferior): (clave, texto en la interfaz), en el orden en que se imprimen
-SERIGRAFIA_OPCIONES = [
-    ('tipo', 'Tipo de antena y frecuencia'),
-    ('nombre', 'Nombre del diseño'),
-    ('sim', 'Resultado de la simulación (banda y ganancia), si está guardada'),
-    ('licencia', 'Licencia CC BY-NC 4.0 (diseños que vayas a publicar)'),
-    ('fecha', 'Fecha y versión del programa'),
-]
-LOGO_OPCIONES = {'grande': 'Grande (recomendado)', 'pequeno': 'Pequeño', 'ninguno': 'Sin logo'}
-AVISO_SIN_LOGO = ('Sin problema, el logo es opcional y la placa es tuya. Si la compartes o la vendes, nos ayudaría '
-                  'mucho que menciones Chirptenna (en la descripción, con un enlace al proyecto…). '
-                  'Así más gente puede encontrarlo y mejorarlo. ¡Gracias!')
-SERIGRAFIA_DEFECTO = {'logo': 'grande', 'tipo': True, 'nombre': False, 'sim': True, 'licencia': False, 'fecha': True,
-                      'libre': ''}
 estado['serigrafia'] = dict(SERIGRAFIA_DEFECTO)
-
-
-def _fmt(v):
-    if isinstance(v, float):
-        return f'{v:.3f}'.rstrip('0').rstrip('.')
-    if isinstance(v, dict):
-        return ', '.join(f'{k}: {_fmt(x)}' for k, x in v.items())
-    if isinstance(v, (list, tuple)):
-        return ' × '.join(_fmt(x) for x in v) if all(isinstance(x, (int, float)) for x in v) else '; '.join(map(str, v))
-    return str(v)
-
-
-def _banda_de(f_MHz, bw_MHz):
-    """Nombre de la banda predefinida que coincide con (centro, ancho), o 'Otra'."""
-    for n, b in BANDAS.items():
-        if b and abs((b[0] + b[1])/2 - f_MHz) < 0.01 and abs((b[1] - b[0]) - bw_MHz) < 0.01:
-            return n
-    return 'Otra'
-
-
-ETIQUETAS_INFO = {
-    'f_estimada_MHz': 'Frecuencia estimada [MHz]', 'precision_estimacion': 'Precisión de la estimación',
-    'placa_mm': 'Placa de prueba [mm]', 'radiador_mm': 'Radiador [mm]', 'longitud_traza_mm': 'Longitud de pista [mm]',
-    'ancho_linea_50ohm_mm': 'Línea de 50 Ω [mm]', 'perdida_red_estimada_dB': 'Pérdida de la red (estimada) [dB]',
-    'ganancia_estimada_dBi': 'Ganancia estimada [dBi]', 'directividad_ideal_dBi': 'Directividad ideal [dBi]',
-    'ganancia_tipica_dBi': 'Ganancia típica [dBi]', 'separacion_mm': 'Separación entre elementos [mm]',
-    'largo_dipolo_mm': 'Largo del dipolo [mm]', 'largo_lambda4_mm': 'Tramos λ/4 de 70,7 Ω [mm]',
-    'separacion_reflector_mm': 'Separación placa–reflector [mm]', 'reflector_mm': 'Reflector [mm]',
-    'grosor_total_mm': 'Grosor del conjunto [mm]',
-    'insercion_mm': 'Inserción de la alimentación [mm]', 'R_borde_estimada_ohm': 'R de borde estimada [Ω]',
-    'transformador': 'Transformador λ/4', 'lineas_mm': 'Anchos de línea [mm]', 'retardo_balun_mm': 'Rodeo del balun [mm]',
-    'sustrato': 'Sustrato', 'solape_pistas': 'Solape de pistas', 'avisos': 'Avisos',
-    'masa_mm': 'Plano de masa [mm]', 'area_placa_cm2': 'Área de la placa [cm²]',
-    'largos_directores_mm': 'Largo de los directores [mm]',
-    'ancho_banda_estimado': 'Ancho de banda estimado (−10 dB)',
-    'hueco_minimo_mm': 'Hueco mínimo [mm]', 'pista_minima_mm': 'Pista mínima [mm]',
-    'f_sin_cortar_MHz': 'Frecuencia sin cortar [MHz]', 'muesca_mm': 'Profundidad de la ranura [mm]',
-    'largo_adaptador_mm': 'Largo del adaptador λ/4 [mm]', 'altura_toma_mm': 'Altura de la toma [mm]',
-    'ventanas_aligerado': 'Ventanas de aligerado', 'fr4_quitado_%': 'FR4 quitado [%]',
-}
+_banda_de = presentacion.banda_de
 ICONOS_CONSEJO = {'banda': ('podcasts', 'deep-orange'), 'diseño': ('lightbulb', 'amber-8'),
                   'montaje': ('construction', 'blue-grey'), 'medida': ('straighten', 'teal')}
 
@@ -485,22 +433,11 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         tipo = tipos.CATALOGO[estado['clave']]
         desc.text = tipo.descripcion
         p_act = estado['params']
-        masa_auto = int(p_act.get('masa', 0)) != 0
-        ajustable = int(p_act.get('ajuste', 0)) == 1
-        muesca = int(p_act.get('alimentacion', 0)) == 1 and tipo.familia == 'parche'
-        aligerado = int(p_act.get('aligerado', 0)) == 1
+        visibles = set(presentacion.parametros_visibles(estado['clave'], p_act))
         with cont_params:
             for p in tipo.parametros:
-                if masa_auto and p.nombre in tipos.PARAMS_SOLO_MANUAL:
-                    continue            # con masa automática el programa calcula estas medidas
-                if not ajustable and p.nombre in ajuste.PARAMS_SOLO_AJUSTABLE:
-                    continue            # opciones de ajuste solo si la antena es ajustable
-                if not muesca and p.nombre in ('muesca', 'hueco_muesca'):
-                    continue            # parches alimentados por el borde
-                if muesca and p.nombre == 'largo_alimentacion':
-                    continue            # con ranura la línea solo cruza el margen de masa
-                if not aligerado and p.nombre in tipos.PARAMS_SOLO_ALIGERADO:
-                    continue            # medidas de las ventanas solo si se aligera
+                if p.nombre not in visibles:
+                    continue            # no aplica con estos valores (masa automática, sin ajuste…)
                 valor = p_act.get(p.nombre, p.defecto)
                 if p.opciones:
                     n = ui.select(p.opciones, value=int(valor), label=p.etiqueta).classes('w-full')
@@ -561,14 +498,10 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
                     ui.label(f"Banda estimada {bw['f_inf_MHz']:g}–{bw['f_sup_MHz']:g} MHz "
                              f"({bw['MHz']:g} MHz, {bw['porcentaje']:g} %) · necesaria {lo:g}–{hi:g} MHz"
                              ).classes('text-caption text-weight-medium')
-            for k, v in a.info.items():
-                # «v in (None, [], {})» falla con números de numpy (compara elemento a elemento)
-                vacio = v is None or (isinstance(v, (list, tuple, dict)) and len(v) == 0)
-                if vacio or k in ('avisos', 'ancho_banda_estimado', 'ajuste'):
-                    continue
+            for etiqueta, valor in presentacion.filas_info(a.info):
                 with ui.row().classes('w-full no-wrap justify-between'):
-                    ui.label(ETIQUETAS_INFO.get(k, k)).classes('text-caption texto-sec')
-                    ui.label(_fmt(v)).classes('text-caption text-weight-medium text-right')
+                    ui.label(etiqueta).classes('text-caption texto-sec')
+                    ui.label(valor).classes('text-caption text-weight-medium text-right')
         lista_consejos.clear()
         with lista_consejos:
             for cat, texto in consejos.consejos(a, estado['f_MHz']*1e6, (lo*1e6, hi*1e6)):
@@ -1334,24 +1267,10 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
     def lineas_serigrafia():
         """Líneas de texto de la serigrafía según lo elegido (la primera es la que más importa)."""
         s = estado['serigrafia']
-        a = estado['antena']
-        lineas = []
-        if s.get('tipo'):
-            lineas.append(f"{tipos.CATALOGO[estado['clave']].nombre.split(' (')[0]} {estado['f_MHz']:g} MHz")
-        if s.get('nombre'):
-            lineas.append(nombre_actual())
+        r = None
         if s.get('sim') and estado['diseno'] and not estado['sucio']:
             r = biblioteca.leer_simulacion(estado['diseno'], solo_resultado=True)
-            if r:
-                banda_s = (f"{r['banda_MHz'][0]:g}-{r['banda_MHz'][1]:g} MHz" if r.get('banda_MHz')
-                           else f"{r['f_resonancia_MHz']:g} MHz")
-                lineas.append(f"sim {banda_s} {r['ganancia_dBi']:g} dBi")
-        lineas += [t.strip() for t in (s.get('libre') or '').splitlines() if t.strip()]
-        if s.get('licencia'):
-            lineas.append('CC BY-NC 4.0')
-        if s.get('fecha'):
-            lineas.append(f"{time.strftime('%Y-%m')} v{__version__}")
-        return lineas
+        return presentacion.lineas_serigrafia(s, estado['clave'], estado['f_MHz'], nombre_actual(), r)
 
     def mostrar_serigrafia():
         seri_vista.clear()

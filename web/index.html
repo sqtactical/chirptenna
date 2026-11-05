@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chirptenna web</title>
+  <meta name="description" content="Diseña antenas impresas en PCB (fractales, directivas, dipolos) y descárgalas para KiCad, sin instalar nada.">
+  <link rel="icon" href="logo.png">
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+  <header class="cabecera">
+    <img src="logo.png" alt="" class="logo">
+    <div class="marca">
+      <strong>Chirptenna</strong> <span class="etiqueta">web lite</span>
+      <span id="version" class="sec"></span>
+    </div>
+    <span class="hueco"></span>
+    <a href="https://github.com/sqtactical/chirptenna/blob/main/MANUAL.md" target="_blank" rel="noopener">Manual</a>
+    <a href="https://github.com/sqtactical/chirptenna" target="_blank" rel="noopener">GitHub</a>
+    <button id="btn-tema" class="boton-icono" title="Tema claro/oscuro" aria-label="Cambiar tema">◐</button>
+  </header>
+
+  <div class="aviso-alpha">
+    <strong>Alpha.</strong> Diseña y descarga la placa para <strong>KiCad</strong>. Esta versión no simula ni pasa el DRC
+    de KiCad: abre el archivo en KiCad, pasa su DRC y saca allí los Gerber. Para simular con openEMS y medir con el
+    NanoVNA, <a href="https://github.com/sqtactical/chirptenna/blob/main/INSTALAR.md" target="_blank" rel="noopener">instala la aplicación</a>.
+    Validado solo en simulación: mide antes de fiarte.
+  </div>
+
+  <div id="carga" class="carga">
+    <div class="carga-texto" id="carga-texto">Cargando…</div>
+    <div class="barra"><div id="carga-barra"></div></div>
+    <div class="sec">La primera vez descarga unos 15 MB; después queda en la caché del navegador. Todo se calcula en tu
+      navegador: no se envía nada a ningún servidor.</div>
+  </div>
+
+  <main id="app" hidden>
+    <section class="tarjeta barra-diseno">
+      <label>Nombre del diseño<input id="nombre" value="antena" maxlength="60"></label>
+      <label class="ancho">Tipo de antena<select id="tipo"></select></label>
+      <div class="grupo">
+        <span class="sec pequeno">Banda de uso</span>
+        <div id="bandas" class="botonera"></div>
+      </div>
+      <label>Centro [MHz]<input id="f" type="number" step="0.005" min="100" max="10000"></label>
+      <label>Ancho [MHz]<input id="bw" type="number" step="0.05" min="0.05" max="5000"></label>
+      <span id="rango" class="sec pequeno"></span>
+      <p id="descripcion" class="sec pequeno completo"></p>
+      <ul id="problemas" class="lista completo"></ul>
+    </section>
+
+    <div class="columnas">
+      <div class="col-izq">
+        <section class="tarjeta">
+          <h2>Tamaño y material</h2>
+          <label>Sustrato<select id="sustrato"></select></label>
+          <button id="btn-ajustar" class="primario">Ajustar tamaño a la frecuencia</button>
+          <button id="btn-banda" class="secundario">Ampliar ancho de banda</button>
+          <p id="aviso-ajuste" class="aviso pequeno"></p>
+        </section>
+        <section class="tarjeta">
+          <h2>Parámetros</h2>
+          <div id="parametros"></div>
+        </section>
+      </div>
+
+      <div class="col-der">
+        <section class="tarjeta">
+          <div id="vista" class="vista" aria-label="Vista de la antena"></div>
+          <div id="leyenda" class="leyenda"></div>
+          <p class="sec pequeno">Rueda del ratón: zoom · arrastrar: mover · doble clic: encajar.</p>
+        </section>
+        <div class="columnas-2">
+          <section class="tarjeta">
+            <h2>Resultado (estimación)</h2>
+            <p id="banda-estado" class="pequeno"></p>
+            <table id="info" class="info"></table>
+          </section>
+          <section class="tarjeta">
+            <h2>Consejos</h2>
+            <ul id="consejos" class="lista"></ul>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <div class="columnas-2">
+      <section class="tarjeta">
+        <h2>Comprobaciones de fabricación</h2>
+        <label>Reglas del fabricante<select id="reglas"></select></label>
+        <ul id="comprobaciones" class="lista"></ul>
+        <p id="aviso-general" class="sec pequeno"></p>
+      </section>
+      <section class="tarjeta">
+        <h2>Serigrafía (inscripciones)</h2>
+        <p class="sec pequeno">Van en la cara de abajo, espejadas. Si no cabe todo, se mantienen el logo y la primera
+          línea. Las marcas de corte y las referencias de los componentes se ponen siempre.</p>
+        <label>Logo de Chirptenna<select id="logo"></select></label>
+        <p id="aviso-logo" class="violeta pequeno" hidden></p>
+        <div id="seri-opciones"></div>
+        <label>Texto libre (una línea por renglón)<textarea id="seri-libre" rows="2"></textarea></label>
+        <div class="sec pequeno">Así quedará el texto:</div>
+        <pre id="seri-vista" class="seri-vista"></pre>
+      </section>
+    </div>
+
+    <section class="tarjeta exportar">
+      <h2>Descargar</h2>
+      <p class="sec pequeno">Un .zip con la placa de prueba (<code>.kicad_pcb</code>), la huella para tu placa
+        (<code>.kicad_mod</code>), el DXF, el diseño (<code>diseno.json</code>) y un LÉEME con los pasos para sacar los
+        Gerber en KiCad.</p>
+      <div class="botonera">
+        <button id="btn-exportar" class="exito">Descargar para KiCad (.zip)</button>
+        <button id="btn-enlace" class="secundario">Copiar enlace a este diseño</button>
+        <label class="boton secundario">Abrir diseño (.json)<input id="abrir" type="file" accept=".json,application/json" hidden></label>
+      </div>
+      <p id="estado-exportar" class="pequeno"></p>
+    </section>
+  </main>
+
+  <footer class="pie sec">
+    <span id="pie-version"></span> · software libre ·
+    <a href="https://github.com/sqtactical/chirptenna" target="_blank" rel="noopener">código fuente</a> ·
+    <a href="https://github.com/sqtactical/chirptenna/blob/main/LICENSE" target="_blank" rel="noopener">licencia AGPL-3.0</a> ·
+    todo se calcula en tu navegador
+  </footer>
+
+  <div id="aviso" class="toast" role="status" hidden></div>
+  <script src="app.js"></script>
+</body>
+</html>

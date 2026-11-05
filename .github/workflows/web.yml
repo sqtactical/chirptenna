@@ -1,0 +1,52 @@
+# Publica la versión web lite (diseñar, ver y exportar para KiCad) en GitHub Pages:
+#   https://sqtactical.github.io/chirptenna/
+# Se publica con cada release (la web corresponde siempre a una versión publicada) o a mano.
+# La web es estática: la interfaz de web/ + el núcleo de antenas/ empaquetado (herramientas/construir_web.py);
+# Python corre en el navegador con Pyodide.
+name: Web
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  construir:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+
+      - name: Paquetes del núcleo (para comprobar que importa sin dependencias de escritorio)
+        run: python -m pip install --disable-pip-version-check -q numpy shapely
+
+      - name: Construir la web
+        run: python herramientas/construir_web.py _site
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  publicar:
+    needs: construir
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - id: despliegue
+        uses: actions/deploy-pages@v4

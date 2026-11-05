@@ -1,5 +1,11 @@
 """Comprobaciones de fabricación (reglas del fabricante) sobre el cobre de una antena."""
+import shapely
+
 from .geometria import poligonos
+
+# Rejilla de 0,1 µm para las diferencias: con ella GEOS usa el redondeo robusto y no puede fallar
+# («TopologyException: Ring edge missing» con el GEOS 3.12 de la versión web, que además tumba Pyodide)
+REJILLA = 1e-4
 
 # Mínimos de JLC para 2 capas y 1 oz (pista / hueco / cobre al borde).
 REGLAS = {
@@ -22,13 +28,13 @@ def comprobar(antena, nombre_reglas=REGLAS_POR_DEFECTO):
         # Partes más estrechas que la pista mínima: desaparecen al encoger y volver a engordar
         w = r['pista_min']
         abierto = cobre.buffer(-w/2*0.999, join_style='mitre').buffer(w/2*0.999, join_style='mitre')
-        perdido = cobre.difference(abierto).area
+        perdido = shapely.difference(cobre, abierto, grid_size=REJILLA).area
         if perdido > w*w*2:
             res.append(('error', f'{nombre}: hay cobre más estrecho que {w} mm ({perdido:.3f} mm²)'))
         # Huecos más estrechos que el mínimo: se cierran al engordar y volver a encoger
         s = r['hueco_min']
         cerrado = cobre.buffer(s/2*0.999, join_style='mitre').buffer(-s/2*0.999, join_style='mitre')
-        relleno = cerrado.difference(cobre).area
+        relleno = shapely.difference(cerrado, cobre, grid_size=REJILLA).area
         if relleno > s*s*2:
             res.append(('error', f'{nombre}: hay huecos más estrechos que {s} mm ({relleno:.3f} mm²)'))
         # Distancia al borde de la placa

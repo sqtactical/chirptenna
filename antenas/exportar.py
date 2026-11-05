@@ -780,6 +780,21 @@ def dxf(antena, ruta):
     doc.saveas(ruta)
 
 
+def dxf_reflector(antena, ruta):
+    """DXF del reflector del panel (contorno y taladros), para cortarlo en chapa o pedirlo como placa."""
+    import ezdxf
+    doc = ezdxf.new('R2010', setup=False)
+    doc.units = ezdxf.units.MM
+    doc.layers.add('CONTORNO', color=7)
+    doc.layers.add('TALADROS', color=1)
+    msp = doc.modelspace()
+    msp.add_lwpolyline(list(antena.reflector['contorno'].exterior.coords), close=True,
+                       dxfattribs={'layer': 'CONTORNO'})
+    for x, y, d in antena.reflector['taladros']:
+        msp.add_circle((x, y), d/2, dxfattribs={'layer': 'TALADROS'})
+    doc.saveas(ruta)
+
+
 def exportar_todo(antena, carpeta, nombre, titulo='', etiqueta=None, logo=True):
     """Genera en la carpeta: placa .kicad_pcb, huella .kicad_mod, Gerber .zip, DXF y .json.
 
@@ -809,16 +824,6 @@ def exportar_todo(antena, carpeta, nombre, titulo='', etiqueta=None, logo=True):
         rutas['gerber_zip_reflector'] = os.path.join(carpeta, f'{nombre}_reflector_gerber_JLC.zip')
         gerber(rutas['placa_reflector'], os.path.join(carpeta, 'gerber_reflector'), rutas['gerber_zip_reflector'])
         rutas['dxf_reflector'] = os.path.join(carpeta, f'{nombre}_reflector.dxf')
-        import ezdxf
-        doc = ezdxf.new('R2010', setup=False)
-        doc.units = ezdxf.units.MM
-        doc.layers.add('CONTORNO', color=7)
-        doc.layers.add('TALADROS', color=1)
-        msp = doc.modelspace()
-        msp.add_lwpolyline(list(antena.reflector['contorno'].exterior.coords), close=True,
-                           dxfattribs={'layer': 'CONTORNO'})
-        for x, y, d in antena.reflector['taladros']:
-            msp.add_circle((x, y), d/2, dxfattribs={'layer': 'TALADROS'})
-        doc.saveas(rutas['dxf_reflector'])
+        dxf_reflector(antena, rutas['dxf_reflector'])
         rutas['drc'] = rutas['drc'] + [(t, sev, 'reflector: ' + d) for t, sev, d in drc(rutas['placa_reflector'])]
     return rutas

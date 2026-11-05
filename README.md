@@ -124,6 +124,13 @@ Los detalles de cada simulación y los errores encontrados por el camino están 
   Sin él se exportan el `.kicad_pcb` y el DXF, pero no los Gerber.
 - Opcional: un **NanoVNA-H** (firmware DiSlord) para medir.
 
+## Pruébalo sin instalar
+
+**[Chirptenna web lite](https://sqtactical.github.io/chirptenna/)**: diseña la antena en el navegador y descárgala
+para **KiCad** (`.kicad_pcb`, huella, DXF y `diseno.json`). Todo se calcula en tu navegador (Python con Pyodide),
+sin enviar nada a ningún servidor. No simula ni pasa el DRC de KiCad: abre la placa en KiCad, pasa su DRC y saca
+allí los Gerber (el zip trae un LÉEME con los pasos). Para simular y medir, instala la aplicación.
+
 ## Instalación
 
 **Sin saber nada de Python:** descarga el ZIP de la última versión en

@@ -121,6 +121,14 @@ before trusting it. The GUI shows these warnings when you pick the type and when
   it, the `.kicad_pcb` and DXF are still exported, but not the Gerbers.
 - Optional: a **NanoVNA-H** (DiSlord firmware) for measurements.
 
+## Try it without installing
+
+**[Chirptenna web lite](https://sqtactical.github.io/chirptenna/)** (interface in Spanish): design the antenna in
+your browser and download it for **KiCad** (`.kicad_pcb`, footprint, DXF and `diseno.json`). Everything runs in your
+browser (Python via Pyodide); nothing is sent to any server. It doesn't simulate or run KiCad's DRC: open the board
+in KiCad, run its DRC and plot the Gerbers there (the zip includes a README with the steps). To simulate and measure,
+install the application.
+
 ## Installation
 
 **No Python knowledge needed:** download the ZIP of the latest version from

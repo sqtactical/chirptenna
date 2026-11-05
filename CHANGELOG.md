@@ -3,6 +3,25 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); versiones con
 [versionado semántico](https://semver.org/lang/es/). *English summary under each version.*
 
+## [Sin publicar]
+
+### Añadido
+
+- **Versión web lite** (https://sqtactical.github.io/chirptenna/): diseñar, ver y descargar la antena para KiCad
+  (`.kicad_pcb`, huella, DXF, `diseno.json` y un LÉEME con los pasos hasta los Gerber) sin instalar nada. Python
+  corre en el navegador (Pyodide); no se envía nada a ningún servidor. Enlaces para compartir un diseño, abrir un
+  `diseno.json` de la aplicación y tema claro/oscuro. No simula ni pasa el DRC de KiCad.
+- Prueba automática de la web en la CI: los 16 tipos a 868 MHz y 2,4 GHz generados dentro del navegador y con el DRC
+  de KiCad.
+
+### Cambiado
+
+- El texto del logo de la serigrafía va precalculado (ya no hace falta matplotlib para exportar).
+- Las comprobaciones de fabricación usan operaciones de geometría robustas (no fallan con geometrías delicadas).
+
+*English: web lite version (design in the browser and download for KiCad, no install, nothing leaves your
+browser), with a CI test that generates every type inside the browser and runs KiCad's DRC on it.*
+
 ## [0.1.2-alpha] · 2026-11-04
 
 ### Añadido

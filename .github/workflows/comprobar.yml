@@ -73,6 +73,16 @@ jobs:
           & "$env:LOCALAPPDATA\antenas\venv\Scripts\python.exe" herramientas\prueba_interfaz.py
           if ($LASTEXITCODE -ne 0) { exit 1 }
 
+      - name: Versión web (Pyodide en Chromium, 16 tipos × 2 bandas, DRC de KiCad)
+        if: matrix.paquetes == 'lock'
+        run: |
+          $py = "$env:LOCALAPPDATA\antenas\venv\Scripts\python.exe"
+          & $py -m pip install --disable-pip-version-check -q playwright
+          & $py -m playwright install chromium
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          & $py herramientas\prueba_web.py
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
       - name: Guardar el resumen
         if: always()
         uses: actions/upload-artifact@v4

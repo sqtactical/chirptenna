@@ -5,6 +5,9 @@ silueta rellena con los ojos, la separación cabeza/tórax/abdomen y el ala como
 «Chirptenna» como contorno de letra (DejaVu Sans Bold, la del logo). Todo en mm, construido ya a la
 escala final para que ningún trazo baje del mínimo de serigrafía de JLC.
 """
+import os
+import json
+
 import numpy as np
 from shapely import affinity
 from shapely.geometry import LineString, Point, Polygon
@@ -81,17 +84,31 @@ def grillo(alto_mm):
     return affinity.translate(silueta, -(x0 + x1)/2, -(y0 + y1)/2)
 
 
-def texto(cadena, alto_mm):
-    """Texto como polígonos (DejaVu Sans Bold); `alto_mm` es la altura de las mayúsculas."""
+def _contorno_texto(cadena):
+    """Anillos del texto a tamaño 1 y altura de las mayúsculas.
+
+    «Chirptenna» viene precalculado en logo_texto.json (herramientas/generar_logo_texto.py): así no hace falta
+    matplotlib, que no está en la versión web. Cualquier otro texto se calcula con matplotlib."""
+    ruta = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logo_texto.json')
+    if os.path.exists(ruta):
+        with open(ruta, encoding='utf-8') as fh:
+            datos = json.load(fh)
+        if cadena in datos['textos']:
+            return datos['textos'][cadena], datos['alto_mayusculas']
     from matplotlib.font_manager import FontProperties
     from matplotlib.textpath import TextPath
-    tp = TextPath((0, 0), cadena, size=1.0, prop=FontProperties(family='DejaVu Sans', weight='bold'))
+    prop = FontProperties(family='DejaVu Sans', weight='bold')
+    return (TextPath((0, 0), cadena, size=1.0, prop=prop).to_polygons(),
+            TextPath((0, 0), 'H', size=1.0, prop=prop).get_extents().height)
+
+
+def texto(cadena, alto_mm):
+    """Texto como polígonos (DejaVu Sans Bold); `alto_mm` es la altura de las mayúsculas."""
+    anillos, alto_cap = _contorno_texto(cadena)
     geom = Polygon()
-    for anillo in tp.to_polygons():
+    for anillo in anillos:
         if len(anillo) >= 3:
             geom = geom.symmetric_difference(Polygon(anillo).buffer(0))     # par-impar: huecos de las letras
-    alto_cap = TextPath((0, 0), 'H', size=1.0, prop=FontProperties(family='DejaVu Sans', weight='bold')) \
-        .get_extents().height
     k = alto_mm/alto_cap
     geom = _valida(affinity.scale(geom, k, k, origin=(0, 0)))
     x0, y0, x1, y1 = geom.bounds
