@@ -86,6 +86,10 @@ def main():
         pag.on('console', lambda m: errores_consola.append(m.text) if m.type == 'error' else None)
         t0 = time.time()
         pag.goto(origen + '/')
+        # Se entra por la galería de tipos; al elegir uno se abre el diseño
+        pag.wait_for_function("!document.getElementById('galeria').hidden"
+                              " && document.querySelectorAll('#galeria .ficha').length >= 16", timeout=60_000)
+        pag.click('#galeria .ficha')
         pag.wait_for_function("!document.getElementById('app').hidden && document.querySelector('#vista svg')",
                               timeout=180_000)
         print(f'Interfaz lista en {time.time() - t0:.0f} s')
