@@ -207,7 +207,13 @@ hecho hasta ahora (validaciones, simulaciones, fallos y decisiones) está en
    - [x] Interfaz simplificada (05-11, escritorio y web): galería de tipos con miniatura, resumen y estado, selector con
      descripción, básicos + «Ajustes avanzados» y «?» con la ayuda de cada parámetro (`antenas/guia.py`).
    - [ ] Rehacer las capturas del README con la galería (`docs/capturas/`).
-   - [ ] Mejoras: caché sin conexión (service worker), versión en inglés, «Ajuste tras fabricar» explicado en la web.
+   - [ ] **Service worker** (idea, para la v0.3.0; ~2 h): `web/sw.js` registrado desde `app.js` que guarda en caché Pyodide
+     (CDN), sus paquetes (numpy, shapely; ezdxf viene de PyPI por micropip) y los ficheros de la web, para cargar rápido
+     en visitas repetidas y funcionar sin conexión (con `manifest` sería instalable como PWA). Hay que poner la versión de
+     la release en el nombre de la caché (lo hace `construir_web.py`) para que una release nueva no deje ficheros viejos, y
+     avisar «hay una versión nueva, recarga». Alcance `/chirptenna/` en GitHub Pages. Ampliar `prueba_web.py`: segunda carga
+     desde la caché y arranque sin red. Cuidado con una caché obsoleta pegada.
+   - [ ] Mejoras: versión en inglés (hecha en la v0.2.0, con es/en/fr/de), «Ajuste tras fabricar» explicado en la web.
 
 ## Cómo ejecutar
 
