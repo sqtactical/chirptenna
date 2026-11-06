@@ -1,4 +1,4 @@
-"""Conector de la placa de prueba: SMA de canto (por defecto) o IPEX / U.FL (MHF1).
+"""Conector de la placa de prueba: SMA de canto (por defecto), IPEX / U.FL (MHF1) o coaxial soldado.
 
 Con SMA el cobre del modelo no cambia: la línea de 50 Ω llega al borde y la huella se añade al
 exportar. Con IPEX el conector va encima de la placa, a unos milímetros del borde: la línea
@@ -15,10 +15,12 @@ from shapely.ops import unary_union
 from .i18n import tr
 
 BORDE_COBRE = 0.5                  # donde empieza la línea con SMA (retranqueo del cobre) [mm]
-SMA, IPEX = 0, 1
-NOMBRES = {SMA: 'SMA de canto', IPEX: 'IPEX / U.FL (MHF1)'}
-MASA_MINIMA = {SMA: 12.0, IPEX: 7.0}       # largo mínimo de la masa de los monopolos [mm]
-ANCHO_MINIMO = {SMA: 16.0, IPEX: 8.0}      # ancho mínimo de la placa de los monopolos [mm]
+SMA, IPEX, COAX = 0, 1, 2
+NOMBRES = {SMA: 'SMA de canto', IPEX: 'IPEX / U.FL (MHF1)', COAX: 'Coaxial soldado en la línea (sin conector)'}
+MASA_MINIMA = {SMA: 12.0, IPEX: 7.0, COAX: 10.0}       # largo mínimo de la masa de los monopolos [mm]
+ANCHO_MINIMO = {SMA: 16.0, IPEX: 8.0, COAX: 14.0}      # ancho mínimo de la placa de los monopolos [mm]
+PAD_COAX = 3.0                     # coaxial soldado: largo del pad del vivo y lado del de la malla [mm]
+U_COAX = 3.0                       # ... y su centro, desde el borde de la placa [mm]
 
 IPEX_CENTRO = 3.0                  # del borde de la placa al centro del conector [mm]
 U_SENAL, PAD_SENAL = 1.5, (1.05, 1.0)          # pad central: centro en u y tamaño (u, v)

@@ -111,7 +111,7 @@ def figura_plotly(antena):
                                  hoverinfo='skip'))
     bx, by = antena.puerto['borde']
     fig.add_trace(go.Scatter(x=[bx], y=[by], mode='markers', marker=dict(symbol='triangle-right', size=14, color='red'),
-                             name=(tr('Toma del coaxial') if antena.puerto.get('tipo') in ('coaxial', 'pasante') else
+                             name=(tr('Toma del coaxial') if antena.puerto.get('tipo') in ('coaxial', 'pasante') or antena.puerto.get('conector') == 2 else
                                    tr('Conector ({0})', "IPEX" if antena.puerto.get("conector") == 1 else "SMA"))))
     if antena.puerto.get('conector') == 1:
         from .conector import pads_ipex

@@ -205,7 +205,7 @@ AYUDAS_TIPO = {
                'largo_alimentacion': 'Largo del balun impreso (la tira central): separa la antena del conector.',
                'alimentacion': 'Balun impreso: conector en el borde y una tira que hace de balun (todo en la placa). '
                                'Coaxial al centro: sueldas el coaxial directamente en el centro del dipolo.'},
-    'colineal_dipolos': {'elementos': 'Número de dipolos en serie. A 2,4 GHz, 4 dipolos dan una placa de ~26 cm: cabe en un tubo de PVC de 30 cm.'},
+    'colineal_dipolos': {'elementos': 'Número de dipolos en serie. Más dipolos: más ganancia y una placa más larga (4 a 2,4 GHz: ~26 cm).'},
     'dipolo_bowtie': {'forma': 'Bowtie: dos triángulos como brazos, más banda que el dipolo recto. Bowtie de Sierpinski: '
                                'triángulos con huecos fractales. La bowtie aguanta mejor los desajustes de frecuencia.',
                       'iteracion_s': 'Nivel del Sierpinski de cada brazo (solo con «Bowtie de Sierpinski»). '

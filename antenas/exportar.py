@@ -124,6 +124,43 @@ def _sma(conv, borde_modelo, direccion, n_net):
     return lineas
 
 
+def _coax_soldado(conv, puerto, n_net):
+    """Coaxial soldado en la línea (sin conector): pad del vivo sobre la línea y pad de la malla al lado, unido
+    por dos vías a la masa de la cara inferior. Ambos con la máscara abierta."""
+    loc = conector._local(puerto)
+    dx, dy = puerto['direccion']
+    w = puerto['ancho_linea']
+    lado = conector.PAD_COAX
+    girar = abs(dy) > 0.5
+
+    def tam(a, b):                                   # (u, v) → (x, y)
+        return (b, a) if girar else (a, b)
+    vm = w/2 + 1.0 + lado/2
+    ox, oy = conv.p(*loc(conector.U_COAX, 0.0))
+    pads = []
+    for nombre, v, (su, sv), net in (('V', 0.0, (lado, w), f'(net {n_net} "{"GND" if n_net == 1 else "ANT"}")'),
+                                     ('M', vm, (lado, lado), '(net 1 "GND")')):
+        kx, ky = conv.p(*loc(conector.U_COAX, v))
+        sx, sy = tam(su, sv)
+        pads.append(f'    (pad "{nombre}" smd rect (at {kx - ox:.4f} {ky - oy:.4f}) (size {sx:.3f} {sy:.3f}) '
+                    f'(layers "F.Cu" "F.Mask") {net} (uuid "{_u()}"))')
+    lineas = [f'  (footprint "Antenas:coax_soldado" (layer "F.Cu") (uuid "{_u()}") (at {ox:.4f} {oy:.4f})\n'
+              f'    (property "Reference" "J1" (at 0 -3 0) (layer "F.Fab") '
+              f'(uuid "{_u()}") (effects (font (size 1 1) (thickness 0.15))))\n'
+              f'    (property "Value" "coax" (at 0 3 0) (layer "F.Fab") '
+              f'(uuid "{_u()}") (effects (font (size 1 1) (thickness 0.15))))\n'
+              f'    (attr smd)\n' + '\n'.join(pads) + '\n  )']
+    for du in (-0.8, 0.8):
+        vx, vy = conv.p(*loc(conector.U_COAX + du, vm))
+        lineas.append(f'  (via (at {vx:.4f} {vy:.4f}) (size 0.8) (drill 0.4) (layers "F.Cu" "B.Cu") (net 1) '
+                      f'(uuid "{_u()}"))')
+    for texto, v in ((tr('vivo'), -(w/2 + 3.2)), (tr('malla'), vm + 0.8)):
+        tx, ty = conv.p(*loc(conector.U_COAX + 3.2, v))
+        lineas.append(f'  (gr_text "{texto}" (at {tx:.3f} {ty:.3f} 0) (layer "F.SilkS") (uuid "{_u()}")\n'
+                      f'    (effects (font (size 0.8 0.8) (thickness 0.12))))')
+    return lineas
+
+
 def _ipex(conv, puerto, n_net):
     """Huella de IPEX / U.FL encima de la placa + vías de los pads de masa."""
     pads, vias, centro = conector.pads_ipex(puerto)
@@ -321,6 +358,8 @@ def placa_kicad(antena, ruta, titulo='', etiqueta=None, logo=True):
                           f'    (effects (font (size 1 1) (thickness 0.15)){espejo}))')
     elif antena.puerto.get('conector') == conector.IPEX:
         cuerpo += _ipex(conv, antena.puerto, 1 if corto else 2)
+    elif antena.puerto.get('conector') == conector.COAX:
+        cuerpo += _coax_soldado(conv, antena.puerto, 1 if corto else 2)
     else:
         cuerpo += _sma(conv, antena.puerto['borde'], antena.puerto['direccion'], 1 if corto else 2)
     cuerpo += _componentes_ajuste(aj, conv, nets, net_en, antena.contorno.buffer(-0.6))

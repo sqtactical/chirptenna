@@ -209,8 +209,6 @@ def generar_colineal_dipolos(p, s, eps_impreso):
     interior = contorno.buffer(-BORDE_COBRE, join_style='mitre')
     sup, inf = sup.intersection(interior), inf.intersection(interior)
     x0, _, x1, y1_ = unary_union([sup, inf]).bounds
-    if y1_ > 290:
-        avisos.append(tr('La placa mide {0:.0f} mm: no cabe en un tubo de PVC de 30 cm. Quita dipolos o acorta los tramos.', y1_))
     return Antena(tipo='colineal_dipolos', parametros=dict(p), capas={'F.Cu': sup, 'B.Cu': inf}, ajuste=ajuste.vacio(),
                   radiador=unary_union([sup, inf]), contorno=contorno, zona_libre=contorno,
                   puerto={'borde': (0.0, 0.0), 'direccion': (0, 1), 'alimentacion': (0.0, y_prim), 'ancho_linea': w50},

@@ -102,9 +102,10 @@ PARAMS_CONTORNO = [
               ayuda='Ajustado: sigue la forma de la antena (envolvente con esquinas redondeadas)'),
     Parametro('margen_borde', 'Margen del cobre al borde [mm]', 2.0, 1.0, 20, 0.5),
 ]
-PARAM_CONECTOR = Parametro('conector', 'Conector', conector.SMA, 0, 1, 1, True, opciones=conector.NOMBRES,
+PARAM_CONECTOR = Parametro('conector', 'Conector', conector.SMA, 0, 2, 1, True, opciones=conector.NOMBRES,
                            ayuda='IPEX: encima de la placa a 3 mm del borde; la masa mínima de los monopolos '
-                                 'baja de 12 a 7 mm y el ancho mínimo de 16 a 8 mm')
+                                 'baja de 12 a 7 mm y el ancho mínimo de 16 a 8 mm. Coaxial soldado: sin conector, '
+                                 'con un pad para el vivo en la línea y otro para la malla, unido a la masa')
 
 
 def largo_masa_monopolo(p, le):
@@ -907,6 +908,8 @@ def generar(clave, parametros=None, nombre_sustrato=None):
         _aligerar(a, p)
     if conector.tipo(p) == conector.IPEX and a.puerto.get('tipo') not in ('coaxial', 'pasante'):
         conector.aplicar_ipex(a, ancho_microstrip(50, s.er, s.h))
+    elif conector.tipo(p) == conector.COAX and a.puerto.get('tipo') not in ('coaxial', 'pasante'):
+        a.puerto['conector'] = conector.COAX
     f_est = estimar_f(clave, p, nombre_sustrato)
     a.info['f_estimada_MHz'] = round(f_est/1e6, 1)
     a.info['precision_estimacion'] = precision_estimacion(clave, p)
