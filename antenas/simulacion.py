@@ -12,6 +12,7 @@ Criterio de resonancia (lección de la Fase 0): centro geométrico de la banda a
 llega a −10 dB, el mínimo de S11.
 """
 import os
+import shutil
 import sys
 import json
 import math
@@ -425,6 +426,9 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
             res_out['pol_theta0'] = 'RHCP' if er[0, 0] > el[0, 0] else 'LHCP'
         except Exception:
             pass
+    if os.environ.get('ANTENAS_BORRAR_SIM') == '1':
+        # campañas largas: los volcados de campos ocupan GB por simulación y la caché no se reutiliza
+        shutil.rmtree(sim_path, ignore_errors=True)
     return res_out
 
 

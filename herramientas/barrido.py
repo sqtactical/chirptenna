@@ -101,6 +101,7 @@ def main():
     pos, par_txt, opt = _opciones(sys.argv[1:])
     if len(pos) < 2:
         sys.exit(__doc__)
+    os.environ.setdefault('ANTENAS_BORRAR_SIM', '1')          # no acumular GB de volcados en %TEMP%
     if opt.get('cpu'):
         os.environ['ANTENAS_GPU'] = '0'
     else:
