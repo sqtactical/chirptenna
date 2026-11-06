@@ -414,6 +414,17 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
             avisos.append(tr('Eficiencia de radiación del {0:.0f} %: casi no radia en {1:.0f} MHz. Probable resonancia falsa (pieza desconectada en el modelo o resonancia de la línea), revisa la geometría.', 100*res_out["eficiencia_radiacion"], f_rad/1e6))
         it, ip = np.unravel_index(np.argmax(d_dbi), d_dbi.shape)
         res_out['direccion_max'] = {'theta': float(theta[it]), 'phi': float(phi[ip])}
+        try:
+            # Polarización: razón axial y sentido de giro (E con dependencia e^{jωt}; RHCP = Eθ + jEφ dominante)
+            e_th, e_ph = r.E_theta[0], r.E_phi[0]
+            er, el = np.abs(e_th + 1j*e_ph)/math.sqrt(2), np.abs(e_th - 1j*e_ph)/math.sqrt(2)
+            ar = 20*np.log10((er + el)/np.maximum(np.abs(er - el), 1e-12))
+            res_out['ar_dB_max'] = float(ar[it, ip])
+            res_out['ar_dB_theta0'] = float(ar[0, 0])
+            res_out['pol_max'] = 'RHCP' if er[it, ip] > el[it, ip] else 'LHCP'
+            res_out['pol_theta0'] = 'RHCP' if er[0, 0] > el[0, 0] else 'LHCP'
+        except Exception:
+            pass
     return res_out
 
 
