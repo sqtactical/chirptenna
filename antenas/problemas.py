@@ -191,6 +191,9 @@ def problemas(clave, p=None, f_MHz=None):
         else:
             out.append(('info', tr('Los recortes de aligerado no se han simulado todavía: quitar FR4 sube algo la '
                                    'frecuencia. Simúlala antes de fabricar.')))
+    if clave == 'monopolo_sierpinski' and int(p.get('multibanda', 0) or 0) == 1:
+        out.append(('info', tr('Dos bandas: simulado solo con la banda baja en 869 MHz y la alta en 2,4 GHz (S11 de −13 y −11,6 dB, 2,2 y 4,5 dBi); '
+                               'para otras parejas de bandas, simúlalo. Placa grande (~96 × 115 mm a 869 MHz).')))
     if f_MHz and f_MHz > 4000:
         out.append(('aviso', tr('5,8 GHz: sin simular ni validar. Las estimaciones de tamaño no están calibradas a esta '
                                 'frecuencia y las pistas y huecos son muy pequeños. Simula y mide antes de fabricar.')))

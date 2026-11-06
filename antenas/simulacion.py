@@ -586,6 +586,8 @@ def ajustar(clave, parametros, nombre_sustrato, f_obj, precision='normal', max_s
             q['ancho'] = q[esc]
         return q
 
+    multi = int(p.get('multibanda', 0) or 0) == 1               # dos bandas: la segunda cae a ~3× (rango ancho, sin iterar)
+    rango = (0.45, 3.8) if multi else (0.6, 1.4)
     historial = []
     x = p[esc]
     ultimo = None
@@ -595,7 +597,7 @@ def ajustar(clave, parametros, nombre_sustrato, f_obj, precision='normal', max_s
         q = con_escala(x)
         a = tipos.generar(clave, q, nombre_sustrato)
         progreso(tr('Iteración {0}: {1} = {2:.3f} mm', n + 1, esc, x))
-        r = simular(a, s, f_obj, precision, nf2ff=False, progreso=progreso, paso=paso, malla=malla)
+        r = simular(a, s, f_obj, precision, nf2ff=False, progreso=progreso, paso=paso, malla=malla, rango=rango)
         if paso is None:
             # se fija con un 10 % de holgura por si la antena encoge y sus detalles con ella
             paso = round(0.9*r['paso_malla_mm'], 3)
@@ -606,7 +608,7 @@ def ajustar(clave, parametros, nombre_sustrato, f_obj, precision='normal', max_s
                           'S11_obj_dB': round(_s11_en(r, f_obj)[0], 1)})
         progreso(tr('  → resonancia {0:.1f} MHz ({1:+.2f} %, {2}), S11 mín {3:.1f} dB', fr/1e6, 100*err, r["criterio"], r["s11_min_dB"]))
         ultimo = (q, a, r)
-        if not r['en_borde'] and abs(err) < tolerancia:
+        if multi or (not r['en_borde'] and abs(err) < tolerancia):
             break
         if tipo.familia in ('panel', 'array'):
             # La red corporativa (y el reflector del panel) dan un S11 ondulado y ancho (−10…−15 dB en ~1,9–3 GHz):
@@ -642,8 +644,8 @@ def ajustar(clave, parametros, nombre_sustrato, f_obj, precision='normal', max_s
         q, a = _ajustar_adaptacion(clave, q, nombre_sustrato, s, f_obj, precision, paso, progreso, historial,
                                    historial[mejor]['S11_obj_dB'], malla=malla)
     progreso(tr('Simulación final con diagrama de radiación…'))
-    r = simular(a, s, f_obj, precision, nf2ff=True, progreso=progreso, paso=paso, malla=malla,
-                f_radiacion=f_obj if tipo.familia in ('panel', 'array') else None)
+    r = simular(a, s, f_obj, precision, nf2ff=True, progreso=progreso, paso=paso, malla=malla, rango=rango,
+                f_radiacion=f_obj if (multi or tipo.familia in ('panel', 'array')) else None)
     f_est = a.info.get('f_sin_cortar_MHz')
     if f_est and tipo.familia not in ('panel', 'array'):
         # las marcas se rotulaban con la estimación analítica (un 5 % baja en el monopolo de 868):

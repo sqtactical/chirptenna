@@ -477,7 +477,11 @@ CATALOGO = {t.clave: t for t in [
                [Parametro('alto', 'Altura [mm]', 25, 3, 200, 0.1),
                 Parametro('apertura', 'Ángulo de apertura [°]', 60, 20, 120, 1),
                 Parametro('iteracion', 'Iteración', 2, 0, 5, 1, True),
-                Parametro('cuello', 'Ancho de las uniones entre triángulos [mm]', 1.0, 0.3, 15, 0.1)] + PARAMS_MASA,
+                Parametro('cuello', 'Ancho de las uniones entre triángulos [mm]', 1.0, 0.3, 15, 0.1),
+                Parametro('multibanda', 'Bandas', 0, 0, 1, 1, True,
+                          opciones={0: 'Una banda', 1: 'Dos bandas (la segunda, a ~3 veces la primera)'},
+                          ayuda='Dos bandas: el diseño se ajusta a la banda baja y, con apertura 85° e iteración 2, la segunda '
+                                'resonancia cae cerca de 3 veces su frecuencia (869 MHz y 2,4 GHz en simulación)')] + PARAMS_MASA,
                'alto'),
     TipoAntena('ifa', 'Antena F invertida (J-pole en F)',
                'Monopolo λ/4 plegado en «F»: brazo horizontal paralelo a la masa, alimentado por una toma y '
@@ -1134,3 +1138,23 @@ def dimensionar(clave, f_obj, parametros=None, nombre_sustrato=None, fijos=()):
     if abs(f_conseguida - f_obj)/f_obj > 0.01:
         p['_aviso'] = (tr('No se alcanza {0:.0f} MHz dentro de los límites de "{1}" (queda en {2:.0f} MHz): cambia otros parámetros.', f_obj/1e6, par.etiqueta, f_conseguida/1e6))
     return p
+
+
+# Sierpinski de dos bandas: con apertura 85° e iteración 2 la segunda resonancia cae a ~3× la primera. Simulado a
+# 869 MHz y 2,4 GHz (S11 −13 y −11,6 dB en 868–870 y 2400–2483,5 MHz con altura 50,17 mm = 0,98 × el tamaño de una banda)
+MULTIBANDA_SIERPINSKI = {'apertura': 85, 'iteracion': 2, 'k_alto': 0.98}
+_dimensionar_una_banda = dimensionar
+
+
+def dimensionar(clave, f_obj, parametros=None, nombre_sustrato=None, fijos=()):
+    """Ver `_dimensionar_una_banda`. El Sierpinski de dos bandas se ajusta a la banda baja con la apertura y la
+    iteración fijas de MULTIBANDA_SIERPINSKI."""
+    if clave == 'monopolo_sierpinski' and int((parametros or {}).get('multibanda', 0) or 0) == 1:
+        q = dict(parametros, apertura=MULTIBANDA_SIERPINSKI['apertura'], iteracion=MULTIBANDA_SIERPINSKI['iteracion'])
+        p = _dimensionar_una_banda(clave, f_obj, q, nombre_sustrato, fijos=tuple(fijos) + ('apertura', 'iteracion'))
+        aviso = p.pop('_aviso', None)
+        p['alto'] = round(MULTIBANDA_SIERPINSKI['k_alto']*p['alto'], 2)
+        if aviso is not None:
+            p['_aviso'] = aviso
+        return p
+    return _dimensionar_una_banda(clave, f_obj, parametros, nombre_sustrato, fijos=fijos)

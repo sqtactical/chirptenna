@@ -83,7 +83,7 @@ The resulting board (KiCad render): top side and bottom side with the logo and l
 | Type | Family | Simulation status |
 |---|---|---|
 | Straight, meander and Koch monopoles | monopole | ✅ validated (2.4 GHz and 868 MHz) |
-| Sierpinski monopole | monopole | ✅ validated (2.4 GHz and 868 MHz) |
+| Sierpinski monopole (with «Two bands»: 869 MHz and 2.4 GHz at once, simulation only) | monopole | ✅ validated (2.4 GHz and 868 MHz) |
 | Hilbert monopole | monopole | ⚠️ resonates, but does not match without a π network |
 | Rectangular patch | patch | ✅ validated (narrowband) |
 | Sierpinski arrowhead monopole (a curiosity) | monopole | ⚠️ not tested or validated |

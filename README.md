@@ -81,7 +81,7 @@ La placa resultante (render de KiCad): cara superior y cara inferior con el logo
 | Tipo | Familia | Estado en simulación |
 |---|---|---|
 | Monopolo recto, meandro, Koch | monopolo | ✅ validados (2,4 GHz y 868 MHz) |
-| Monopolo de Sierpinski | monopolo | ✅ validado (2,4 GHz y 868 MHz) |
+| Monopolo de Sierpinski (con «Dos bandas»: 869 MHz y 2,4 GHz a la vez, solo en simulación) | monopolo | ✅ validado (2,4 GHz y 868 MHz) |
 | Monopolo de Hilbert | monopolo | ⚠️ resuena, pero sin red en π no adapta |
 | Parche rectangular | parche | ✅ validado (banda estrecha) |
 | Monopolo de punta de flecha de Sierpinski (curiosidad) | monopolo | ⚠️ sin testear ni validar |
