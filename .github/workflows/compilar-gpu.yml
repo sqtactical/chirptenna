@@ -1,0 +1,203 @@
+# Compila openEMS (rama master, con motor GPU para NVIDIA) para Windows y deja un .zip con todo lo necesario.
+# No hace falta una GPU para compilar: nvcc genera el código para las arquitecturas que se pidan. Tampoco se puede
+# probar aquí con una GPU: el paquete se prueba a mano (herramientas/comparar_gpu.py). Guía: docs/GPU.md.
+# Uso: Actions → «Compilar openEMS con GPU» → Run workflow. El resultado es un artefacto (zip) de ese flujo.
+name: Compilar openEMS con GPU
+
+on:
+  workflow_dispatch:
+    inputs:
+      arquitecturas:
+        description: 'Arquitecturas de CUDA separadas por «;» (75 = RTX 20, 80 = A100, 86 = RTX 30, 89 = RTX 40, 120 = RTX 50)'
+        default: '75;80;86;89;120'
+      fparser:
+        description: 'Commit de fparser'
+        default: '4b9c845b449b520c4b8c5f23c74cd04820084f81'
+      csxcad:
+        description: 'Commit de CSXCAD'
+        default: '626b99f2f4d681cb012516b6522b7bc7068ce39c'
+      openems:
+        description: 'Commit de openEMS'
+        default: '5fecbb58d8996a3e6545e7b40584f90b9362e012'
+      vcpkg:
+        description: 'Commit de vcpkg'
+        default: '29718cfec805208b4e2d80ed91e681143b488dd7'
+
+permissions:
+  contents: read
+
+env:
+  GB: D:\gpu                                   # D: tiene más sitio libre que C: en los runners de Windows
+  CUDA_VERSION: '12.9.1'
+  HIP_DEB_URL: 'https://repo.radeon.com/rocm/apt/7.2.4/pool/main/h/hip-dev/hip-dev_7.2.53211.70204-93~22.04_amd64.deb'
+  HIP_DEB_SHA256: '2cd2af092216138e00df81ff8507395a578c657273f2f3825ae267facf4bcf53'
+  VCPKG_DEFAULT_BINARY_CACHE: D:\vcpkgcache
+  VCPKG_DISABLE_METRICS: '1'
+
+jobs:
+  compilar:
+    name: Windows · CUDA ${{ inputs.arquitecturas }}
+    runs-on: windows-2022
+    timeout-minutes: 350
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Carpetas
+        run: |
+          foreach ($d in 'dl', 'src', 'build', 'opt', 'cuda', 'hip') { New-Item -ItemType Directory -Force "$env:GB\$d" | Out-Null }
+          New-Item -ItemType Directory -Force $env:VCPKG_DEFAULT_BINARY_CACHE | Out-Null
+          Get-PSDrive D | Format-Table Used, Free
+          cmake --version | Select-Object -First 1
+          ninja --version
+
+      - name: Caché de vcpkg (paquetes ya compilados)
+        uses: actions/cache@v4
+        with:
+          path: D:\vcpkgcache
+          key: vcpkg-win-${{ inputs.vcpkg }}
+          restore-keys: vcpkg-win-
+
+      - name: CUDA ${{ env.CUDA_VERSION }} (solo nvcc y el runtime, sin instalador)
+        run: |
+          $base = 'https://developer.download.nvidia.com/compute/cuda/redist/'
+          $j = Invoke-RestMethod ($base + "redistrib_$env:CUDA_VERSION.json")
+          foreach ($n in 'cuda_nvcc', 'cuda_cudart', 'cuda_cccl', 'cuda_profiler_api') {
+              $e = $j.$n.'windows-x86_64'
+              $zip = "$env:GB\dl\$n.zip"
+              Invoke-WebRequest ($base + $e.relative_path) -OutFile $zip
+              if ((Get-FileHash $zip -Algorithm SHA256).Hash -ne $e.sha256.ToUpper()) { throw "SHA-256 distinto en $n" }
+              Expand-Archive $zip "$env:GB\dl\x_$n" -Force
+              $raiz = (Get-ChildItem "$env:GB\dl\x_$n" -Directory)[0].FullName
+              Copy-Item "$raiz\*" "$env:GB\cuda" -Recurse -Force
+              "$n $($j.$n.version)"
+          }
+          & "$env:GB\cuda\bin\nvcc.exe" --version
+          "CUDA_PATH=$env:GB\cuda" | Add-Content $env:GITHUB_ENV
+
+      - name: Cabeceras de HIP 7.2.4 (solo include/)
+        run: |
+          $deb = "$env:GB\dl\hip-dev.deb"
+          Invoke-WebRequest $env:HIP_DEB_URL -OutFile $deb
+          if ((Get-FileHash $deb -Algorithm SHA256).Hash -ne $env:HIP_DEB_SHA256.ToUpper()) { throw 'SHA-256 distinto en hip-dev.deb' }
+          $z = 'C:\Program Files\7-Zip\7z.exe'
+          & $z x $deb "-o$env:GB\dl\hipdeb" -y | Out-Null
+          $data = (Get-ChildItem "$env:GB\dl\hipdeb" -Filter 'data.tar*')[0].FullName
+          & $z x $data "-o$env:GB\dl\hipdeb" -y | Out-Null
+          & $z x "$env:GB\dl\hipdeb\data.tar" "-o$env:GB\hip" -y | Out-Null
+          $h = Get-ChildItem "$env:GB\hip" -Recurse -Filter hip_runtime.h | Select-Object -First 1
+          if (-not $h) { throw 'No se encuentran las cabeceras de HIP' }
+          $inc = Split-Path (Split-Path $h.FullName)           # …\include (padre de la carpeta hip)
+          "HIP_INCLUDE_DIR=$inc" | Add-Content $env:GITHUB_ENV
+          $inc
+
+      - name: Fuentes (commits fijados) y vcpkg
+        run: |
+          $src = @{ fparser = '${{ inputs.fparser }}'; CSXCAD = '${{ inputs.csxcad }}'; openEMS = '${{ inputs.openems }}' }
+          foreach ($k in $src.Keys) {
+              git clone "https://github.com/thliebig/$k" "$env:GB\src\$k"
+              git -C "$env:GB\src\$k" checkout $src[$k]
+          }
+          git init "$env:GB\vcpkg"
+          git -C "$env:GB\vcpkg" remote add origin https://github.com/microsoft/vcpkg
+          git -C "$env:GB\vcpkg" fetch --depth 1 origin '${{ inputs.vcpkg }}'
+          git -C "$env:GB\vcpkg" checkout FETCH_HEAD
+          & "$env:GB\vcpkg\bootstrap-vcpkg.bat" -disableMetrics
+
+      - name: Entorno de MSVC (toolset 14.4x, el que admite nvcc 12.9)
+        run: |
+          $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * `
+                -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          $vc = "$vs\VC\Auxiliary\Build\vcvars64.bat"
+          Get-ChildItem "$vs\VC\Tools\MSVC" | Select-Object -ExpandProperty Name
+          $bat = "$env:RUNNER_TEMP\vc.bat"
+          "@call `"$vc`" -vcvars_ver=14.4`n@set" | Set-Content $bat -Encoding ascii
+          $salida = cmd /c $bat 2>&1
+          if ($LASTEXITCODE -ne 0 -or -not ($salida -match '^VCToolsVersion=14\.4')) {
+              Write-Warning 'No hay un MSVC 14.4x: se usa el predeterminado'
+              "@call `"$vc`"`n@set" | Set-Content $bat -Encoding ascii
+              $salida = cmd /c $bat
+          }
+          foreach ($l in $salida) { if ($l -match '^([^=]+)=(.*)$') { "$($Matches[1])=$($Matches[2])" | Add-Content $env:GITHUB_ENV } }
+          ($salida | Where-Object { $_ -match '^VCToolsVersion=' })
+
+      - name: Compilar fparser
+        run: |
+          cl 2>&1 | Select-Object -First 1
+          cmake -S "$env:GB\src\fparser" -B "$env:GB\build\fparser" -G Ninja -DCMAKE_BUILD_TYPE=Release "-DCMAKE_INSTALL_PREFIX=$env:GB\opt"
+          cmake --build "$env:GB\build\fparser"
+          cmake --install "$env:GB\build\fparser"
+
+      - name: Compilar CSXCAD (vcpkg baja tinyxml y hdf5)
+        run: |
+          cmake -S "$env:GB\src\CSXCAD" -B "$env:GB\build\CSXCAD" -G Ninja -DCMAKE_BUILD_TYPE=Release "-DCMAKE_INSTALL_PREFIX=$env:GB\opt" `
+            "-DCMAKE_TOOLCHAIN_FILE=$env:GB\vcpkg\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-release `
+            -DVCPKG_HOST_TRIPLET=x64-windows-release "-DCMAKE_PREFIX_PATH=$env:GB\opt" -DCSXCAD_BUILD_TESTS=OFF
+          cmake --build "$env:GB\build\CSXCAD"
+          cmake --install "$env:GB\build\CSXCAD"
+
+      - name: Compilar openEMS con el plugin de GPU (NVIDIA)
+        run: |
+          $cl = (Get-Command cl).Source
+          cmake -S "$env:GB\src\openEMS" -B "$env:GB\build\openEMS" -G Ninja -DCMAKE_BUILD_TYPE=Release "-DCMAKE_INSTALL_PREFIX=$env:GB\opt" `
+            "-DCMAKE_TOOLCHAIN_FILE=$env:GB\vcpkg\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-release `
+            -DVCPKG_HOST_TRIPLET=x64-windows-release "-DCMAKE_PREFIX_PATH=$env:GB\opt" "-DCSXCAD_ROOT_DIR=$env:GB\opt" `
+            "-DCMAKE_CXX_COMPILER=$cl" "-DCMAKE_CUDA_COMPILER=$env:GB\cuda\bin\nvcc.exe" "-DCMAKE_CUDA_HOST_COMPILER=$cl" `
+            "-DCUDAToolkit_ROOT=$env:GB\cuda" "-DCMAKE_CUDA_ARCHITECTURES=${{ inputs.arquitecturas }}" `
+            "-DHIP_INCLUDE_DIR=$env:HIP_INCLUDE_DIR" -DOPENEMS_GPU_PLUGINS=ON -DOPENEMS_HIP_AS_CUDA=ON
+          cmake --build "$env:GB\build\openEMS"
+          cmake --install "$env:GB\build\openEMS"
+
+      - name: Reunir DLL y comprobar que arranca
+        run: |
+          $bin = "$env:GB\opt\bin"
+          Get-ChildItem "$env:GB\build\openEMS\vcpkg_installed\x64-windows-release\bin" -Filter *.dll |
+              Copy-Item -Destination $bin -Force
+          Copy-Item "$env:GB\cuda\bin\cudart64_12.dll" $bin -Force
+          Get-ChildItem $bin -Recurse -Include *.exe, openEMS*.dll | Select-Object FullName, Length | Format-Table -AutoSize
+          $plugin = Get-ChildItem "$bin\openEMS\plugins" -Filter 'openEMS_gpu_hip_nvidia.dll' -ErrorAction SilentlyContinue
+          if (-not $plugin) { throw 'Falta el plugin openEMS_gpu_hip_nvidia.dll' }
+          $salida = & "$bin\openEMS.exe" 2>&1 | Select-Object -First 6
+          $salida
+          if ($LASTEXITCODE -eq -1073741515) { throw 'openEMS.exe no arranca: falta una DLL' }
+          & "$bin\openEMS.exe" --help 2>&1 | Select-String 'engine' | Select-Object -First 3
+
+      - name: Empaquetar
+        run: |
+          $arq = '${{ inputs.arquitecturas }}'.Replace(';', '-')
+          $pq = "$env:GB\paquete"
+          New-Item -ItemType Directory -Force "$pq\opt" | Out-Null
+          Copy-Item "$env:GB\opt\bin" "$pq\opt\bin" -Recurse
+          @"
+          openEMS con motor GPU (NVIDIA) para Windows x64, compilado en GitHub Actions por Chirptenna.
+
+          Descomprime esta carpeta dentro de  %LOCALAPPDATA%\Programs\gpu-build\  (queda  gpu-build\opt\bin\openEMS.exe).
+          Chirptenna lo busca ahí (o en la carpeta de OPENEMS_GPU_DIR). Guía: docs/GPU.md.
+
+          Arquitecturas CUDA (compute capability): ${{ inputs.arquitecturas }}
+          CUDA $env:CUDA_VERSION · HIP 7.2.4 (solo cabeceras) · MSVC $env:VCToolsVersion
+          fparser  ${{ inputs.fparser }}
+          CSXCAD   ${{ inputs.csxcad }}
+          openEMS  ${{ inputs.openems }}
+          vcpkg    ${{ inputs.vcpkg }}  (boost, hdf5, tinyxml, zlib; triplet x64-windows-release)
+
+          Licencias: openEMS, CSXCAD y fparser (GPL-3.0 / LGPL, ver sus repositorios: https://github.com/thliebig);
+          cudart64_12.dll es redistribuible según la licencia de NVIDIA CUDA; Boost (BSL-1.0), HDF5, zlib y tinyxml con sus licencias.
+          El código fuente son los commits indicados arriba y el flujo .github/workflows/compilar-gpu.yml de Chirptenna.
+          "@ | Set-Content "$pq\LEEME-GPU.txt" -Encoding utf8
+          $zip = "$env:GB\openEMS-gpu-win64-cuda12.9-sm$arq.zip"
+          Compress-Archive -Path "$pq\*" -DestinationPath $zip -CompressionLevel Optimal
+          $h = (Get-FileHash $zip -Algorithm SHA256).Hash
+          "$h  $(Split-Path $zip -Leaf)" | Set-Content "$zip.sha256"
+          "ZIP=$zip" | Add-Content $env:GITHUB_ENV
+          "### $(Split-Path $zip -Leaf)`n$([math]::Round((Get-Item $zip).Length/1MB,1)) MB · SHA-256 ``$h``" | Add-Content $env:GITHUB_STEP_SUMMARY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: openEMS-gpu-win64
+          path: |
+            ${{ env.ZIP }}
+            ${{ env.ZIP }}.sha256
+          retention-days: 30

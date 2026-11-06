@@ -8,6 +8,10 @@ branch of [openEMS](https://github.com/thliebig/openEMS), so you have to build i
 > development machine (versions, CMake options, folders), not from repeating the build on a clean machine. If a step
 > fails, it is probably a detail that was done by hand and not written down: tell us or fix this guide. Verification from
 > scratch is pending (see «To do» at the end). The Spanish version, [`GPU.md`](GPU.md), is the reference one.
+>
+> **Automatic build:** the GitHub Actions workflow `.github/workflows/compilar-gpu.yml` («Compilar openEMS con GPU»,
+> manual run) does these steps on a Windows runner and leaves a `.zip` with the result, for several GPU architectures
+> at once. It is the recommended way if you do not want to build by hand.
 
 **First, the GPU architecture.** The GPU plugin is built **for a specific GPU architecture**
 (`CMAKE_CUDA_ARCHITECTURES`). Here it was built only for `86` (RTX 3050 Laptop, compute capability 8.6). On another
@@ -67,8 +71,10 @@ CUDA driver is not installed separately: it comes with the normal graphics drive
 ## 3. HIP 7.2.4 headers
 
 The plugin is written against HIP; on NVIDIA it is built as CUDA with the `OPENEMS_HIP_AS_CUDA` option. Only the
-**headers** are needed: from AMD's ROCm 7.2.4 `hip-dev` `.deb` package (`repo.radeon.com/rocm/apt/7.2.4`; exact URL still
-to be confirmed) extract `opt/rocm-7.2.4/include` to `gpu-build\hip\opt\rocm-7.2.4\include` (a `.deb` is an `ar` archive
+**headers** are needed: from ROCm 7.2.4's `hip-dev` `.deb` package
+(`https://repo.radeon.com/rocm/apt/7.2.4/pool/main/h/hip-dev/hip-dev_7.2.53211.70204-93~22.04_amd64.deb`, SHA-256
+`2cd2af092216138e00df81ff8507395a578c657273f2f3825ae267facf4bcf53`; it is the Ubuntu 22.04 one, but only the headers
+are used) extract `opt/rocm-7.2.4/include` to `gpu-build\hip\opt\rocm-7.2.4\include` (a `.deb` is an `ar` archive
 with a `data.tar.gz` inside; 7-Zip works, twice).
 
 ## 4. Portable MSVC 14.44
