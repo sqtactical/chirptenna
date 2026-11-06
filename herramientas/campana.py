@@ -33,14 +33,14 @@ SALTAR = {('colineal_coco', '868'), ('monopolo_hilbert', '5,8 GHz'), ('yagi_koch
 
 # Parámetros de forma por tipo. El primer valor es el de la base («x1» o el valor por defecto); «xF» = F × el centrado.
 TABLA_FORMA = {
-    'monopolo_recto': ['ancho_pista=x1,x0.6,x1.8'],
-    'monopolo_koch': ['iteracion=2,1,3', 'ancho_pista=x1,x0.6,x1.6'],
-    'monopolo_meandro': ['ancho_meandro=x1,x0.7,x1.3', 'vueltas=3,2,4'],
-    'monopolo_sierpinski': ['iteracion=2,1,3', 'apertura=60,45,75'],
+    'monopolo_recto': [],             # ya funciona sin tocar: solo se centra
+    'monopolo_koch': [],             # ya funciona sin tocar: solo se centra
+    'monopolo_meandro': [],             # ya funciona sin tocar: solo se centra
+    'monopolo_sierpinski': [],             # ya funciona sin tocar: solo se centra
     'monopolo_flecha': ['iteracion=3,2,4', 'ancho_pista=x1,x0.7,x1.4'],
     'monopolo_hilbert': ['orden=3,2'],
-    'dipolo': ['ancho_pista=x1,x0.6,x2', 'iteracion=0,1'],
-    'dipolo_bowtie': ['apertura=70,55,85', 'forma=1,2'],
+    'dipolo': [],             # ya funciona sin tocar: solo se centra
+    'dipolo_bowtie': [],             # ya funciona sin tocar: solo se centra
     'dipolo_sleeve': ['largo_masa=x1,x0.8,x1.25', 'ancho_pista=x1,x0.6,x1.8'],
     'ifa': ['separacion_toma=x1,x0.6,x1.6', 'altura=x1,x0.7,x1.4', 'ancho_pista=x1,x0.6,x1.6'],
     'pifa': ['separacion_toma=x1,x0.6,x1.6', 'altura=x1,x0.7,x1.4', 'ancho_pista=x1,x0.6,x1.4'],
