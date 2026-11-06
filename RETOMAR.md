@@ -131,7 +131,22 @@ hecho hasta ahora (validaciones, simulaciones, fallos y decisiones) está en
      o bajarlo portable; después, configurar con `-DCMAKE_CUDA_HOST_COMPILER=` apuntando a ese `cl.exe`.
      Cuando funcione: la API de Python de `master` admite `FDTD.Run(..., engine='gpu', gpu_device=0)`, pero el wheel 0.37
      no: o se recompila el wheel o se genera el XML con `setup_only=True` y se llama a `openEMS.exe --engine=gpu`.
-   - Por hacer, en orden:
+   - **Resuelto (05-11): compilado y funcionando** en la rama local **`gpu-pruebas`** (no subida a GitHub). Ver
+     `antenas/gpu.py` (`ANTENAS_GPU=1`, `OPENEMS_GPU_DIR`), la casilla «Aceleración por GPU (experimental)» de
+     Simulación y `herramientas/comparar_gpu.py <tipo…> [--radiacion]`. Lo que hizo falta: **MSVC 14.44** portable
+     (con `vsdownload.py` de msvc-wine, en `gpu-build\msvc17`) porque nvcc 12.9 se cae con el 14.51 de VS 18, y copiar
+     junto al `openEMS.exe` las DLL de vcpkg y `cudart64_12.dll`. Como el wheel 0.37 no elige motor, se escribe el XML
+     con `FDTD.Write2XML` y se llama al `openEMS.exe` de `master` con `--engine=gpu`.
+   - **Medidas en la RTX 3050 Laptop (4 GB), 2,44 GHz, precisión normal, con diagrama** (CPU 0.37 → GPU):
+     monopolo recto 0,78 M celdas 203 → 15 s (13×); Koch 1,81 M 266 → 26 s (10×); meandro 2,82 M 680 → 60 s (11×);
+     dipolo 4,59 M 1 063 → 95 s (11×). Diferencias GPU–CPU: f de resonancia ≤ 0,06 %, S11 ≤ 0,6 dB en el máximo
+     (≤ 0,1 dB salvo Koch), Z ≤ 3 Ω, ganancia ±0,1 dBi, eficiencia ±0,5 %. No es idéntico bit a bit (el 0.37 y el
+     `master` difieren), pero queda por debajo del error de ajuste.
+   - **Corrección:** las primeras medidas (arriba) salieron con antenas sobredimensionadas porque el script pasó MHz a
+     `tipos.dimensionar`, que trabaja en **Hz** (el parche salió de 27 km y el motor abortó; no es un bug del
+     repositorio). Los monopolos topaban con el límite del parámetro. Sirven para comparar CPU y GPU sobre la misma
+     geometría, pero no representan el tamaño real: se rehacen en `salidas/_comparar_gpu/` con tamaños reales.
+   - Por hacer, en orden (los pasos 1–3 hechos en la rama; faltan 4–5 y revisar el parche):
      1. Mirar qué GPU tiene el usuario y si hay que compilar HIP/CUDA (NVIDIA, AMD) o SYCL (Intel). Compilar openEMS
         de `master` en Windows (MSVC, con CSXCAD y fparser) y probarlo con un caso de `fase0/` (dipolo): comparar S11 y
         tiempo con la CPU. Hacerlo con el usuario presente; la compilación puede costar horas.
@@ -155,6 +170,24 @@ hecho hasta ahora (validaciones, simulaciones, fallos y decisiones) está en
    **(d)** `MANUAL.md` en inglés; **(e)** revisar la traducción inglesa (la hizo Claude); **(f)** fusionar con
    `gpu-pruebas` (conflicto previsible en `gui/app.py`: la casilla de GPU); **(g)** probar la pestaña Medir y la
    Simulación con simulación real en inglés (el subproceso hereda `CHIRPTENNA_IDIOMA`).
+   - **Lote en GPU (06-11, `salidas/_validacion_gpu`, 19 casos, todos terminaron).** Ajustados a 2,44 GHz salvo
+     indicación; f = resonancia final. Son valores de iterar: confirmar ganancia y eficiencia en CPU (la GPU las da
+     algo altas). Bowtie: dipolo bowtie 2424 MHz (−0,7 %, BW 607, G 2,5 dBi, η 99 %), bowtie Sierpinski 2379 MHz (−2,6 %,
+     BW 506, G 2,1); ambos con el tamaño inicial ~7 % grande: calibrar `K_BOWTIE`. Panel de 1 elemento con reflector:
+     no adapta en f objetivo (resuena en 3,05–3,07 GHz con la separación 0,40, G 4,7 dBi; a 866,5 MHz sí: 811 MHz,
+     BW 240, G 5,2): revisar la separación ideal del reflector con bowtie. Panel 2×2 Sierpinski: 2284 MHz (−6 %),
+     G 12,9 dBi, η 76 %; 4×4: 2140 MHz (−12 %), G 14,6 dBi, η 53 % (una simulación, sin iterar f). Pendientes:
+     J-pole recta −9,0 dB (sigue mal), Franklin −18,8 dB pero BW 62 MHz, G 2,2 (ya adapta; antes −5,3 dB), COCO
+     G 1,9, η 53 % (igual), parche Minkowski it. 1 η 33 %, it. 3 η 30 % y S11 −17,5 dB (antes −5 dB y η 23 %),
+     Hilbert sin π −3,7 dB (868) y −2,8 dB (2,4 GHz, orden 2) (siguen sin adaptar), monopolo IPEX −7,0 dB (igual),
+     Yagi aligerada 2441 MHz, −10,8 dB, G 5,9 dBi (antes 7,2 sin aligerar), array de parches 2×2 2051 MHz (−16 %),
+     G 5,2 dBi, η 22 %, 17 M celdas, 66 min. Falta actualizar `problemas.py` y los README con esto.
+8. **Para la v0.2.0: idiomas con i18n** (05-11, decidido; de momento solo inglés además del castellano). Hoy los textos
+   están escritos a mano en castellano en `gui/app.py`, `antenas/presentacion.py`, `antenas/guia.py` (ayudas,
+   resúmenes), `antenas/problemas.py`, `antenas/consejos.py`, `web/app.js` y `web_api.py`. Plan: catálogo de textos por
+   clave (JSON `es`/`en`) compartido entre escritorio y web, selector de idioma que se recuerda, y la prueba de la CI
+   comprobando que no falte ninguna clave en `en`. Los nombres de tipo y de parámetro de `diseno.json` no se traducen
+   (son claves). `MANUAL.md` y `INSTALAR.md` ya tienen o tendrán su versión inglesa aparte.
 9. **Más adelante:** interfaz en inglés, versión para Linux, `dependabot.yml` (ya hay CI y versiones fijadas),
    mejoras de la web lite (abajo).
 8. **Web lite** (05-11, hecha; `web/`, ver CLAUDE.md): 32/32 casos en Pyodide (~0,6 s por antena), zip del navegador

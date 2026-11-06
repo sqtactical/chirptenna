@@ -355,3 +355,12 @@ archivos modificados después de la última revisión. La marca de esa revisión
     `ajustar` afina la profundidad de la ranura como parámetro de adaptación. En la interfaz se llama
     «ranura» para no confundirla con la «muesca» del fractal de Minkowski. Minkowski de 868 MHz:
     93 × 148 mm con transformador, 93 × 93 mm con ranura.
+50. **Unidades de `tipos.dimensionar` y `simulacion.simular`: Hz** (la CLI y la interfaz trabajan en MHz y
+    multiplican). Pasar MHz da antenas de kilómetros (el parche) o topadas contra el límite del parámetro (los
+    monopolos) y la malla revienta sin avisar.
+51. **GPU (rama `gpu-pruebas`, local)**: `antenas/gpu.py` lanza el `openEMS.exe` de `master` con `--engine=gpu`
+    (escribe el XML con `FDTD.Write2XML`; el wheel 0.37 no elige motor). Por defecto se usa si está disponible;
+    `ANTENAS_GPU=0` fuerza la CPU (ajustes finales). Se compiló en `%LOCALAPPDATA%\Programs\gpu-build` (CMake, Ninja,
+    CUDA 12.9 redistribuible, cabeceras HIP, vcpkg, MSVC 14.44 portable: nvcc 12.9 no soporta el 14.51 de VS 18).
+    `herramientas/comparar_gpu.py <tipo…> [--radiacion]` compara CPU y GPU (~10–13× más rápida en una RTX 3050
+    Laptop; f ≤ 0,06 %, S11 ≤ 0,6 dB, Z ≤ 3 Ω). Con una sola GPU, una simulación a la vez.

@@ -24,7 +24,7 @@ sys.path.insert(0, RAIZ)
 from nicegui import app, ui, run, background_tasks   # noqa: E402
 
 from antenas import tipos, vista, fabricacion, exportar, consejos, graficas, ajuste, biblioteca, problemas   # noqa: E402
-from antenas import guia   # noqa: E402
+from antenas import guia, gpu   # noqa: E402
 from antenas import i18n   # noqa: E402
 from antenas.i18n import tr   # noqa: E402
 from antenas import __version__   # noqa: E402
@@ -338,6 +338,15 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                 with ui.row().classes('w-full items-center wrap gap-2'):
                     sel_prec = ui.select(list(PRECISIONES), value='normal', label=tr('Precisión')).classes('w-32')
                     chk_ajustar = ui.checkbox(tr('Ajustar a la frecuencia simulando'), value=True)
+                    gpu_ok, gpu_motivo = gpu.disponible()
+                    chk_gpu = ui.checkbox(tr('Aceleración por GPU (experimental)'), value=gpu_ok)
+                    if gpu_ok:
+                        chk_gpu.tooltip(tr('Usa el openEMS compilado con motor GPU: en las pruebas, ~10× más rápido. '
+                                           'Si falla, usa la CPU.'))
+                    else:
+                        chk_gpu.props('disable')
+                        chk_gpu.tooltip(tr('No disponible: {0}. Hay que compilar openEMS con GPU (ver RETOMAR.md).',
+                                           gpu_motivo))
                     btn_sim = ui.button(tr('Simular'), icon='play_arrow').props('color=deep-purple no-caps')
                 ui.label(tr('Rápida: para tantear (±3 %). Normal: diseño. Fina: comprobación final (más lenta). '
                          'Cada simulación tarda de 1 a 15 min según el tamaño; el ajuste hace 2–5. '
@@ -925,8 +934,11 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
         with open(ruta, 'w', encoding='utf-8') as fh:
             json.dump(trabajo, fh, ensure_ascii=False, default=float)
         registro.clear()
-        registro.push(tr('Simulando {0} a {1:g} MHz ({2}{3})…', tr(tipos.CATALOGO[estado["clave"]].nombre), estado["f_MHz"], sel_prec.value, ", con ajuste" if chk_ajustar.value else ""))
-        entorno = dict(os.environ, PYTHONIOENCODING='utf-8', CHIRPTENNA_IDIOMA=i18n.idioma())
+        registro.push(tr('Simulando {0} a {1:g} MHz ({2}{3}{4})…', tr(tipos.CATALOGO[estado["clave"]].nombre),
+                         estado["f_MHz"], sel_prec.value, tr(', con ajuste') if chk_ajustar.value else '',
+                         ', GPU' if chk_gpu.value else ''))
+        entorno = dict(os.environ, PYTHONIOENCODING='utf-8', CHIRPTENNA_IDIOMA=i18n.idioma(),
+                       ANTENAS_GPU='1' if chk_gpu.value else '0')
         proc = subprocess.Popen([sys.executable, '-u', '-m', 'antenas.simular_cli', ruta], cwd=RAIZ, env=entorno,
                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding='utf-8',
                                 errors='replace', creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
