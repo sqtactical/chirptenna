@@ -126,8 +126,11 @@ archivos modificados después de la última revisión. La marca de esa revisión
 - **Idiomas de la interfaz (i18n, rama `i18n`)**: el castellano es el texto fuente y sirve de clave (estilo gettext).
   `antenas/i18n.py`: `tr('texto {0}', x)` traduce y formatea (si falta la traducción sale el castellano, nunca
   falla); `N_()` solo marca. Un idioma es `antenas/idiomas/<código>.json` (`_nombre` + `textos`): **para añadir uno,
-  `python herramientas/i18n.py nuevo fr Français`, traducir los valores y listo** (sale solo en el selector de la
-  cabecera). Reglas: todo texto nuevo de la interfaz o de un mensaje al usuario va con `tr(...)`; en f-strings,
+  `python herramientas/i18n.py nuevo it Italiano`, traducir los valores y listo** (sale solo en el selector de la
+  cabecera). Hoy: `es` (fuente), `en`, `fr` y `de` (traducidas por Claude, a revisar por hablantes nativos) y el
+  easter egg **`lora`**: pseudoidioma calculado (`i18n.chirp`, sin fichero) que cambia cada letra por `/`, `\` o `_`
+  y respeta números, unidades y marcas `{0}`; no sale en el selector (se activa con `?idioma=lora` o pinchando 5
+  veces el grillo de la cabecera, y otros 5 lo quitan). Reglas: todo texto nuevo de la interfaz o de un mensaje al usuario va con `tr(...)`; en f-strings,
   `tr('plantilla {0:.1f}', valor)` (nunca f-string dentro de `tr`); **nada de `tr` a nivel de módulo ni en
   valores por defecto** (se evalúa al importar, con el idioma equivocado): los textos de datos estáticos
   (`guia`, `tipos`, `problemas.FIJOS`…) se dejan en castellano y la interfaz los traduce al mostrarlos

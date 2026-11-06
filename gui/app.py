@@ -150,9 +150,21 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
         .q-tab__label { font-size: 0.85rem; }
     ''')
     # ================================================================== cabecera
+    # Easter egg: 5 pinchazos seguidos en el grillo pasan al «idioma LoRa» (y otros 5 lo quitan)
+    clics_logo = {'n': 0, 't': 0.0}
+
+    def clic_logo():
+        ahora = time.time()
+        clics_logo['n'] = clics_logo['n'] + 1 if ahora - clics_logo['t'] < 1.5 else 1
+        clics_logo['t'] = ahora
+        if clics_logo['n'] >= 5:
+            clics_logo['n'] = 0
+            app.storage.general['idioma'] = i18n.IDIOMA_BASE if i18n.idioma() == i18n.IDIOMA_LORA else i18n.IDIOMA_LORA
+            ui.navigate.to('/')
+
     with ui.header().classes('bg-blue-grey-9 items-center q-py-xs gap-3'):
         if os.path.exists(LOGO):
-            ui.image(LOGO).classes('w-9 h-9')
+            ui.image(LOGO).classes('w-9 h-9').on('click', clic_logo)
         ui.label(tr('Chirptenna')).classes('text-h6')
         ui.label(tr('antenas impresas para PCB')).classes('text-caption text-blue-grey-2 gt-xs')
         ui.badge(f'v{__version__}', color='orange-9').props('outline').classes('gt-xs') \
