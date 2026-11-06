@@ -376,3 +376,4 @@ archivos modificados después de la última revisión. La marca de esa revisión
     (18,2 mm, −20,9/−23,6/−24,8 dB, 12,6 dBi, η 78 %): el largo no depende de la iteración. COCO a 868 MHz: η 26 %, −2 dBi. Con malla fina el haz del 2×2 sale de frente
     (0–3°): la inclinación de 9° de la lección 36 era un artefacto de la malla. `directivas.K_BOWTIE_PANEL` y
     `K_MALLA_FINA_PANEL` y `dipolos.K_BOWTIE`/`K_SIERPINSKI` salen de ahí.
+53. **Bowtie = tipo propio** (dipolo_bowtie, 06-11): mismo generador que el dipolo (dipolos.generar_dipolo; con orma > 0 el Antena.tipo sale dipolo_bowtie) pero entrada propia en la galería y en el catálogo. El dipolo ya no tiene orma/pertura/iteracion_s. Un diseno.json viejo con clave dipolo y orma > 0 sigue generando (los parámetros extra se aplican igual).

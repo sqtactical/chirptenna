@@ -85,7 +85,8 @@ La placa resultante (render de KiCad): cara superior y cara inferior con el logo
 | Monopolo de Hilbert | monopolo | ⚠️ resuena, pero sin red en π no adapta |
 | Parche rectangular | parche | ✅ validado (banda estrecha) |
 | Parche de Minkowski | parche | ⚠️ iteración 1 bien; la 3 tiene poca eficiencia en FR4 |
-| Dipolo impreso (recto, de Koch, bowtie o bowtie de Sierpinski; balun impreso o coaxial al centro) | dipolo | ✅ validado (2,4 GHz y 868 MHz); la bowtie da el doble de banda |
+| Dipolo impreso (recto o de Koch; balun impreso o coaxial al centro) | dipolo | ✅ validado (2,4 GHz y 868 MHz) |
+| Dipolo bowtie (pajarita) o bowtie de Sierpinski | dipolo_bowtie | ✅ validado (2,4 GHz y 868 MHz); da el doble de banda que el recto |
 | J-pole y J-pole de Koch | jpole | ✅ Koch validada (2,4 GHz y 868 MHz); la recta casi adapta (−8 a −9 dB) |
 | Yagi con boom (doble cara) | yagi | ✅ elementos rectos (6–7 dBi; 2,4 GHz y 868 MHz); con Koch, experimental |
 | Quasi-Yagi con dipolo de Koch | yagi | ⚠️ experimental |

@@ -112,7 +112,7 @@ def generar_dipolo(p, s, eps_impreso):
     interior = contorno.buffer(-BORDE_COBRE, join_style='mitre')
     sup, inf = sup.intersection(interior), inf.intersection(interior)
     x0, _, x1, _ = unary_union([g_der, g_izq]).bounds
-    return Antena(tipo='dipolo', parametros=dict(p), capas={'F.Cu': sup, 'B.Cu': inf}, ajuste=ajuste.vacio(),
+    return Antena(tipo='dipolo_bowtie' if forma else 'dipolo', parametros=dict(p), capas={'F.Cu': sup, 'B.Cu': inf}, ajuste=ajuste.vacio(),
                   radiador=unary_union([sup, inf]), contorno=contorno, zona_libre=contorno, puerto=puerto, vias=vias,
                   info=_info_placa(contorno, {'radiador_mm': [round(x1 - x0, 2), round(w, 2)],
                                               'hueco_minimo_mm': hueco, 'pista_minima_mm': w, 'avisos': avisos,

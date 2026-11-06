@@ -37,8 +37,10 @@ TIPOS = {
     'panel_dipolos': ('directiva', 'Dipolos o bowtie sobre un reflector (segunda placa): 1 elemento o 2×2 / 4×4, '
                       'hasta 17 dBi para enlaces largos.',
                       ['tamano', 'elemento', 'largo_brazo', 'simetrico', 'aligerado']),
-    'dipolo': ('sin_masa', 'Dipolo impreso (recto, de Koch o bowtie) con balun: no necesita masa, radiación simétrica.',
-               ['largo_brazo', 'forma', 'iteracion', 'alimentacion', 'conector']),
+    'dipolo': ('sin_masa', 'Dipolo impreso (recto o de Koch) con balun: no necesita masa, radiación simétrica.',
+               ['largo_brazo', 'iteracion', 'alimentacion', 'conector']),
+    'dipolo_bowtie': ('sin_masa', 'Dipolo de brazos triangulares (bowtie): más banda que el recto, sin masa y simétrica.',
+                      ['largo_brazo', 'forma', 'alimentacion', 'conector']),
     'jpole_koch': ('sin_masa', 'J-pole con radiador de Koch: sin masa, se alimenta con coaxial. Para mástil.',
                    ['largo_radiador', 'iteracion', 'ajuste']),
     'monopolo_hilbert': ('experimental', 'Curva de Hilbert: muy compacta, pero adapta mal sin red en π.',
@@ -168,14 +170,18 @@ AYUDAS_TIPO = {
                                   'La bowtie aguanta mejor los desajustes de frecuencia (más banda).',
                       'iteracion_s': 'Nivel del Sierpinski de cada brazo (solo con «Bowtie de Sierpinski»). '
                                      'Más iteración: más huecos, brazo más largo eléctricamente y algo menos de banda.'},
-    'dipolo': {'forma': 'Forma de los brazos: pista recta o de Koch (con la iteración de Koch), bowtie (dos '
-                        'triángulos) o bowtie de Sierpinski. La bowtie aguanta mejor los desajustes de frecuencia.',
-               'iteracion_s': 'Nivel del Sierpinski de cada brazo (solo con «Bowtie de Sierpinski»). '
-                              'Más iteración: más huecos y un brazo eléctricamente más largo.',
-               'hueco': 'Hueco entre los brazos en el centro, donde se suelda el coaxial (alimentación por coaxial).',
+    'dipolo': {'hueco': 'Hueco entre los brazos en el centro, donde se suelda el coaxial (alimentación por coaxial).',
                'largo_alimentacion': 'Largo del balun impreso (la tira central): separa la antena del conector.',
                'alimentacion': 'Balun impreso: conector en el borde y una tira que hace de balun (todo en la placa). '
                                'Coaxial al centro: sueldas el coaxial directamente en el centro del dipolo.'},
+    'dipolo_bowtie': {'forma': 'Bowtie: dos triángulos como brazos, más banda que el dipolo recto. Bowtie de Sierpinski: '
+                               'triángulos con huecos fractales. La bowtie aguanta mejor los desajustes de frecuencia.',
+                      'iteracion_s': 'Nivel del Sierpinski de cada brazo (solo con «Bowtie de Sierpinski»). '
+                                     'Más iteración: más huecos y un brazo eléctricamente más largo.',
+                      'hueco': 'Hueco entre los brazos en el centro, donde se suelda el coaxial (alimentación por coaxial).',
+                      'largo_alimentacion': 'Largo del balun impreso (la tira central): separa la antena del conector.',
+                      'alimentacion': 'Balun impreso: conector en el borde y una tira que hace de balun (todo en la placa). '
+                                      'Coaxial al centro: sueldas el coaxial directamente en el centro del dipolo.'},
     'yagi_boom': {'alimentacion': 'Directa: el dipolo va tal cual; adapta alejando el reflector (placa más larga), y es '
                                   'la validada. Transformador λ/4: adapta con el reflector cerca, pero con banda estrecha. '
                                   'Dipolo plegado: en simulación radió hacia atrás.'},

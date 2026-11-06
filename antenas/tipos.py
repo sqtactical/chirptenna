@@ -565,16 +565,32 @@ for _td in [
                'Dipolo de media onda, omnidireccional en el plano perpendicular a los brazos (~2 dBi). Con SMA y '
                'balun impreso (un brazo en cada cara) o con coaxial soldado al centro.', 'dipolo',
                [Parametro('largo_brazo', 'Largo de cada brazo (entre extremos) [mm]', 25, 3, 300, 0.1),
-                Parametro('forma', 'Forma de los brazos', 0, 0, 2, 1, True,
-                          opciones={0: 'Pista recta o de Koch', 1: 'Bowtie (pajarita)', 2: 'Bowtie de Sierpinski'},
-                          ayuda='Bowtie: brazos triangulares, más ancho de banda. Sin simular todavía'),
-                Parametro('apertura', 'Apertura de la bowtie [°]', 70, 30, 120, 1,
-                          ayuda='Ángulo total de cada triángulo (solo con bowtie)'),
-                Parametro('iteracion_s', 'Iteración de Sierpinski', 2, 1, 4, 1, True,
-                          ayuda='Solo con «Bowtie de Sierpinski»: huecos triangulares en el brazo'),
                 Parametro('iteracion', 'Iteración de Koch (0 = recto)', 0, 0, 3, 1, True),
+
                 Parametro('angulo', 'Ángulo de la indentación [°]', 60, 20, 85, 1),
                 Parametro('ancho_pista', 'Ancho de los brazos [mm]', 1.5, 0.15, 15, 0.05),
+                Parametro('alimentacion', 'Alimentación', 0, 0, 1, 1, True,
+                          opciones={0: 'SMA con balun impreso (un brazo en cada cara)',
+                                    1: 'Coaxial soldado al centro (una cara)'},
+                          ayuda='Coaxial: vivo al brazo derecho, malla al izquierdo; con ferrita en el cable'),
+                Parametro('hueco', 'Hueco central entre brazos (coaxial) [mm]', 1.0, 0.3, 10, 0.05),
+                Parametro('largo_alimentacion', 'Largo del boom (balun) [mm]', 20, 4, 200, 0.5,
+                          ayuda='Tira de masa bajo la línea: ~λg/4 hace de balun'),
+                Parametro('ancho_boom', 'Ancho de la tira de masa del boom [mm]', 8, 4, 30, 0.5)],
+               'largo_brazo'),
+    TipoAntena('dipolo_bowtie', 'Dipolo bowtie (pajarita)',
+               'Dipolo de media onda con brazos triangulares (o triángulos de Sierpinski): más ancho de banda que el '
+               'recto y tolera mejor los desajustes de εr. Omnidireccional (~2 dBi). Con SMA y balun impreso o coaxial '
+               'al centro.', 'dipolo',
+               [Parametro('largo_brazo', 'Largo de cada brazo (entre extremos) [mm]', 25, 3, 300, 0.1),
+                Parametro('forma', 'Forma de los brazos', 1, 1, 2, 1, True,
+                          opciones={1: 'Bowtie (pajarita)', 2: 'Bowtie de Sierpinski'},
+                          ayuda='Bowtie: brazos triangulares; Sierpinski: triángulos con huecos fractales'),
+                Parametro('apertura', 'Apertura de la bowtie [°]', 70, 30, 120, 1,
+                          ayuda='Ángulo total de cada triángulo'),
+                Parametro('iteracion_s', 'Iteración de Sierpinski', 2, 1, 4, 1, True,
+                          ayuda='Solo con «Bowtie de Sierpinski»: huecos triangulares en el brazo'),
+                Parametro('ancho_pista', 'Ancho de la línea de alimentación [mm]', 1.5, 0.15, 15, 0.05),
                 Parametro('alimentacion', 'Alimentación', 0, 0, 1, 1, True,
                           opciones={0: 'SMA con balun impreso (un brazo en cada cara)',
                                     1: 'Coaxial soldado al centro (una cara)'},
@@ -629,7 +645,7 @@ GRUPO_AJUSTE = {'monopolo_recto': 'monopolo_pista', 'monopolo_meandro': 'monopol
                 'monopolo_sierpinski': 'monopolo', 'jpole': 'jpole', 'jpole_koch': 'jpole', 'yagi_koch': 'yagi',
                 'yagi_boom': 'sin_ajuste',
                 'parche_rectangular': 'parche_rect', 'parche_minkowski': 'parche', 'array_parches': 'array',
-                'panel_dipolos': 'sin_ajuste', 'dipolo': 'sin_ajuste', 'colineal_coco': 'sin_ajuste',
+                'panel_dipolos': 'sin_ajuste', 'dipolo': 'sin_ajuste', 'dipolo_bowtie': 'sin_ajuste', 'colineal_coco': 'sin_ajuste',
                 'colineal_franklin': 'sin_ajuste'}
 
 # Medidas secundarias que escalan con λ0. Sus valores por defecto están pensados para F_REFERENCIA;
@@ -658,6 +674,7 @@ ESCALABLES = {
     'jpole_koch': ('ancho_pista', 'hueco'),
     # el boom del dipolo es su balun (~λg/4); su ancho y las tiras del COCO van con el grosor del FR4
     'dipolo': ('ancho_pista', 'hueco', 'largo_alimentacion'),
+    'dipolo_bowtie': ('ancho_pista', 'hueco', 'largo_alimentacion'),
     'colineal_franklin': ('ancho_pista', 'hueco_horquilla') + _MASA,
 }
 PARAM_ESCALADO = Parametro('escalado', 'Medidas secundarias (pistas, huecos, masa…)', 1, 0, 1, 1, True,
@@ -727,7 +744,7 @@ def generar(clave, parametros=None, nombre_sustrato=None):
         a = directivas.generar_yagi(p, s, eps_eff_monopolo(s.er))
     elif tipo.familia == 'jpole':
         a = jpole.generar(dict(p, _clave=clave), s, eps_eff_monopolo(s.er))
-    elif clave == 'dipolo':
+    elif clave in ('dipolo', 'dipolo_bowtie'):
         a = dipolos.generar_dipolo(p, s, eps_eff_monopolo(s.er))
     elif clave == 'colineal_coco':
         a = dipolos.generar_colineal_coco(p, s)
@@ -895,7 +912,7 @@ def estimar_f(clave, parametros, nombre_sustrato=None, calibrada=True):
         f = directivas.estimar_f_yagi(p, eps_eff_monopolo(s.er))
     elif tipo.familia == 'jpole':
         f = jpole.estimar_f(p, eps_eff_monopolo(s.er))
-    elif clave == 'dipolo':
+    elif clave in ('dipolo', 'dipolo_bowtie'):
         f = dipolos.estimar_f_dipolo(p, eps_eff_monopolo(s.er))
     elif clave == 'colineal_coco':
         f = dipolos.estimar_f_coco(p, s)

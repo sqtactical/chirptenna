@@ -8,7 +8,7 @@ README.en.md («Problemas conocidos») y con las lecciones de CLAUDE.md.
 from .i18n import tr
 
 # Tipos validados en simulación también a 868 MHz (el resto solo a 2,4 GHz)
-VALIDADOS_868 = {'monopolo_recto', 'monopolo_meandro', 'monopolo_koch', 'monopolo_sierpinski', 'jpole_koch', 'dipolo',
+VALIDADOS_868 = {'monopolo_recto', 'monopolo_meandro', 'monopolo_koch', 'monopolo_sierpinski', 'jpole_koch', 'dipolo', 'dipolo_bowtie',
                  'yagi_boom', 'colineal_franklin'}
 
 # Estado de cada tipo para el selector y la galería: (estado, comentario breve). Estados: 'validada' (en
@@ -25,7 +25,8 @@ ESTADO = {
     'yagi_boom': ('validada', 'Validada en simulación con elementos rectos (2,4 GHz y 868 MHz)'),
     'array_parches': ('pendiente', 'Pendiente de validación'),
     'panel_dipolos': ('validada', 'Validada en simulación (2×2 con dipolos o Sierpinski, 2,4 GHz)'),
-    'dipolo': ('validada', 'Validada en simulación (recto, bowtie y Koch; 2,4 GHz y 868 MHz)'),
+    'dipolo': ('validada', 'Validada en simulación (recto y Koch; 2,4 GHz y 868 MHz)'),
+    'dipolo_bowtie': ('validada', 'Validada en simulación (bowtie y bowtie de Sierpinski; 2,4 GHz y 868 MHz)'),
     'colineal_coco': ('pendiente', 'Pendiente de validación (poca ganancia en FR4; a 868 MHz no sirve)'),
     'colineal_franklin': ('pendiente', 'Adapta, pero con poca banda y poca ganancia'),
     'jpole': ('pendiente', 'Casi adapta (−8 a −9 dB): mejor la de Koch'),
@@ -118,9 +119,9 @@ def problemas(clave, p=None, f_MHz=None):
     if clave == 'panel_dipolos' and int(p.get('simetrico', 0) or 0) == 1:
         out.append(('aviso', tr('La disposición simétrica con cruce no corrige la inclinación del haz y empeora la '
                              'adaptación (−10 dB frente a −15,7 dB de la normal). Mejor «Todos iguales».')))
-    if clave == 'dipolo' and it > 1 and int(p.get('forma', 0) or 0) == 0:
+    if clave == 'dipolo' and it > 1:
         out.append(('info', tr('Dipolo de Koch: solo está simulada la iteración 1 (el recto, también).')))
-    if clave == 'dipolo' and int(p.get('forma', 0) or 0) > 0:
+    if clave == 'dipolo_bowtie':
         out.append(('info', tr('Bowtie y bowtie de Sierpinski (iteración 2): simulados a 2,4 GHz y 868 MHz, con más '
                                'banda que el dipolo recto; otras iteraciones de Sierpinski, sin calibrar.')))
     if clave == 'panel_dipolos' and int(p.get('tamano', 2) or 2) == 1:

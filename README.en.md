@@ -87,7 +87,8 @@ The resulting board (KiCad render): top side and bottom side with the logo and l
 | Hilbert monopole | monopole | ⚠️ resonates, but does not match without a π network |
 | Rectangular patch | patch | ✅ validated (narrowband) |
 | Minkowski patch | patch | ⚠️ iteration 1 fine; iteration 3 has low efficiency on FR4 |
-| Printed dipole (straight, Koch, bowtie or Sierpinski bowtie; printed balun or centre-fed coax) | dipole | ✅ validated (2.4 GHz and 868 MHz); the bowtie gives twice the bandwidth |
+| Printed dipole (straight or Koch; printed balun or centre-fed coax) | dipole | ✅ validated (2.4 GHz and 868 MHz) |
+| Bowtie dipole or Sierpinski bowtie | dipole_bowtie | ✅ validated (2.4 GHz and 868 MHz); twice the bandwidth of the straight one |
 | J-pole and Koch J-pole | jpole | ✅ Koch validated (2.4 GHz and 868 MHz); the straight one almost matches (−8 to −9 dB) |
 | Double-sided Yagi with boom | yagi | ✅ straight elements (6–7 dBi; 2.4 GHz and 868 MHz); Koch is experimental |
 | Quasi-Yagi with Koch dipole | yagi | ⚠️ experimental |
