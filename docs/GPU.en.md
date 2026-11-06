@@ -137,7 +137,7 @@ $vc = "-DCMAKE_TOOLCHAIN_FILE=$vcpkg", "-DVCPKG_TARGET_TRIPLET=x64-windows-relea
 **openEMS (CPU):** leaves `openEMS.exe`, `openEMS.dll` and the vcpkg DLLs (Boost, HDF5…) in `opt\bin`.
 
 ```powershell
-& $cmake -S "$gb\src\openEMS" -B "$gb\build\openEMS" @comun @vc "-DCSXCAD_ROOT_DIR=$gb\opt" "-DCMAKE_PREFIX_PATH=$gb\opt"
+& $cmake -S "$gb\src\openEMS" -B "$gb\build\openEMS" @comun @vc "-DCSXCAD_ROOT_DIR=$gb\opt" "-DFPARSER_ROOT_DIR=$gb\opt" "-DCMAKE_PREFIX_PATH=$gb\opt"
 & $cmake --build "$gb\build\openEMS"; & $cmake --install "$gb\build\openEMS"
 ```
 
@@ -151,7 +151,7 @@ $arq = "86"        # ← your GPU's (nvidia-smi --query-gpu=compute_cap)
 & $cmake -S "$gb\src\openEMS" -B "$gb\build\openEMS_gpu" @comun @vc `
     "-DCMAKE_CXX_COMPILER=$cl" "-DCMAKE_CUDA_COMPILER=$gb\cuda\bin\nvcc.exe" "-DCMAKE_CUDA_HOST_COMPILER=$cl" `
     "-DCMAKE_CUDA_ARCHITECTURES=$arq" "-DHIP_INCLUDE_DIR=$gb\hip\opt\rocm-7.2.4\include" `
-    -DOPENEMS_GPU_PLUGINS=ON -DOPENEMS_HIP_AS_CUDA=ON "-DCSXCAD_ROOT_DIR=$gb\opt" "-DCMAKE_PREFIX_PATH=$gb\opt"
+    -DOPENEMS_GPU_PLUGINS=ON -DOPENEMS_HIP_AS_CUDA=ON "-DCSXCAD_ROOT_DIR=$gb\opt" "-DFPARSER_ROOT_DIR=$gb\opt" "-DCMAKE_PREFIX_PATH=$gb\opt"
 & $cmake --build "$gb\build\openEMS_gpu" --target openEMS_gpu_hip_nvidia
 & $cmake --install "$gb\build\openEMS_gpu"
 ```
