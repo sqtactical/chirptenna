@@ -53,6 +53,10 @@ manufactured boards.
 
 ## Screenshots
 
+**Choose antenna** (*Elegir antena*): the first thing you see, a gallery of types grouped by use, with a drawing, a description and a status.
+
+![Antenna type gallery](docs/capturas/galeria.png)
+
 **Design** (*Diseño*): pick the type and band; the program sizes the antenna and warns about known issues.
 
 ![Design tab with a 2.4 GHz Sierpinski monopole](docs/capturas/diseno.png)

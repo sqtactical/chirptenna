@@ -51,6 +51,10 @@ las placas fabricadas.
 
 ## Capturas
 
+**Elegir antena**: al entrar, una galería de tipos agrupados por uso, con dibujo, descripción y estado.
+
+![Galería de tipos de antena](docs/capturas/galeria.png)
+
 **Diseño**: eliges tipo y banda, y el programa dimensiona la antena y avisa de sus problemas conocidos.
 
 ![Pestaña Diseño con un monopolo de Sierpinski a 2,4 GHz](docs/capturas/diseno.png)
