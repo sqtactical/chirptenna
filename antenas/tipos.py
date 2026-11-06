@@ -487,7 +487,7 @@ CATALOGO = {t.clave: t for t in [
                'Monopolo λ/4 plegado en «F»: brazo horizontal paralelo a la masa, alimentado por una toma y '
                'cortocircuitado a masa con una vía. Compacta y baja. Sin validar.', 'monopolo',
                [Parametro('largo_brazo', 'Largo del brazo horizontal [mm]', 20, 3, 200, 0.1),
-                Parametro('altura', 'Altura del brazo sobre la masa [mm]', 5, 1, 50, 0.1),
+                Parametro('altura', 'Altura del brazo sobre la masa [mm]', 7, 1, 50, 0.1),
                 Parametro('separacion_toma', 'Distancia entre el cortocircuito y la toma [mm]', 3.5, 1, 30, 0.1,
                           ayuda='Fija la impedancia: más separada, más impedancia'),
                 Parametro('ancho_pista', 'Ancho del brazo [mm]', 1.0, 0.3, 10, 0.05),
@@ -499,7 +499,7 @@ CATALOGO = {t.clave: t for t in [
                [Parametro('largo_brazo', 'Largo del brazo horizontal [mm]', 18, 3, 200, 0.1),
                 Parametro('altura', 'Altura del brazo sobre la masa [mm]', 6, 1, 50, 0.1),
                 Parametro('separacion_toma', 'Distancia entre el cortocircuito y la toma [mm]', 7, 1, 40, 0.1),
-                Parametro('ancho_pista', 'Ancho del brazo [mm]', 5, 0.3, 20, 0.05),
+                Parametro('ancho_pista', 'Ancho del brazo [mm]', 7, 0.3, 20, 0.05),
                 Parametro('ancho_corto', 'Ancho del cortocircuito [mm]', 4, 0.5, 20, 0.05)] + PARAMS_MASA, 'largo_brazo',
                precision='±20 % (sin calibrar)'),
     TipoAntena('dipolo_sleeve', 'Dipolo con manga (sleeve)',

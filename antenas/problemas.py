@@ -18,7 +18,7 @@ ESTADO = {
     'monopolo_meandro': ('validada', 'Validada en simulación (2,4 GHz y 868 MHz)'),
     'monopolo_koch': ('validada', 'Validada en simulación (2,4 GHz y 868 MHz)'),
     'monopolo_hilbert': ('no_funciona', 'No funciona sin red en π'),
-    'monopolo_flecha': ('pendiente', 'Sin testear ni validar (curiosidad)'),
+    'monopolo_flecha': ('no_funciona', 'No adapta en simulación (mejor −5,3 dB; curiosidad)'),
     'monopolo_sierpinski': ('validada', 'Validada en simulación (2,4 GHz y 868 MHz)'),
     'parche_rectangular': ('validada', 'Validada en simulación (banda estrecha)'),
     'parche_minkowski': ('pendiente', 'Pendiente de validación (eficiencia baja en FR4)'),
