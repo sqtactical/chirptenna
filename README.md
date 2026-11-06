@@ -91,7 +91,7 @@ La placa resultante (render de KiCad): cara superior y cara inferior con el logo
 | Quasi-Yagi con dipolo de Koch | yagi | ⚠️ experimental |
 | Panel de dipolos, bowtie o bowtie de Sierpinski, 2×2 / 4×4, sobre reflector | panel | ✅ 2×2 ≈ 12,1 dBi (dipolos) y 12,6 dBi (Sierpinski), 4×4 ≈ 14,6–16,6 dBi; un solo elemento, sin afinar |
 | Array de parches 2×2 / 4×4 | array | ⚠️ sin terminar de validar |
-| Colineal coaxial impresa (COCO) | colineal | ⚠️ radia, pero las pérdidas del FR4 se comen la ganancia |
+| Colineal coaxial impresa (COCO) | colineal | ⚠️ radia, pero las pérdidas del FR4 se comen la ganancia (a 868 MHz no sirve) |
 | Colineal Franklin | colineal | ⚠️ adapta, pero con poca banda y ~2,5 dBi |
 
 ## ⚠️ Problemas conocidos
@@ -114,10 +114,10 @@ antes de darla por buena. La interfaz muestra estos avisos al elegir el tipo y a
 | Quasi-Yagi de Koch | Radia hacia atrás y adapta mal (−3,5 dB). Experimental. |
 | Panel de dipolos | El ajuste no itera la frecuencia (S11 ondulado): el tamaño inicial está calibrado con el 2×2 a 2,4 GHz. Con malla fina el haz sale de frente (0–3°). El panel de un solo elemento resuena lejos del objetivo. La disposición «simétrica» empeora la adaptación. |
 | Array de parches | Sin terminar de validar: el 2×2 resuena un 16 % por debajo con el tamaño por defecto, η ~22 % y cada simulación tarda horas. |
-| Colineal COCO | Radia, pero las pérdidas del FR4 dejan η ~53 % y ~1,9 dBi. |
+| Colineal COCO | Radia, pero las pérdidas del FR4 dejan η ~53 % y ~1,9 dBi a 2,4 GHz; a 868 MHz, η 26 %, −2 dBi y S11 −7,8 dB. |
 | Colineal Franklin | Adapta (−19 dB a 2,4 GHz, −35 dB a 868 MHz) pero con 62 y 23 MHz de banda y 2,2–2,8 dBi. Experimental. |
 | Recortes de aligerado | Yagi aligerada simulada: −1,3 dBi y hay que reajustar el reflector; en el resto, sin simular. |
-| Fuera de 2,4 GHz | A 868 MHz están simulados los monopolos recto, meandro, Koch y Sierpinski, el dipolo, la J-pole de Koch, la Yagi con boom y la colineal Franklin; el resto, solo a 2,4 GHz. |
+| Fuera de 2,4 GHz | A 868 MHz están simulados los monopolos recto, meandro, Koch y Sierpinski, el dipolo, la J-pole de Koch, la Yagi con boom y las colineales Franklin y COCO; el resto, solo a 2,4 GHz. |
 
 Los detalles de cada simulación y los errores encontrados por el camino están en
 [`CLAUDE.md`](CLAUDE.md) (lecciones aprendidas), [`RETOMAR.md`](RETOMAR.md) (estado) y

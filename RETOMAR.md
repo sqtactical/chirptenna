@@ -7,6 +7,7 @@ hecho hasta ahora (validaciones, simulaciones, fallos y decisiones) está en
 
 ## Estado
 
+- **Simulaciones GPU de la v0.2.0 terminadas (06-11)**: lotes en `salidas/_validacion_gpu*` y `_afinado_panel`.
 - **v0.2.0-alpha preparada en la rama local `v0.2.0`** (worktree `%LOCALAPPDATA%\antenas\wt-v020`; fusiona `main` con
   bowtie, `i18n` y `gpu-pruebas`): idiomas es/en/fr/de + lora en escritorio y web, bowtie, GPU opcional, estados al día
   con ~50 simulaciones nuevas, `MANUAL.en.md`, versión 0.2.0-alpha y `CHANGELOG.md`. Probada: `comprobar_tipos` 46/46,
@@ -61,7 +62,7 @@ hecho hasta ahora (validaciones, simulaciones, fallos y decisiones) está en
    - Yagi aligerada: simulada a 2,4 GHz (G 5,9 dBi, S11 −10,8 dB: reajustar el reflector); falta a otras bandas.
    - Panel: con malla fina fija el haz sale de frente (0–3°): la inclinación de 9° era un artefacto de la malla (la
      frecuencia depende de la malla hasta un 10 %: el barrido de `barrido_panel.py` fija el paso). Proponer
-     `simetrico` = 0 por defecto: no corrige nada y empeora S11. Panel 4×4, 1 elemento y 868 MHz sin afinar.
+     `simetrico` = 0 por defecto: no corrige nada y empeora S11. Panel 4×4, 1 elemento y 868 MHz sin afinar. Sierpinski it. 1–3 equivalentes en el 2×2; COCO a 868 MHz no sirve.
    - J-pole recta (adapta mal), Franklin (revisar horquillas), Minkowski it. 3 (borde a ~14 Ω: probar
      transformador λ/4), transición IPEX, quasi-Yagi de Koch (radia hacia atrás).
    - Calibrar εeff(h/λ) a 868 MHz (monopolos, Yagi, J-pole) y validar más tipos fuera de 2,4 GHz.

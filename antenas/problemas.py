@@ -26,7 +26,7 @@ ESTADO = {
     'array_parches': ('pendiente', 'Pendiente de validación'),
     'panel_dipolos': ('validada', 'Validada en simulación (2×2 con dipolos o Sierpinski, 2,4 GHz)'),
     'dipolo': ('validada', 'Validada en simulación (recto, bowtie y Koch; 2,4 GHz y 868 MHz)'),
-    'colineal_coco': ('pendiente', 'Pendiente de validación (poca ganancia en FR4)'),
+    'colineal_coco': ('pendiente', 'Pendiente de validación (poca ganancia en FR4; a 868 MHz no sirve)'),
     'colineal_franklin': ('pendiente', 'Adapta, pero con poca banda y poca ganancia'),
     'jpole': ('pendiente', 'Casi adapta (−8 a −9 dB): mejor la de Koch'),
     'jpole_koch': ('validada', 'Validada en simulación (2,4 GHz y 868 MHz)'),
@@ -78,11 +78,12 @@ FIJOS = {
     'panel_dipolos': [
         ('info', 'El ajuste no itera la frecuencia (el S11 de la red corporativa es ondulado): el tamaño inicial está '
                  'calibrado con simulaciones 2×2 a 2,4 GHz; en otras bandas y en el 4×4, simúlala. Con la malla fina el '
-                 'haz sale casi de frente (0–3°): la inclinación de 9° de antes era un artefacto de la malla.'),
+                 'haz sale casi de frente (0–3°): la inclinación de 9° de antes era un artefacto de la malla. En el 2×2 de '
+                 'Sierpinski las iteraciones 1, 2 y 3 dan lo mismo (≈12,6 dBi, mismo largo de brazo).'),
     ],
     'colineal_coco': [
         ('aviso', 'Radia (D 4,7 dBi) pero las pérdidas del FR4 dejan la eficiencia en ~53 % y la ganancia en ~1,9 dBi: '
-                  'no se nota la ganancia de colineal.'),
+                  'no se nota la ganancia de colineal. A 868 MHz sale peor (η 26 %, −2 dBi, S11 −7,8 dB): no la uses ahí.'),
     ],
     'colineal_franklin': [
         ('aviso', 'Adapta (−19 dB a 2,4 GHz, −35 dB a 868 MHz) pero con poca banda (62 y 23 MHz) y solo 2,2–2,8 dBi: '

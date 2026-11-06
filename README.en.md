@@ -93,7 +93,7 @@ The resulting board (KiCad render): top side and bottom side with the logo and l
 | Quasi-Yagi with Koch dipole | yagi | ⚠️ experimental |
 | 2×2 / 4×4 panel of dipoles, bowties or Sierpinski bowties over a reflector | panel | ✅ 2×2 ≈ 12.1 dBi (dipoles) and 12.6 dBi (Sierpinski), 4×4 ≈ 14.6–16.6 dBi; single element, untuned |
 | 2×2 / 4×4 patch array | array | ⚠️ validation not finished |
-| Printed coaxial collinear (COCO) | collinear | ⚠️ radiates, but FR4 losses eat the gain |
+| Printed coaxial collinear (COCO) | collinear | ⚠️ radiates, but FR4 losses eat the gain (useless at 868 MHz) |
 | Franklin collinear | collinear | ⚠️ matches, but with little bandwidth and ~2.5 dBi |
 
 ## ⚠️ Known issues
@@ -116,10 +116,10 @@ before trusting it. The GUI shows these warnings when you pick the type and when
 | Koch quasi-Yagi | Radiates backwards and matches poorly (−3.5 dB). Experimental. |
 | Dipole panel | The tuning does not iterate the frequency (rippled S11): the initial size is calibrated with the 2×2 at 2.4 GHz. With a fine mesh the beam comes out straight ahead (0–3°). The single-element panel resonates far from the target. The “symmetric” layout worsens the match. |
 | Patch array | Validation not finished: the 2×2 resonates 16 % low with the default size, η ~22 % and each simulation takes hours. |
-| COCO collinear | Radiates, but FR4 losses leave η ~53 % and ~1.9 dBi. |
+| COCO collinear | Radiates, but FR4 losses leave η ~53 % and ~1.9 dBi at 2.4 GHz; at 868 MHz, η 26 %, −2 dBi and S11 −7.8 dB. |
 | Franklin collinear | Matches (−19 dB at 2.4 GHz, −35 dB at 868 MHz) but with 62 and 23 MHz of bandwidth and 2.2–2.8 dBi. Experimental. |
 | Lightening cutouts | Lightened Yagi simulated: −1.3 dBi and the reflector has to be readjusted; for the rest, not simulated. |
-| Outside 2.4 GHz | Simulated at 868 MHz: the straight, meander, Koch and Sierpinski monopoles, the dipole, the Koch J-pole, the Yagi with boom and the Franklin collinear; the rest, only at 2.4 GHz. |
+| Outside 2.4 GHz | Simulated at 868 MHz: the straight, meander, Koch and Sierpinski monopoles, the dipole, the Koch J-pole, the Yagi with boom and the Franklin and COCO collinears; the rest, only at 2.4 GHz. |
 
 ## Requirements
 

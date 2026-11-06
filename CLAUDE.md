@@ -372,6 +372,7 @@ archivos modificados después de la última revisión. La marca de esa revisión
     `ajustar`, con malla automática, da 2525 MHz y las siguientes, con el paso fijado al 90 %, 2284 MHz con el mismo
     largo). Para afinarlo, fijar el paso con una simulación de calibración y elegir por **S11 en toda la banda**, no por
     el «centro de banda» (salta con el S11 ondulado): `herramientas/barrido_panel.py <tamano> <elemento> <largos,…> [etiqueta] [param=valor,…]` (GPU). Resultados 2,4 GHz: Sierpinski it. 2 a 18,2 mm (−23,6 dB, 12,6 dBi), recto a
-    19,14 mm (−16,3 dB, 12,1 dBi), bowtie liso a 18,4 mm (irregular). Con malla fina el haz del 2×2 sale de frente
+    19,14 mm (−16,3 dB, 12,1 dBi), bowtie liso a 18,4 mm (irregular); las iteraciones 1, 2 y 3 de Sierpinski dan lo mismo
+    (18,2 mm, −20,9/−23,6/−24,8 dB, 12,6 dBi, η 78 %): el largo no depende de la iteración. COCO a 868 MHz: η 26 %, −2 dBi. Con malla fina el haz del 2×2 sale de frente
     (0–3°): la inclinación de 9° de la lección 36 era un artefacto de la malla. `directivas.K_BOWTIE_PANEL` y
     `K_MALLA_FINA_PANEL` y `dipolos.K_BOWTIE`/`K_SIERPINSKI` salen de ahí.
