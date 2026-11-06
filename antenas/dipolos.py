@@ -82,8 +82,9 @@ def generar_dipolo(p, s, eps_impreso):
         hc = p['hueco']
         y_d = Y_COAXIAL
         if forma:
-            # la bowtie es simétrica respecto al centro: sube el centro para que no la corte el borde de abajo
-            y_d = max(y_d, la*math.tan(math.radians(p.get('apertura', 70))/2) + BORDE_COBRE + 0.2)
+            # la bowtie es simétrica respecto al centro: sube el centro para que quepa entera, y la placa
+            # la rodea con el mismo margen y las mismas esquinas redondeadas arriba y abajo (sin recorte)
+            y_d = max(y_d, la*math.tan(math.radians(p.get('apertura', 70))/2))
         der, g_der = brazo(1, y_d, hc/2)
         izq, g_izq = brazo(-1, y_d, hc/2)
         pads = [g.rectangulo(hc/2, y_d - 1.0, hc/2 + 2.0, y_d + 1.0), g.rectangulo(-hc/2 - 2.0, y_d - 1.0, -hc/2, y_d + 1.0)]
@@ -91,7 +92,7 @@ def generar_dipolo(p, s, eps_impreso):
         inf = Polygon()
         soporte = g.rectangulo(-4.0, 0, 4.0, y_d)          # sitio para el coaxial y su sujeción
         contorno = g.contorno_placa([sup.buffer(margen), soporte], int(p.get('contorno', 1)),
-                                    recorte=(-1e4, 0, 1e4, 1e4))
+                                    recorte=None if forma else (-1e4, 0, 1e4, 1e4))
         puerto = {'tipo': 'coaxial', 'borde': (0.0, y_d), 'direccion': (1, 0), 'alimentacion': (hc/2, y_d),
                   'ancho_linea': 2.0, 'puntos': ((-hc/2, y_d), (hc/2, y_d)),
                   'pads': ((-hc/2 - 1.0, y_d), (hc/2 + 1.0, y_d))}
