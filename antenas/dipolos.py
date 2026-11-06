@@ -15,6 +15,7 @@ Estimaciones orientativas (y calibradas con simulaciones cuando las haya: tipos.
 """
 import math
 
+import numpy as np
 from shapely import affinity
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
@@ -51,7 +52,10 @@ K_SIERPINSKI = 0.75   # bowtie de Sierpinski (iteración 2): los huecos lo alarg
 
 def estimar_f_dipolo(p, eps_impreso):
     forma = int(p.get('forma', 0))
-    if forma:
+    if forma == 3:
+        # curva de punta de flecha de Sierpinski en cada brazo: longitud equivalente como la del monopolo de flecha
+        total = 2*p['largo_brazo']*(1 + 0.35*(1.5**int(p.get('iteracion_s', 3)) - 1)) + (p['hueco'] if int(p['alimentacion']) == 1 else 0)
+    elif forma:
         # bowtie / bowtie de Sierpinski: sin Koch, y el brazo ancho es eléctricamente más corto
         total = 2*p['largo_brazo']/(K_BOWTIE if forma == 1 else K_SIERPINSKI) + (p['hueco'] if int(p['alimentacion']) == 1 else 0)
     else:
@@ -64,7 +68,8 @@ def generar_dipolo(p, s, eps_impreso):
     n, ang, la = int(p.get('iteracion', 0)), p.get('angulo', 60), p['largo_brazo']
     margen = p.get('margen_borde', 2.0)
     vias, avisos = [], []
-    forma = int(p.get('forma', 0))        # 0 = recto o Koch, 1 = bowtie, 2 = bowtie de Sierpinski
+    forma = int(p.get('forma', 0))        # 0 = recto o Koch, 1 = bowtie, 2 = bowtie de Sierpinski, 3 = flecha de Sierpinski
+    wf = p.get('ancho_flecha', 0.5)
 
     def brazo(lado, y_d, desp):
         """Un brazo (lado = +1 derecho, −1 izquierdo), con el vértice de la bowtie o el inicio de la pista en
@@ -72,6 +77,11 @@ def generar_dipolo(p, s, eps_impreso):
         if forma == 0:
             pol = brazo_koch(n, la, ang, lado < 0, y_d) + [lado*desp, 0]
             return pol, g.engordar(pol, w)
+        if forma == 3:
+            # una sola pista: base a lo largo del brazo (del centro hacia fuera) y el triángulo hacia +y, simétrico en x
+            pts = g.flecha_sierpinski(int(p.get('iteracion_s', 3)), la)
+            pol = np.column_stack([lado*(pts[:, 1] + desp), y_d + pts[:, 0]])
+            return pol, g.engordar(pol, wf)
         a = g.brazo_bowtie(la, p.get('apertura', 70), w, int(p.get('iteracion_s', 2)) if forma == 2 else 0,
                            p.get('cuello_s', 1.0))
         a = affinity.translate(affinity.scale(a, xfact=lado, yfact=1, origin=(0, 0)), lado*desp, y_d)
@@ -84,7 +94,7 @@ def generar_dipolo(p, s, eps_impreso):
         if forma:
             # la bowtie es simétrica respecto al centro: sube el centro para que quepa entera, y la placa
             # la rodea con el mismo margen y las mismas esquinas redondeadas arriba y abajo (sin recorte)
-            y_d = max(y_d, la*math.tan(math.radians(p.get('apertura', 70))/2))
+            y_d = max(y_d, la*math.tan(math.radians(p.get('apertura', 70))/2) if forma != 3 else 0.0)
         der, g_der = brazo(1, y_d, hc/2)
         izq, g_izq = brazo(-1, y_d, hc/2)
         pads = [g.rectangulo(hc/2, y_d - 1.0, hc/2 + 2.0, y_d + 1.0), g.rectangulo(-hc/2 - 2.0, y_d - 1.0, -hc/2, y_d + 1.0)]
@@ -102,7 +112,7 @@ def generar_dipolo(p, s, eps_impreso):
         w50 = ancho_microstrip(50, s.er, s.h)
         wb = max(p['ancho_boom'], w50 + 3*s.h)
         y_d = BORDE_COBRE + p['largo_alimentacion']
-        if forma:
+        if forma in (1, 2):
             y_d = max(y_d, la*math.tan(math.radians(p.get('apertura', 70))/2) + BORDE_COBRE + 0.2)
         der, g_der = brazo(1, y_d, 0.0)
         izq, g_izq = brazo(-1, y_d, 0.0)
@@ -121,7 +131,9 @@ def generar_dipolo(p, s, eps_impreso):
     return Antena(tipo='dipolo_bowtie' if forma else 'dipolo', parametros=dict(p), capas={'F.Cu': sup, 'B.Cu': inf}, ajuste=ajuste.vacio(),
                   radiador=unary_union([sup, inf]), contorno=contorno, zona_libre=contorno, puerto=puerto, vias=vias,
                   info=_info_placa(contorno, {'radiador_mm': [round(x1 - x0, 2), round(w, 2)],
-                                              'hueco_minimo_mm': hueco, 'pista_minima_mm': w, 'avisos': avisos,
+                                              'hueco_minimo_mm': (min(hueco or 99, la/2**int(p.get('iteracion_s', 3))*math.sin(math.radians(60)) - wf)
+                                                                  if forma == 3 else hueco),
+                                              'pista_minima_mm': min(w, wf) if forma == 3 else w, 'avisos': avisos,
                                               'f_sin_cortar_MHz': None, 'ajuste': None}))
 
 
