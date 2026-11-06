@@ -9,7 +9,7 @@ Cada banda tiene su lista de tipos (TIPOS_POR_BANDA), de baratos a caros; `--hor
 
 Uso (desde la raíz):
     python herramientas/campana.py [--bandas «2,4 GHz»;«5,8 GHz»;…] [--tipos t1,t2,…] [--max-celdas 20]
-                                   [--horas N] [--lista]
+                                   [--horas N] [--lista] [--solo-centrar]
 Cada barrido deja salidas/_barridos/C_<tipo>_<banda>. Si se corta, al repetirlo se saltan los terminados.
 Resumen: `python herramientas/resumen_barridos.py`. No hay banda de 433 MHz (placas de decenas de cm).
 """
@@ -37,6 +37,9 @@ TIPOS_POR_BANDA = {
     '868': ['monopolo_recto', 'monopolo_koch', 'monopolo_meandro', 'monopolo_sierpinski', 'dipolo', 'dipolo_bowtie',
             'dipolo_sleeve', 'ifa', 'pifa', 'jpole_koch', 'yagi_boom'],
 }
+# Bandas de la tabla que solo se centran (sin exploración de forma): 915 MHz, 1,2 GHz, GPS L1 e Iridium
+LISTA_CENTRAR = ['monopolo_recto', 'monopolo_koch', 'monopolo_meandro', 'monopolo_sierpinski', 'dipolo', 'dipolo_bowtie', 'dipolo_sleeve']
+TIPOS_POR_BANDA.update({b: LISTA_CENTRAR for b in ('915 ISM', '1,2 GHz radioaficionado', 'GPS L1', 'Iridium')})
 TIPOS = sorted({t for ts in TIPOS_POR_BANDA.values() for t in ts})
 SALTAR = set()
 
@@ -77,11 +80,11 @@ def corto(banda):
 
 def main():
     args = sys.argv[1:]
-    opt = {'max-celdas': '20', 'bandas': None, 'tipos': None, 'horas': None, 'lista': False}
+    opt = {'max-celdas': '20', 'bandas': None, 'tipos': None, 'horas': None, 'lista': False, 'solo-centrar': False}
     i = 0
     while i < len(args):
         k = args[i][2:]
-        if k == 'lista':
+        if k in ('lista', 'solo-centrar'):
             opt[k] = True
         else:
             i += 1
@@ -110,7 +113,7 @@ def main():
                 return
             print(f'[{time.strftime("%H:%M")}] {etiqueta}', flush=True)
             cmd = [sys.executable, '-X', 'utf8', os.path.join(RAIZ, 'herramientas', 'barrido.py'), tipo, banda,
-                   *TABLA_FORMA.get(tipo, []), '--centrar', '--modo', 'cruz', '--radiacion',
+                   *([] if opt['solo-centrar'] else TABLA_FORMA.get(tipo, [])), '--centrar', '--modo', 'cruz', '--radiacion',
                    '--etiqueta', etiqueta, '--max-celdas', opt['max-celdas'], '--max-ajuste', '3']
             with open(os.path.join(RAIZ, 'salidas', '_campana', f'{etiqueta}.log'), 'w', encoding='utf-8') as log:
                 subprocess.run(cmd, stdout=log, stderr=subprocess.STDOUT, cwd=RAIZ,
