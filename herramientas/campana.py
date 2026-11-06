@@ -5,7 +5,7 @@ Para cada tipo y banda, un barrido `--centrar --modo cruz --radiacion`:
   2. alrededor de ese diseño, varía cada parámetro de forma por separado (TABLA_FORMA, factores «x» sobre el
      centrado) y al final prueba la combinación de los mejores valores;
   3. se corta si las 3 primeras configuraciones salen peor de −3 dB.
-Se hacen primero los tipos baratos y los pesados al final; `--horas N` no empieza ninguno nuevo pasadas N horas.
+Cada banda tiene su lista de tipos (TIPOS_POR_BANDA), de baratos a caros; `--horas N` no empieza ninguno nuevo pasadas N horas.
 
 Uso (desde la raíz):
     python herramientas/campana.py [--bandas «2,4 GHz»;«5,8 GHz»;…] [--tipos t1,t2,…] [--max-celdas 20]
@@ -22,14 +22,23 @@ RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(RAIZ)
 sys.path.insert(0, RAIZ)
 
-BANDAS = ['2,4 GHz', '5,8 GHz', '1,2 GHz radioaficionado', 'GPS L1', 'Iridium', '915 ISM', '868']
-# De más barato a más caro
-TIPOS = ['monopolo_recto', 'monopolo_koch', 'monopolo_meandro', 'monopolo_sierpinski', 'dipolo', 'dipolo_bowtie',
-         'dipolo_sleeve', 'ifa', 'pifa', 'jpole', 'jpole_koch', 'parche_rectangular', 'parche_circular',
-         'parche_ranura', 'parche_apilado', 'parche_minkowski', 'yagi_boom', 'vivaldi', 'colineal_franklin',
-         'colineal_coco', 'monopolo_flecha', 'monopolo_hilbert', 'yagi_koch', 'panel_dipolos', 'colineal_dipolos', 'array_parches']
-# Combinaciones que no tienen sentido o ya se sabe que no sirven
-SALTAR = {('colineal_coco', '868'), ('monopolo_hilbert', '5,8 GHz'), ('yagi_koch', '5,8 GHz')}
+BANDAS = ['2,4 GHz', '5,8 GHz', '868']
+# Tipos de cada banda, de más barato a más caro. Se dejan fuera los que ya se sabe que no funcionan (parche con ranura,
+# parche apilado, Hilbert, quasi-Yagi, COCO: ver docs/desarrollo/barridos_gpu.md) y, en 5,8 GHz y 868 MHz, los que
+# no tienen sentido o no salen bien en esa banda (J-pole, Franklin, array, parche circular y los de placa enorme a 868).
+TIPOS_POR_BANDA = {
+    '2,4 GHz': ['monopolo_recto', 'monopolo_koch', 'monopolo_meandro', 'monopolo_sierpinski', 'dipolo', 'dipolo_bowtie',
+                'dipolo_sleeve', 'ifa', 'pifa', 'jpole', 'jpole_koch', 'parche_rectangular', 'parche_circular',
+                'parche_minkowski', 'yagi_boom', 'vivaldi', 'colineal_franklin', 'monopolo_flecha', 'panel_dipolos',
+                'colineal_dipolos'],
+    '5,8 GHz': ['monopolo_recto', 'monopolo_koch', 'monopolo_meandro', 'monopolo_sierpinski', 'dipolo', 'dipolo_bowtie',
+                'dipolo_sleeve', 'ifa', 'pifa', 'parche_rectangular', 'parche_minkowski', 'yagi_boom', 'vivaldi',
+                'panel_dipolos'],
+    '868': ['monopolo_recto', 'monopolo_koch', 'monopolo_meandro', 'monopolo_sierpinski', 'dipolo', 'dipolo_bowtie',
+            'dipolo_sleeve', 'ifa', 'pifa', 'jpole_koch', 'yagi_boom'],
+}
+TIPOS = sorted({t for ts in TIPOS_POR_BANDA.values() for t in ts})
+SALTAR = set()
 
 # Parámetros de forma por tipo. El primer valor es el de la base («x1» o el valor por defecto); «xF» = F × el centrado.
 TABLA_FORMA = {
@@ -80,14 +89,14 @@ def main():
         i += 1
     from antenas import tipos as T
     bandas = [b.strip() for b in opt['bandas'].split(';')] if opt['bandas'] else BANDAS
-    lista = [t.strip() for t in opt['tipos'].split(',')] if opt['tipos'] else [t for t in TIPOS if t in T.CATALOGO]
-    for t in lista:                                          # los nombres de parámetros deben existir
+    lista_pedida = [t.strip() for t in opt['tipos'].split(',')] if opt['tipos'] else None
+    for t in lista_pedida or TIPOS:                                          # los nombres de parámetros deben existir
         for pa in TABLA_FORMA.get(t, []):
             assert pa.split('=')[0] in {q.nombre for q in T.CATALOGO[t].parametros}, (t, pa)
     limite = time.time() + float(opt['horas'])*3600 if opt['horas'] else None
     os.makedirs(os.path.join(RAIZ, 'salidas', '_campana'), exist_ok=True)
     for banda in bandas:
-        for tipo in lista:
+        for tipo in (lista_pedida or TIPOS_POR_BANDA.get(banda, [])):
             if (tipo, banda) in SALTAR:
                 continue
             etiqueta = f'C_{tipo}_{corto(banda)}'
