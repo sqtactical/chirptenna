@@ -2,7 +2,9 @@
 # los resultados van a salidas/_barridos/<etiqueta>/ (resumen.json, resumen.csv, resultados.jsonl). Una GPU: en serie.
 # Uso:  powershell -File herramientas/campana_nuevos.ps1
 $py = "$env:LOCALAPPDATA\antenas\venv\Scripts\python.exe"
-$b = { param($etiqueta, [string[]]$args_) & $py -X utf8 herramientas/barrido.py @args_ --etiqueta $etiqueta --top 2 }
+$b = { param($etiqueta, [string[]]$args_)
+    if (Test-Path "salidas/_barridos/$etiqueta/resumen.json") { "(ya hecho) $etiqueta"; return }   # reanuda: salta los terminados
+    & $py -X utf8 herramientas/barrido.py @args_ --etiqueta $etiqueta --top 2 }
 & $b 'ifa_2g4'           @('ifa', '2,4 GHz', 'separacion_toma=2,3.5,5', 'largo_brazo=18,20,22')
 & $b 'pifa_2g4'          @('pifa', '2,4 GHz', 'separacion_toma=5,7,9', 'largo_brazo=16,18,20')
 & $b 'sleeve_2g4'        @('dipolo_sleeve', '2,4 GHz', 'alto=21,23.6,26', 'largo_masa=20,24,28')

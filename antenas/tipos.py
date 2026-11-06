@@ -126,7 +126,7 @@ def largo_masa_monopolo(p, le):
 
 
 MASA_RED_PI = 14.0
-K_EQ_PUNTA = {'monopolo_recto': 1.0, 'monopolo_koch': 1.0, 'monopolo_meandro': 0.6, 'monopolo_hilbert': 0.5}
+K_EQ_PUNTA = {'monopolo_flecha': 0.5, 'monopolo_recto': 1.0, 'monopolo_koch': 1.0, 'monopolo_meandro': 0.6, 'monopolo_hilbert': 0.5}
 
 
 def _radiador_monopolo(clave, p):
@@ -158,6 +158,9 @@ def _radiador_monopolo(clave, p):
     if clave == 'monopolo_koch':
         pts = g.koch(int(p['iteracion']), (0, 0), (0, p['alto']), p['angulo'])
         return g.engordar(pts, w), g.longitud(pts), pts
+    if clave == 'monopolo_flecha':
+        pts = g.flecha_sierpinski(int(p['iteracion']), p['alto'])
+        return g.engordar(pts, w), g.longitud(pts), pts
     if clave == 'monopolo_hilbert':
         s, d = p['lado'], p['separacion']
         pts = g.hilbert(int(p['orden']))*s + [0, d]
@@ -184,6 +187,8 @@ def _longitud_equivalente(clave, p):
         return p['alto'] + 0.5*(l_total - p['alto'])
     if clave == 'monopolo_koch':
         return p['alto']*(1 + 0.35*((4/3)**int(p['iteracion']) - 1))
+    if clave == 'monopolo_flecha':
+        return p['alto']*(1 + 0.35*(1.5**int(p['iteracion']) - 1))
     if clave == 'monopolo_hilbert':
         n = int(p['orden'])
         return p['separacion'] + 0.45*p['lado']*(2**n + 1)
@@ -235,7 +240,8 @@ def _generar_monopolo(tipo, p, sustrato):
         esperada = l_traza*p.get('ancho_pista', 1.0)
         solape = max(0.0, 1 - rad.area/esperada) if esperada > 0 else 0.0
     # Huecos conocidos por construcción (para la malla de la simulación)
-    huecos = {'monopolo_hilbert': lambda: p['lado']/(2**int(p['orden']) - 1) - p['ancho_pista'],
+    huecos = {'monopolo_flecha': lambda: p['alto']/2**int(p['iteracion'])*math.sin(math.radians(60)) - p['ancho_pista'],
+              'monopolo_hilbert': lambda: p['lado']/(2**int(p['orden']) - 1) - p['ancho_pista'],
               'monopolo_meandro': lambda: (p['alto'] - p['tramo_inicial'])/(2*int(p['vueltas'])) - p['ancho_pista']}
     hueco = huecos[tipo.clave]() if tipo.clave in huecos else None
     avisos = []
@@ -451,6 +457,13 @@ CATALOGO = {t.clave: t for t in [
                [Parametro('alto', 'Altura (distancia entre extremos) [mm]', 20, 3, 200, 0.1),
                 Parametro('iteracion', 'Iteración', 2, 0, 4, 1, True),
                 Parametro('angulo', 'Ángulo de la indentación [°]', 60, 20, 85, 1), PISTA] + PARAMS_MASA, 'alto'),
+    TipoAntena('monopolo_flecha', 'Monopolo de punta de flecha de Sierpinski',
+               'Curva de punta de flecha de Sierpinski: una sola pista que rellena un triángulo, de esquina a esquina '
+               'de su base. Muy compacta; por curiosidad, sin validar.', 'monopolo',
+               [Parametro('alto', 'Base del triángulo (entre extremos) [mm]', 13, 3, 200, 0.1),
+                Parametro('iteracion', 'Iteración', 3, 1, 6, 1, True),
+                Parametro('ancho_pista', 'Ancho de la pista [mm]', 0.4, 0.15, 5, 0.05)] + PARAMS_MASA,
+               'alto', escala_conjunta=('ancho_pista',), precision='±25 % (sin calibrar)'),
     TipoAntena('monopolo_hilbert', 'Monopolo de Hilbert',
                'Curva de Hilbert: muy compacta; el orden alto exige pistas y huecos finos.', 'monopolo',
                [Parametro('lado', 'Lado del cuadrado [mm]', 15, 3, 100, 0.1),
@@ -772,7 +785,7 @@ for _tj in [
 
 
 GRUPO_AJUSTE = {'monopolo_recto': 'monopolo_pista', 'monopolo_meandro': 'monopolo_pista',
-                'monopolo_koch': 'monopolo_pista', 'monopolo_hilbert': 'monopolo_pista',
+                'monopolo_koch': 'monopolo_pista', 'monopolo_hilbert': 'monopolo_pista', 'monopolo_flecha': 'sin_ajuste',
                 'monopolo_sierpinski': 'monopolo', 'jpole': 'jpole', 'jpole_koch': 'jpole', 'yagi_koch': 'yagi',
                 'yagi_boom': 'sin_ajuste',
                 'parche_rectangular': 'parche_rect', 'parche_minkowski': 'parche', 'parche_circular': 'sin_ajuste', 'parche_ranura': 'sin_ajuste', 'parche_apilado': 'sin_ajuste', 'ifa': 'sin_ajuste', 'pifa': 'sin_ajuste', 'dipolo_sleeve': 'sin_ajuste', 'vivaldi': 'sin_ajuste', 'colineal_dipolos': 'sin_ajuste', 'array_parches': 'array',
@@ -793,6 +806,7 @@ ESCALABLES = {
     'monopolo_recto': ('ancho_pista',) + _MASA,
     'monopolo_meandro': ('ancho_pista', 'tramo_inicial') + _MASA,
     'monopolo_koch': ('ancho_pista',) + _MASA,
+    'monopolo_flecha': _MASA,           # la pista va con la base (escala_conjunta)
     'monopolo_hilbert': _MASA,          # pista y separación van con el lado (escala_conjunta), no con λ
     'monopolo_sierpinski': ('cuello',) + _MASA,
     'parche_rectangular': ('largo_alimentacion',),

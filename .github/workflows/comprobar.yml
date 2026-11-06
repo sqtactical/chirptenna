@@ -1,5 +1,5 @@
 # Comprobación automática: instala Chirptenna como lo haría un usuario (instalar.ps1), instala KiCad, genera y
-# exporta los 25 tipos a 868 MHz y 2,4 GHz con el DRC de KiCad, y abre todas las pestañas de la interfaz.
+# exporta los 26 tipos a 868 MHz y 2,4 GHz con el DRC de KiCad, y abre todas las pestañas de la interfaz.
 # No simula con openEMS (tarda demasiado); solo comprueba que se importa.
 #   lock:   versiones exactas de requirements-lock.txt (lo que instala el instalador)
 #   rangos: las más nuevas que permite requirements.txt (avisa antes de que una versión nueva rompa algo)
@@ -63,7 +63,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit 1 }
           Get-ChildItem 'C:\Program Files\KiCad\*\bin\kicad-cli.exe' | ForEach-Object { $_.FullName }
 
-      - name: Generar y exportar los 25 tipos (DRC de KiCad y reglas de JLC)
+      - name: Generar y exportar los 26 tipos (DRC de KiCad y reglas de JLC)
         run: |
           & "$env:LOCALAPPDATA\antenas\venv\Scripts\python.exe" herramientas\comprobar_tipos.py salidas\_comprobar_tipos
           if ($LASTEXITCODE -ne 0) { exit 1 }
@@ -73,7 +73,7 @@ jobs:
           & "$env:LOCALAPPDATA\antenas\venv\Scripts\python.exe" herramientas\prueba_interfaz.py
           if ($LASTEXITCODE -ne 0) { exit 1 }
 
-      - name: Versión web (Pyodide en Chromium, 25 tipos × 2 bandas, DRC de KiCad)
+      - name: Versión web (Pyodide en Chromium, 26 tipos × 2 bandas, DRC de KiCad)
         if: matrix.paquetes == 'lock'
         run: |
           $py = "$env:LOCALAPPDATA\antenas\venv\Scripts\python.exe"

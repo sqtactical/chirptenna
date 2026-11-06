@@ -84,6 +84,7 @@ La placa resultante (render de KiCad): cara superior y cara inferior con el logo
 | Monopolo de Sierpinski | monopolo | ✅ validado (2,4 GHz y 868 MHz) |
 | Monopolo de Hilbert | monopolo | ⚠️ resuena, pero sin red en π no adapta |
 | Parche rectangular | parche | ✅ validado (banda estrecha) |
+| Monopolo de punta de flecha de Sierpinski (curiosidad) | monopolo | ⚠️ sin testear ni validar |
 | Parche de Minkowski | parche | ⚠️ iteración 1 bien; la 3 tiene poca eficiencia en FR4 |
 | Parche de polarización circular (esquinas cortadas, una sola entrada; GPS, Iridium) | parche | ⚠️ sin testear ni validar |
 | Parche con ranura en U | parche | ⚠️ sin testear ni validar |

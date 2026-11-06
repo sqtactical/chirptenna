@@ -43,6 +43,8 @@ TIPOS = {
                       ['largo_brazo', 'forma', 'alimentacion', 'conector']),
     'jpole_koch': ('sin_masa', 'J-pole con radiador de Koch: sin masa, se alimenta con coaxial. Para mástil.',
                    ['largo_radiador', 'iteracion', 'ajuste']),
+    'monopolo_flecha': ('experimental', 'Punta de flecha de Sierpinski: una pista que rellena un triángulo. Curiosidad, sin validar.',
+                        ['alto', 'iteracion', 'masa', 'conector']),
     'monopolo_hilbert': ('experimental', 'Curva de Hilbert: muy compacta, pero adapta mal sin red en π.',
                          ['lado', 'orden', 'masa', 'conector', 'ajuste']),
     'ifa': ('experimental', 'Antena F invertida (J-pole en F): monopolo plegado con cortocircuito a masa. Sin validar.',

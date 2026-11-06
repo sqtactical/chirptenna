@@ -18,6 +18,7 @@ ESTADO = {
     'monopolo_meandro': ('validada', 'Validada en simulación (2,4 GHz y 868 MHz)'),
     'monopolo_koch': ('validada', 'Validada en simulación (2,4 GHz y 868 MHz)'),
     'monopolo_hilbert': ('no_funciona', 'No funciona sin red en π'),
+    'monopolo_flecha': ('pendiente', 'Sin testear ni validar (curiosidad)'),
     'monopolo_sierpinski': ('validada', 'Validada en simulación (2,4 GHz y 868 MHz)'),
     'parche_rectangular': ('validada', 'Validada en simulación (banda estrecha)'),
     'parche_minkowski': ('pendiente', 'Pendiente de validación (eficiencia baja en FR4)'),
@@ -52,6 +53,11 @@ FIJOS = {
     'monopolo_meandro': [
         ('aviso', 'La frecuencia salta varios % con pequeños cambios del alto (ruido de malla con el meandro): '
                   'el ajuste puede necesitar más iteraciones. Con masa pequeña puede no llegar a −10 dB.'),
+    ],
+    'monopolo_flecha': [
+        ('aviso', 'Sin testear ni validar: no se ha simulado ni medido, y no se conoce ninguna antena publicada con esta curva. '
+                  'Como el Hilbert, es una pista larga y fina (más cara de simular y sensible a la fabricación): el tamaño y la '
+                  'longitud equivalente son una estimación sin calibrar.'),
     ],
     'monopolo_hilbert': [
         ('grave', 'Resuena, pero sin red en π adapta muy mal (−2,7 dB a 2,4 GHz y −4,6 dB a 868 MHz en simulación). '

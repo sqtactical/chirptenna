@@ -27,7 +27,7 @@ BANDAS = ['2,4 GHz', '5,8 GHz', '1,2 GHz radioaficionado', 'GPS L1', 'Iridium', 
 TIPOS = ['monopolo_recto', 'monopolo_koch', 'monopolo_meandro', 'monopolo_sierpinski', 'dipolo', 'dipolo_bowtie',
          'dipolo_sleeve', 'ifa', 'pifa', 'jpole', 'jpole_koch', 'parche_rectangular', 'parche_circular',
          'parche_ranura', 'parche_apilado', 'parche_minkowski', 'yagi_boom', 'vivaldi', 'colineal_franklin',
-         'colineal_coco', 'monopolo_hilbert', 'yagi_koch', 'panel_dipolos', 'colineal_dipolos', 'array_parches']
+         'colineal_coco', 'monopolo_flecha', 'monopolo_hilbert', 'yagi_koch', 'panel_dipolos', 'colineal_dipolos', 'array_parches']
 # Combinaciones que no tienen sentido o ya se sabe que no sirven
 SALTAR = {('colineal_coco', '868'), ('monopolo_hilbert', '5,8 GHz'), ('yagi_koch', '5,8 GHz')}
 
@@ -37,6 +37,7 @@ TABLA_FORMA = {
     'monopolo_koch': ['iteracion=2,1,3', 'ancho_pista=x1,x0.6,x1.6'],
     'monopolo_meandro': ['ancho_meandro=x1,x0.7,x1.3', 'vueltas=3,2,4'],
     'monopolo_sierpinski': ['iteracion=2,1,3', 'apertura=60,45,75'],
+    'monopolo_flecha': ['iteracion=3,2,4', 'ancho_pista=x1,x0.7,x1.4'],
     'monopolo_hilbert': ['orden=3,2'],
     'dipolo': ['ancho_pista=x1,x0.6,x2', 'iteracion=0,1'],
     'dipolo_bowtie': ['apertura=70,55,85', 'forma=1,2'],

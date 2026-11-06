@@ -86,6 +86,7 @@ The resulting board (KiCad render): top side and bottom side with the logo and l
 | Sierpinski monopole | monopole | ✅ validated (2.4 GHz and 868 MHz) |
 | Hilbert monopole | monopole | ⚠️ resonates, but does not match without a π network |
 | Rectangular patch | patch | ✅ validated (narrowband) |
+| Sierpinski arrowhead monopole (a curiosity) | monopole | ⚠️ not tested or validated |
 | Minkowski patch | patch | ⚠️ iteration 1 fine; iteration 3 has low efficiency on FR4 |
 | Circularly polarised patch (cut corners, single feed; GPS, Iridium) | patch | ⚠️ not tested or validated |
 | Patch with U-slot | patch | ⚠️ not tested or validated |

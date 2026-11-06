@@ -71,6 +71,33 @@ def isla_minkowski(esquinas, iteraciones, profundidad=0.5):
     return Polygon(pts).buffer(0)
 
 
+def flecha_sierpinski(iteracion, largo):
+    """Curva de la punta de flecha de Sierpinski: una sola línea que rellena un triángulo y empieza y acaba en
+    las dos esquinas de su base. Devuelve los puntos con la base sobre el eje y (de (0, 0) a (0, largo)) y el
+    triángulo hacia +x. Longitud total = largo·(3/2)^iteración."""
+    cad = 'A'
+    for _ in range(int(iteracion)):
+        cad = ''.join({'A': 'B-A-B', 'B': 'A+B+A'}.get(c, c) for c in cad)
+    pts, h, x, y = [(0.0, 0.0)], 0.0, 0.0, 0.0
+    for c in cad:
+        if c in 'AB':
+            x, y = x + math.cos(h), y + math.sin(h)
+            pts.append((x, y))
+        elif c == '+':
+            h += math.pi/3
+        elif c == '-':
+            h -= math.pi/3
+    p = np.array(pts)
+    v = p[-1] - p[0]
+    a = -math.atan2(v[1], v[0])                       # base sobre el eje x
+    rot = np.array([[math.cos(a), -math.sin(a)], [math.sin(a), math.cos(a)]])
+    p = (p - p[0]) @ rot.T*(largo/np.hypot(*v))
+    p = np.column_stack([-p[:, 1], p[:, 0]])          # base sobre el eje y
+    if p[:, 0].mean() < 0:
+        p[:, 0] = -p[:, 0]
+    return p
+
+
 def hilbert(orden):
     """Curva de Hilbert de orden n en el cuadrado unidad; empieza en (0,0) y acaba en (1,0)."""
     cadena = sistema_l('A', {'A': '+BF-AFA-FB+', 'B': '-AF+BFB+FA-'}, orden)
