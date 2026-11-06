@@ -152,12 +152,12 @@ jobs:
       - name: Compilar openEMS con el plugin de GPU (NVIDIA)
         run: |
           $ErrorActionPreference = 'Stop'; $PSNativeCommandUseErrorActionPreference = $true   # un fallo de cmake o ninja para el paso
-          $cl = (Get-Command cl).Source
+          $cl = (Get-Command cl).Source -replace '\\', '/'      # con barras invertidas y espacios, nvcc recibe una ruta rota en -ccbin
           cmake -S "$env:GB\src\openEMS" -B "$env:GB\build\openEMS" -G Ninja -DCMAKE_BUILD_TYPE=Release "-DCMAKE_INSTALL_PREFIX=$env:GB\opt" `
             "-DCMAKE_TOOLCHAIN_FILE=$env:GB\vcpkg\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-release `
             -DVCPKG_HOST_TRIPLET=x64-windows-release "-DCMAKE_PREFIX_PATH=$env:GB\opt" "-DCSXCAD_ROOT_DIR=$env:GB\opt" `
-            "-DCMAKE_CXX_COMPILER=$cl" "-DCMAKE_CUDA_COMPILER=$env:GB\cuda\bin\nvcc.exe" "-DCMAKE_CUDA_HOST_COMPILER=$cl" `
-            "-DCUDAToolkit_ROOT=$env:GB\cuda" "-DCMAKE_CUDA_ARCHITECTURES=${{ inputs.arquitecturas }}" `
+            "-DCMAKE_CXX_COMPILER=$cl" "-DCMAKE_CUDA_COMPILER=D:/gpu/cuda/bin/nvcc.exe" "-DCMAKE_CUDA_HOST_COMPILER=$cl" `
+            "-DCUDAToolkit_ROOT=D:/gpu/cuda" "-DCMAKE_CUDA_ARCHITECTURES=${{ inputs.arquitecturas }}" `
             "-DHIP_INCLUDE_DIR=$env:HIP_INCLUDE_DIR" -DOPENEMS_GPU_PLUGINS=ON -DOPENEMS_HIP_AS_CUDA=ON
           cmake --build "$env:GB\build\openEMS"
           cmake --install "$env:GB\build\openEMS"
