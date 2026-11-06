@@ -6,7 +6,8 @@ Uso (desde la raíz):
   tipo      clave del catálogo (monopolo_koch, parche_circular, vivaldi…)
   f_MHz     frecuencia objetivo, o el nombre de una banda («2,4 GHz», «868», «915 ISM»…)
   param=…   un valor fija el parámetro; varios valores, separados por comas, lo barren. Los parámetros no
-            nombrados salen de `tipos.dimensionar` (tamaño ajustado a la frecuencia).
+            nombrados salen de `tipos.dimensionar` (tamaño ajustado a la frecuencia). Un valor con «x» delante
+            (`alto=x0.9,x1,x1.1`) es un factor sobre el que da `dimensionar`: sirve para cualquier banda.
 
 Opciones:
   --modo grid|uno   grid (por defecto): todas las combinaciones; uno: cada parámetro por separado alrededor
@@ -16,6 +17,8 @@ Opciones:
   --etiqueta E      nombre de la carpeta de resultados (salidas/_barridos/<E>); por defecto tipo_f_fecha
   --paso mm         paso de malla fijo (por defecto 0,9 × el más fino de todas las configuraciones)
   --top N           cuántas mejores configuraciones se repiten con el diagrama de radiación (1)
+  --radiacion       calcula el diagrama (ganancia, eficiencia, dirección, polarización) en todas las
+                    configuraciones, en la misma simulación (no hace falta --top)
   --max N           límite de configuraciones (60)
   --max-celdas M    salta las configuraciones con más de M millones de celdas estimadas (sin límite)
   --cpu             usa la CPU en vez de la GPU
@@ -46,7 +49,7 @@ def _opciones(argv):
         a = argv[i]
         if a.startswith('--'):
             k = a[2:]
-            if k in ('cpu', 'solo-lista', 'rehacer'):
+            if k in ('cpu', 'solo-lista', 'rehacer', 'radiacion'):
                 opt[k] = True
             else:
                 i += 1
@@ -63,6 +66,15 @@ def _opciones(argv):
 def _valor(parametro, texto):
     v = float(texto.replace(',', '.')) if not isinstance(texto, (int, float)) else float(texto)
     return int(round(v)) if parametro.entero else v
+
+
+def _radiacion(r):
+    rad = {'directividad_dBi': round(r['directividad_dBi'], 2), 'ganancia_dBi': round(r['ganancia_dBi'], 2),
+           'eficiencia_%': round(100*r['eficiencia_radiacion'], 1), 'direccion_max': r.get('direccion_max')}
+    for k in ('ar_dB_max', 'ar_dB_theta0', 'pol_max', 'pol_theta0'):
+        if k in r:
+            rad[k] = round(r[k], 1) if isinstance(r[k], float) else r[k]
+    return rad
 
 
 def _bloqueo():
@@ -108,36 +120,56 @@ def main():
     sus_nombre = opt.get('sustrato', 'FR4 JLC 1,6 mm')
     s = tipos.sustrato(sus_nombre)
     nombres = {q.nombre: q for q in tipo.parametros}
-    listas = {}
+    esc, conj = tipo.escala, tipo.escala_conjunta
+    espec = {}                                      # parámetro -> especificaciones: ('v', valor) o ('x', factor)
     for k, vs in par_txt.items():
         if k not in nombres:
             sys.exit(f'«{k}» no es un parámetro de {clave}. Parámetros: {", ".join(nombres)}')
-        listas[k] = [_valor(nombres[k], v) for v in vs]
-    fijos = {k: v[0] for k, v in listas.items() if len(v) == 1}
-    barridos = {k: v for k, v in listas.items() if len(v) > 1}
-    base = tipos.dimensionar(clave, f_obj, dict(fijos), sus_nombre, fijos=tuple(listas))
-    base.pop('_aviso', None)
-    esc, conj = tipo.escala, tipo.escala_conjunta
-    prop = {k: base[k]/base[esc] for k in conj}
+        espec[k] = [('x', float(v[1:])) if v.startswith('x') else ('v', _valor(nombres[k], v)) for v in vs]
+    discreto = lambda k: bool(nombres[k].entero or getattr(nombres[k], 'opciones', None))
+    fijos_abs = {k: sp[0][1] for k, sp in espec.items() if sp[0][0] == 'v'}      # valores absolutos: dimensionar no los toca
+    cache_base = {}
 
-    def config(cambios):
-        q = dict(base)
+    def base_de(disc):
+        """Tamaño ajustado a la frecuencia con los parámetros discretos de la combinación (iteración, orden…)."""
+        k_b = json.dumps(disc, sort_keys=True)
+        if k_b not in cache_base:
+            fj = dict(fijos_abs)
+            fj.update(disc)
+            b = tipos.dimensionar(clave, f_obj, dict(fj), sus_nombre, fijos=tuple(fj))
+            b.pop('_aviso', None)
+            cache_base[k_b] = b
+        return cache_base[k_b]
+
+    def resolver(combo):
+        disc = {k: sp[1] for k, sp in combo.items() if discreto(k) and sp[0] == 'v'}
+        b = base_de(disc)
+        cambios = {k: (sp[1] if sp[0] == 'v' else round(b[k]*sp[1], 3)) for k, sp in combo.items()}
+        q = dict(b)
+        prop = {k: b[k]/b[esc] for k in conj}
         for k, v in cambios.items():
             q[k] = v
-            if k == esc:                                  # las medidas ligadas al tamaño principal lo siguen
+            if k == esc:                              # las medidas ligadas al tamaño principal lo siguen
                 for kk, r_ in prop.items():
-                    if kk not in cambios and kk not in listas:
+                    if kk not in cambios:
                         q[kk] = round(r_*v, 3)
-        return q
+        return cambios, q
 
+    fijos = {k: sp[0] for k, sp in espec.items() if len(sp) == 1}
+    barridos = {k: sp for k, sp in espec.items() if len(sp) > 1}
     if opt['modo'] == 'uno':
-        combos = [{}]
-        for k, vs in barridos.items():
-            combos += [{k: v} for v in vs if v != vs[0]]
-        combos = [dict({k: vs[0] for k, vs in barridos.items()}, **c) for c in combos]
+        base_sp = {k: sp[0] for k, sp in barridos.items()}
+        crudos = [dict(base_sp)]
+        for k, sp in barridos.items():
+            crudos += [dict(base_sp, **{k: v}) for v in sp[1:]]
     else:
         ks = list(barridos)
-        combos = [dict(zip(ks, vs)) for vs in itertools.product(*barridos.values())] if ks else [{}]
+        crudos = [dict(zip(ks, vs)) for vs in itertools.product(*barridos.values())] if ks else [{}]
+    combos, qs = [], []
+    for cr in crudos:
+        cambios, q = resolver(dict(fijos, **cr))
+        combos.append(cambios)
+        qs.append(q)
     if len(combos) > int(opt['max']):
         sys.exit(f'{len(combos)} configuraciones: más del límite ({opt["max"]}). Sube --max o reduce los valores.')
 
@@ -148,8 +180,7 @@ def main():
 
     # antenas y paso de malla común
     antenas, naturales = [], []
-    for c in combos:
-        q = config(c)
+    for c, q in zip(combos, qs):
         try:
             a = tipos.generar(clave, q, sus_nombre)
         except Exception as ex:
@@ -205,7 +236,9 @@ def main():
             t0 = time.time()
             fila = {'cambios': c, 'f_MHz': f_MHz, 'paso': paso, 'parametros': q}
             try:
-                r = simulacion.simular(a, s, f_obj, 'normal', nf2ff=False, progreso=lambda m: None, paso=paso)
+                con_rad = bool(opt.get('radiacion'))
+                r = simulacion.simular(a, s, f_obj, 'normal', nf2ff=con_rad, progreso=lambda m: None, paso=paso,
+                                       f_radiacion=f_obj if con_rad else None)
                 lo, hi = f_MHz - bw_MHz/2, f_MHz + bw_MHz/2
                 puntos = [lo + (hi - lo)*i/4 for i in range(5)]
                 s11 = [simulacion._s11_en(r, fm*1e6)[0] for fm in puntos]
@@ -216,6 +249,8 @@ def main():
                              'banda_10dB': None if flo is None else [round(flo/1e6), round(fhi/1e6)],
                              'f_res_MHz': round(r['f_resonancia_Hz']/1e6, 1), 'celdas_M': round(r['celdas']/1e6, 1),
                              's': round(time.time() - t0), 'avisos': r['avisos'][:2]})
+                if con_rad:
+                    fila['radiacion'] = _radiacion(r)
             except Exception as ex:
                 fila.update({'error': f'{type(ex).__name__}: {ex}', 's': round(time.time() - t0)})
             filas.append(fila)
@@ -226,17 +261,15 @@ def main():
         buenas = sorted([f for f in filas if 'peor_banda_dB' in f], key=lambda f: f['peor_banda_dB'])
         print('\n--- ordenadas por el peor S11 en la banda ---')
         for f in buenas[:10]:
-            print(f"  {f['peor_banda_dB']:6.1f} dB  obj {f['s11_obj_dB']:6.1f}  res {f['f_res_MHz']:7.1f} MHz  banda {f['banda_10dB']}  {json.dumps(f['cambios'], ensure_ascii=False)}")
+            g_ = f.get('radiacion', {})
+            print(f"  {f['peor_banda_dB']:6.1f} dB  obj {f['s11_obj_dB']:6.1f}  res {f['f_res_MHz']:7.1f} MHz  banda {f['banda_10dB']}"
+                  + (f"  G {g_.get('ganancia_dBi')} dBi η {g_.get('eficiencia_%')} %" if g_ else '') + f"  {json.dumps(f['cambios'], ensure_ascii=False)}")
         # radiación de las mejores
         mejores = []
-        for f in buenas[:int(opt['top'])]:
+        for f in ([] if opt.get('radiacion') else buenas[:int(opt['top'])]):
             a = tipos.generar(clave, f['parametros'], sus_nombre)
             r = simulacion.simular(a, s, f_obj, 'normal', nf2ff=True, progreso=lambda m: None, paso=paso, f_radiacion=f_obj)
-            rad = {'directividad_dBi': round(r['directividad_dBi'], 2), 'ganancia_dBi': round(r['ganancia_dBi'], 2),
-                   'eficiencia_%': round(100*r['eficiencia_radiacion'], 1), 'direccion_max': r.get('direccion_max')}
-            for k in ('ar_dB_max', 'ar_dB_theta0', 'pol_max', 'pol_theta0'):
-                if k in r:
-                    rad[k] = round(r[k], 1) if isinstance(r[k], float) else r[k]
+            rad = _radiacion(r)
             f['radiacion'] = rad
             mejores.append(f)
             print('  RADIACIÓN', json.dumps(f['cambios'], ensure_ascii=False), json.dumps(rad, ensure_ascii=False), flush=True)
