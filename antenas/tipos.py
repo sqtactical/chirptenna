@@ -481,7 +481,7 @@ CATALOGO = {t.clave: t for t in [
                 Parametro('multibanda', 'Bandas', 0, 0, 1, 1, True,
                           opciones={0: 'Una banda', 1: 'Dos bandas (la segunda, a ~3 veces la primera)'},
                           ayuda='Dos bandas: el diseño se ajusta a la banda baja y, con apertura 85° e iteración 2, la segunda '
-                                'resonancia cae cerca de 3 veces su frecuencia (869 MHz y 2,4 GHz en simulación)')] + PARAMS_MASA,
+                                'resonancia cae cerca de 3 veces su frecuencia (868/915 MHz y 2,4 GHz en simulación)')] + PARAMS_MASA,
                'alto'),
     TipoAntena('ifa', 'Antena F invertida (J-pole en F)',
                'Monopolo λ/4 plegado en «F»: brazo horizontal paralelo a la masa, alimentado por una toma y '
@@ -1140,9 +1140,13 @@ def dimensionar(clave, f_obj, parametros=None, nombre_sustrato=None, fijos=()):
     return p
 
 
-# Sierpinski de dos bandas: con apertura 85° e iteración 2 la segunda resonancia cae a ~3× la primera. Simulado a
-# 869 MHz y 2,4 GHz (S11 −13 y −11,6 dB en 868–870 y 2400–2483,5 MHz con altura 50,17 mm = 0,98 × el tamaño de una banda)
+# Sierpinski de dos bandas: con apertura 85° e iteración 2 la segunda resonancia cae a ~3× la primera. Simulado (06-11,
+# FR4 1,6 mm, sin centrar) con la banda alta en 2400–2483,5 MHz y la baja en:
+#   868–870 MHz: altura 50,17 mm -> S11 −13,0 y −11,6 dB (malla de 0,7 mm)
+#   902–928 MHz y 863–928 MHz: altura 49,7 mm -> S11 −10,0 y −9,7 dB
+# Fuera de esas bandas se escala el tamaño de una banda con k_alto (sin simular).
 MULTIBANDA_SIERPINSKI = {'apertura': 85, 'iteracion': 2, 'k_alto': 0.98}
+MULTIBANDA_ALTURAS = ((860e6, 880e6, 50.17), (880e6, 930e6, 49.7))        # (f_min, f_max, altura [mm]) simuladas
 _dimensionar_una_banda = dimensionar
 
 
@@ -1154,6 +1158,9 @@ def dimensionar(clave, f_obj, parametros=None, nombre_sustrato=None, fijos=()):
         p = _dimensionar_una_banda(clave, f_obj, q, nombre_sustrato, fijos=tuple(fijos) + ('apertura', 'iteracion'))
         aviso = p.pop('_aviso', None)
         p['alto'] = round(MULTIBANDA_SIERPINSKI['k_alto']*p['alto'], 2)
+        for f_min, f_max, alto in MULTIBANDA_ALTURAS:
+            if f_min <= f_obj < f_max:
+                p['alto'] = alto
         if aviso is not None:
             p['_aviso'] = aviso
         return p

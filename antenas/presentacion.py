@@ -10,7 +10,7 @@ from .i18n import tr
 
 # Bandas de uso: (inicio, fin) en MHz. La antena se centra en el centro de la banda.
 # Los canales LoRa sueltos van en «Otra» (centro + ancho)
-BANDAS = {'433': (433.05, 434.79), '868': (863.0, 870.0), '915 ISM': (902.0, 928.0), '1,2 GHz radioaficionado': (1240.0, 1300.0),
+BANDAS = {'433': (433.05, 434.79), '868': (863.0, 870.0), '915 ISM': (902.0, 928.0), 'LoRa 863–928 MHz': (863.0, 928.0), '1,2 GHz radioaficionado': (1240.0, 1300.0),
           'GPS L1': (1565.42, 1585.42), 'Iridium': (1616.0, 1626.5), '2,4 GHz': (2400.0, 2483.5),
           '5,8 GHz': (5725.0, 5875.0), 'Otra': None}
 

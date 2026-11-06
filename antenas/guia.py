@@ -28,7 +28,7 @@ TIPOS = {
                          ['alto', 'vueltas', 'masa', 'conector', 'ajuste']),
     'monopolo_koch': ('portatil', 'Monopolo fractal de Koch: más compacto que el recto, con buena banda. Recomendado.',
                       ['alto', 'iteracion', 'masa', 'conector', 'ajuste']),
-    'monopolo_sierpinski': ('portatil', 'Triángulo fractal de Sierpinski: mucho ancho de banda, tolera desajustes; con «Dos bandas», cubre 869 MHz y 2,4 GHz.',
+    'monopolo_sierpinski': ('portatil', 'Triángulo fractal de Sierpinski: mucho ancho de banda, tolera desajustes; con «Dos bandas», cubre LoRa de 868/915 MHz y 2,4 GHz.',
                             ['alto', 'iteracion', 'multibanda', 'masa', 'conector', 'ajuste']),
     'parche_rectangular': ('directiva', 'Parche sobre plano de masa: algo directivo (~5 dBi) y de banda estrecha.',
                            ['largo', 'ancho', 'alimentacion', 'conector', 'ajuste']),
