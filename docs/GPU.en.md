@@ -4,7 +4,13 @@ Chirptenna can simulate on the GPU: ~10× faster than the CPU (RTX 3050 Laptop; 
 But the openEMS the installer sets up (v0.37.0) **does not include the GPU engine**: it only exists on the `master`
 branch of [openEMS](https://github.com/thliebig/openEMS), so you have to build it.
 
-> **Status of this guide: reconstructed, not verified from scratch.** It comes from what was left installed on the
+> **Verification (2026-11-06):** the GitHub Actions workflow `compilar-gpu.yml`, which repeats these steps on a clean machine,
+> built fine (CUDA 12.9.1, MSVC 14.44, architectures 75, 80, 86, 89 and 120) and its 12 MB package worked on the RTX 3050
+> Laptop: same resonance frequency, same S11 and same gain as the hand-built one (29 s with 0.65 M cells). Debugging it
+> required adding `fparser.lib`, `FPARSER_ROOT_DIR` and forward-slash paths for `nvcc`, already included below. It has not
+> been tried on any GPU other than the 3050 (compute capability 8.6).
+>
+> **Status of this guide (original text): reconstructed, not verified from scratch.** It comes from what was left installed on the
 > development machine (versions, CMake options, folders), not from repeating the build on a clean machine. If a step
 > fails, it is probably a detail that was done by hand and not written down: tell us or fix this guide. Verification from
 > scratch is pending (see «To do» at the end). The Spanish version, [`GPU.md`](GPU.md), is the reference one.
@@ -201,7 +207,8 @@ Silicon** (Metal built in; the published speed-up is ~1×, not worth it). None o
 
 ## To do
 
-- [ ] **Verify this guide from scratch** in a clean folder (better still, on another machine with a different NVIDIA
-      GPU), and fix whatever was left unwritten (the HIP `.deb` URL, `vsdownload.py` parameters, the `cudart` command).
+- [x] Verified from scratch on GitHub Actions (a clean Windows runner) and the result tested on an RTX 3050.
+- [ ] Try the package on another NVIDIA GPU (RTX 20, 40 or 50): the workflow already builds for those architectures, untested.
+- [ ] Publish the `.zip` as a release asset and offer it from the installer.
 - [ ] A script (`herramientas/compilar_gpu.ps1`) that does steps 1–6 and only asks for the GPU architecture.
 - [ ] Offer the GPU openEMS as an installer option (today only the CPU 0.37 is installed).
