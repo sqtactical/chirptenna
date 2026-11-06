@@ -81,6 +81,9 @@ def generar_dipolo(p, s, eps_impreso):
         # Coaxial al centro: una cara; vivo al brazo derecho, malla al izquierdo
         hc = p['hueco']
         y_d = Y_COAXIAL
+        if forma:
+            # la bowtie es simétrica respecto al centro: sube el centro para que no la corte el borde de abajo
+            y_d = max(y_d, la*math.tan(math.radians(p.get('apertura', 70))/2) + BORDE_COBRE + 0.2)
         der, g_der = brazo(1, y_d, hc/2)
         izq, g_izq = brazo(-1, y_d, hc/2)
         pads = [g.rectangulo(hc/2, y_d - 1.0, hc/2 + 2.0, y_d + 1.0), g.rectangulo(-hc/2 - 2.0, y_d - 1.0, -hc/2, y_d + 1.0)]
@@ -98,6 +101,8 @@ def generar_dipolo(p, s, eps_impreso):
         w50 = ancho_microstrip(50, s.er, s.h)
         wb = max(p['ancho_boom'], w50 + 3*s.h)
         y_d = BORDE_COBRE + p['largo_alimentacion']
+        if forma:
+            y_d = max(y_d, la*math.tan(math.radians(p.get('apertura', 70))/2) + BORDE_COBRE + 0.2)
         der, g_der = brazo(1, y_d, 0.0)
         izq, g_izq = brazo(-1, y_d, 0.0)
         sup = unary_union([g.rectangulo(-w50/2, BORDE_COBRE, w50/2, y_d + w/2), g_der])
