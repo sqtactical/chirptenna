@@ -125,6 +125,102 @@ def generar_dipolo(p, s, eps_impreso):
                                               'f_sin_cortar_MHz': None, 'ajuste': None}))
 
 
+# ------------------------------------------------------------------ Vivaldi antipodal
+def estimar_f_vivaldi(p, eps_impreso):
+    """Frecuencia de corte inferior aproximada: la boca mide ~λ/2 (efectiva)."""
+    return C0/(2*p['ancho_apertura']*1e-3*math.sqrt(eps_impreso))
+
+
+def _aleta(p, w50, lado):
+    """Aleta exponencial hacia el lado `lado` (+1 cara superior, −1 inferior), con la línea en x = 0.
+    Arranca con el ancho de la línea en y = 0 (local) y acaba en la boca, a Lf de altura."""
+    Wv, Lf, r = p['ancho_apertura'], p['largo_aleta'], p['tasa']
+    xi_fin = p['abertura_interior']*Wv/2
+    n = 60
+    ts = [i/n for i in range(n + 1)]
+    s = [(math.exp(r*t) - 1)/(math.exp(r) - 1) for t in ts]
+    ext = [(w50/2 + (Wv/2 - w50/2)*si, Lf*t) for si, t in zip(s, ts)]
+    inte = [(-w50/2 + (xi_fin + w50/2)*si, Lf*t) for si, t in zip(s, ts)]
+    pol = Polygon(ext + inte[::-1])
+    return affinity.scale(pol, xfact=lado, yfact=1, origin=(0, 0))
+
+
+def generar_vivaldi(p, s, eps_impreso):
+    w50 = ancho_microstrip(50, s.er, s.h)
+    wb = max(p['ancho_boom'], w50 + 3*s.h)
+    y_f = BORDE_COBRE + p['largo_alimentacion']          # donde empiezan las aletas
+    margen = p.get('margen_borde', 2.0)
+    sup = unary_union([g.rectangulo(-w50/2, BORDE_COBRE, w50/2, y_f + 0.01),
+                       affinity.translate(_aleta(p, w50, 1), 0, y_f)])
+    inf = unary_union([g.rectangulo(-wb/2, BORDE_COBRE, wb/2, y_f + 0.01),
+                       affinity.translate(_aleta(p, w50, -1), 0, y_f)])
+    a_min = conector.ANCHO_MINIMO[conector.tipo(p)]
+    contorno = g.contorno_placa([unary_union([sup, inf]).buffer(margen), g.rectangulo(-a_min/2, 0, a_min/2, 6.0)],
+                                int(p.get('contorno', 1)), recorte=(-1e4, 0, 1e4, 1e4))
+    interior = contorno.buffer(-BORDE_COBRE, join_style='mitre')
+    sup, inf = sup.intersection(interior), inf.intersection(interior)
+    x0, y0_, x1, y1_ = unary_union([sup, inf]).bounds
+    return Antena(tipo='vivaldi', parametros=dict(p), capas={'F.Cu': sup, 'B.Cu': inf}, ajuste=ajuste.vacio(),
+                  radiador=unary_union([sup, inf]), contorno=contorno, zona_libre=contorno,
+                  puerto={'borde': (0.0, 0.0), 'direccion': (0, 1), 'alimentacion': (0.0, y_f), 'ancho_linea': w50},
+                  info=_info_placa(contorno, {'radiador_mm': [round(x1 - x0, 2), round(y1_ - y_f, 2)],
+                                              'hueco_minimo_mm': round(p['abertura_interior']*p['ancho_apertura'], 2),
+                                              'pista_minima_mm': round(w50, 3), 'avisos': [],
+                                              'f_sin_cortar_MHz': None, 'ajuste': None}))
+
+
+# ------------------------------------------------------------------ colineal de dipolos en serie (microstrip)
+def estimar_f_colineal_dipolos(p, eps_impreso):
+    """Cada dipolo mide 2 brazos de `largo_brazo`: resuena donde esos dos brazos son λ/2 (efectiva)."""
+    return C0/(2*2*p['largo_brazo']*1e-3*math.sqrt(eps_impreso))
+
+
+def generar_colineal_dipolos(p, s, eps_impreso):
+    """N dipolos en fila unidos por tramos de microstrip de λg (en fase). Cada dipolo: brazo inferior (placa
+    en la cara de abajo, bajo la línea) y brazo superior (placa en la cara de arriba, a continuación de la
+    línea). Entre dipolos, la línea de 50 Ω sobre una tira de masa continua."""
+    w50 = ancho_microstrip(50, s.er, s.h)
+    wa = p['ancho_brazo']
+    wb = max(p['ancho_boom'], w50 + 3*s.h)
+    La, n = p['largo_brazo'], int(p['elementos'])
+    f_est = estimar_f_colineal_dipolos(p, eps_impreso)
+    lam_g = C0/f_est*1e3/math.sqrt(eps_eff_microstrip(s.er, s.h, w50))
+    Ls = p['factor_linea']*lam_g
+    y = BORDE_COBRE
+    F, B = [], []
+    B.append(g.rectangulo(-wb/2, y, wb/2, y + p['largo_entrada']))
+    F.append(g.rectangulo(-w50/2, y, w50/2, y + p['largo_entrada']))
+    y += p['largo_entrada']
+    y_alim = None
+    for k in range(n):
+        if k == 0:
+            y_alim = y + La
+        B.append(g.rectangulo(-wa/2, y, wa/2, y + La))                      # brazo inferior (B.Cu)
+        F.append(g.rectangulo(-w50/2, y, w50/2, y + La + 0.01))             # la línea pasa sobre él
+        F.append(g.rectangulo(-wa/2, y + La, wa/2, y + 2*La))               # brazo superior (F.Cu)
+        B.append(g.rectangulo(-wb/2, y + La, wb/2, y + 2*La))               # la masa sigue bajo el brazo
+        y += 2*La
+        if k < n - 1:
+            B.append(g.rectangulo(-wb/2, y, wb/2, y + Ls))
+            F.append(g.rectangulo(-w50/2, y - 0.01, w50/2, y + Ls))
+            y += Ls
+    sup, inf = unary_union(F), unary_union(B)
+    margen = p.get('margen_borde', 2.0)
+    a_min = conector.ANCHO_MINIMO[conector.tipo(p)]
+    contorno = g.contorno_placa([unary_union([sup, inf]).buffer(margen), g.rectangulo(-a_min/2, 0, a_min/2, 6.0)],
+                                int(p.get('contorno', 1)), recorte=(-1e4, 0, 1e4, 1e4))
+    interior = contorno.buffer(-BORDE_COBRE, join_style='mitre')
+    sup, inf = sup.intersection(interior), inf.intersection(interior)
+    x0, _, x1, y1_ = unary_union([sup, inf]).bounds
+    return Antena(tipo='colineal_dipolos', parametros=dict(p), capas={'F.Cu': sup, 'B.Cu': inf}, ajuste=ajuste.vacio(),
+                  radiador=unary_union([sup, inf]), contorno=contorno, zona_libre=contorno,
+                  puerto={'borde': (0.0, 0.0), 'direccion': (0, 1), 'alimentacion': (0.0, y_alim), 'ancho_linea': w50},
+                  info=_info_placa(contorno, {'radiador_mm': [round(x1 - x0, 2), round(y1_, 2)],
+                                              'hueco_minimo_mm': None, 'pista_minima_mm': round(min(w50, wa), 3),
+                                              'longitud_linea_mm': round(Ls, 1), 'avisos': [],
+                                              'f_sin_cortar_MHz': None, 'ajuste': None}))
+
+
 # ------------------------------------------------------------------ colineal coaxial impresa (COCO)
 def eps_eff_coco(s, w):
     """Cada tramo es una microstrip: tira estrecha (el vivo) arriba sobre la ancha (la malla) abajo."""

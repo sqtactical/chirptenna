@@ -22,6 +22,13 @@ ESTADO = {
     'parche_rectangular': ('validada', 'Validada en simulación (banda estrecha)'),
     'parche_minkowski': ('pendiente', 'Pendiente de validación (eficiencia baja en FR4)'),
     'parche_circular': ('pendiente', 'Sin testear ni validar'),
+    'parche_ranura': ('pendiente', 'Sin testear ni validar'),
+    'parche_apilado': ('pendiente', 'Sin testear ni validar'),
+    'ifa': ('pendiente', 'Sin testear ni validar'),
+    'pifa': ('pendiente', 'Sin testear ni validar'),
+    'dipolo_sleeve': ('pendiente', 'Sin testear ni validar'),
+    'vivaldi': ('pendiente', 'Sin testear ni validar'),
+    'colineal_dipolos': ('pendiente', 'Sin testear ni validar'),
     'yagi_koch': ('no_funciona', 'No funciona: radia hacia atrás'),
     'yagi_boom': ('validada', 'Validada en simulación con elementos rectos (2,4 GHz y 868 MHz)'),
     'array_parches': ('pendiente', 'Pendiente de validación'),
@@ -56,6 +63,36 @@ FIJOS = {
     'parche_rectangular': [
         ('aviso', 'Banda estrecha en FR4 de 1,6 mm (~36 MHz a 2,4 GHz): no cubre toda la ISM de 83,5 MHz. '
                   'Eficiencia ~47 % por las pérdidas del FR4.'),
+    ],
+    'ifa': [
+        ('aviso', 'Sin testear ni validar: no se ha simulado ni medido. El largo del brazo y la distancia de la toma al '
+                  'cortocircuito no están calibrados; la toma fija la impedancia y hay que afinarla simulando.'),
+    ],
+    'pifa': [
+        ('aviso', 'Sin testear ni validar: no se ha simulado ni medido. Sobre una placa de 1,6 mm, el brazo ancho '
+                  'da más banda que la F invertida fina, pero el tamaño y la toma no están calibrados.'),
+    ],
+    'dipolo_sleeve': [
+        ('aviso', 'Sin testear ni validar: no se ha simulado ni medido. Con el conector SMA, la manga de masa es el '
+                  'segundo brazo; el cable puede radiar si la manga es corta (usa una ferrita al medir).'),
+    ],
+    'vivaldi': [
+        ('aviso', 'Sin testear ni validar: no se ha simulado ni medido. El tamaño de la boca y la tasa de apertura no '
+                  'están calibrados; la transición de la línea a las aletas puede necesitar ajuste. A 868 MHz la placa '
+                  'sale muy grande.'),
+    ],
+    'colineal_dipolos': [
+        ('aviso', 'Sin testear ni validar: no se ha simulado ni medido. La ganancia de apilar dipolos se la comen en parte '
+                  'las pérdidas del FR4 en los tramos de microstrip (~0,05 dB/cm a 2,4 GHz); con muchos dipolos la '
+                  'ganancia deja de crecer. La placa es larga.'),
+    ],
+    'parche_ranura': [
+        ('aviso', 'Sin testear ni validar: no se ha simulado ni medido. La ranura en U ensancha la banda, pero su '
+                  'tamaño y posición no están calibrados y desplazan la frecuencia: simula y ajusta.'),
+    ],
+    'parche_apilado': [
+        ('aviso', 'Sin testear ni validar: no se ha simulado ni medido. Es un parásito acoplado en la misma cara, no un '
+                  'apilado de verdad (que necesitaría una segunda placa). El hueco y el largo del parásito no están calibrados.'),
     ],
     'parche_circular': [
         ('aviso', 'Sin testear ni validar: no se ha simulado ni medido. Ni el tamaño ni el corte de las esquinas están '

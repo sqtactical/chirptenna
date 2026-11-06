@@ -88,6 +88,12 @@ The resulting board (KiCad render): top side and bottom side with the logo and l
 | Rectangular patch | patch | ✅ validated (narrowband) |
 | Minkowski patch | patch | ⚠️ iteration 1 fine; iteration 3 has low efficiency on FR4 |
 | Circularly polarised patch (cut corners, single feed; GPS, Iridium) | patch | ⚠️ not tested or validated |
+| Patch with U-slot | patch | ⚠️ not tested or validated |
+| Patch with coupled parasitic (flat alternative to stacked) | patch | ⚠️ not tested or validated |
+| Inverted-F antenna (F-shaped J-pole) and PIFA | monopole | ⚠️ not tested or validated |
+| Sleeve dipole | monopole | ⚠️ not tested or validated |
+| Antipodal Vivaldi | vivaldi | ⚠️ not tested or validated |
+| Series dipole collinear (microstrip line) | collinear | ⚠️ not tested or validated |
 | Printed dipole (straight or Koch; printed balun or centre-fed coax) | dipole | ✅ validated (2.4 GHz and 868 MHz) |
 | Bowtie dipole or Sierpinski bowtie | dipole_bowtie | ✅ validated (2.4 GHz and 868 MHz); twice the bandwidth of the straight one |
 | J-pole and Koch J-pole | jpole | ✅ Koch validated (2.4 GHz and 868 MHz); the straight one almost matches (−8 to −9 dB) |

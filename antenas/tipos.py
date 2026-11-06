@@ -134,7 +134,15 @@ def _radiador_monopolo(clave, p):
     Devuelve (geometría, longitud de la pista, polilínea o None si no es una pista).
     """
     w = p.get('ancho_pista', 1.0)
-    if clave == 'monopolo_recto':
+    if clave in ('ifa', 'pifa'):
+        # F invertida: toma de alimentación en (0,0), brazo horizontal a la altura h y cortocircuito a masa
+        L, h, d, wf = p['largo_brazo'], p['altura'], p['separacion_toma'], min(p['ancho_pista'], 2.0)
+        wc, sd = p['ancho_corto'], PROFUNDIDAD_CORTO
+        geo = unary_union([g.rectangulo(-d - wc/2, h - w/2, L - d, h + w/2),
+                           g.rectangulo(-wf/2, 0, wf/2, h + w/2),
+                           g.rectangulo(-d - wc/2, -sd, -d + wc/2, h + w/2)])
+        return geo, geo.area/w, None
+    if clave in ('monopolo_recto', 'dipolo_sleeve'):
         pts = np.array([(0, 0), (0, p['alto'])], float)
         return g.engordar(pts, w), p['alto'], pts
     if clave == 'monopolo_meandro':
@@ -162,8 +170,13 @@ def _radiador_monopolo(clave, p):
     raise KeyError(clave)
 
 
+PROFUNDIDAD_CORTO = 2.0      # el cortocircuito de la F invertida entra tanto en la zona de masa [mm]
+
+
 def _longitud_equivalente(clave, p):
-    if clave == 'monopolo_recto':
+    if clave in ('ifa', 'pifa'):
+        return p['largo_brazo'] + p['altura']
+    if clave in ('monopolo_recto', 'dipolo_sleeve'):
         return p['alto']
     if clave == 'monopolo_meandro':
         _, l_total, _ = _radiador_monopolo(clave, p)
@@ -289,6 +302,20 @@ def poligono_parche(minkowski, p):
         esquinas = [(-W/2, -L/2), (W/2, -L/2), (W/2, L/2), (-W/2, L/2)]
         return g.isla_minkowski(esquinas, int(p['iteracion']), p['profundidad'])
     parche = g.rectangulo(-W/2, -L/2, W/2, L/2)
+    if p.get('ranura_largo', 0) > 0:
+        # ranura en U (más banda): base horizontal y dos brazos que suben hacia el borde radiante superior
+        a, hs = p['ranura_ancho']*W, p.get('ranura_hueco', 1.0)
+        y_b = L/2 - p['ranura_largo']*L
+        y_t = L/2 - 0.1*L
+        u = unary_union([g.rectangulo(-a/2 - hs/2, y_b - hs/2, a/2 + hs/2, y_b + hs/2),
+                         g.rectangulo(-a/2 - hs/2, y_b, -a/2 + hs/2, y_t),
+                         g.rectangulo(a/2 - hs/2, y_b, a/2 + hs/2, y_t)])
+        parche = parche.difference(u)
+    if p.get('parasito_hueco', 0) > 0:
+        # parche parásito acoplado por el borde radiante superior (alternativa plana al apilado)
+        Lp = p['parasito_factor']*L
+        y0 = L/2 + p['parasito_hueco']
+        parche = unary_union([parche, g.rectangulo(-W/2, y0, W/2, y0 + Lp)])
     if p.get('corte', 0) > 0:
         # polarización circular: dos esquinas opuestas cortadas (el modo se desdobla en dos a 90°)
         c = p['corte']*min(L, W)
@@ -438,6 +465,35 @@ CATALOGO = {t.clave: t for t in [
                 Parametro('iteracion', 'Iteración', 2, 0, 5, 1, True),
                 Parametro('cuello', 'Ancho de las uniones entre triángulos [mm]', 1.0, 0.3, 15, 0.1)] + PARAMS_MASA,
                'alto'),
+    TipoAntena('ifa', 'Antena F invertida (J-pole en F)',
+               'Monopolo λ/4 plegado en «F»: brazo horizontal paralelo a la masa, alimentado por una toma y '
+               'cortocircuitado a masa con una vía. Compacta y baja. Sin validar.', 'monopolo',
+               [Parametro('largo_brazo', 'Largo del brazo horizontal [mm]', 20, 3, 200, 0.1),
+                Parametro('altura', 'Altura del brazo sobre la masa [mm]', 5, 1, 50, 0.1),
+                Parametro('separacion_toma', 'Distancia entre el cortocircuito y la toma [mm]', 3.5, 1, 30, 0.1,
+                          ayuda='Fija la impedancia: más separada, más impedancia'),
+                Parametro('ancho_pista', 'Ancho del brazo [mm]', 1.0, 0.3, 10, 0.05),
+                Parametro('ancho_corto', 'Ancho del cortocircuito [mm]', 1.0, 0.5, 10, 0.05)] + PARAMS_MASA, 'largo_brazo',
+               precision='±15 % (sin calibrar)'),
+    TipoAntena('pifa', 'Antena PIFA (F invertida plana)',
+               'Como la F invertida pero con el brazo y el cortocircuito anchos (placas): más banda y menos '
+               'sensible a la masa. Sin validar.', 'monopolo',
+               [Parametro('largo_brazo', 'Largo del brazo horizontal [mm]', 18, 3, 200, 0.1),
+                Parametro('altura', 'Altura del brazo sobre la masa [mm]', 6, 1, 50, 0.1),
+                Parametro('separacion_toma', 'Distancia entre el cortocircuito y la toma [mm]', 7, 1, 40, 0.1),
+                Parametro('ancho_pista', 'Ancho del brazo [mm]', 5, 0.3, 20, 0.05),
+                Parametro('ancho_corto', 'Ancho del cortocircuito [mm]', 4, 0.5, 20, 0.05)] + PARAMS_MASA, 'largo_brazo',
+               precision='±20 % (sin calibrar)'),
+    TipoAntena('dipolo_sleeve', 'Dipolo con manga (sleeve)',
+               'Tira λ/4 arriba y manga λ/4 de masa debajo: un dipolo alimentado con la línea por dentro de la manga. '
+               'Sin validar.', 'monopolo',
+               [Parametro('alto', 'Largo de la tira [mm]', 23.6, 3, 200, 0.1),
+                PISTA] + [
+                Parametro('masa', 'Plano de masa', 0, 0, 3, 1, True, opciones=MODOS_MASA,
+                          ayuda='Manual: la manga es la masa, de ancho y largo fijos; automática: λ/4'),
+                Parametro('ancho_placa', 'Ancho de la manga [mm]', 16, 10, 400, 1),
+                Parametro('largo_masa', 'Largo de la manga [mm]', 24, 10, 400, 1)], 'alto',
+               precision='±15 % (sin calibrar)'),
     TipoAntena('parche_rectangular', 'Parche rectangular (referencia)',
                'Parche microstrip con transformador λ/4. Directivo (~6 dBi).', 'parche',
                [Parametro('largo', 'Largo L (resonante) [mm]', 29, 3, 200, 0.1),
@@ -473,6 +529,33 @@ CATALOGO = {t.clave: t for t in [
                [Parametro('masa', 'Plano de masa', 1, 0, 1, 1, True, opciones={0: 'Manual (margen)', 1: 'Automática compacta (margen 6h)'}),
                 Parametro('margen_masa', 'Margen de masa alrededor [mm]', 15, 3, 100, 1)], 'largo',
                bandas=[1.575e9, 2.4e9], precision='±5–10 % (sin calibrar)'),
+    TipoAntena('parche_ranura', 'Parche con ranura en U',
+               'Parche rectangular con una ranura en U: más ancho de banda que el normal (hasta ~3 veces). '
+               'Sin validar.', 'parche',
+               [Parametro('largo', 'Largo L (resonante) [mm]', 29, 3, 200, 0.1),
+                Parametro('ancho', 'Ancho W [mm]', 38, 3, 250, 0.1),
+                Parametro('ranura_ancho', 'Ancho de la ranura (fracción del ancho)', 0.5, 0.2, 0.8, 0.01),
+                Parametro('ranura_largo', 'Profundidad de la ranura (fracción del largo)', 0.4, 0.1, 0.7, 0.01),
+                Parametro('ranura_hueco', 'Ancho de las rendijas de la ranura [mm]', 1.0, 0.3, 5, 0.1),
+                Parametro('largo_alimentacion', 'Línea de 50 Ω hasta el transformador [mm]', 10, 2, 100, 0.5)]
+               + PARAMS_MUESCA +
+               [Parametro('masa', 'Plano de masa', 1, 0, 1, 1, True, opciones={0: 'Manual (margen)', 1: 'Automática compacta (margen 6h)'}),
+                Parametro('margen_masa', 'Margen de masa alrededor [mm]', 15, 3, 100, 1)], 'largo',
+               bandas=[2.4e9, 868e6], precision='±8 % (sin calibrar)'),
+    TipoAntena('parche_apilado', 'Parche con parásito acoplado (alternativa plana al apilado)',
+               'Parche con un segundo parche acoplado por el borde radiante, en la misma cara: más ancho de banda '
+               'que el simple. Un apilado de verdad necesita una segunda placa. Sin validar.', 'parche',
+               [Parametro('largo', 'Largo L (resonante) [mm]', 29, 3, 200, 0.1),
+                Parametro('ancho', 'Ancho W [mm]', 38, 3, 250, 0.1),
+                Parametro('parasito_hueco', 'Hueco entre el parche y el parásito [mm]', 1.0, 0.3, 10, 0.1,
+                          ayuda='Más hueco: acoplo más débil; menos: más acoplo y más banda'),
+                Parametro('parasito_factor', 'Largo del parásito (fracción del largo)', 0.96, 0.8, 1.1, 0.01,
+                          ayuda='Algo menor que 1: resuena un poco más arriba y ensancha la banda'),
+                Parametro('largo_alimentacion', 'Línea de 50 Ω hasta el transformador [mm]', 10, 2, 100, 0.5)]
+               + PARAMS_MUESCA +
+               [Parametro('masa', 'Plano de masa', 1, 0, 1, 1, True, opciones={0: 'Manual (margen)', 1: 'Automática compacta (margen 6h)'}),
+                Parametro('margen_masa', 'Margen de masa alrededor [mm]', 15, 3, 100, 1)], 'largo',
+               bandas=[2.4e9, 868e6], precision='±8 % (sin calibrar)'),
     TipoAntena('yagi_koch', 'Quasi-Yagi impresa con dipolo de Koch (directiva)',
                'Dipolo (Koch o recto) alimentado por balun microstrip→CPS; la masa hace de reflector '
                'y 0–8 directores, cada uno algo más corto que el anterior. Ganancia ~4–11 dBi.', 'yagi',
@@ -622,6 +705,29 @@ for _td in [
                           ayuda='Tira de masa bajo la línea: ~λg/4 hace de balun'),
                 Parametro('ancho_boom', 'Ancho de la tira de masa del boom [mm]', 8, 4, 30, 0.5)],
                'largo_brazo'),
+    TipoAntena('vivaldi', 'Vivaldi antipodal',
+               'Dos aletas exponenciales, una en cada cara: banda ancha y directiva hacia la boca (~5–7 dBi). '
+               'Grande a 868 MHz. Sin validar.', 'vivaldi',
+               [Parametro('ancho_apertura', 'Ancho de la boca [mm]', 48, 8, 400, 0.5),
+                Parametro('largo_aleta', 'Largo de las aletas [mm]', 55, 8, 500, 0.5),
+                Parametro('tasa', 'Tasa de apertura exponencial', 3.0, 1.0, 8.0, 0.1,
+                          ayuda='Más tasa: la aleta se abre más tarde y de golpe'),
+                Parametro('abertura_interior', 'Separación entre aletas en la boca (fracción del ancho)', 0.15, 0.05, 0.5, 0.01),
+                Parametro('largo_alimentacion', 'Línea de 50 Ω hasta las aletas [mm]', 10, 4, 100, 0.5),
+                Parametro('ancho_boom', 'Ancho de la tira de masa bajo la línea [mm]', 8, 4, 30, 0.5)],
+               'ancho_apertura', escala_conjunta=('largo_aleta',), precision='±25 % (sin calibrar)'),
+    TipoAntena('colineal_dipolos', 'Colineal de dipolos en serie (línea microstrip)',
+               'Varios dipolos en fila (un brazo en cada cara) unidos por tramos de microstrip de λg que los '
+               'ponen en fase: más ganancia omnidireccional que un dipolo. Placa larga. Las pérdidas del FR4 en '
+               'los tramos de línea la limitan. Sin validar.', 'colineal',
+               [Parametro('largo_brazo', 'Largo de cada brazo de dipolo [mm]', 22, 3, 300, 0.1),
+                Parametro('elementos', 'Número de dipolos', 3, 2, 8, 1, True),
+                Parametro('ancho_brazo', 'Ancho de los brazos [mm]', 4, 0.5, 30, 0.1),
+                Parametro('factor_linea', 'Corrección del largo de los tramos de línea', 1.0, 0.7, 1.3, 0.01,
+                          ayuda='Cada tramo mide λg (microstrip); esto lo alarga o acorta'),
+                Parametro('largo_entrada', 'Línea de 50 Ω desde el conector al primer dipolo [mm]', 8, 4, 100, 0.5),
+                Parametro('ancho_boom', 'Ancho de la tira de masa bajo la línea [mm]', 8, 4, 30, 0.5)],
+               'largo_brazo', precision='±15 % (sin calibrar)'),
     TipoAntena('colineal_coco', 'Colineal coaxial impresa (COCO)',
                'Tramos de λg/2 de dos tiras superpuestas (una en cada cara) que se cruzan con vías en cada '
                'unión: todos radian en fase. Omnidireccional, ~5–8 dBi según los tramos; placa larga y estrecha. '
@@ -666,7 +772,7 @@ GRUPO_AJUSTE = {'monopolo_recto': 'monopolo_pista', 'monopolo_meandro': 'monopol
                 'monopolo_koch': 'monopolo_pista', 'monopolo_hilbert': 'monopolo_pista',
                 'monopolo_sierpinski': 'monopolo', 'jpole': 'jpole', 'jpole_koch': 'jpole', 'yagi_koch': 'yagi',
                 'yagi_boom': 'sin_ajuste',
-                'parche_rectangular': 'parche_rect', 'parche_minkowski': 'parche', 'parche_circular': 'sin_ajuste', 'array_parches': 'array',
+                'parche_rectangular': 'parche_rect', 'parche_minkowski': 'parche', 'parche_circular': 'sin_ajuste', 'parche_ranura': 'sin_ajuste', 'parche_apilado': 'sin_ajuste', 'ifa': 'sin_ajuste', 'pifa': 'sin_ajuste', 'dipolo_sleeve': 'sin_ajuste', 'vivaldi': 'sin_ajuste', 'colineal_dipolos': 'sin_ajuste', 'array_parches': 'array',
                 'panel_dipolos': 'sin_ajuste', 'dipolo': 'sin_ajuste', 'dipolo_bowtie': 'sin_ajuste', 'colineal_coco': 'sin_ajuste',
                 'colineal_franklin': 'sin_ajuste'}
 
@@ -689,6 +795,13 @@ ESCALABLES = {
     'parche_rectangular': ('largo_alimentacion',),
     'parche_minkowski': ('largo_alimentacion',),
     'parche_circular': ('largo_alimentacion',),
+    'parche_ranura': ('largo_alimentacion',),
+    'parche_apilado': ('largo_alimentacion',),
+    'ifa': ('ancho_pista', 'ancho_corto') + _MASA,
+    'pifa': _MASA,
+    'dipolo_sleeve': ('ancho_pista',) + _MASA,
+    'vivaldi': ('largo_alimentacion',),
+    'colineal_dipolos': ('ancho_brazo', 'largo_entrada'),
     'yagi_koch': ('ancho_pista', 'alto_cps', 'largo_balun', 'ancho_rodeo') + _MASA,
     'yagi_boom': ('ancho_pista', 'separacion_plegado'),
     'array_parches': ('largo_alimentacion',),
@@ -718,7 +831,7 @@ def escalar_secundarios(clave, p, f_obj):
 for _t in CATALOGO.values():
     # Forma de la placa: los monopolos y la Yagi usan además el margen al borde; en parches y
     # arrays el borde lo fija el margen de masa
-    _t.parametros = _t.parametros + (PARAMS_CONTORNO if _t.familia in ('monopolo', 'yagi', 'jpole', 'dipolo', 'colineal')
+    _t.parametros = _t.parametros + (PARAMS_CONTORNO if _t.familia in ('monopolo', 'yagi', 'jpole', 'dipolo', 'colineal', 'vivaldi')
                                      else [] if _t.familia == 'panel'      # rectangular, con los taladros
                                      else PARAMS_CONTORNO[:1]) + [PARAM_ESCALADO]
     # J-pole y panel van con coaxial soldado; la COCO, con SMA (el IPEX no encaja con sus dos tiras)
@@ -759,6 +872,9 @@ def generar(clave, parametros=None, nombre_sustrato=None):
     s = sustrato(nombre_sustrato)
     if tipo.familia == 'monopolo':
         a = _generar_monopolo(tipo, p, s)
+        if clave in ('ifa', 'pifa'):
+            lg = largo_masa_monopolo(p, _longitud_equivalente(clave, p))
+            a.vias = [(-p['separacion_toma'], lg - PROFUNDIDAD_CORTO/2)]
     elif clave == 'yagi_boom':
         a = directivas.generar_yagi_boom(p, s, eps_eff_monopolo(s.er))
     elif clave == 'panel_dipolos':
@@ -769,6 +885,10 @@ def generar(clave, parametros=None, nombre_sustrato=None):
         a = jpole.generar(dict(p, _clave=clave), s, eps_eff_monopolo(s.er))
     elif clave in ('dipolo', 'dipolo_bowtie'):
         a = dipolos.generar_dipolo(p, s, eps_eff_monopolo(s.er))
+    elif clave == 'vivaldi':
+        a = dipolos.generar_vivaldi(p, s, eps_eff_monopolo(s.er))
+    elif clave == 'colineal_dipolos':
+        a = dipolos.generar_colineal_dipolos(p, s, eps_eff_monopolo(s.er))
     elif clave == 'colineal_coco':
         a = dipolos.generar_colineal_coco(p, s)
     elif clave == 'colineal_franklin':
@@ -864,6 +984,7 @@ def ajustar_ancho_banda(clave, f_obj, bw_necesario, parametros=None, nombre_sust
                'parche': tr('usa un sustrato más grueso (o con menos εr, como RO4350B)'),
                'array': tr('usa un sustrato más grueso (o con menos εr, como RO4350B)'),
                'dipolo': tr('usa brazos rectos (iteración 0) o más anchos'),
+               'vivaldi': tr('abre más la boca o alarga las aletas'),
                'colineal': tr('usa menos tramos o elementos (la banda se estrecha al añadirlos)')}[tipo.familia]
     if clave == 'parche_minkowski' or (clave == 'array_parches' and int(p['elemento']) == 1):
         consejo += ', o parches rectangulares (las muescas estrechan la banda)'
@@ -937,6 +1058,10 @@ def estimar_f(clave, parametros, nombre_sustrato=None, calibrada=True):
         f = jpole.estimar_f(p, eps_eff_monopolo(s.er))
     elif clave in ('dipolo', 'dipolo_bowtie'):
         f = dipolos.estimar_f_dipolo(p, eps_eff_monopolo(s.er))
+    elif clave == 'vivaldi':
+        f = dipolos.estimar_f_vivaldi(p, eps_eff_monopolo(s.er))
+    elif clave == 'colineal_dipolos':
+        f = dipolos.estimar_f_colineal_dipolos(p, eps_eff_monopolo(s.er))
     elif clave == 'colineal_coco':
         f = dipolos.estimar_f_coco(p, s)
     elif clave == 'colineal_franklin':
@@ -961,7 +1086,7 @@ def dimensionar(clave, f_obj, parametros=None, nombre_sustrato=None, fijos=()):
         guardados = {k: p[k] for k in fijos if k in p}
         escalar_secundarios(clave, p, f_obj)
         p.update(guardados)
-    if clave == 'parche_rectangular' or (clave == 'array_parches' and int(p['elemento']) == 0):
+    if clave in ('parche_rectangular', 'parche_ranura', 'parche_apilado') or (clave == 'array_parches' and int(p['elemento']) == 0):
         # si la simulación da f = k·f_fórmula, se diseña para f_obj/k
         W, L, *_ = _parche_rectangular_dims(f_obj/factor_calibracion(clave, f_obj, p), s)
         p['ancho'], p['largo'] = round(W, 2), round(L, 2)

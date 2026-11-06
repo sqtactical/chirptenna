@@ -2,7 +2,7 @@
 
 1. Construye la web (herramientas/construir_web.py) y la sirve en local.
 2. Abre la página y espera a que la interfaz arranque (Pyodide + núcleo de Chirptenna).
-3. En un Web Worker aparte, genera y exporta los 18 tipos a 868 y 2441,75 MHz con el mismo Pyodide que usa la web.
+3. En un Web Worker aparte, genera y exporta los 25 tipos a 868 y 2441,75 MHz con el mismo Pyodide que usa la web.
 4. Pasa el DRC de KiCad a cada .kicad_pcb generado en el navegador (si hay kicad-cli).
 
 Uso (desde la raíz):  python herramientas/prueba_web.py [--sin-drc]
@@ -88,7 +88,7 @@ def main():
         pag.goto(origen + '/')
         # Se entra por la galería de tipos; al elegir uno se abre el diseño
         pag.wait_for_function("!document.getElementById('galeria').hidden"
-                              " && document.querySelectorAll('#galeria .ficha').length >= 18", timeout=60_000)
+                              " && document.querySelectorAll('#galeria .ficha').length >= 25", timeout=60_000)
         pag.click('#galeria .ficha')
         pag.wait_for_function("!document.getElementById('app').hidden && document.querySelector('#vista svg')",
                               timeout=180_000)

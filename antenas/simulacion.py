@@ -493,7 +493,7 @@ def _param_adaptacion(clave, q):
 
 
 def _con_muesca(clave, q):
-    return clave in ('parche_rectangular', 'parche_minkowski', 'parche_circular') and int(q.get('alimentacion', 0)) == 1
+    return clave in ('parche_rectangular', 'parche_minkowski', 'parche_circular', 'parche_ranura', 'parche_apilado') and int(q.get('alimentacion', 0)) == 1
 
 
 def _ajustar_adaptacion(clave, q, nombre_sustrato, s, f_obj, precision, paso, progreso, historial, s11_ini,
