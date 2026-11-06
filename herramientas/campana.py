@@ -102,7 +102,7 @@ def main():
             print(f'[{time.strftime("%H:%M")}] {etiqueta}', flush=True)
             cmd = [sys.executable, '-X', 'utf8', os.path.join(RAIZ, 'herramientas', 'barrido.py'), tipo, banda,
                    *TABLA_FORMA.get(tipo, []), '--centrar', '--modo', 'cruz', '--radiacion',
-                   '--etiqueta', etiqueta, '--max-celdas', opt['max-celdas']]
+                   '--etiqueta', etiqueta, '--max-celdas', opt['max-celdas'], '--max-ajuste', '3']
             with open(os.path.join(RAIZ, 'salidas', '_campana', f'{etiqueta}.log'), 'w', encoding='utf-8') as log:
                 subprocess.run(cmd, stdout=log, stderr=subprocess.STDOUT, cwd=RAIZ,
                                env=dict(os.environ, PYTHONIOENCODING='utf-8'))

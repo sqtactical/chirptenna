@@ -100,7 +100,7 @@ def _bloqueo():
             except OSError:
                 pass
             print('  esperando a que acabe otro barrido en la GPU…', flush=True)
-            time.sleep(60)
+            time.sleep(3 + (os.getpid() % 5))          # sondeo corto y desigual: el barrido siguiente de una campaña no deja sin turno a los demás
 
 
 def main():
