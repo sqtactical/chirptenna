@@ -294,14 +294,21 @@ TALADRO_SMA_PANEL = 6.5         # SMA hembra de panel (rosca 1/4-36) en el refle
 HUECO_CRUCE = 3.0               # hueco entre las dos tiras de una misma cara en el cruce (≥ 2 celdas de malla)
 
 
-K_BOWTIE_PANEL = 0.85           # sin calibrar: un brazo triangular ancho resuena con ~85 % del largo de uno recto
+# Calibrados con simulaciones en GPU (06-11, 2×2 con malla fija y fina): el bowtie liso y el de Sierpinski (iteración 2)
+# resuenan con ~96 % y ~95 % del largo del dipolo recto
+K_BOWTIE_PANEL = {1: 0.961, 2: 0.951}
+K_MALLA_FINA_PANEL = 0.85         # con malla fina, el panel resuena ~15 % más abajo que lo calibrado con mallas gruesas
 
 
 def estimar_f_panel(p, eps_eff_impreso):
     """Dipolo impreso con un brazo en cada cara: resuena cuando los brazos suman λ/2 efectiva.
     Con bowtie (elemento 1 o 2) el brazo triangular es eléctricamente más corto."""
-    la = p['largo_brazo']/(K_BOWTIE_PANEL if int(p.get('elemento', 0)) else 1.0)
-    return K_DIPOLO_PANEL*C0/(2*2*la*1e-3*math.sqrt(eps_eff_impreso))
+    if int(p.get('tamano', 2)) >= 2:
+        k_bow, k_malla = K_BOWTIE_PANEL.get(int(p.get('elemento', 0)), 1.0), K_MALLA_FINA_PANEL
+    else:               # un solo elemento: sin calibrar (el S11 salta mucho con el largo), vale la estimación antigua
+        k_bow, k_malla = (0.85 if int(p.get('elemento', 0)) else 1.0), 1.0
+    la = p['largo_brazo']/k_bow
+    return k_malla*K_DIPOLO_PANEL*C0/(2*2*la*1e-3*math.sqrt(eps_eff_impreso))
 
 
 def generar_panel_dipolos(p, s, eps_eff_impreso):

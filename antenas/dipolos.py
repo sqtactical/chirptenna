@@ -44,14 +44,16 @@ def _info_placa(contorno, extra):
 
 
 # ------------------------------------------------------------------ dipolo
-K_BOWTIE = 0.85       # sin calibrar: un brazo triangular ancho resuena con ~85 % del largo de uno recto
+# Calibrados con simulaciones en GPU (06-11): un brazo triangular ancho resuena con menos largo que uno recto
+K_BOWTIE = 0.79
+K_SIERPINSKI = 0.75   # bowtie de Sierpinski (iteración 2): los huecos lo alargan eléctricamente
 
 
 def estimar_f_dipolo(p, eps_impreso):
     forma = int(p.get('forma', 0))
     if forma:
         # bowtie / bowtie de Sierpinski: sin Koch, y el brazo ancho es eléctricamente más corto
-        total = 2*p['largo_brazo']/K_BOWTIE + (p['hueco'] if int(p['alimentacion']) == 1 else 0)
+        total = 2*p['largo_brazo']/(K_BOWTIE if forma == 1 else K_SIERPINSKI) + (p['hueco'] if int(p['alimentacion']) == 1 else 0)
     else:
         total = 2*_eq_koch(p['largo_brazo'], p.get('iteracion', 0)) + (p['hueco'] if int(p['alimentacion']) == 1 else 0)
     return C0/(2*total*1e-3*math.sqrt(eps_impreso))

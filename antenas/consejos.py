@@ -1,9 +1,9 @@
-from .i18n import tr
 """Consejos de diseño: generales de cada tipo y otros que dependen del diseño concreto.
 
 consejos(antena, f_obj, banda) -> lista de (categoría, texto). Categorías: 'diseño',
 'montaje', 'medida', 'banda'.
 """
+from .i18n import tr
 GENERALES = {
     'monopolo': [
         ('montaje', 'Deja sin cobre, en las dos caras, toda la zona del radiador (el recuadro de la huella). '
