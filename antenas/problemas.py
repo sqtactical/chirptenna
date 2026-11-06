@@ -21,6 +21,7 @@ ESTADO = {
     'monopolo_sierpinski': ('validada', 'Validada en simulación (2,4 GHz y 868 MHz)'),
     'parche_rectangular': ('validada', 'Validada en simulación (banda estrecha)'),
     'parche_minkowski': ('pendiente', 'Pendiente de validación (eficiencia baja en FR4)'),
+    'parche_circular': ('pendiente', 'Sin testear ni validar'),
     'yagi_koch': ('no_funciona', 'No funciona: radia hacia atrás'),
     'yagi_boom': ('validada', 'Validada en simulación con elementos rectos (2,4 GHz y 868 MHz)'),
     'array_parches': ('pendiente', 'Pendiente de validación'),
@@ -55,6 +56,11 @@ FIJOS = {
     'parche_rectangular': [
         ('aviso', 'Banda estrecha en FR4 de 1,6 mm (~36 MHz a 2,4 GHz): no cubre toda la ISM de 83,5 MHz. '
                   'Eficiencia ~47 % por las pérdidas del FR4.'),
+    ],
+    'parche_circular': [
+        ('aviso', 'Sin testear ni validar: no se ha simulado ni medido. Ni el tamaño ni el corte de las esquinas están '
+                  'calibrados, y no se ha comprobado la razón axial ni el sentido de giro (GPS e Iridium son de giro derecho). '
+                  'La polarización circular solo se mantiene en un ancho de banda muy pequeño y el FR4 (εr ±2–3 %) la desajusta fácilmente.'),
     ],
     'parche_minkowski': [
         ('aviso', 'Eficiencia baja en FR4 (~33 % en la iteración 1, ganancia ~1 dBi) y banda estrecha (~36–41 MHz).'),

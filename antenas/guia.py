@@ -45,6 +45,8 @@ TIPOS = {
                    ['largo_radiador', 'iteracion', 'ajuste']),
     'monopolo_hilbert': ('experimental', 'Curva de Hilbert: muy compacta, pero adapta mal sin red en π.',
                          ['lado', 'orden', 'masa', 'conector', 'ajuste']),
+    'parche_circular': ('experimental', 'Parche de polarización circular con una sola entrada (GPS, Iridium). Sin testear ni validar.',
+                        ['largo', 'corte', 'diagonal', 'alimentacion', 'conector']),
     'parche_minkowski': ('experimental', 'Parche fractal de Minkowski: más pequeño que el rectangular, pero pierde más.',
                          ['largo', 'iteracion', 'alimentacion', 'conector', 'ajuste']),
     'array_parches': ('experimental', 'Array de 2×2 o 4×4 parches: mucha ganancia, pero sin terminar de validar.',
@@ -188,6 +190,9 @@ AYUDAS_TIPO = {
     'parche_rectangular': {'alimentacion': 'Por el borde: la línea llega al borde del parche con un transformador λ/4 '
                                            '(más larga). Por ranura: la línea entra en el parche hasta el punto de 50 Ω '
                                            '(más compacta).'},
+    'parche_circular': {'alimentacion': 'Por el borde: la línea llega al borde del parche con un transformador λ/4 '
+                                        '(más larga). Por ranura: la línea entra en el parche hasta el punto de 50 Ω '
+                                        '(más compacta).'},
     'parche_minkowski': {'alimentacion': 'Por el borde: la línea llega al borde del parche con un transformador λ/4 '
                                          '(más larga). Por ranura: la línea entra en el parche hasta el punto de 50 Ω '
                                          '(más compacta).'},

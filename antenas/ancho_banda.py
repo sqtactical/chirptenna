@@ -36,7 +36,7 @@ def estimar(antena, f, sustrato):
     tipo = antena.tipo
     p = antena.parametros
     lam = lambda0_mm(f)
-    if tipo in ('parche_rectangular', 'parche_minkowski', 'array_parches'):
+    if tipo in ('parche_rectangular', 'parche_minkowski', 'parche_circular', 'array_parches'):
         W, L, h, er = p['ancho'], p['largo'], sustrato.h, sustrato.er
         fbw_rad = 3.77*(er - 1)/er**2*(W/L)*(h/lam)
         if tipo == 'parche_minkowski' or (tipo == 'array_parches' and int(p.get('elemento', 0)) == 1):

@@ -493,7 +493,7 @@ def _param_adaptacion(clave, q):
 
 
 def _con_muesca(clave, q):
-    return clave in ('parche_rectangular', 'parche_minkowski') and int(q.get('alimentacion', 0)) == 1
+    return clave in ('parche_rectangular', 'parche_minkowski', 'parche_circular') and int(q.get('alimentacion', 0)) == 1
 
 
 def _ajustar_adaptacion(clave, q, nombre_sustrato, s, f_obj, precision, paso, progreso, historial, s11_ini,
@@ -561,7 +561,7 @@ def ajustar(clave, parametros, nombre_sustrato, f_obj, precision='normal', max_s
         progreso(tr('Con sobrelargo del {0:g} %: se ajusta para que SIN cortar resuene en {1:.1f} MHz (cortando por las marcas se llega a {2:.1f} MHz).', p["sobrelargo"], f_obj/1e6, f_final/1e6))
     esc = tipo.escala
     proporciones = {k: p[k]/p[esc] for k in tipo.escala_conjunta}
-    cuadrado = abs(p.get('ancho', 0) - p.get('largo', -1)) < 1e-6 and clave in ('parche_minkowski', 'array_parches')
+    cuadrado = abs(p.get('ancho', 0) - p.get('largo', -1)) < 1e-6 and clave in ('parche_minkowski', 'parche_circular', 'array_parches')
 
     def con_escala(x):
         q = dict(p, **{esc: round(x, 3)})

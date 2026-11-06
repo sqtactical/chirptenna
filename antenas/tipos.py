@@ -288,7 +288,14 @@ def poligono_parche(minkowski, p):
     if minkowski and int(p.get('iteracion', 0)) > 0:
         esquinas = [(-W/2, -L/2), (W/2, -L/2), (W/2, L/2), (-W/2, L/2)]
         return g.isla_minkowski(esquinas, int(p['iteracion']), p['profundidad'])
-    return g.rectangulo(-W/2, -L/2, W/2, L/2)
+    parche = g.rectangulo(-W/2, -L/2, W/2, L/2)
+    if p.get('corte', 0) > 0:
+        # polarización circular: dos esquinas opuestas cortadas (el modo se desdobla en dos a 90°)
+        c = p['corte']*min(L, W)
+        s = -1 if int(p.get('diagonal', 0)) == 1 else 1
+        for sx, sy in ((s, 1), (-s, -1)):
+            parche = parche.difference(Polygon([(sx*W/2, sy*L/2), (sx*(W/2 - c), sy*L/2), (sx*W/2, sy*(L/2 - c))]))
+    return parche
 
 
 def _generar_parche(tipo, p, sustrato):
@@ -451,6 +458,21 @@ CATALOGO = {t.clave: t for t in [
                [Parametro('masa', 'Plano de masa', 1, 0, 1, 1, True, opciones={0: 'Manual (margen)', 1: 'Automática compacta (margen 6h)'}),
                 Parametro('margen_masa', 'Margen de masa alrededor [mm]', 15, 3, 100, 1)], 'largo',
                bandas=[2.4e9, 868e6]),
+    TipoAntena('parche_circular', 'Parche de polarización circular (esquinas cortadas)',
+               'Parche casi cuadrado con dos esquinas opuestas cortadas y una sola entrada: la polarización sale '
+               'circular (GPS, Iridium). Sin testear ni validar.', 'parche',
+               [Parametro('largo', 'Lado (largo resonante) [mm]', 28, 3, 200, 0.1),
+                Parametro('ancho', 'Ancho [mm] (igual al lado = cuadrado)', 28, 3, 250, 0.1),
+                Parametro('corte', 'Corte de las esquinas (fracción del lado)', 0.15, 0.03, 0.4, 0.01,
+                          ayuda='Cateto del triángulo que se quita en dos esquinas opuestas; más corte, más separación de los dos modos'),
+                Parametro('diagonal', 'Diagonal cortada', 0, 0, 1, 1, True,
+                          opciones={0: 'Esquinas superior derecha e inferior izquierda', 1: 'Esquinas superior izquierda e inferior derecha'},
+                          ayuda='Cambia el sentido de giro (derecho o izquierdo): hay que comprobarlo simulando'),
+                Parametro('largo_alimentacion', 'Línea de 50 Ω hasta el transformador [mm]', 10, 2, 100, 0.5)]
+               + PARAMS_MUESCA +
+               [Parametro('masa', 'Plano de masa', 1, 0, 1, 1, True, opciones={0: 'Manual (margen)', 1: 'Automática compacta (margen 6h)'}),
+                Parametro('margen_masa', 'Margen de masa alrededor [mm]', 15, 3, 100, 1)], 'largo',
+               bandas=[1.575e9, 2.4e9], precision='±5–10 % (sin calibrar)'),
     TipoAntena('yagi_koch', 'Quasi-Yagi impresa con dipolo de Koch (directiva)',
                'Dipolo (Koch o recto) alimentado por balun microstrip→CPS; la masa hace de reflector '
                'y 0–8 directores, cada uno algo más corto que el anterior. Ganancia ~4–11 dBi.', 'yagi',
@@ -644,7 +666,7 @@ GRUPO_AJUSTE = {'monopolo_recto': 'monopolo_pista', 'monopolo_meandro': 'monopol
                 'monopolo_koch': 'monopolo_pista', 'monopolo_hilbert': 'monopolo_pista',
                 'monopolo_sierpinski': 'monopolo', 'jpole': 'jpole', 'jpole_koch': 'jpole', 'yagi_koch': 'yagi',
                 'yagi_boom': 'sin_ajuste',
-                'parche_rectangular': 'parche_rect', 'parche_minkowski': 'parche', 'array_parches': 'array',
+                'parche_rectangular': 'parche_rect', 'parche_minkowski': 'parche', 'parche_circular': 'sin_ajuste', 'array_parches': 'array',
                 'panel_dipolos': 'sin_ajuste', 'dipolo': 'sin_ajuste', 'dipolo_bowtie': 'sin_ajuste', 'colineal_coco': 'sin_ajuste',
                 'colineal_franklin': 'sin_ajuste'}
 
@@ -666,6 +688,7 @@ ESCALABLES = {
     'monopolo_sierpinski': ('cuello',) + _MASA,
     'parche_rectangular': ('largo_alimentacion',),
     'parche_minkowski': ('largo_alimentacion',),
+    'parche_circular': ('largo_alimentacion',),
     'yagi_koch': ('ancho_pista', 'alto_cps', 'largo_balun', 'ancho_rodeo') + _MASA,
     'yagi_boom': ('ancho_pista', 'separacion_plegado'),
     'array_parches': ('largo_alimentacion',),
@@ -943,7 +966,7 @@ def dimensionar(clave, f_obj, parametros=None, nombre_sustrato=None, fijos=()):
         W, L, *_ = _parche_rectangular_dims(f_obj/factor_calibracion(clave, f_obj, p), s)
         p['ancho'], p['largo'] = round(W, 2), round(L, 2)
         return p
-    cuadrado = clave in ('parche_minkowski', 'array_parches') and abs(p['ancho'] - p['largo']) < 1e-6
+    cuadrado = clave in ('parche_minkowski', 'parche_circular', 'array_parches') and abs(p['ancho'] - p['largo']) < 1e-6
     par = next(q for q in tipo.parametros if q.nombre == tipo.escala)
     proporciones = {k: p[k]/p[tipo.escala] for k in tipo.escala_conjunta}
 
