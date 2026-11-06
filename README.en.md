@@ -28,7 +28,7 @@ manufactured boards.
 
 ## What it does
 
-1. You pick the antenna type, the band (433, 868, 2.4 GHz, 5.8 GHz —not simulated or validated, high losses on FR4— or custom) and the substrate.
+1. You pick the antenna type, the band (433, 868, 915 ISM, 1.2 GHz amateur, GPS L1, Iridium, 2.4 GHz, 5.8 GHz or custom; those other than 868 and 2.4 GHz are not simulated, and FR4 is very lossy at 5.8 GHz) and the substrate.
 2. The program sizes the antenna with formulas **calibrated against earlier simulations** and
    checks JLC's manufacturing rules.
 3. Optionally it **simulates it with openEMS** and adjusts its size until it resonates at the

@@ -150,6 +150,12 @@ def problemas(clave, p=None, f_MHz=None):
         out.append(('aviso', tr('Pérdidas a 5,8 GHz: el FR4 de JLC (tanδ 0,02) pierde del orden de 0,1 dB por cm de línea y '
                                 'la eficiencia de la antena baja bastante; en arrays y paneles, la red de alimentación '
                                 'puede sumar varios dB. Con RO4350B las pérdidas son mucho menores.')))
+    elif f_MHz and 800 < f_MHz < 2600 and abs(f_MHz - 866.5)/866.5 > 0.02 and abs(f_MHz - 2441.75)/2441.75 > 0.02:
+        out.append(('info', tr('Entre las frecuencias simuladas (868 MHz y 2,4 GHz): el tamaño se interpola y no se ha '
+                               'simulado a esta frecuencia. Simúlala antes de fabricar.')))
+        if 1500 < f_MHz < 1700:
+            out.append(('aviso', tr('GPS e Iridium emiten con polarización circular y esta antena es lineal: pierdes '
+                                    '~3 dB. Para recibir con buena sensibilidad hace falta un parche de polarización circular.')))
     elif f_MHz and abs(f_MHz - 2441.75)/2441.75 > 0.2 and clave not in VALIDADOS_868:
         out.append(('info', tr('Este tipo solo se ha validado en simulación a 2,4 GHz: a otras frecuencias la estimación '
                             'puede fallar más. Simúlala.')))

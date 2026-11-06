@@ -257,7 +257,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
             sel_tipo.add_slot('selected-item', SLOT_ELEGIDO_TIPO)
             with ui.column().classes('gap-0'):
                 ui.label(tr('Banda de uso')).classes('text-caption texto-sec')
-                banda = ui.toggle({k: tr(k) for k in BANDAS}, value='2,4 GHz').props('dense no-caps')
+                banda = ui.select({k: tr(k) for k in BANDAS}, value='2,4 GHz').props('dense outlined options-dense').classes('w-48')
             f_in = ui.number(tr('Centro [MHz]'), value=estado['f_MHz'], min=100, max=10000, step=0.005,
                              format='%.3f').classes('w-32')
             bw_in = ui.number(tr('Ancho [MHz]'), value=estado['bw_MHz'], min=0.05, max=5000, step=0.05,

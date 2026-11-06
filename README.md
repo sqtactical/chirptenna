@@ -26,7 +26,7 @@ las placas fabricadas.
 
 ## Qué hace
 
-1. Eliges el tipo de antena, la banda (433, 868, 2,4 GHz, 5,8 GHz —sin simular ni validar, con pérdidas altas en FR4— u otra) y el sustrato.
+1. Eliges el tipo de antena, la banda (433, 868, 915 ISM, 1,2 GHz radioaficionado, GPS L1, Iridium, 2,4 GHz, 5,8 GHz u otra; las que no son 868 ni 2,4 GHz están sin simular, y a 5,8 GHz el FR4 pierde mucho) y el sustrato.
 2. El programa dimensiona la antena con fórmulas **calibradas con simulaciones anteriores** y
    comprueba las reglas de fabricación de JLC.
 3. Opcionalmente la **simula con openEMS** y ajusta su tamaño hasta que resuena en la frecuencia

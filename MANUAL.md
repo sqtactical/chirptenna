@@ -93,7 +93,7 @@ La barra está siempre arriba:
 |---|---|
 | **Nombre del diseño** | El nombre de la carpeta en *Mis diseños*. Cambiarlo y guardar crea un diseño nuevo (sirve para hacer variantes) |
 | **Tipo de antena** | Ver [qué antena elegir](#12-qué-antena-elegir). La lista muestra la descripción y el estado de cada tipo. Bajo la barra aparecen los **problemas conocidos** del tipo: léelos |
-| **Banda de uso** | 433, 868, 2,4 o 5,8 GHz rellenan el centro y el ancho (5,8 GHz: sin simular ni validar, y el FR4 pierde mucho; el Hilbert y la quasi-Yagi de Koch no se pueden fabricar ahí). Con **Otra** los pones a mano (p. ej. 915 MHz en América) |
+| **Banda de uso** | 433, 868, 915 ISM, 1,2 GHz radioaficionado, GPS L1, Iridium, 2,4 o 5,8 GHz rellenan el centro y el ancho (solo 868 MHz y 2,4 GHz están simuladas; GPS e Iridium usan polarización circular y la antena es lineal, pierdes ~3 dB; 5,8 GHz: el FR4 pierde mucho; el Hilbert y la quasi-Yagi de Koch no se pueden fabricar ahí). Con **Otra** los pones a mano (p. ej. 915 MHz en América) |
 | **Centro [MHz]** | La frecuencia objetivo. Para Meshtastic, pon la frecuencia real de tu canal (en EU_868 con LongFast, 869,525 MHz; mírala en la app de Meshtastic) |
 | **Ancho [MHz]** | El ancho que tiene que cubrir la antena. Pon el de tu canal o tu banda; el programa añade margen |
 
