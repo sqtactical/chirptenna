@@ -94,7 +94,7 @@ The bar is always at the top:
 |---|---|
 | **Design name** | The folder name in *My designs*. Changing it and saving creates a new design (useful for variants) |
 | **Antenna type** | See [which antenna to choose](#12-which-antenna-to-choose). The list shows the description and status of each type. Under the bar the type's **known problems** appear: read them |
-| **Band of use** | 433, 868 or 2.4 GHz fill in the centre and the width. With **Other** you enter them by hand (e.g. 915 MHz in the Americas) |
+| **Band of use** | 433, 868, 2.4 or 5.8 GHz fill in the centre and the width (5.8 GHz: not simulated or validated, and FR4 is very lossy; the Hilbert and the Koch quasi-Yagi cannot be manufactured there). With **Other** you enter them by hand (e.g. 915 MHz in the Americas) |
 | **Centre [MHz]** | The target frequency. For Meshtastic, enter the real frequency of your channel (on EU_868 with LongFast, 869.525 MHz; check it in the Meshtastic app) |
 | **Width [MHz]** | The width the antenna has to cover. Enter that of your channel or band; the program adds margin |
 

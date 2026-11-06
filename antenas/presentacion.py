@@ -10,7 +10,8 @@ from .i18n import tr
 
 # Bandas de uso: (inicio, fin) en MHz. La antena se centra en el centro de la banda.
 # Los canales LoRa sueltos van en «Otra» (centro + ancho)
-BANDAS = {'433': (433.05, 434.79), '868': (863.0, 870.0), '2,4 GHz': (2400.0, 2483.5), 'Otra': None}
+BANDAS = {'433': (433.05, 434.79), '868': (863.0, 870.0), '2,4 GHz': (2400.0, 2483.5), '5,8 GHz': (5725.0, 5875.0),
+          'Otra': None}
 
 # Inscripciones de la serigrafía (cara inferior): (clave, texto en la interfaz), en el orden en que se imprimen
 SERIGRAFIA_OPCIONES = [

@@ -141,7 +141,16 @@ def problemas(clave, p=None, f_MHz=None):
         else:
             out.append(('info', tr('Los recortes de aligerado no se han simulado todavía: quitar FR4 sube algo la '
                                    'frecuencia. Simúlala antes de fabricar.')))
-    if f_MHz and abs(f_MHz - 2441.75)/2441.75 > 0.2 and clave not in VALIDADOS_868:
+    if f_MHz and f_MHz > 4000:
+        out.append(('aviso', tr('5,8 GHz: sin simular ni validar. Las estimaciones de tamaño no están calibradas a esta '
+                                'frecuencia y las pistas y huecos son muy pequeños. Simula y mide antes de fabricar.')))
+        if clave in ('monopolo_hilbert', 'yagi_koch'):
+            out.append(('grave', tr('A 5,8 GHz este tipo no se puede fabricar: la pista queda por debajo de lo que JLC '
+                                    'admite o las piezas chocan en el DRC de KiCad. Usa otro tipo.')))
+        out.append(('aviso', tr('Pérdidas a 5,8 GHz: el FR4 de JLC (tanδ 0,02) pierde del orden de 0,1 dB por cm de línea y '
+                                'la eficiencia de la antena baja bastante; en arrays y paneles, la red de alimentación '
+                                'puede sumar varios dB. Con RO4350B las pérdidas son mucho menores.')))
+    elif f_MHz and abs(f_MHz - 2441.75)/2441.75 > 0.2 and clave not in VALIDADOS_868:
         out.append(('info', tr('Este tipo solo se ha validado en simulación a 2,4 GHz: a otras frecuencias la estimación '
                             'puede fallar más. Simúlala.')))
     return out
