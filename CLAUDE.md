@@ -138,7 +138,11 @@ archivos modificados después de la última revisión. La marca de esa revisión
   consejos) no se traducen. `herramientas/i18n.py faltan [código]` lista lo que falta (código 1; lo pasa la CI),
   `actualizar` añade claves nuevas, `limpiar` quita las que sobran. El idioma es global del proceso (interfaz de un
   solo usuario): `app.storage.general['idioma']`, `?idioma=en` en la URL o `CHIRPTENNA_IDIOMA`; el subproceso de
-  simulación lo hereda. Pendiente: `web/app.js`, `web_api.py` y la exportación KiCad.
+  simulación lo hereda. **Web lite**: `web/app.js` usa `T('texto {0}', x)` y los elementos con `data-t` de
+  `index.html` (vacío = su texto; `data-t='…'` = la clave, con marcas HTML), carga `idiomas/<código>.json` (los mismos
+  catálogos, copiados por `construir_web.py`) y manda `idioma` a Python, que traduce consejos, avisos, comprobaciones y
+  el LÉEME del zip; `herramientas/i18n.py` extrae también esos textos. La serigrafía de la placa usa el idioma
+  elegido (`vivo`/`malla`, texto del reflector).
 - Unidades: la geometría de openEMS en mm (`SetDeltaUnit(1e-3)`) y las frecuencias
   internas en Hz. En la línea de comandos se pasan MHz y en los resúmenes se escriben GHz
   o MHz, con la unidad en el nombre de la clave (`f_centro_banda_GHz`, `longitud_mm`).
@@ -358,9 +362,16 @@ archivos modificados después de la última revisión. La marca de esa revisión
 50. **Unidades de `tipos.dimensionar` y `simulacion.simular`: Hz** (la CLI y la interfaz trabajan en MHz y
     multiplican). Pasar MHz da antenas de kilómetros (el parche) o topadas contra el límite del parámetro (los
     monopolos) y la malla revienta sin avisar.
-51. **GPU (rama `gpu-pruebas`, local)**: `antenas/gpu.py` lanza el `openEMS.exe` de `master` con `--engine=gpu`
+51. **GPU (rama `gpu-pruebas`, publicada el 06-11; en la v0.2.0 va en `main` como opción)**: `antenas/gpu.py` lanza el `openEMS.exe` de `master` con `--engine=gpu`
     (escribe el XML con `FDTD.Write2XML`; el wheel 0.37 no elige motor). Por defecto se usa si está disponible;
     `ANTENAS_GPU=0` fuerza la CPU (ajustes finales). Se compiló en `%LOCALAPPDATA%\Programs\gpu-build` (CMake, Ninja,
     CUDA 12.9 redistribuible, cabeceras HIP, vcpkg, MSVC 14.44 portable: nvcc 12.9 no soporta el 14.51 de VS 18).
     `herramientas/comparar_gpu.py <tipo…> [--radiacion]` compara CPU y GPU (~10–13× más rápida en una RTX 3050
     Laptop; f ≤ 0,06 %, S11 ≤ 0,6 dB, Z ≤ 3 Ω). Con una sola GPU, una simulación a la vez.
+52. **Panel y malla (06-11)**: en el panel la frecuencia sale hasta ~10 % distinta según la malla (la primera iteración de
+    `ajustar`, con malla automática, da 2525 MHz y las siguientes, con el paso fijado al 90 %, 2284 MHz con el mismo
+    largo). Para afinarlo, fijar el paso con una simulación de calibración y elegir por **S11 en toda la banda**, no por
+    el «centro de banda» (salta con el S11 ondulado): `herramientas/barrido_panel.py <tamano> <elemento> <largos,…> [etiqueta] [param=valor,…]` (GPU). Resultados 2,4 GHz: Sierpinski it. 2 a 18,2 mm (−23,6 dB, 12,6 dBi), recto a
+    19,14 mm (−16,3 dB, 12,1 dBi), bowtie liso a 18,4 mm (irregular). Con malla fina el haz del 2×2 sale de frente
+    (0–3°): la inclinación de 9° de la lección 36 era un artefacto de la malla. `directivas.K_BOWTIE_PANEL` y
+    `K_MALLA_FINA_PANEL` y `dipolos.K_BOWTIE`/`K_SIERPINSKI` salen de ahí.

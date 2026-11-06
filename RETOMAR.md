@@ -1,4 +1,4 @@
-# Chirptenna · estado y siguientes pasos (04-11-2026)
+# Chirptenna · estado y siguientes pasos (06-11-2026)
 
 Nota de traspaso entre sesiones: qué hay hecho, qué falta y en qué orden. Lo estable (estructura, cómo
 se ejecuta, reglas y lecciones aprendidas) está en [`CLAUDE.md`](CLAUDE.md). El diario completo de lo
@@ -7,6 +7,12 @@ hecho hasta ahora (validaciones, simulaciones, fallos y decisiones) está en
 
 ## Estado
 
+- **v0.2.0-alpha preparada en la rama local `v0.2.0`** (worktree `%LOCALAPPDATA%\antenas\wt-v020`; fusiona `main` con
+  bowtie, `i18n` y `gpu-pruebas`): idiomas es/en/fr/de + lora en escritorio y web, bowtie, GPU opcional, estados al día
+  con ~50 simulaciones nuevas, `MANUAL.en.md`, versión 0.2.0-alpha y `CHANGELOG.md`. Probada: `comprobar_tipos` 46/46,
+  `prueba_interfaz` (todos los idiomas) y `prueba_web` 32/32 con el cambio de idioma. **Sin empujar, etiquetar ni publicar**:
+  falta el visto bueno del usuario (`git push`, `gh release create v0.2.0-alpha --prerelease`, y `gpu-pruebas` ya está
+  publicada). Antes de publicar: fusionar `v0.2.0` en `main` (`main` local lleva además el commit de los bowtie).
 - **Versión publicada: v0.1.2-alpha** (pre-release en GitHub, código AGPL-3.0; la v0.1.0-alpha salió con
   GPL-3.0). Repositorio **público** desde el 04-11 (alpha abierto). Nombre comprobado en TMview: libre.
 - **Programa completo de principio a fin**, validado **solo en simulación** (εr 4,5 supuesta):
@@ -46,15 +52,16 @@ hecho hasta ahora (validaciones, simulaciones, fallos y decisiones) está en
    3. Recalibrar las estimaciones (`herramientas/calibrar_estimaciones.py`).
    4. Poner las curvas medidas en el README.
    5. Probar el asistente del NanoVNA con el equipo (con el usuario delante).
-   6. Sacar la v0.2.0-alpha.
+   6. Sacar la v0.3.0-alpha con las medidas (la v0.2.0-alpha sale antes, con idiomas, bowtie y GPU).
 3. **Pendientes técnicos** (detalle en el historial):
    - **Máscara en la simulación**: las antenas exportadas y los cupones llevan máscara encima del cobre (solo se
      abre en los pads para soldar), pero `simulacion` no la modela. Añadir una capa de ~20 µm (εr ≈ 3,8, tanδ ≈ 0,025)
      y validarla con las medidas de JLC (se espera −0,5 a −3 % de frecuencia, más en meandro/Hilbert/Koch).
      Tenerlo en cuenta al sacar la εr de los cupones (la medida ya incluye la máscara).
-   - Simular una Yagi aligerada (desplazamiento de frecuencia por quitar FR4).
-   - Panel: el haz inclinado ~9° parece un artefacto de la simulación (buscar la causa). Proponer `simetrico` = 0
-     por defecto: no corrige la inclinación y empeora S11.
+   - Yagi aligerada: simulada a 2,4 GHz (G 5,9 dBi, S11 −10,8 dB: reajustar el reflector); falta a otras bandas.
+   - Panel: con malla fina fija el haz sale de frente (0–3°): la inclinación de 9° era un artefacto de la malla (la
+     frecuencia depende de la malla hasta un 10 %: el barrido de `barrido_panel.py` fija el paso). Proponer
+     `simetrico` = 0 por defecto: no corrige nada y empeora S11. Panel 4×4, 1 elemento y 868 MHz sin afinar.
    - J-pole recta (adapta mal), Franklin (revisar horquillas), Minkowski it. 3 (borde a ~14 Ω: probar
      transformador λ/4), transición IPEX, quasi-Yagi de Koch (radia hacia atrás).
    - Calibrar εeff(h/λ) a 868 MHz (monopolos, Yagi, J-pole) y validar más tipos fuera de 2,4 GHz.
