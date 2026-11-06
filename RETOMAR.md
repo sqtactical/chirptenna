@@ -154,6 +154,18 @@ hecho hasta ahora (validaciones, simulaciones, fallos y decisiones) está en
         backend, y habrá que revalidar la ganancia y eficiencia frente a la CPU (`comparar_mallas` sirve de modelo).
    - Un usuario dijo también que hay **otra implementación de CPU que tiene en cuenta la caché** y podría ser mucho más
      rápida que la actual: no la he encontrado en el repositorio (solo «SSE2 multihilo»). Preguntar a Jorropo cuál es.
+   - **Lote en GPU (06-11, `salidas/_validacion_gpu`, 19 casos, todos terminaron).** Ajustados a 2,44 GHz salvo
+     indicación; f = resonancia final. Son valores de iterar: confirmar ganancia y eficiencia en CPU (la GPU las da
+     algo altas). Bowtie: dipolo bowtie 2424 MHz (−0,7 %, BW 607, G 2,5 dBi, η 99 %), bowtie Sierpinski 2379 MHz (−2,6 %,
+     BW 506, G 2,1); ambos con el tamaño inicial ~7 % grande: calibrar `K_BOWTIE`. Panel de 1 elemento con reflector:
+     no adapta en f objetivo (resuena en 3,05–3,07 GHz con la separación 0,40, G 4,7 dBi; a 866,5 MHz sí: 811 MHz,
+     BW 240, G 5,2): revisar la separación ideal del reflector con bowtie. Panel 2×2 Sierpinski: 2284 MHz (−6 %),
+     G 12,9 dBi, η 76 %; 4×4: 2140 MHz (−12 %), G 14,6 dBi, η 53 % (una simulación, sin iterar f). Pendientes:
+     J-pole recta −9,0 dB (sigue mal), Franklin −18,8 dB pero BW 62 MHz, G 2,2 (ya adapta; antes −5,3 dB), COCO
+     G 1,9, η 53 % (igual), parche Minkowski it. 1 η 33 %, it. 3 η 30 % y S11 −17,5 dB (antes −5 dB y η 23 %),
+     Hilbert sin π −3,7 dB (868) y −2,8 dB (2,4 GHz, orden 2) (siguen sin adaptar), monopolo IPEX −7,0 dB (igual),
+     Yagi aligerada 2441 MHz, −10,8 dB, G 5,9 dBi (antes 7,2 sin aligerar), array de parches 2×2 2051 MHz (−16 %),
+     G 5,2 dBi, η 22 %, 17 M celdas, 66 min. Falta actualizar `problemas.py` y los README con esto.
 8. **Para la v0.2.0: idiomas con i18n** (05-11, decidido; de momento solo inglés además del castellano). Hoy los textos
    están escritos a mano en castellano en `gui/app.py`, `antenas/presentacion.py`, `antenas/guia.py` (ayudas,
    resúmenes), `antenas/problemas.py`, `antenas/consejos.py`, `web/app.js` y `web_api.py`. Plan: catálogo de textos por
