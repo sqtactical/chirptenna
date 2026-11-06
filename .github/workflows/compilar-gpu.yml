@@ -125,13 +125,18 @@ jobs:
 
       - name: Compilar fparser
         run: |
+          $ErrorActionPreference = 'Stop'; $PSNativeCommandUseErrorActionPreference = $true   # un fallo de cmake o ninja para el paso
           cl 2>&1 | Select-Object -First 1
           cmake -S "$env:GB\src\fparser" -B "$env:GB\build\fparser" -G Ninja -DCMAKE_BUILD_TYPE=Release "-DCMAKE_INSTALL_PREFIX=$env:GB\opt"
           cmake --build "$env:GB\build\fparser"
           cmake --install "$env:GB\build\fparser"
+          # fparser (este commit) instala solo la DLL y la cabecera, no la biblioteca de importación que necesita CSXCAD
+          New-Item -ItemType Directory -Force "$env:GB\opt\lib" | Out-Null
+          Copy-Item (Get-ChildItem "$env:GB\build\fparser" -Recurse -Filter fparser.lib | Select-Object -First 1).FullName "$env:GB\opt\lib"
 
       - name: Compilar CSXCAD (vcpkg baja tinyxml y hdf5)
         run: |
+          $ErrorActionPreference = 'Stop'; $PSNativeCommandUseErrorActionPreference = $true   # un fallo de cmake o ninja para el paso
           cmake -S "$env:GB\src\CSXCAD" -B "$env:GB\build\CSXCAD" -G Ninja -DCMAKE_BUILD_TYPE=Release "-DCMAKE_INSTALL_PREFIX=$env:GB\opt" `
             "-DCMAKE_TOOLCHAIN_FILE=$env:GB\vcpkg\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-release `
             -DVCPKG_HOST_TRIPLET=x64-windows-release "-DCMAKE_PREFIX_PATH=$env:GB\opt" -DCSXCAD_BUILD_TESTS=OFF
@@ -140,6 +145,7 @@ jobs:
 
       - name: Compilar openEMS con el plugin de GPU (NVIDIA)
         run: |
+          $ErrorActionPreference = 'Stop'; $PSNativeCommandUseErrorActionPreference = $true   # un fallo de cmake o ninja para el paso
           $cl = (Get-Command cl).Source
           cmake -S "$env:GB\src\openEMS" -B "$env:GB\build\openEMS" -G Ninja -DCMAKE_BUILD_TYPE=Release "-DCMAKE_INSTALL_PREFIX=$env:GB\opt" `
             "-DCMAKE_TOOLCHAIN_FILE=$env:GB\vcpkg\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-release `

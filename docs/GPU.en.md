@@ -121,6 +121,9 @@ $comun = "-G", "Ninja", "-DCMAKE_MAKE_PROGRAM=$ninja", "-DCMAKE_BUILD_TYPE=Relea
 ```powershell
 & $cmake -S "$gb\src\fparser" -B "$gb\build\fparser" @comun
 & $cmake --build "$gb\build\fparser"; & $cmake --install "$gb\build\fparser"
+# this commit installs only the DLL and the header: CSXCAD also needs fparser.lib in opt\lib
+New-Item -ItemType Directory -Force "$gb\opt\lib" | Out-Null
+Copy-Item (Get-ChildItem "$gb\build\fparser" -Recurse -Filter fparser.lib | Select-Object -First 1).FullName "$gb\opt\lib"
 ```
 
 **CSXCAD** (vcpkg fetches `tinyxml` and `hdf5` on its own; it uses the `x64-windows-release` triplet):
