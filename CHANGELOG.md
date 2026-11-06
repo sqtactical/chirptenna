@@ -17,14 +17,20 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
   («Validada», «Pendiente de validación», «No funciona»), agrupados por uso. Al elegir uno solo se ven los parámetros
   básicos; el resto está en «Ajustes avanzados». Cada parámetro tiene un botón «?» que explica qué hace. El selector de
   tipo también muestra la descripción y el estado de cada antena.
-- Prueba automática de la web en la CI: los 16 tipos a 868 MHz y 2,4 GHz generados dentro del navegador y con el DRC
+- Prueba automática de la web en la CI: los 25 tipos a 868 MHz y 2,4 GHz generados dentro del navegador y con el DRC
   de KiCad.
 
 - **Idiomas** (escritorio y web lite): castellano, inglés, francés y alemán, con selector en la cabecera, y un
   easter egg. Los catálogos son `antenas/idiomas/<código>.json` (`python herramientas/i18n.py nuevo it Italiano` crea
   uno); la CI falla si falta alguna traducción. Las traducciones al francés y al alemán están por revisar por
   hablantes nativos. `MANUAL.en.md`: el manual en inglés.
-- **Dipolo bowtie y bowtie de Sierpinski**, y **panel con elementos bowtie** (de 1 elemento, 2×2 o 4×4): más
+- **Bandas nuevas**: 915 ISM, 1,2 GHz radioaficionado, GPS L1, Iridium y 5,8 GHz (selector de banda como desplegable).
+  Solo 868 MHz y 2,4 GHz están simuladas; las demás avisan de que el tamaño está interpolado y, en 5,8 GHz, de las pérdidas del FR4.
+- **Tipos nuevos sin testear ni validar**: parche de polarización circular, parche con ranura en U, parche con parásito
+  acoplado, antena F invertida, PIFA, dipolo con manga, Vivaldi antipodal y colineal de dipolos en serie por microstrip.
+- **Conector «coaxial soldado en la línea»** (sin conector): pads de vivo y malla con la máscara abierta, para los tipos
+  alimentados por línea.
+- **Dipolo bowtie y bowtie de Sierpinski** (ahora un tipo aparte, `dipolo_bowtie`), y **panel con elementos bowtie** (de 1 elemento, 2×2 o 4×4): más
   banda que el dipolo recto. Simulados a 2,4 GHz y 868 MHz; el 2×2 de Sierpinski da 12,6 dBi.
 - **Aceleración por GPU** (experimental, NVIDIA): casilla en la pestaña Simulación; ~10× más rápido que la CPU.
   Hay que compilar openEMS con motor GPU (rama `gpu-pruebas`, `RETOMAR.md`).

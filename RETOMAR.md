@@ -14,10 +14,11 @@ hecho hasta ahora (validaciones, simulaciones, fallos y decisiones) está en
   `prueba_interfaz` (todos los idiomas) y `prueba_web` 32/32 con el cambio de idioma. **Sin empujar, etiquetar ni publicar**:
   falta el visto bueno del usuario (`git push`, `gh release create v0.2.0-alpha --prerelease`, y `gpu-pruebas` ya está
   publicada). Antes de publicar: fusionar `v0.2.0` en `main` (`main` local lleva además el commit de los bowtie).
+- **Tipos y bandas añadidos tras la preparación (06-11)**: bowtie como tipo propio, bandas 915/1,2 GHz/GPS L1/Iridium/5,8 GHz, 8 tipos sin validar (`parche_circular`, `parche_ranura`, `parche_apilado`, `ifa`, `pifa`, `dipolo_sleeve`, `vivaldi`, `colineal_dipolos`) y el conector «coaxial soldado». **Pendientes de validar en simulación** (el usuario lo hará el fin de semana): `CLAUDE.md` lecciones 53–55. `dipolo_sleeve` es casi un monopolo recto con masa estrecha: se deja por ahora. Idea sin hacer: colineal con coaxial real a lo largo de la placa (openEMS solo modela el coaxial como puerto).
 - **Versión publicada: v0.1.2-alpha** (pre-release en GitHub, código AGPL-3.0; la v0.1.0-alpha salió con
   GPL-3.0). Repositorio **público** desde el 04-11 (alpha abierto). Nombre comprobado en TMview: libre.
 - **Programa completo de principio a fin**, validado **solo en simulación** (εr 4,5 supuesta):
-  - 16 tipos de antena; `herramientas/comprobar_tipos.py` los genera y exporta a 868 y 2441,75 MHz con DRC limpio (32/32).
+  - 25 tipos de antena (8 de ellos nuevos y sin validar); `herramientas/comprobar_tipos.py` los genera y exporta a 868 y 2441,75 MHz con DRC limpio.
   - Simulación y ajuste con openEMS.
   - Exportación KiCad/Gerber/DXF con logo e inscripciones a elegir.
   - Ajuste tras fabricar.
