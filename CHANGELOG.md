@@ -33,7 +33,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 - **Dipolo bowtie y bowtie de Sierpinski** (ahora un tipo aparte, `dipolo_bowtie`), y **panel con elementos bowtie** (de 1 elemento, 2×2 o 4×4): más
   banda que el dipolo recto. Simulados a 2,4 GHz y 868 MHz; el 2×2 de Sierpinski da 12,6 dBi.
 - **Aceleración por GPU** (experimental, NVIDIA): casilla en la pestaña Simulación; ~10× más rápido que la CPU.
-  Hay que compilar openEMS con motor GPU (rama `gpu-pruebas`, `RETOMAR.md`).
+  Hay que compilar openEMS con motor GPU: guía en [`docs/GPU.md`](docs/GPU.md) ([English](docs/GPU.en.md)), reconstruida y aún sin verificar desde cero.
 - **Estados actualizados** con ~40 simulaciones nuevas: dipolo, Yagi con boom, J-pole de Koch, monopolo Sierpinski
   y colineal Franklin a 868 MHz; Franklin y Minkowski de iteración 3 mejoran respecto a lo que decían los avisos.
 

@@ -47,7 +47,7 @@ las placas fabricadas.
    idiomas son ficheros `antenas/idiomas/<código>.json`: añadir otro es traducir un fichero.
 9. **Aceleración por GPU** (experimental, tarjetas NVIDIA): con un openEMS compilado con motor GPU, las simulaciones
    van ~10 veces más rápido. La frecuencia, el S11 y la impedancia coinciden con la CPU; la ganancia y la eficiencia
-   salen algo altas, así que confirma el diseño final en CPU. Ver [`RETOMAR.md`](RETOMAR.md).
+   salen algo altas, así que confirma el diseño final en CPU. Cómo compilarlo: [`docs/GPU.md`](docs/GPU.md) (guía reconstruida, aún sin verificar desde cero).
 
 ## Capturas
 

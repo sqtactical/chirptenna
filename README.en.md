@@ -49,7 +49,7 @@ manufactured boards.
    Languages are `antenas/idiomas/<code>.json` files: adding one means translating a file.
 9. **GPU acceleration** (experimental, NVIDIA cards): with an openEMS build that has the GPU engine, simulations
    run ~10 times faster. Frequency, S11 and impedance match the CPU; gain and efficiency come out a little high, so
-   confirm the final design on the CPU. See [`RETOMAR.md`](RETOMAR.md).
+   confirm the final design on the CPU. How to build it: [`docs/GPU.en.md`](docs/GPU.en.md) (reconstructed guide, not yet verified from scratch).
 
 ## Screenshots
 

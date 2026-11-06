@@ -112,7 +112,7 @@ hecho hasta ahora (validaciones, simulaciones, fallos y decisiones) está en
    - **NEC2 (`necpp`) como preoptimizador rápido** de la Yagi (no modela el FR4: solo con factor de velocidad) y
      posible tipo nuevo: Yagi de varillas metálicas para 868 MHz. Después de tener medidas reales.
    - Descartado: IA generativa, infraestructura de servidor, simuladores comerciales y 3D completo.
-7. **A estudiar: aceleración por GPU de openEMS** (05-11; lo comentó Jorropo en Discord: de 150 a 4700 MC/s con una
+7. **Aceleración por GPU de openEMS** (guía de compilación para NVIDIA en Windows: [`docs/GPU.md`](docs/GPU.md), reconstruida a partir de lo instalado; **falta verificarla compilando de cero** y automatizarla con un script; ojo: el plugin se compiló solo para `sm_86`, hay que poner la arquitectura de cada tarjeta). Notas históricas: (05-11; lo comentó Jorropo en Discord: de 150 a 4700 MC/s con una
    Intel Arc A770). Comprobado en [thliebig/openEMS](https://github.com/thliebig/openEMS): **existe, pero solo en
    `master`; la v0.37.0 que usamos no lo trae**, así que hay que compilar openEMS desde git.
    - Estado (a 05-11): motor `--engine=gpu` fusionado en `master` el 17-10 (commit `c3a956b`, backends **HIP**, que en
