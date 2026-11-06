@@ -176,34 +176,31 @@ def estimar_f_colineal_dipolos(p, eps_impreso):
 
 
 def generar_colineal_dipolos(p, s, eps_impreso):
-    """N dipolos en fila unidos por tramos de microstrip de λg (en fase). Cada dipolo: brazo inferior (placa
-    en la cara de abajo, bajo la línea) y brazo superior (placa en la cara de arriba, a continuación de la
-    línea). Entre dipolos, la línea de 50 Ω sobre una tira de masa continua."""
+    """N dipolos en serie sobre una línea central (vivo en F.Cu, malla en B.Cu), unidos por tramos de microstrip
+    de λg (así quedan en fase). Cada dipolo es una «U» en F.Cu (vivo, brazo superior, patas hacia arriba) y una
+    «U» invertida en B.Cu (malla, brazo inferior, patas hacia abajo), con la barra en el eje y las patas a los
+    lados de la línea.
+    El coaxial se suelda en el arranque de la línea (vivo a la línea, malla a la tira de masa)."""
     w50 = ancho_microstrip(50, s.er, s.h)
-    wa = p['ancho_brazo']
-    wb = max(p['ancho_boom'], w50 + 3*s.h)
+    wa, xs = p['ancho_brazo'], p['separacion_patas']
+    wb = max(min(p['ancho_boom'], 2*(xs - wa/2) - 1.5), w50 + 3*s.h)
     La, n = p['largo_brazo'], int(p['elementos'])
+    avisos = []
     f_est = estimar_f_colineal_dipolos(p, eps_impreso)
-    lam_g = C0/f_est*1e3/math.sqrt(eps_eff_microstrip(s.er, s.h, w50))
-    Ls = p['factor_linea']*lam_g
-    y = BORDE_COBRE
+    Ls = p['factor_linea']*C0/f_est*1e3/math.sqrt(eps_eff_microstrip(s.er, s.h, w50))
+    if Ls < 2*La + 2.0:
+        avisos.append(tr('Los dipolos se tocan: el tramo de línea es más corto que los dos brazos. Alarga el tramo o acorta los brazos.'))
+    y_prim = BORDE_COBRE + p['largo_entrada'] + La
+    ys = [y_prim + k*Ls for k in range(n)]
     F, B = [], []
-    B.append(g.rectangulo(-wb/2, y, wb/2, y + p['largo_entrada']))
-    F.append(g.rectangulo(-w50/2, y, w50/2, y + p['largo_entrada']))
-    y += p['largo_entrada']
-    y_alim = None
-    for k in range(n):
-        if k == 0:
-            y_alim = y + La
-        B.append(g.rectangulo(-wa/2, y, wa/2, y + La))                      # brazo inferior (B.Cu)
-        F.append(g.rectangulo(-w50/2, y, w50/2, y + La + 0.01))             # la línea pasa sobre él
-        F.append(g.rectangulo(-wa/2, y + La, wa/2, y + 2*La))               # brazo superior (F.Cu)
-        B.append(g.rectangulo(-wb/2, y + La, wb/2, y + 2*La))               # la masa sigue bajo el brazo
-        y += 2*La
-        if k < n - 1:
-            B.append(g.rectangulo(-wb/2, y, wb/2, y + Ls))
-            F.append(g.rectangulo(-w50/2, y - 0.01, w50/2, y + Ls))
-            y += Ls
+    for k, yk in enumerate(ys):
+        for cara, sentido in ((F, 1), (B, -1)):          # U arriba (vivo) y U invertida abajo (malla)
+            cara.append(g.rectangulo(-xs - wa/2, yk - wa/2, xs + wa/2, yk + wa/2))          # barra en el eje
+            for x in (-xs, xs):
+                cara.append(g.rectangulo(x - wa/2, min(yk, yk + sentido*La), x + wa/2, max(yk, yk + sentido*La)))
+    y_fin = ys[-1] + wa/2
+    F.append(g.rectangulo(-w50/2, BORDE_COBRE, w50/2, y_fin))
+    B.append(g.rectangulo(-wb/2, BORDE_COBRE, wb/2, y_fin))
     sup, inf = unary_union(F), unary_union(B)
     margen = p.get('margen_borde', 2.0)
     a_min = conector.ANCHO_MINIMO[conector.tipo(p)]
@@ -212,12 +209,15 @@ def generar_colineal_dipolos(p, s, eps_impreso):
     interior = contorno.buffer(-BORDE_COBRE, join_style='mitre')
     sup, inf = sup.intersection(interior), inf.intersection(interior)
     x0, _, x1, y1_ = unary_union([sup, inf]).bounds
+    if y1_ > 290:
+        avisos.append(tr('La placa mide {0:.0f} mm: no cabe en un tubo de PVC de 30 cm. Quita dipolos o acorta los tramos.', y1_))
     return Antena(tipo='colineal_dipolos', parametros=dict(p), capas={'F.Cu': sup, 'B.Cu': inf}, ajuste=ajuste.vacio(),
                   radiador=unary_union([sup, inf]), contorno=contorno, zona_libre=contorno,
-                  puerto={'borde': (0.0, 0.0), 'direccion': (0, 1), 'alimentacion': (0.0, y_alim), 'ancho_linea': w50},
+                  puerto={'borde': (0.0, 0.0), 'direccion': (0, 1), 'alimentacion': (0.0, y_prim), 'ancho_linea': w50},
                   info=_info_placa(contorno, {'radiador_mm': [round(x1 - x0, 2), round(y1_, 2)],
-                                              'hueco_minimo_mm': None, 'pista_minima_mm': round(min(w50, wa), 3),
-                                              'longitud_linea_mm': round(Ls, 1), 'avisos': [],
+                                              'hueco_minimo_mm': round(xs - wa/2 - wb/2, 2),
+                                              'pista_minima_mm': round(min(w50, wa), 3),
+                                              'longitud_linea_mm': round(Ls, 1), 'avisos': avisos,
                                               'f_sin_cortar_MHz': None, 'ajuste': None}))
 
 

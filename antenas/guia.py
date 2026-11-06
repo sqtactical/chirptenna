@@ -53,7 +53,7 @@ TIPOS = {
                       ['alto', 'masa', 'largo_masa', 'conector']),
     'vivaldi': ('experimental', 'Vivaldi antipodal: banda ancha y directiva hacia la boca. Sin validar.',
                 ['ancho_apertura', 'largo_aleta', 'conector']),
-    'colineal_dipolos': ('experimental', 'Dipolos en fila unidos por microstrip de λg: más ganancia omni. Sin validar.',
+    'colineal_dipolos': ('experimental', 'Dipolos en serie (U al vivo, U invertida a la malla) unidos por microstrip de λg: más ganancia omni. Sin validar.',
                          ['largo_brazo', 'elementos', 'conector']),
     'parche_ranura': ('experimental', 'Parche con ranura en U: más banda que el rectangular. Sin validar.',
                       ['largo', 'ancho', 'ranura_ancho', 'ranura_largo', 'alimentacion', 'conector']),
@@ -94,7 +94,8 @@ AYUDAS = {
     'tasa': 'Tasa de la apertura exponencial de las aletas.',
     'abertura_interior': 'Separación entre las dos aletas en la boca, como fracción del ancho.',
     'largo_entrada': 'Línea de 50 Ω entre el conector y el primer dipolo.',
-    'ancho_brazo': 'Ancho de las placas que forman los brazos de cada dipolo.',
+    'ancho_brazo': 'Ancho de las tiras que forman las patas de cada U.',
+    'separacion_patas': 'Distancia de las patas de la U al eje, a cada lado de la línea central.',
     # tamaño principal (lo calcula «Ajustar tamaño a la frecuencia»)
     'alto': 'Altura del radiador. Es la medida que fija la frecuencia: más alto, frecuencia más baja. '
             '«Ajustar tamaño a la frecuencia» la calcula sola.',
@@ -204,6 +205,7 @@ AYUDAS_TIPO = {
                'largo_alimentacion': 'Largo del balun impreso (la tira central): separa la antena del conector.',
                'alimentacion': 'Balun impreso: conector en el borde y una tira que hace de balun (todo en la placa). '
                                'Coaxial al centro: sueldas el coaxial directamente en el centro del dipolo.'},
+    'colineal_dipolos': {'elementos': 'Número de dipolos en serie. A 2,4 GHz, 4 dipolos dan una placa de ~26 cm: cabe en un tubo de PVC de 30 cm.'},
     'dipolo_bowtie': {'forma': 'Bowtie: dos triángulos como brazos, más banda que el dipolo recto. Bowtie de Sierpinski: '
                                'triángulos con huecos fractales. La bowtie aguanta mejor los desajustes de frecuencia.',
                       'iteracion_s': 'Nivel del Sierpinski de cada brazo (solo con «Bowtie de Sierpinski»). '

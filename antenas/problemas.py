@@ -84,7 +84,8 @@ FIJOS = {
     'colineal_dipolos': [
         ('aviso', 'Sin testear ni validar: no se ha simulado ni medido. La ganancia de apilar dipolos se la comen en parte '
                   'las pérdidas del FR4 en los tramos de microstrip (~0,05 dB/cm a 2,4 GHz); con muchos dipolos la '
-                  'ganancia deja de crecer. La placa es larga.'),
+                  'ganancia deja de crecer. La placa es larga. El cable coaxial real, pegado a la placa, no está modelado: '
+                  'en la simulación la alimentación es la línea desde el borde.'),
     ],
     'parche_ranura': [
         ('aviso', 'Sin testear ni validar: no se ha simulado ni medido. La ranura en U ensancha la banda, pero su '

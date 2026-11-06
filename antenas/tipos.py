@@ -717,12 +717,14 @@ for _td in [
                 Parametro('ancho_boom', 'Ancho de la tira de masa bajo la línea [mm]', 8, 4, 30, 0.5)],
                'ancho_apertura', escala_conjunta=('largo_aleta',), precision='±25 % (sin calibrar)'),
     TipoAntena('colineal_dipolos', 'Colineal de dipolos en serie (línea microstrip)',
-               'Varios dipolos en fila (un brazo en cada cara) unidos por tramos de microstrip de λg que los '
-               'ponen en fase: más ganancia omnidireccional que un dipolo. Placa larga. Las pérdidas del FR4 en '
-               'los tramos de línea la limitan. Sin validar.', 'colineal',
-               [Parametro('largo_brazo', 'Largo de cada brazo de dipolo [mm]', 22, 3, 300, 0.1),
-                Parametro('elementos', 'Número de dipolos', 3, 2, 8, 1, True),
-                Parametro('ancho_brazo', 'Ancho de los brazos [mm]', 4, 0.5, 30, 0.1),
+               'Varios dipolos en serie sobre una línea central: cada uno es una «U» en la cara de arriba (vivo) y una '
+               '«U» invertida en la de abajo (malla), unidos por tramos de microstrip de λg que los ponen en fase. '
+               'Más ganancia omnidireccional que un dipolo; placa larga. El coaxial se suelda en el arranque de la '
+               'línea. Sin validar.', 'colineal',
+               [Parametro('largo_brazo', 'Largo de cada pata de la U [mm]', 22, 3, 300, 0.1),
+                Parametro('elementos', 'Número de dipolos', 4, 2, 10, 1, True),
+                Parametro('separacion_patas', 'Distancia de las patas de la U al eje [mm]', 7, 2, 40, 0.1),
+                Parametro('ancho_brazo', 'Ancho de las patas de la U [mm]', 2.5, 0.5, 15, 0.1),
                 Parametro('factor_linea', 'Corrección del largo de los tramos de línea', 1.0, 0.7, 1.3, 0.01,
                           ayuda='Cada tramo mide λg (microstrip); esto lo alarga o acorta'),
                 Parametro('largo_entrada', 'Línea de 50 Ω desde el conector al primer dipolo [mm]', 8, 4, 100, 0.5),
@@ -801,7 +803,7 @@ ESCALABLES = {
     'pifa': _MASA,
     'dipolo_sleeve': ('ancho_pista',) + _MASA,
     'vivaldi': ('largo_alimentacion',),
-    'colineal_dipolos': ('ancho_brazo', 'largo_entrada'),
+    'colineal_dipolos': ('ancho_brazo', 'largo_entrada', 'separacion_patas'),
     'yagi_koch': ('ancho_pista', 'alto_cps', 'largo_balun', 'ancho_rodeo') + _MASA,
     'yagi_boom': ('ancho_pista', 'separacion_plegado'),
     'array_parches': ('largo_alimentacion',),
