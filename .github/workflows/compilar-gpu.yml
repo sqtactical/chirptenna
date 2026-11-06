@@ -54,11 +54,12 @@ jobs:
           ninja --version
 
       - name: Caché de vcpkg (paquetes ya compilados)
-        uses: actions/cache@v4
+        id: cache-vcpkg
+        uses: actions/cache/restore@v4
         with:
           path: D:\vcpkgcache
-          key: vcpkg-win-${{ inputs.vcpkg }}
-          restore-keys: vcpkg-win-
+          key: vcpkg-win-${{ inputs.vcpkg }}-${{ github.run_id }}
+          restore-keys: vcpkg-win-${{ inputs.vcpkg }}-
 
       - name: CUDA ${{ env.CUDA_VERSION }} (solo nvcc y el runtime, sin instalador)
         run: |
@@ -155,6 +156,13 @@ jobs:
             "-DHIP_INCLUDE_DIR=$env:HIP_INCLUDE_DIR" -DOPENEMS_GPU_PLUGINS=ON -DOPENEMS_HIP_AS_CUDA=ON
           cmake --build "$env:GB\build\openEMS"
           cmake --install "$env:GB\build\openEMS"
+
+      - name: Guardar la caché de vcpkg (aunque el flujo falle, para no repetir Boost)
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: D:\vcpkgcache
+          key: vcpkg-win-${{ inputs.vcpkg }}-${{ github.run_id }}
 
       - name: Reunir DLL y comprobar que arranca
         run: |
