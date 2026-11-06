@@ -128,12 +128,17 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'; $PSNativeCommandUseErrorActionPreference = $true   # un fallo de cmake o ninja para el paso
           cl 2>&1 | Select-Object -First 1
-          cmake -S "$env:GB\src\fparser" -B "$env:GB\build\fparser" -G Ninja -DCMAKE_BUILD_TYPE=Release "-DCMAKE_INSTALL_PREFIX=$env:GB\opt"
+          cmake -S "$env:GB\src\fparser" -B "$env:GB\build\fparser" -G Ninja -DCMAKE_BUILD_TYPE=Release "-DCMAKE_INSTALL_PREFIX=$env:GB\opt" -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=ON
           cmake --build "$env:GB\build\fparser"
           cmake --install "$env:GB\build\fparser"
-          # fparser (este commit) instala solo la DLL y la cabecera, no la biblioteca de importación que necesita CSXCAD
-          New-Item -ItemType Directory -Force "$env:GB\opt\lib" | Out-Null
-          Copy-Item (Get-ChildItem "$env:GB\build\fparser" -Recurse -Filter fparser.lib | Select-Object -First 1).FullName "$env:GB\opt\lib"
+          # CSXCAD enlaza con fparser.lib: sin símbolos exportados la DLL no genera biblioteca de importación
+          Get-ChildItem "$env:GB\build\fparser", "$env:GB\opt\lib" -Recurse -Include *.lib -ErrorAction SilentlyContinue | Select-Object FullName, Length
+          if (-not (Test-Path "$env:GB\opt\lib\fparser.lib")) {
+              $lib = Get-ChildItem "$env:GB\build\fparser" -Recurse -Filter fparser.lib | Select-Object -First 1
+              if (-not $lib) { throw 'fparser no generó fparser.lib' }
+              New-Item -ItemType Directory -Force "$env:GB\opt\lib" | Out-Null
+              Copy-Item $lib.FullName "$env:GB\opt\lib"
+          }
 
       - name: Compilar CSXCAD (vcpkg baja tinyxml y hdf5)
         run: |
