@@ -745,7 +745,10 @@ def huella_kicad(antena, ruta, nombre):
         lineas.append(f'  (fp_text user "{m["texto"]}" (at {tx - ancla[0]:.3f} {ty - ancla[1]:.3f} {ang:.0f}) '
                       f'(layer "F.SilkS") (uuid "{_u()}") (effects (font (size 0.8 0.8) (thickness 0.12))))')
     if antena.zona_libre is not None:
-        pts = [(x - ancla[0], y - ancla[1]) for x, y in conv.anillo(antena.zona_libre.exterior.coords)]
+        zl = antena.zona_libre
+        if not isinstance(zl, Polygon):        # el GEOS de Pyodide puede dar polígono + línea suelta
+            zl = max(poligonos(zl), key=lambda q: q.area)
+        pts = [(x - ancla[0], y - ancla[1]) for x, y in conv.anillo(zl.exterior.coords)]
         lineas.append(f'  (fp_poly (pts {_xy(pts)}) (stroke (width 0.05) (type solid)) (fill none) '
                       f'(layer "F.CrtYd") (uuid "{_u()}"))')
         sin_cobre = tr('Sin cobre en ambas caras')

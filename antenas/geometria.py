@@ -178,6 +178,10 @@ def contorno_placa(partes, modo, recorte=None, redondeo=1.5):
             c = c.buffer(-redondeo, join_style='round').buffer(redondeo, join_style='round')
     if recorte is not None:
         c = c.intersection(box(*recorte))
+    if not isinstance(c, Polygon):
+        # con el GEOS más antiguo de Pyodide, un recorte que toca el borde puede dar una colección (polígono +
+        # línea suelta): se queda con el polígono de más área
+        c = max(poligonos(c), key=lambda q: q.area)
     return c
 
 
