@@ -6,7 +6,7 @@
 
 *[English version](README.en.md)*
 
-> **Estado: alpha (v0.1.2-alpha).** Validado solo en simulación: todavía no se ha medido ninguna
+> **Estado: alpha (v0.2.0-alpha).** Validado solo en simulación: todavía no se ha medido ninguna
 > placa fabricada. **Se buscan medidas reales**: si fabricas una antena y la mides, compártela con
 > la plantilla [«Medida real»](../../issues/new/choose). Cómo colaborar: [CONTRIBUTING.md](CONTRIBUTING.md).
 > Cambios de cada versión: [CHANGELOG.md](CHANGELOG.md).
@@ -43,6 +43,11 @@ las placas fabricadas.
    con la curva medida superpuesta a la simulada.
 7. Las Yagi y el panel pueden llevar **recortes de aligerado**: ventanas sin FR4 entre el cobre y el
    borde (sin simular todavía: la frecuencia puede subir un poco).
+8. **Interfaz en castellano, inglés, francés y alemán** (selector en la cabecera; también en la web lite). Los
+   idiomas son ficheros `antenas/idiomas/<código>.json`: añadir otro es traducir un fichero.
+9. **Aceleración por GPU** (experimental, tarjetas NVIDIA): con un openEMS compilado con motor GPU, las simulaciones
+   van ~10 veces más rápido. La frecuencia, el S11 y la impedancia coinciden con la CPU; la ganancia y la eficiencia
+   salen algo altas, así que confirma el diseño final en CPU. Ver [`RETOMAR.md`](RETOMAR.md).
 
 ## Capturas
 
@@ -72,18 +77,18 @@ La placa resultante (render de KiCad): cara superior y cara inferior con el logo
 | Tipo | Familia | Estado en simulación |
 |---|---|---|
 | Monopolo recto, meandro, Koch | monopolo | ✅ validados (2,4 GHz y 868 MHz) |
-| Monopolo de Sierpinski | monopolo | ✅ validado (2,4 GHz) |
+| Monopolo de Sierpinski | monopolo | ✅ validado (2,4 GHz y 868 MHz) |
 | Monopolo de Hilbert | monopolo | ⚠️ resuena, pero sin red en π no adapta |
 | Parche rectangular | parche | ✅ validado (banda estrecha) |
 | Parche de Minkowski | parche | ⚠️ iteración 1 bien; la 3 tiene poca eficiencia en FR4 |
-| Dipolo impreso (balun impreso o coaxial al centro) | dipolo | ✅ validado (2,4 GHz) |
-| J-pole y J-pole de Koch | jpole | ✅ Koch validada; la recta, en revisión |
-| Yagi con boom (doble cara) | yagi | ✅ elementos rectos (6–7 dBi); con Koch, experimental |
+| Dipolo impreso (recto, de Koch, bowtie o bowtie de Sierpinski; balun impreso o coaxial al centro) | dipolo | ✅ validado (2,4 GHz y 868 MHz); la bowtie da el doble de banda |
+| J-pole y J-pole de Koch | jpole | ✅ Koch validada (2,4 GHz y 868 MHz); la recta casi adapta (−8 a −9 dB) |
+| Yagi con boom (doble cara) | yagi | ✅ elementos rectos (6–7 dBi; 2,4 GHz y 868 MHz); con Koch, experimental |
 | Quasi-Yagi con dipolo de Koch | yagi | ⚠️ experimental |
-| Panel de dipolos 2×2 / 4×4 sobre reflector | panel | ✅ 2×2 ≈ 12,7 dBi, 4×4 ≈ 16,6 dBi |
+| Panel de dipolos, bowtie o bowtie de Sierpinski, 2×2 / 4×4, sobre reflector | panel | ✅ 2×2 ≈ 12,1 dBi (dipolos) y 12,6 dBi (Sierpinski), 4×4 ≈ 14,6–16,6 dBi; un solo elemento, sin afinar |
 | Array de parches 2×2 / 4×4 | array | ⚠️ sin terminar de validar |
 | Colineal coaxial impresa (COCO) | colineal | ⚠️ radia, pero las pérdidas del FR4 se comen la ganancia |
-| Colineal Franklin | colineal | ⚠️ experimental |
+| Colineal Franklin | colineal | ⚠️ adapta, pero con poca banda y ~2,5 dBi |
 
 ## ⚠️ Problemas conocidos
 
@@ -97,18 +102,18 @@ antes de darla por buena. La interfaz muestra estos avisos al elegir el tipo y a
 | Monopolo en meandro | La frecuencia salta varios % con cambios pequeños del alto; con masa pequeña puede no llegar a −10 dB. |
 | Monopolos con IPEX | El monopolo recto con IPEX adaptó mal (−7 dB): la transición del pad central está en revisión. Con SMA va bien. |
 | Parche rectangular | Banda estrecha en FR4 de 1,6 mm (~36 MHz): no cubre toda la ISM de 2,4 GHz. η ~47 %. |
-| Parche de Minkowski | Iteración 1: η ~33 %. Iteración ≥ 2: impedancia de borde ~14 Ω, S11 ≈ −5 dB y η ~23 % (la ranura no lo arregla). |
-| J-pole recta | Resuena pero adapta mal (R ≈ 6–10 Ω). Usar la J-pole de Koch. |
+| Parche de Minkowski | Iteración 1: η ~33 % y ~1 dBi. Iteración 3: adapta (−17,5 dB) pero η ~30 % y < 1 dBi. |
+| J-pole recta | Resuena pero apenas adapta (−8 a −9 dB). La J-pole de Koch adapta mejor. |
 | Yagi con boom de Koch | Adapta mal y radia más hacia atrás que hacia los directores. Usar elementos rectos. |
 | Yagi con boom, dipolo plegado | Radia hacia atrás (F/B −3,6 dB). Usar alimentación directa (el reflector queda a ~0,39 λ0 y la placa es más larga). |
 | Yagi con boom, transformador λ/4 | Banda estrecha (~50 MHz) y η ~55 %. |
 | Quasi-Yagi de Koch | Radia hacia atrás y adapta mal (−3,5 dB). Experimental. |
-| Panel de dipolos | En simulación el haz sale ~9° inclinado (probablemente un artefacto). La disposición «simétrica» empeora la adaptación. |
-| Array de parches | Sin terminar de validar: el centro de banda salta mucho y cada simulación tarda horas. |
+| Panel de dipolos | El ajuste no itera la frecuencia (S11 ondulado): el tamaño inicial está calibrado con el 2×2 a 2,4 GHz. Con malla fina el haz sale de frente (0–3°). El panel de un solo elemento resuena lejos del objetivo. La disposición «simétrica» empeora la adaptación. |
+| Array de parches | Sin terminar de validar: el 2×2 resuena un 16 % por debajo con el tamaño por defecto, η ~22 % y cada simulación tarda horas. |
 | Colineal COCO | Radia, pero las pérdidas del FR4 dejan η ~53 % y ~1,9 dBi. |
-| Colineal Franklin | Adapta mal (−5,3 dB) y solo ~1,8 dBi. Experimental. |
-| Recortes de aligerado | Sin simular: quitar FR4 sube algo la frecuencia. |
-| Fuera de 2,4 GHz | Solo los monopolos recto, meandro y Koch están validados también a 868 MHz. |
+| Colineal Franklin | Adapta (−19 dB a 2,4 GHz, −35 dB a 868 MHz) pero con 62 y 23 MHz de banda y 2,2–2,8 dBi. Experimental. |
+| Recortes de aligerado | Yagi aligerada simulada: −1,3 dBi y hay que reajustar el reflector; en el resto, sin simular. |
+| Fuera de 2,4 GHz | A 868 MHz están simulados los monopolos recto, meandro, Koch y Sierpinski, el dipolo, la J-pole de Koch, la Yagi con boom y la colineal Franklin; el resto, solo a 2,4 GHz. |
 
 Los detalles de cada simulación y los errores encontrados por el camino están en
 [`CLAUDE.md`](CLAUDE.md) (lecciones aprendidas), [`RETOMAR.md`](RETOMAR.md) (estado) y
@@ -140,7 +145,7 @@ openEMS de sus páginas oficiales (comprobando la firma y el SHA-256), crea el e
 paquetes, sin permisos de administrador. Guía paso a paso, problemas frecuentes, desinstalación e
 instalación manual: **[INSTALAR.md](INSTALAR.md)**.
 
-**Manual de uso:** **[MANUAL.md](MANUAL.md)**. Cubre cada pestaña, cómo medir con el NanoVNA y cómo
+**Manual de uso:** **[MANUAL.md](MANUAL.md)** (inglés: [MANUAL.en.md](MANUAL.en.md)). Cubre cada pestaña, cómo medir con el NanoVNA y cómo
 ajustar la antena fabricada (marcas de corte, puentes y **red en π**, con ejemplos y qué componentes comprar).
 
 ## Uso

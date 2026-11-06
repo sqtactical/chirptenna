@@ -93,7 +93,20 @@ def main():
         pag.wait_for_function("!document.getElementById('app').hidden && document.querySelector('#vista svg')",
                               timeout=180_000)
         print(f'Interfaz lista en {time.time() - t0:.0f} s')
-        codigo = PRUEBA.replace('%PYODIDE%', pyodide).replace('%ORIGEN%', origen)
+        # Idiomas: cada uno cambia el botón de descargar y la banda estimada (esta última la traduce Python)
+        for idioma, boton in (('de', 'Für KiCad herunterladen (.zip)'), ('fr', 'Télécharger pour KiCad (.zip)'),
+                              ('en', 'Download for KiCad (.zip)'), ('es', 'Descargar para KiCad (.zip)')):
+            pag.select_option('#idioma', idioma)
+            try:
+                pag.wait_for_function("(t) => document.getElementById('btn-exportar').textContent === t", arg=boton,
+                                      timeout=20_000)
+                pag.wait_for_function("() => /\\d/.test(document.getElementById('banda-estado').textContent)",
+                                      timeout=60_000)
+                print(f'  OK  idioma {idioma}')
+            except Exception as ex:
+                fallos.append(f'idioma {idioma}: {type(ex).__name__}')
+                print(f'  MAL idioma {idioma}')
+        codigo =PRUEBA.replace('%PYODIDE%', pyodide).replace('%ORIGEN%', origen)
         res = pag.evaluate("""(codigo) => new Promise((ok) => {
             const w = new Worker(URL.createObjectURL(new Blob([codigo], {type: 'text/javascript'})));
             w.onmessage = (e) => ok(e.data);

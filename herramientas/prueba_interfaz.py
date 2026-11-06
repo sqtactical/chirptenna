@@ -44,7 +44,7 @@ def main():
     puerto = a.puerto or puerto_libre()
     base = f'http://127.0.0.1:{puerto}'
     fallos = []
-    with tempfile.TemporaryDirectory() as tmp:
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:      # en Windows el log puede seguir abierto un instante
         entorno = dict(os.environ, PYTHONIOENCODING='utf-8', CHIRPTENNA_ABRIR='0')
         registro = open(os.path.join(tmp, 'servidor.log'), 'w+', encoding='utf-8')
         proc = subprocess.Popen([sys.executable, os.path.join(RAIZ, 'gui', 'app.py'), '--puerto', str(puerto),
@@ -62,6 +62,14 @@ def main():
                         print(f"  {'OK ' if ok else 'MAL'} {pestana:11s} {tema:6s} HTTP {estado}")
                         if not ok:
                             fallos.append(f'{pestana}/{tema}: HTTP {estado}')
+                # Idiomas (el lora es el easter egg): cada pestaña se monta sin error
+                for idioma in ('en', 'fr', 'de', 'lora'):
+                    for pestana in PESTANAS:
+                        estado, html = pedir(f'{base}/?pestana={pestana}&tema=claro&idioma={idioma}', intentos=3)
+                        ok = estado == 200 and 'Chirptenna' in html
+                        print(f"  {'OK ' if ok else 'MAL'} {pestana:11s} idioma {idioma:4s} HTTP {estado}")
+                        if not ok:
+                            fallos.append(f'{pestana}/{idioma}: HTTP {estado}')
             if proc.poll() is not None:
                 fallos.append(f'el servidor se ha cerrado (código {proc.returncode})')
         finally:

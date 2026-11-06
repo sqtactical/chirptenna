@@ -5,6 +5,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ## [Sin publicar]
 
+## [0.2.0-alpha] · 2026-11-06
+
 ### Añadido
 
 - **Versión web lite** (https://sqtactical.github.io/chirptenna/): diseñar, ver y descargar la antena para KiCad
@@ -17,6 +19,17 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
   tipo también muestra la descripción y el estado de cada antena.
 - Prueba automática de la web en la CI: los 16 tipos a 868 MHz y 2,4 GHz generados dentro del navegador y con el DRC
   de KiCad.
+
+- **Idiomas** (escritorio y web lite): castellano, inglés, francés y alemán, con selector en la cabecera, y un
+  easter egg. Los catálogos son `antenas/idiomas/<código>.json` (`python herramientas/i18n.py nuevo it Italiano` crea
+  uno); la CI falla si falta alguna traducción. Las traducciones al francés y al alemán están por revisar por
+  hablantes nativos. `MANUAL.en.md`: el manual en inglés.
+- **Dipolo bowtie y bowtie de Sierpinski**, y **panel con elementos bowtie** (de 1 elemento, 2×2 o 4×4): más
+  banda que el dipolo recto. Simulados a 2,4 GHz y 868 MHz; el 2×2 de Sierpinski da 12,6 dBi.
+- **Aceleración por GPU** (experimental, NVIDIA): casilla en la pestaña Simulación; ~10× más rápido que la CPU.
+  Hay que compilar openEMS con motor GPU (rama `gpu-pruebas`, `RETOMAR.md`).
+- **Estados actualizados** con ~40 simulaciones nuevas: dipolo, Yagi con boom, J-pole de Koch, monopolo Sierpinski
+  y colineal Franklin a 868 MHz; Franklin y Minkowski de iteración 3 mejoran respecto a lo que decían los avisos.
 
 ### Cambiado
 

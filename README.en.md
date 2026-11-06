@@ -6,7 +6,7 @@
 
 *[Versión en castellano](README.md)*
 
-> **Status: alpha (v0.1.2-alpha).** Validated in simulation only: no manufactured board has been
+> **Status: alpha (v0.2.0-alpha).** Validated in simulation only: no manufactured board has been
 > measured yet. **Real measurements wanted**: if you build an antenna and measure it, share it with
 > the [“Real measurement”](../../issues/new/choose) template. How to contribute: [CONTRIBUTING.md](CONTRIBUTING.md).
 > Release notes: [CHANGELOG.md](CHANGELOG.md).
@@ -24,7 +24,7 @@ manufactured boards.
 > been ordered; the εr of JLC's FR4 (4.5 by default) is still to be measured with the coupon.
 > Treat it as a work in progress.
 
-> The code, comments and GUI are in **Spanish**.
+> The code and comments are in **Spanish**; the GUI and the web version speak **Spanish, English, French and German** (language selector in the header).
 
 ## What it does
 
@@ -45,6 +45,11 @@ manufactured boards.
    π network, with the measured curve overlaid on the simulated one.
 7. Yagis and the panel can have **lightening cutouts**: FR4-free windows between the copper and the
    edge (not simulated yet: the frequency may rise slightly).
+8. **Interface in Spanish, English, French and German** (selector in the header; also in the web lite version).
+   Languages are `antenas/idiomas/<code>.json` files: adding one means translating a file.
+9. **GPU acceleration** (experimental, NVIDIA cards): with an openEMS build that has the GPU engine, simulations
+   run ~10 times faster. Frequency, S11 and impedance match the CPU; gain and efficiency come out a little high, so
+   confirm the final design on the CPU. See [`RETOMAR.md`](RETOMAR.md).
 
 ## Screenshots
 
@@ -74,18 +79,18 @@ The resulting board (KiCad render): top side and bottom side with the logo and l
 | Type | Family | Simulation status |
 |---|---|---|
 | Straight, meander and Koch monopoles | monopole | ✅ validated (2.4 GHz and 868 MHz) |
-| Sierpinski monopole | monopole | ✅ validated (2.4 GHz) |
+| Sierpinski monopole | monopole | ✅ validated (2.4 GHz and 868 MHz) |
 | Hilbert monopole | monopole | ⚠️ resonates, but does not match without a π network |
 | Rectangular patch | patch | ✅ validated (narrowband) |
 | Minkowski patch | patch | ⚠️ iteration 1 fine; iteration 3 has low efficiency on FR4 |
-| Printed dipole (printed balun or centre-fed coax) | dipole | ✅ validated (2.4 GHz) |
-| J-pole and Koch J-pole | jpole | ✅ Koch validated; straight one under review |
-| Double-sided Yagi with boom | yagi | ✅ straight elements (6–7 dBi); Koch is experimental |
+| Printed dipole (straight, Koch, bowtie or Sierpinski bowtie; printed balun or centre-fed coax) | dipole | ✅ validated (2.4 GHz and 868 MHz); the bowtie gives twice the bandwidth |
+| J-pole and Koch J-pole | jpole | ✅ Koch validated (2.4 GHz and 868 MHz); the straight one almost matches (−8 to −9 dB) |
+| Double-sided Yagi with boom | yagi | ✅ straight elements (6–7 dBi; 2.4 GHz and 868 MHz); Koch is experimental |
 | Quasi-Yagi with Koch dipole | yagi | ⚠️ experimental |
-| 2×2 / 4×4 dipole panel over a reflector | panel | ✅ 2×2 ≈ 12.7 dBi, 4×4 ≈ 16.6 dBi |
+| 2×2 / 4×4 panel of dipoles, bowties or Sierpinski bowties over a reflector | panel | ✅ 2×2 ≈ 12.1 dBi (dipoles) and 12.6 dBi (Sierpinski), 4×4 ≈ 14.6–16.6 dBi; single element, untuned |
 | 2×2 / 4×4 patch array | array | ⚠️ validation not finished |
 | Printed coaxial collinear (COCO) | collinear | ⚠️ radiates, but FR4 losses eat the gain |
-| Franklin collinear | collinear | ⚠️ experimental |
+| Franklin collinear | collinear | ⚠️ matches, but with little bandwidth and ~2.5 dBi |
 
 ## ⚠️ Known issues
 
@@ -99,18 +104,18 @@ before trusting it. The GUI shows these warnings when you pick the type and when
 | Meander monopole | Frequency jumps a few % with small height changes; with a small ground plane it may not reach −10 dB. |
 | Monopoles with IPEX | The straight monopole with IPEX matched poorly (−7 dB): the centre-pad transition is under review. Fine with SMA. |
 | Rectangular patch | Narrowband on 1.6 mm FR4 (~36 MHz): does not cover the whole 2.4 GHz ISM band. η ~47 %. |
-| Minkowski patch | Iteration 1: η ~33 %. Iteration ≥ 2: edge impedance ~14 Ω, S11 ≈ −5 dB and η ~23 % (inset feed does not fix it). |
-| Straight J-pole | Resonates but matches poorly (R ≈ 6–10 Ω). Use the Koch J-pole. |
+| Minkowski patch | Iteration 1: η ~33 % and ~1 dBi. Iteration 3: it matches (−17.5 dB) but η ~30 % and < 1 dBi. |
+| Straight J-pole | Resonates but barely matches (−8 to −9 dB). The Koch J-pole matches better. |
 | Yagi with boom, Koch elements | Poor match and radiates more backwards than towards the directors. Use straight elements. |
 | Yagi with boom, folded dipole | Radiates backwards (F/B −3.6 dB). Use direct feed (reflector at ~0.39 λ0, longer board). |
 | Yagi with boom, λ/4 transformer | Narrow band (~50 MHz) and η ~55 %. |
 | Koch quasi-Yagi | Radiates backwards and matches poorly (−3.5 dB). Experimental. |
-| Dipole panel | In simulation the beam tilts ~9° (probably an artefact). The “symmetric” layout worsens the match. |
-| Patch array | Validation not finished: the band centre jumps a lot and each simulation takes hours. |
+| Dipole panel | The tuning does not iterate the frequency (rippled S11): the initial size is calibrated with the 2×2 at 2.4 GHz. With a fine mesh the beam comes out straight ahead (0–3°). The single-element panel resonates far from the target. The “symmetric” layout worsens the match. |
+| Patch array | Validation not finished: the 2×2 resonates 16 % low with the default size, η ~22 % and each simulation takes hours. |
 | COCO collinear | Radiates, but FR4 losses leave η ~53 % and ~1.9 dBi. |
-| Franklin collinear | Poor match (−5.3 dB) and only ~1.8 dBi. Experimental. |
-| Lightening cutouts | Not simulated: removing FR4 raises the frequency slightly. |
-| Outside 2.4 GHz | Only the straight, meander and Koch monopoles are also validated at 868 MHz. |
+| Franklin collinear | Matches (−19 dB at 2.4 GHz, −35 dB at 868 MHz) but with 62 and 23 MHz of bandwidth and 2.2–2.8 dBi. Experimental. |
+| Lightening cutouts | Lightened Yagi simulated: −1.3 dBi and the reflector has to be readjusted; for the rest, not simulated. |
+| Outside 2.4 GHz | Simulated at 868 MHz: the straight, meander, Koch and Sierpinski monopoles, the dipole, the Koch J-pole, the Yagi with boom and the Franklin collinear; the rest, only at 2.4 GHz. |
 
 ## Requirements
 
@@ -123,7 +128,7 @@ before trusting it. The GUI shows these warnings when you pick the type and when
 
 ## Try it without installing
 
-**[Chirptenna web lite](https://sqtactical.github.io/chirptenna/)** (interface in Spanish): design the antenna in
+**[Chirptenna web lite](https://sqtactical.github.io/chirptenna/)** (Spanish, English, French and German): design the antenna in
 your browser and download it for **KiCad** (`.kicad_pcb`, footprint, DXF and `diseno.json`). Everything runs in your
 browser (Python via Pyodide); nothing is sent to any server. It doesn't simulate or run KiCad's DRC: open the board
 in KiCad, run its DRC and plot the Gerbers there (the zip includes a README with the steps). To simulate and measure,
@@ -138,7 +143,7 @@ from their official sites (checking the signature and SHA-256), creates the envi
 the packages, without administrator rights. Step-by-step guide, troubleshooting, uninstalling and
 manual installation: **[INSTALL.en.md](INSTALL.en.md)**.
 
-**User manual:** **[MANUAL.md](MANUAL.md)** (in Spanish, like the interface). It covers every tab, measuring
+**User manual:** **[MANUAL.en.md](MANUAL.en.md)** (Spanish original: [MANUAL.md](MANUAL.md)). It covers every tab, measuring
 with the NanoVNA and tuning the manufactured antenna (cut marks, solder bridges and the **π network**, with
 worked examples and which components to buy).
 
