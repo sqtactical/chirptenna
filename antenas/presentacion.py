@@ -100,6 +100,8 @@ def parametros_visibles(clave, p):
             continue            # parches alimentados por el borde
         if muesca and par.nombre == 'largo_alimentacion':
             continue            # con ranura la línea solo cruza el margen de masa
+        if int(p.get('reflector', 1)) == 0 and par.nombre in ('separacion_reflector', 'margen_reflector'):
+            continue            # sin reflector no hay separación ni margen que ajustar
         if not aligerado and par.nombre in tipos.PARAMS_SOLO_ALIGERADO:
             continue            # medidas de las ventanas solo si se aligera
         visibles.append(par.nombre)

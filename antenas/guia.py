@@ -166,6 +166,8 @@ AYUDAS = {
     'elemento': 'Forma de cada parche: rectangular o fractal de Minkowski.',
     'bajada': 'Distancia entre la red de alimentación y los parches.',
     'simetrico': 'Disposición de los dipolos. «Todos iguales» adapta mejor; la simétrica no corrige la inclinación del haz.',
+    'reflector': 'Con reflector el panel radia solo hacia delante. Sin reflector radia por las dos caras (bidireccional), '
+                 'no anula una segunda banda más baja, y la ganancia baja unos 3 dB.',
     'margen_reflector': 'Cuánto sobresale el reflector de la placa por cada lado. Más grande: menos radiación hacia atrás.',
     'margen_placa': 'Margen de la placa alrededor del cobre (deja sitio a los taladros de las esquinas).',
     'taladro_coaxial': 'Taladro por el que pasa el coaxial hasta el centro. 1,7 mm para RG-316 / RG-174.',

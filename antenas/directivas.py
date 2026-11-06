@@ -443,11 +443,12 @@ def generar_panel_dipolos(p, s, eps_eff_impreso):
     s2 = SimpleNamespace(er=s.er, h=h2, tand=s.tand)
     perdida = (perdida_linea_dB_mm(f_est, s2, w100, 50)*camino['100']
                + perdida_linea_dB_mm(f_est, s2, w70, 35.4)*camino['70'])
-    d_elem = 7.5                                            # dipolo sobre reflector a ~λ/4
+    con_reflector = int(p.get('reflector', 1)) == 1
+    d_elem = 7.5 if con_reflector else 2.5                  # dipolo sobre reflector a ~λ/4 (sin reflector, un dipolo: ~2 dBi y bidireccional)
     d_ideal = d_elem + 10*math.log10(n*n) - (0.5 if n > 1 else 0.0)     # acoplo mutuo
     d_apertura = 10*math.log10(4*math.pi*(rx1 - rx0)*(ry1 - ry0)/lam0**2)
     d_est = min(d_ideal, d_apertura)
-    if not 0.15 <= p['separacion_reflector'] <= 0.3:
+    if con_reflector and not 0.15 <= p['separacion_reflector'] <= 0.3:
         avisos.append(tr('Reflector a {0:.2f} λ0: lo habitual es 0,2–0,25 λ0 (más cerca baja la impedancia y la banda; más lejos el haz se deforma).', p["separacion_reflector"]))
     if n > 1 and p['separacion'] > 0.9:
         avisos.append(tr('Separación entre dipolos > 0,9 λ0: aparecen lóbulos de difracción.'))
@@ -455,7 +456,7 @@ def generar_panel_dipolos(p, s, eps_eff_impreso):
         avisos.append(tr('Las bowtie casi se tocan en vertical: sube la separación o cierra la apertura.'))
     if n > 1 and 2*la + 4 > dx:
         avisos.append(tr('Los dipolos casi se tocan en la dirección de sus brazos: sube la separación.'))
-    if max(rx1 - rx0, ry1 - ry0) > 400:
+    if con_reflector and max(rx1 - rx0, ry1 - ry0) > 400:
         avisos.append(tr('Reflector de más de 400 mm: mejor una chapa de aluminio que una PCB.'))
     return Antena(tipo='panel_dipolos', parametros=dict(p), capas={'F.Cu': cobre_sup, 'B.Cu': cobre_inf},
                   ajuste=ajuste.vacio(), radiador=cobre_sup, contorno=contorno, zona_libre=None,
@@ -463,17 +464,17 @@ def generar_panel_dipolos(p, s, eps_eff_impreso):
                           'ancho_linea': w100, 'ancho_puerto': w100, 'taladro_mm': p['taladro_coaxial'],
                           'pad_vivo_mm': pad_v, 'pad_malla_mm': PAD_MALLA},
                   taladros=[(x, y, TALADRO_TORNILLO) for x, y in tornillos], vias=vias,
-                  reflector={'contorno': reflector, 'separacion_mm': sep, 'hilos': [(0.0, 0.0)],
-                             'taladros': [(x, y, TALADRO_TORNILLO) for x, y in tornillos]
-                             + [(0.0, 0.0, TALADRO_SMA_PANEL)]},
+                  reflector=({'contorno': reflector, 'separacion_mm': sep, 'hilos': [(0.0, 0.0)],
+                              'taladros': [(x, y, TALADRO_TORNILLO) for x, y in tornillos]
+                              + [(0.0, 0.0, TALADRO_SMA_PANEL)]} if con_reflector else None),
                   info={'lineas_mm': {'100ohm': round(w100, 3), '70ohm': round(w70, 3)},
                         'largo_lambda4_mm': round(l70, 2), 'separacion_mm': round(dx, 2),
                         'largo_dipolo_mm': round(2*la, 2),
-                        'separacion_reflector_mm': round(sep, 2),
+                        'separacion_reflector_mm': round(sep, 2) if con_reflector else None,
                         'placa_mm': [round(x1 - x0, 2), round(y1 - y0, 2)],
-                        'reflector_mm': [round(rx1 - rx0, 2), round(ry1 - ry0, 2)],
+                        'reflector_mm': [round(rx1 - rx0, 2), round(ry1 - ry0, 2)] if con_reflector else None,
                         'area_placa_cm2': round(contorno.area/100, 2),
-                        'grosor_total_mm': round(sep + s.h, 1),
+                        'grosor_total_mm': round((sep if con_reflector else 0) + s.h, 1),
                         'perdida_red_estimada_dB': round(float(perdida), 2),
                         'directividad_ideal_dBi': round(d_est, 1),
                         'ganancia_estimada_dBi': round(float(d_est - perdida), 1),
