@@ -24,6 +24,7 @@ from shapely.ops import unary_union
 
 from .geometria import poligonos, sin_agujeros
 from .materiales import C0, eps_eff_microstrip
+from .i18n import tr
 
 DIR_OPENEMS = os.environ.get('CSXCAD_INSTALL_PATH',
                              os.path.join(os.environ.get('LOCALAPPDATA', ''), 'Programs', 'openEMS', 'openEMS'))
@@ -192,8 +193,7 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
     res_aire = lam_min/cfg['lam_div']
     avisos = []
     if s_min/res < 2:
-        avisos.append(f'El hueco más estrecho ({s_min:.2f} mm) queda con menos de 2 celdas: '
-                      'el resultado puede salir en cortocircuito; usa la precisión «fina».')
+        avisos.append(tr('El hueco más estrecho ({0:.2f} mm) queda con menos de 2 celdas: el resultado puede salir en cortocircuito; usa la precisión «fina».', s_min))
 
     FDTD = openEMS(NrTS=400000, EndCriteria=1e-4)
     FDTD.SetGaussExcite(f0, fc)
@@ -305,8 +305,7 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
         lineas = np.asarray(mesh.GetLines(d))
         for v in (ini[i], fin[i]):
             if np.min(np.abs(lineas - v)) > 1e-6:
-                raise RuntimeError(f'El puerto no cae en la malla ({d} = {v:.4f} mm): openEMS lo descartaría '
-                                   'y la simulación correría sin excitación')
+                raise RuntimeError(tr('El puerto no cae en la malla ({0} = {1:.4f} mm): openEMS lo descartaría y la simulación correría sin excitación', d, v))
     # Hilos PEC verticales: vías de cara a cara y malla del coaxial del panel (del reflector a la cara
     # inferior). Una caja degenerada solo existe si cae exactamente en una línea de malla (si no,
     # openEMS la descarta sin avisar): se lleva a la línea más cercana, dentro del pad de la vía.
@@ -323,10 +322,9 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
         cobre.AddBox([mx, my, z_ref], [mx, my, 0.0], priority=10)
     celdas = [len(mesh.GetLines(d)) for d in 'xyz']
     n_celdas = int(np.prod(celdas))
-    progreso(f'Malla {celdas[0]}×{celdas[1]}×{celdas[2]} = {n_celdas/1e6:.2f} M celdas '
-             f'(paso en la placa {res:.2f} mm; pista mín. {w_min:.2f} mm, hueco mín. {s_min:.2f} mm)')
+    progreso(tr('Malla {0}×{1}×{2} = {3:.2f} M celdas (paso en la placa {4:.2f} mm; pista mín. {5:.2f} mm, hueco mín. {6:.2f} mm)', celdas[0], celdas[1], celdas[2], n_celdas/1e6, res, w_min, s_min))
     if n_celdas > 15e6:
-        avisos.append(f'Malla muy grande ({n_celdas/1e6:.0f} M celdas): la simulación tardará mucho.')
+        avisos.append(tr('Malla muy grande ({0:.0f} M celdas): la simulación tardará mucho.', n_celdas/1e6))
 
     caja = FDTD.CreateNF2FFBox() if nf2ff else None
     hecho = _terminada(sim_path) and os.path.exists(os.path.join(sim_path, 'port_it_1'))
@@ -334,9 +332,9 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
         hecho = hecho and os.path.exists(os.path.join(sim_path, 'nf2ff_E_0.h5'))
     t0 = time.time()
     if hecho:
-        progreso('Resultado en caché: no se vuelve a simular')
+        progreso(tr('Resultado en caché: no se vuelve a simular'))
     else:
-        progreso('Simulando con openEMS…')
+        progreso(tr('Simulando con openEMS…'))
         # hilos: 0 = todos. ANTENAS_HILOS permite repartir la CPU entre dos simulaciones a la vez
         FDTD.Run(sim_path, cleanup=True, verbose=0, numThreads=int(os.environ.get('ANTENAS_HILOS', '0')))
     t_sim = time.time() - t0
@@ -347,7 +345,7 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
     zin = port.uf_tot/port.if_tot
     s11_db = 20*np.log10(np.abs(s11))
     fcen, flo, fhi, fmn, smn = centro_banda(f, s11_db)
-    criterio = 'centro de la banda a −10 dB'
+    criterio = tr('centro de la banda a −10 dB')
     en_borde = False
     if flo is not None and abs(fcen - f_centro)/f_centro > 0.25:
         # la banda a −10 dB es de otra resonancia lejos del objetivo: se busca la más cercana
@@ -374,25 +372,24 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
         elif len(cruces):
             i = cruces[np.argmin(np.abs(f[cruces] - f_centro))]
             fcen = f[i] + (f[i + 1] - f[i])*(-x[i])/(x[i + 1] - x[i])
-            criterio = 'reactancia nula en los terminales (no llega a −10 dB cerca del objetivo)'
+            criterio = tr('reactancia nula en los terminales (no llega a −10 dB cerca del objetivo)')
         else:
             borde = int(0.03*len(f))
             j = borde + int(np.argmin(s11_db[borde:-borde]))
             fcen = f[j]
             en_borde = j <= borde + 1 or j >= len(f) - borde - 2
-            criterio = 'mínimo de S11 (no llega a −10 dB)'
+            criterio = tr('mínimo de S11 (no llega a −10 dB)')
         if flo is None:
-            avisos.append(f'No llega a −10 dB cerca del objetivo (mínimo {smn:.1f} dB): adaptación pobre; '
-                          f'resonancia por {criterio}.')
+            avisos.append(tr('No llega a −10 dB cerca del objetivo (mínimo {0:.1f} dB): adaptación pobre; resonancia por {1}.', smn, criterio))
     # Cortocircuito: |S11|≈1 en todo el rango y Z≈0 a baja frecuencia
     if s11_db.max() - s11_db.min() < 1.0 and abs(zin[0]) < 5:
-        avisos.append('S11 plano y Z≈0: el modelo parece en cortocircuito (hueco no resuelto por la malla).')
+        avisos.append(tr('S11 plano y Z≈0: el modelo parece en cortocircuito (hueco no resuelto por la malla).'))
     res_out = {'f_Hz': f, 's11': s11, 'zin': zin, 'f_resonancia_Hz': fcen, 'banda_Hz': (flo, fhi),
                'f_min_s11_Hz': fmn, 's11_min_dB': smn, 'celdas': n_celdas, 'paso_malla_mm': res,
                'criterio': criterio, 'en_borde': en_borde, 'rango_Hz': (fmin, fmax),
                'tiempo_s': round(t_sim, 1), 'avisos': avisos, 'precision': precision}
     if nf2ff:
-        progreso('Calculando el diagrama de radiación…')
+        progreso(tr('Calculando el diagrama de radiación…'))
         theta = np.arange(0, 181, 3.0)
         phi = np.arange(0, 361, 6.0)
         centro = [((x0 + x1)/2)*1e-3, ((y0 + y1)/2)*1e-3, h/2*1e-3]   # en metros
@@ -411,9 +408,7 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
                         'eficiencia_total': prad/p_inc if p_inc > 0 else float('nan')})
         res_out['ganancia_dBi'] = res_out['directividad_dBi'] + 10*math.log10(max(res_out['eficiencia_radiacion'], 1e-6))
         if res_out['eficiencia_radiacion'] < 0.10:
-            avisos.append(f'Eficiencia de radiación del {100*res_out["eficiencia_radiacion"]:.0f} %: casi no radia en '
-                          f'{f_rad/1e6:.0f} MHz. Probable resonancia falsa (pieza desconectada en el modelo o '
-                          'resonancia de la línea), revisa la geometría.')
+            avisos.append(tr('Eficiencia de radiación del {0:.0f} %: casi no radia en {1:.0f} MHz. Probable resonancia falsa (pieza desconectada en el modelo o resonancia de la línea), revisa la geometría.', 100*res_out["eficiencia_radiacion"], f_rad/1e6))
         it, ip = np.unravel_index(np.argmax(d_dbi), d_dbi.shape)
         res_out['direccion_max'] = {'theta': float(theta[it]), 'phi': float(phi[ip])}
     return res_out
@@ -437,8 +432,7 @@ def _ajustar_toma(clave, q, nombre_sustrato, s, f_obj, precision, paso, progreso
         r = simular(tipos.generar(clave, qq, nombre_sustrato), s, f_obj, precision, nf2ff=False, progreso=progreso,
                     paso=paso, malla=malla)
         s11, z = _s11_en(r, f_obj)
-        progreso(f'Adaptador ×{qq["factor_adaptador"]:.3f}, toma {qq["toma"]:.3f}: Z = {z.real:.1f} {z.imag:+.1f}j Ω '
-                 f'en el objetivo, S11 {s11:.1f} dB')
+        progreso(tr('Adaptador ×{0:.3f}, toma {1:.3f}: Z = {2:.1f} {3:+.1f}j Ω en el objetivo, S11 {4:.1f} dB', qq["factor_adaptador"], qq["toma"], z.real, z.imag, s11))
         historial.append({'escala_mm': qq['largo_radiador'], 'f_resonancia_MHz': round(r['f_resonancia_Hz']/1e6, 2),
                           'error_%': round(100*(r['f_resonancia_Hz'] - f_obj)/f_obj, 2), 'tiempo_s': r['tiempo_s'],
                           'valido': True, 'factor_adaptador': qq['factor_adaptador'], 'toma': qq['toma'],
@@ -530,12 +524,11 @@ def _ajustar_adaptacion(clave, q, nombre_sustrato, s, f_obj, precision, paso, pr
         if x == mejor_q[nombre]:
             break
         qq = dict(mejor_q, **{nombre: x})
-        progreso(f'Adaptación {n + 1}: {nombre} = {x:.2f} {unidad}')
+        progreso(tr('Adaptación {0}: {1} = {2:.2f} {3}', n + 1, nombre, x, unidad))
         r = simular(tipos.generar(clave, qq, nombre_sustrato), s, f_obj, precision, nf2ff=False, progreso=progreso,
                     paso=paso, malla=malla)
         s11, z = _s11_en(r, f_obj)
-        progreso(f'  → Z = {z.real:.1f} {z.imag:+.1f}j Ω en el objetivo, S11 {s11:.1f} dB '
-                 f'(resonancia {r["f_resonancia_Hz"]/1e6:.1f} MHz)')
+        progreso(tr('  → Z = {0:.1f} {1:+.1f}j Ω en el objetivo, S11 {2:.1f} dB (resonancia {3:.1f} MHz)', z.real, z.imag, s11, r["f_resonancia_Hz"]/1e6))
         historial.append({'escala_mm': qq[tipos.CATALOGO[clave].escala], nombre: x,
                           'f_resonancia_MHz': round(r['f_resonancia_Hz']/1e6, 2),
                           'error_%': round(100*(r['f_resonancia_Hz'] - f_obj)/f_obj, 2), 'tiempo_s': r['tiempo_s'],
@@ -562,8 +555,7 @@ def ajustar(clave, parametros, nombre_sustrato, f_obj, precision='normal', max_s
     if aj_mod.activo(p) and int(p.get('marcas', 0)) == 1 and p.get('sobrelargo', 0) > 0:
         f_final = f_obj
         f_obj = f_obj/(1 + p['sobrelargo']/100)
-        progreso(f'Con sobrelargo del {p["sobrelargo"]:g} %: se ajusta para que SIN cortar resuene en '
-                 f'{f_obj/1e6:.1f} MHz (cortando por las marcas se llega a {f_final/1e6:.1f} MHz).')
+        progreso(tr('Con sobrelargo del {0:g} %: se ajusta para que SIN cortar resuene en {1:.1f} MHz (cortando por las marcas se llega a {2:.1f} MHz).', p["sobrelargo"], f_obj/1e6, f_final/1e6))
     esc = tipo.escala
     proporciones = {k: p[k]/p[esc] for k in tipo.escala_conjunta}
     cuadrado = abs(p.get('ancho', 0) - p.get('largo', -1)) < 1e-6 and clave in ('parche_minkowski', 'array_parches')
@@ -584,7 +576,7 @@ def ajustar(clave, parametros, nombre_sustrato, f_obj, precision='normal', max_s
     for n in range(max_sim):
         q = con_escala(x)
         a = tipos.generar(clave, q, nombre_sustrato)
-        progreso(f'Iteración {n + 1}: {esc} = {x:.3f} mm')
+        progreso(tr('Iteración {0}: {1} = {2:.3f} mm', n + 1, esc, x))
         r = simular(a, s, f_obj, precision, nf2ff=False, progreso=progreso, paso=paso, malla=malla)
         if paso is None:
             # se fija con un 10 % de holgura por si la antena encoge y sus detalles con ella
@@ -594,7 +586,7 @@ def ajustar(clave, parametros, nombre_sustrato, f_obj, precision='normal', max_s
         historial.append({'escala_mm': round(x, 3), 'f_resonancia_MHz': round(fr/1e6, 2), 'error_%': round(100*err, 2),
                           'tiempo_s': r['tiempo_s'], 'valido': not r['en_borde'],
                           'S11_obj_dB': round(_s11_en(r, f_obj)[0], 1)})
-        progreso(f'  → resonancia {fr/1e6:.1f} MHz ({100*err:+.2f} %, {r["criterio"]}), S11 mín {r["s11_min_dB"]:.1f} dB')
+        progreso(tr('  → resonancia {0:.1f} MHz ({1:+.2f} %, {2}), S11 mín {3:.1f} dB', fr/1e6, 100*err, r["criterio"], r["s11_min_dB"]))
         ultimo = (q, a, r)
         if not r['en_borde'] and abs(err) < tolerancia:
             break
@@ -628,10 +620,10 @@ def ajustar(clave, parametros, nombre_sustrato, f_obj, precision='normal', max_s
         q, a = _ajustar_toma(clave, q, nombre_sustrato, s, f_obj, precision, paso, progreso, historial,
                              malla=malla)
     elif (clave in PARAM_ADAPTACION or _con_muesca(clave, q)) and historial[mejor]['S11_obj_dB'] > -10:
-        progreso(f'Resuena en el objetivo pero con S11 {historial[mejor]["S11_obj_dB"]} dB: se ajusta la adaptación')
+        progreso(tr('Resuena en el objetivo pero con S11 {0} dB: se ajusta la adaptación', historial[mejor]["S11_obj_dB"]))
         q, a = _ajustar_adaptacion(clave, q, nombre_sustrato, s, f_obj, precision, paso, progreso, historial,
                                    historial[mejor]['S11_obj_dB'], malla=malla)
-    progreso('Simulación final con diagrama de radiación…')
+    progreso(tr('Simulación final con diagrama de radiación…'))
     r = simular(a, s, f_obj, precision, nf2ff=True, progreso=progreso, paso=paso, malla=malla,
                 f_radiacion=f_obj if tipo.familia in ('panel', 'array') else None)
     f_est = a.info.get('f_sin_cortar_MHz')
@@ -640,5 +632,5 @@ def ajustar(clave, parametros, nombre_sustrato, f_obj, precision='normal', max_s
         # se corrige con la resonancia simulada de la antena sin cortar
         q = dict(q, k_sim=round(tipos.k_sim(q)*r['f_resonancia_Hz']/(f_est*1e6), 4))
         a = tipos.generar(clave, q, nombre_sustrato)
-        progreso(f'Marcas de corte rotuladas con la simulación (×{q["k_sim"]:.4f} sobre la estimación)')
+        progreso(tr('Marcas de corte rotuladas con la simulación (×{0:.4f} sobre la estimación)', q["k_sim"]))
     return q, a, r, historial

@@ -1,3 +1,4 @@
+from .i18n import tr
 """Consejos de diseño: generales de cada tipo y otros que dependen del diseño concreto.
 
 consejos(antena, f_obj, banda) -> lista de (categoría, texto). Categorías: 'diseño',
@@ -121,44 +122,40 @@ def consejos(antena, f_obj=None, banda=None):
         lo, hi = banda
         centro = (lo + hi)/2
         if f_obj and abs(f_obj - centro)/centro > 0.005:
-            out.insert(0, ('banda', f'La banda va de {lo/1e6:g} a {hi/1e6:g} MHz: centra la antena en '
-                                    f'{centro/1e6:g} MHz, no en {f_obj/1e6:g} MHz.'))
+            out.insert(0, ('banda', tr('La banda va de {0:g} a {1:g} MHz: centra la antena en {2:g} MHz, no en {3:g} MHz.', lo/1e6, hi/1e6, centro/1e6, f_obj/1e6)))
         bw = info.get('ancho_banda_estimado')
         if bw:
             if bw['f_inf_MHz']*1e6 > lo or bw['f_sup_MHz']*1e6 < hi:
-                out.insert(0, ('banda', f'El ancho de banda estimado ({bw["MHz"]:g} MHz) no cubre la banda de '
-                                        f'{(hi - lo)/1e6:g} MHz: pulsa «Ampliar ancho de banda» o cambia de tipo.'))
+                out.insert(0, ('banda', tr('El ancho de banda estimado ({0:g} MHz) no cubre la banda de {1:g} MHz: pulsa «Ampliar ancho de banda» o cambia de tipo.', bw["MHz"], (hi - lo)/1e6)))
             elif (bw['MHz']*1e6)/(hi - lo) < 1.5:
-                out.insert(0, ('banda', 'Cubre la banda pero con poco margen: las tolerancias de fabricación '
-                                        '(εr ±2–3 %) pueden sacarte de ella. Deja margen o prevé la red en π.'))
+                out.insert(0, ('banda', tr('Cubre la banda pero con poco margen: las tolerancias de fabricación '
+                                        '(εr ±2–3 %) pueden sacarte de ella. Deja margen o prevé la red en π.')))
     # Sustrato
     if 'FR4' in sustrato and f_est > 3e9:
-        out.append(('diseño', 'Por encima de ~3 GHz el FR4 pierde bastante y su εr varía entre lotes: '
-                              'considera RO4350B.'))
+        out.append(('diseño', tr('Por encima de ~3 GHz el FR4 pierde bastante y su εr varía entre lotes: '
+                              'considera RO4350B.')))
     if 'FR4' in sustrato:
-        out.append(('medida', 'La εr del FR4 de JLC está pendiente de medir con el cupón: la frecuencia real '
-                              'puede moverse un ±2–3 %.'))
+        out.append(('medida', tr('La εr del FR4 de JLC está pendiente de medir con el cupón: la frecuencia real '
+                              'puede moverse un ±2–3 %.')))
     # Conector IPEX
     if antena.puerto.get('conector') == 1:
-        out.append(('montaje', 'IPEX / U.FL (MHF1, no MHF4): aguanta ~30 conexiones. El latiguillo de 1,13 mm pierde '
-                               '~0,5 dB cada 10 cm a 2,4 GHz (~0,3 dB a 868 MHz): úsalo lo más corto posible.'))
-        out.append(('medida', 'Para medir con el NanoVNA hace falta un latiguillo IPEX–SMA: mídelo antes con '
-                              'vna/medir_latiguillo.py y descuenta su retardo, o la frecuencia aparente se mueve.'))
+        out.append(('montaje', tr('IPEX / U.FL (MHF1, no MHF4): aguanta ~30 conexiones. El latiguillo de 1,13 mm pierde '
+                               '~0,5 dB cada 10 cm a 2,4 GHz (~0,3 dB a 868 MHz): úsalo lo más corto posible.')))
+        out.append(('medida', tr('Para medir con el NanoVNA hace falta un latiguillo IPEX–SMA: mídelo antes con '
+                              'vna/medir_latiguillo.py y descuenta su retardo, o la frecuencia aparente se mueve.')))
     # Masa compacta
     if int(p.get('masa', 0)) in (2, 3) and tipo.familia == 'monopolo':
-        out.append(('medida', 'Con masa compacta el cable forma parte de la antena: mide con una ferrita en el '
-                              'coaxial a 2–3 cm de la placa y sin tocar la placa.'))
+        out.append(('medida', tr('Con masa compacta el cable forma parte de la antena: mide con una ferrita en el '
+                              'coaxial a 2–3 cm de la placa y sin tocar la placa.')))
     # Iteraciones altas
     if int(p.get('iteracion', 0)) >= 3 and antena.tipo in ('monopolo_koch', 'yagi_koch'):
-        out.append(('diseño', 'Iteración 3 o más: los detalles son pequeños y la ganancia de tamaño, marginal; '
-                              'la iteración 2 suele ser el mejor compromiso.'))
+        out.append(('diseño', tr('Iteración 3 o más: los detalles son pequeños y la ganancia de tamaño, marginal; '
+                              'la iteración 2 suele ser el mejor compromiso.')))
     if int(p.get('orden', 0)) >= 4:
-        out.append(('diseño', 'Hilbert de orden 4 o más: hueco entre vueltas muy pequeño; revisa las '
-                              'comprobaciones de fabricación y la tolerancia de JLC.'))
+        out.append(('diseño', tr('Hilbert de orden 4 o más: hueco entre vueltas muy pequeño; revisa las '
+                              'comprobaciones de fabricación y la tolerancia de JLC.')))
     if int(p.get('directores', 0)) >= 5:
-        out.append(('diseño', f'Con {int(p["directores"])} directores la Yagi gana poco por director extra '
-                              '(~0,5–1 dB) y la placa crece mucho.'))
+        out.append(('diseño', tr('Con {0} directores la Yagi gana poco por director extra (~0,5–1 dB) y la placa crece mucho.', int(p["directores"]))))
     if info.get('perdida_red_estimada_dB', 0) > 2.5:
-        out.append(('diseño', f'La red pierde ~{info["perdida_red_estimada_dB"]:.1f} dB: con este sustrato el '
-                              'array grande compensa poco frente a uno más pequeño.'))
+        out.append(('diseño', tr('La red pierde ~{0:.1f} dB: con este sustrato el array grande compensa poco frente a uno más pequeño.', info["perdida_red_estimada_dB"])))
     return out

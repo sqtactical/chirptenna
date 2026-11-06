@@ -25,6 +25,7 @@ from shapely.ops import unary_union
 
 from . import geometria as g
 from .tipos_base import Parametro
+from .i18n import tr
 
 # Huellas de componentes: (largo del pad, ancho del pad, distancia entre centros) [mm]
 HUELLAS = {'0603': (0.9, 0.95, 1.6), '0402': (0.6, 0.6, 1.0)}
@@ -139,8 +140,7 @@ def red_pi(x_eje, y_centro, w_linea, p, vertical=True, lado=1):
             aj['vias_masa'].append((x_eje + dx, yi + lado*0.85))
     aj['cortes'].append(corte)
     aj['puentes_sim'].append(corte)
-    aj['notas'].append(f'Red en π ({huella}): Z1 en serie = 0 Ω de fábrica; Z2 (lado conector) y Z3 (lado antena) '
-                       'a masa, sin montar. Usa el asistente con tu medida para elegir valores.')
+    aj['notas'].append(tr('Red en π ({0}): Z1 en serie = 0 Ω de fábrica; Z2 (lado conector) y Z3 (lado antena) a masa, sin montar. Usa el asistente con tu medida para elegir valores.', huella))
     return aj
 
 
@@ -184,8 +184,7 @@ def alargar_polilinea(pts, w, le, k_eq, f_nom, p, prefijo='T'):
             aj['marcas'].append({'linea': [tuple(a), tuple(b)], 'texto': f'{f_k/1e6:.0f}',
                                  'pos': tuple(punto + n_perp*(w/2 + 1.6)),
                                  'rot': math.degrees(math.atan2(d[1], d[0]))})
-        aj['notas'].append(f'Sin cortar resuena ~{f_sin_cortar/1e6:.0f} MHz; cada marca indica en MHz la '
-                           'frecuencia que queda si cortas por ella.')
+        aj['notas'].append(tr('Sin cortar resuena ~{0:.0f} MHz; cada marca indica en MHz la frecuencia que queda si cortas por ella.', f_sin_cortar/1e6))
     n_tr = int(p.get('tramos', 0))
     if n_tr > 0:
         estano = int(p.get('puente', 0)) == 0
@@ -205,7 +204,7 @@ def alargar_polilinea(pts, w, le, k_eq, f_nom, p, prefijo='T'):
                      'valor': 'abierto', 'montar': False,
                      'pads': [(-(hueco/2 + 0.3), 0.0, 0.6, max(w, 1.0)), (hueco/2 + 0.3, 0.0, 0.6, max(w, 1.0))]}
             else:
-                c = _componente(f'R{prefijo}{i + 1}', '0603', centro[0], centro[1], rot, '0 Ω (no montada)', False)
+                c = _componente(f'R{prefijo}{i + 1}', '0603', centro[0], centro[1], rot, tr('0 Ω (no montada)'), False)
             aj['componentes'].append(c)
             x = fin_tr
         aj['tramos'] = n_tr
@@ -227,8 +226,7 @@ def marcas_parche(x0, x1, y_borde, L, f_nom, p):
             f_k = f_nom*L/(L + ext - c)
             aj['marcas'].append({'linea': [(x0 - 0.5, y), (x1 + 0.5, y)], 'texto': f'{f_k/1e6:.0f}',
                                  'pos': (x1 + 3.0, y), 'rot': 0})
-        aj['notas'].append(f'Parche alargado {100*s:.1f} %: corta en paralelo al borde superior por la marca '
-                           'de la frecuencia deseada.')
+        aj['notas'].append(tr('Parche alargado {0:.1f} %: corta en paralelo al borde superior por la marca de la frecuencia deseada.', 100*s))
     return ext, aj
 
 
@@ -360,18 +358,15 @@ def asistente(antena, f, s11, f_obj, distancia_red_mm=None, eps_eff=None):
         f_dis = antena.info.get('f_sin_cortar_MHz', None)
         escala = f_res/(f_dis*1e6) if f_dis else 1.0
         mejor = min(marcas, key=lambda m: abs(float(m['texto'])*1e6*escala - f_obj))
-        rec['acciones'].append(f'Corta por la marca «{mejor["texto"]}» (con tu medida quedará ≈ '
-                               f'{float(mejor["texto"])*escala:.0f} MHz).')
+        rec['acciones'].append(tr('Corta por la marca «{0}» (con tu medida quedará ≈ {1:.0f} MHz).', mejor["texto"], float(mejor["texto"])*escala))
     elif desvio > 0.003 and aj.get('tramos', 0):
         paso = antena.parametros.get('paso_tramo', 1.5)/100
         n = min(aj['tramos'], max(1, round(desvio/paso)))
-        rec['acciones'].append(f'Cierra {n} puente(s) de tramo, empezando por el más cercano al radiador '
-                               f'(baja ≈ {100*n*paso:.1f} %).')
+        rec['acciones'].append(tr('Cierra {0} puente(s) de tramo, empezando por el más cercano al radiador (baja ≈ {1:.1f} %).', n, 100*n*paso))
     elif abs(desvio) > 0.003:
-        rec['acciones'].append(f'La resonancia está un {100*desvio:+.1f} % desviada y esta antena no tiene '
-                               'margen de corte/tramos: corrígela con la red en π o rediseña.')
+        rec['acciones'].append(tr('La resonancia está un {0:+.1f} % desviada y esta antena no tiene margen de corte/tramos: corrígela con la red en π o rediseña.', 100*desvio))
     else:
-        rec['acciones'].append('La resonancia ya está en la frecuencia objetivo.')
+        rec['acciones'].append(tr('La resonancia ya está en la frecuencia objetivo.'))
     # 2) adaptación: red L con la impedancia medida en f_obj (trasladada a la posición de la red)
     k = int(np.argmin(np.abs(f - f_obj)))
     zl = 50*(1 + s11[k])/(1 - s11[k])
@@ -384,14 +379,12 @@ def asistente(antena, f, s11, f_obj, distancia_red_mm=None, eps_eff=None):
     rec['s11_en_f_obj_dB'] = round(float(db[k]), 1)
     if aj.get('componentes') and any(c['ref'] == 'Z1' for c in aj['componentes']):
         if db[k] < -15:
-            rec['acciones'].append('Adaptación ya buena en la frecuencia objetivo: deja Z1 = 0 Ω y Z2/Z3 sin montar.')
+            rec['acciones'].append(tr('Adaptación ya buena en la frecuencia objetivo: deja Z1 = 0 Ω y Z2/Z3 sin montar.'))
         else:
             sols = redes_l(zl, f_obj)
             rec['redes'] = sols
             if sols:
                 s = sols[0]
                 txt = lambda c: '0 Ω' if c[0] == '0 Ω' else (f'{c[1]:g} nH' if c[0] == 'L' else f'{c[1]:g} pF')
-                rec['acciones'].append(f'Red en π: Z1 (serie) = {txt(s["serie"])}, {s["posicion"]} (a masa) = '
-                                       f'{txt(s["derivacion"])}, la otra derivación sin montar '
-                                       f'(|S11| calculado {s["s11_dB"]} dB con valores comerciales).')
+                rec['acciones'].append(tr('Red en π: Z1 (serie) = {0}, {1} (a masa) = {2}, la otra derivación sin montar (|S11| calculado {3} dB con valores comerciales).', txt(s["serie"]), s["posicion"], txt(s["derivacion"]), s["s11_dB"]))
     return rec

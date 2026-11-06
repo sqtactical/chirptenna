@@ -145,12 +145,16 @@ hecho hasta ahora (validaciones, simulaciones, fallos y decisiones) está en
         backend, y habrá que revalidar la ganancia y eficiencia frente a la CPU (`comparar_mallas` sirve de modelo).
    - Un usuario dijo también que hay **otra implementación de CPU que tiene en cuenta la caché** y podría ser mucho más
      rápida que la actual: no la he encontrado en el repositorio (solo «SSE2 multihilo»). Preguntar a Jorropo cuál es.
-8. **Para la v0.2.0: idiomas con i18n** (05-11, decidido; de momento solo inglés además del castellano). Hoy los textos
-   están escritos a mano en castellano en `gui/app.py`, `antenas/presentacion.py`, `antenas/guia.py` (ayudas,
-   resúmenes), `antenas/problemas.py`, `antenas/consejos.py`, `web/app.js` y `web_api.py`. Plan: catálogo de textos por
-   clave (JSON `es`/`en`) compartido entre escritorio y web, selector de idioma que se recuerda, y la prueba de la CI
-   comprobando que no falte ninguna clave en `en`. Los nombres de tipo y de parámetro de `diseno.json` no se traducen
-   (son claves). `MANUAL.md` y `INSTALAR.md` ya tienen o tendrán su versión inglesa aparte.
+8. **Para la v0.2.0: idiomas con i18n** (decidido 05-11; **hecha la interfaz de escritorio el 06-11 en la rama local
+   `i18n`**, worktree `%LOCALAPPDATA%\antenas\wt-i18n`, sin fusionar ni empujar). Mecanismo y reglas en CLAUDE.md
+   («Idiomas de la interfaz»): `antenas/i18n.py` (`tr`), `antenas/idiomas/en.json` (773 textos, todos traducidos),
+   `herramientas/i18n.py`, selector de idioma en la cabecera. Probado en inglés en todas las pestañas sin castellano
+   suelto. Falta: **(a)** pasar `herramientas/i18n.py faltan` a la CI (`comprobar.yml`); **(b)** web lite (`web/app.js`,
+   `web_api.py`, `catalogo.json`, descarga del idioma al navegador: hoy `i18n` va en el núcleo pero sin catálogo);
+   **(c)** exportación (serigrafía y textos del `.kicad_pcb`/LÉEME siguen en castellano salvo el nombre del tipo);
+   **(d)** `MANUAL.md` en inglés; **(e)** revisar la traducción inglesa (la hizo Claude); **(f)** fusionar con
+   `gpu-pruebas` (conflicto previsible en `gui/app.py`: la casilla de GPU); **(g)** probar la pestaña Medir y la
+   Simulación con simulación real en inglés (el subproceso hereda `CHIRPTENNA_IDIOMA`).
 9. **Más adelante:** interfaz en inglés, versión para Linux, `dependabot.yml` (ya hay CI y versiones fijadas),
    mejoras de la web lite (abajo).
 8. **Web lite** (05-11, hecha; `web/`, ver CLAUDE.md): 32/32 casos en Pyodide (~0,6 s por antena), zip del navegador

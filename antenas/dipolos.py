@@ -26,6 +26,7 @@ from .materiales import C0, ancho_microstrip, eps_eff_microstrip
 from .modelo import Antena
 from .directivas import brazo_koch
 from .jpole import eps_eff_cps
+from .i18n import tr
 
 BORDE_COBRE = 0.5
 Y_COAXIAL = 6.0           # dipolo con coaxial: los brazos van a esta altura; debajo, la zona de soldadura
@@ -105,7 +106,7 @@ def generar_dipolo(p, s, eps_impreso):
         puerto = {'borde': (0.0, 0.0), 'direccion': (0, 1), 'alimentacion': (0.0, y_d), 'ancho_linea': w50}
         hueco = None
         if p['largo_alimentacion'] < 0.15*C0/estimar_f_dipolo(p, eps_impreso)*1e3/math.sqrt(eps_impreso):
-            avisos.append('Boom corto: el balun funciona mejor con la tira de masa de ~λg/4 bajo la línea.')
+            avisos.append(tr('Boom corto: el balun funciona mejor con la tira de masa de ~λg/4 bajo la línea.'))
     interior = contorno.buffer(-BORDE_COBRE, join_style='mitre')
     sup, inf = sup.intersection(interior), inf.intersection(interior)
     x0, _, x1, _ = unary_union([g_der, g_izq]).bounds
@@ -167,7 +168,7 @@ def generar_colineal_coco(p, s):
     ganancia = 2.15 + 10*math.log10(nsec)*0.8          # dipolo + ~80 % de la ganancia ideal del array
     avisos = []
     if nsec > 6:
-        avisos.append('Con muchos tramos, la corriente decae hacia la punta y la ganancia crece poco.')
+        avisos.append(tr('Con muchos tramos, la corriente decae hacia la punta y la ganancia crece poco.'))
     return Antena(tipo='colineal_coco', parametros=dict(p), capas={'F.Cu': cobre_sup, 'B.Cu': cobre_inf},
                   ajuste=ajuste.vacio(), radiador=unary_union([cobre_sup, cobre_inf]), contorno=contorno,
                   zona_libre=contorno, vias=vias,
@@ -218,7 +219,7 @@ def generar_colineal_franklin(p, s, eps_impreso, lg):
     cx0, _, cx1, alto = contorno.bounds
     avisos = []
     if lg < 0.95*le/2:
-        avisos.append(f'Masa de {lg:.0f} mm, menos de λ/4: el cable pasa a formar parte de la antena (ferrita al medir).')
+        avisos.append(tr('Masa de {0:.0f} mm, menos de λ/4: el cable pasa a formar parte de la antena (ferrita al medir).', lg))
     return Antena(tipo='colineal_franklin', parametros=dict(p), capas={'F.Cu': unary_union([alim, rad]), 'B.Cu': masa},
                   ajuste=ajuste.vacio(), radiador=rad, contorno=contorno,
                   zona_libre=g.rectangulo(cx0, lg, cx1, alto).intersection(contorno),

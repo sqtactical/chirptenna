@@ -12,6 +12,7 @@ import math
 
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
+from .i18n import tr
 
 BORDE_COBRE = 0.5                  # donde empieza la línea con SMA (retranqueo del cobre) [mm]
 SMA, IPEX = 0, 1
@@ -67,8 +68,7 @@ def aplicar_ipex(antena, w50):
     antena.puerto['ancho_puerto'] = PAD_SENAL[1]
     avisos = antena.info.setdefault('avisos', [])
     if quitado > 1.05*w50*(u_fin + 1.0):
-        avisos.append(f'El IPEX ocupa {u_fin:.1f} mm desde el borde y pisa cobre que no es la línea de 50 Ω: '
-                      'alarga la línea de alimentación.')
+        avisos.append(tr('El IPEX ocupa {0:.1f} mm desde el borde y pisa cobre que no es la línea de 50 Ω: alarga la línea de alimentación.', u_fin))
     return antena
 
 

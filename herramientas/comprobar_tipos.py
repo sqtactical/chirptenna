@@ -63,6 +63,13 @@ def main():
     for e in guia.comprobar():
         print(f'  MAL guía: {e}')
         fallos += 1
+    # Idiomas de la interfaz: ningún texto sin traducir (herramientas/i18n.py)
+    import i18n as herr_i18n
+    textos_i18n = herr_i18n.extraer()
+    for c in herr_i18n.codigos():
+        for t in herr_i18n.faltan(c, textos_i18n):
+            print(f'  MAL idioma {c}: sin traducir: {t[:90]}')
+            fallos += 1
     os.makedirs(a.salida, exist_ok=True)
     with open(os.path.join(a.salida, 'resumen.json'), 'w', encoding='utf-8') as fh:
         json.dump({'version': __version__, 'fallos': fallos, 'casos': resumen}, fh, indent=2, ensure_ascii=False,

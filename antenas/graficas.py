@@ -1,6 +1,7 @@
 """Gráficas de Plotly para los resultados de simulación (S11, Smith y diagrama de radiación)."""
 import numpy as np
 import plotly.graph_objects as go
+from .i18n import tr
 
 _MARGEN = dict(l=40, r=10, t=30, b=40)
 
@@ -14,7 +15,7 @@ def s11(f, s, banda=None):
     fig.add_hline(y=-10, line_dash='dash', line_color='grey', line_width=1)
     fig.add_trace(go.Scatter(x=f/1e6, y=db, mode='lines', line=dict(color='#5e35b1', width=2), name='|S11|',
                              hovertemplate='%{x:.1f} MHz<br>%{y:.1f} dB<extra></extra>'))
-    fig.update_layout(title='Adaptación |S11|', xaxis_title='MHz', yaxis_title='dB', margin=_MARGEN,
+    fig.update_layout(title=tr('Adaptación |S11|'), xaxis_title='MHz', yaxis_title='dB', margin=_MARGEN,
                       plot_bgcolor='white', showlegend=False)
     fig.update_xaxes(gridcolor='#eee'); fig.update_yaxes(gridcolor='#eee')
     return fig
@@ -53,7 +54,7 @@ def roe(f, s, banda=None, f_obj=None, techo=6.0):
     if banda:
         fig.add_vrect(x0=banda[0]/1e6, x1=banda[1]/1e6, fillcolor='orange', opacity=0.2, line_width=0,
                       annotation_text='banda', annotation_position='top left')
-    fig.add_hline(y=2, line_dash='dash', line_color='grey', line_width=1, annotation_text='2 (−10 dB)',
+    fig.add_hline(y=2, line_dash='dash', line_color='grey', line_width=1, annotation_text=tr('2 (−10 dB)'),
                   annotation_position='bottom right')
     fig.add_hline(y=1.5, line_dash='dot', line_color='grey', line_width=1)
     fig.add_trace(go.Scatter(x=f/1e6, y=np.minimum(v, techo), mode='lines', line=dict(color='#00897b', width=2),
@@ -103,9 +104,8 @@ def smith(f, s, banda=None, f_obj=None):
         zm = 50*(1 + sm)/(1 - sm)
         fig.add_trace(go.Scatter(x=[sm.real], y=[sm.imag], mode='markers',
                                  marker=dict(symbol=simbolo, size=12 if simbolo == 'star' else 9, color=color),
-                                 hovertemplate=f'{texto}: {fm/1e6:g} MHz<br>Z = {zm.real:.1f} {zm.imag:+.1f}j Ω'
-                                               '<extra></extra>'))
-    fig.update_layout(title='Smith' + (' · ★ objetivo ● banda' if marcas else ''), margin=dict(l=10, r=10, t=30, b=10), showlegend=False,
+                                 hovertemplate=tr('{0}: {1:g} MHz<br>Z = {2:.1f} {3:+.1f}j Ω<extra></extra>', texto, fm/1e6, zm.real, zm.imag)))
+    fig.update_layout(title=tr('Smith') + (tr(' · ★ objetivo ● banda') if marcas else ''), margin=dict(l=10, r=10, t=30, b=10), showlegend=False,
                       plot_bgcolor='white', xaxis=dict(visible=False, range=[-1.05, 1.05]),
                       yaxis=dict(visible=False, range=[-1.05, 1.05], scaleanchor='x', scaleratio=1))
     return fig
@@ -123,11 +123,11 @@ def _corte(theta, phi, d, phi0):
 def cortes_polares(theta, phi, d, piso=-25):
     fig = go.Figure()
     dmax = float(np.max(d))
-    for phi0, color, nombre in ((0, '#5e35b1', 'Plano φ=0° (XZ)'), (90, '#e65100', 'Plano φ=90° (YZ)')):
+    for phi0, color, nombre in ((0, '#5e35b1', tr('Plano φ=0° (XZ)')), (90, '#e65100', tr('Plano φ=90° (YZ)'))):
         ang, val = _corte(theta, phi, d, phi0)
         fig.add_trace(go.Scatterpolar(theta=ang, r=np.maximum(val, dmax + piso), mode='lines', name=nombre,
                                       line=dict(color=color, width=2)))
-    fig.update_layout(title=f'Diagrama (directividad, máx {dmax:.1f} dBi)', margin=dict(l=20, r=20, t=40, b=20),
+    fig.update_layout(title=tr('Diagrama (directividad, máx {0:.1f} dBi)', dmax), margin=dict(l=20, r=20, t=40, b=20),
                       polar=dict(radialaxis=dict(range=[dmax + piso, dmax + 1], ticksuffix=' dBi'),
                                  angularaxis=dict(direction='clockwise', rotation=90)),
                       legend=dict(orientation='h', y=-0.1))
@@ -165,7 +165,7 @@ def diagrama_3d(theta, phi, d, piso=-20, antena=None, h_mm=1.6):
     fig = go.Figure(go.Surface(x=x, y=y, z=z, surfacecolor=d, colorscale='Plasma', cmin=dmax + piso, cmax=dmax,
                                colorbar=dict(title='dBi', thickness=12), opacity=0.45 if antena else 1.0,
                                name='Diagrama', hovertemplate='%{surfacecolor:.1f} dBi<extra></extra>'))
-    titulo = 'Diagrama 3D (Z: perpendicular a la placa)'
+    titulo = tr('Diagrama 3D (Z: perpendicular a la placa)')
     if antena is not None:
         x0, y0, x1, y1 = antena.contorno.bounds
         cx, cy = (x0 + x1)/2, (y0 + y1)/2
@@ -183,10 +183,10 @@ def diagrama_3d(theta, phi, d, piso=-20, antena=None, h_mm=1.6):
                                         flatshading=True))
 
         plano(antena.contorno, 0.0, '#2e7d32', 0.35, 'FR4')
-        plano(antena.cobre('B.Cu'), -0.02, '#7f9ed6', 0.95, 'Cara inferior')
-        plano(antena.cobre('F.Cu'), esp, '#c8892b', 1.0, 'Cara superior')
+        plano(antena.cobre('B.Cu'), -0.02, '#7f9ed6', 0.95, tr('Cara inferior'))
+        plano(antena.cobre('F.Cu'), esp, '#c8892b', 1.0, tr('Cara superior'))
         if antena.reflector:
-            plano(antena.reflector['contorno'], -antena.reflector['separacion_mm']*k, '#9e9e9e', 0.6, 'Reflector')
+            plano(antena.reflector['contorno'], -antena.reflector['separacion_mm']*k, '#9e9e9e', 0.6, tr('Reflector'))
         for anillo in [antena.contorno.exterior] + list(antena.contorno.interiors):
             ax_, ay_ = np.array(anillo.coords).T
             fig.add_trace(go.Scatter3d(x=(ax_ - cx)*k, y=(ay_ - cy)*k, z=np.zeros(len(ax_)), mode='lines',
@@ -205,10 +205,10 @@ def diagrama_3d(theta, phi, d, piso=-20, antena=None, h_mm=1.6):
         t_, p_ = np.radians(theta[it]), np.radians(phi[ip])
         u = np.array([np.sin(t_)*np.cos(p_), np.sin(t_)*np.sin(p_), np.cos(t_)])*R*1.08
         fig.add_trace(go.Scatter3d(x=[0, u[0]], y=[0, u[1]], z=[0, u[2]], mode='lines+markers+text',
-                                   text=['', f'máx {dmax:.1f} dBi'], textposition='top center',
+                                   text=['', tr('máx {0:.1f} dBi', dmax)], textposition='top center',
                                    marker=dict(size=[0, 6], color='#e53935'), line=dict(color='#e53935', width=5),
                                    textfont=dict(color='#e53935'), hoverinfo='skip', showlegend=False))
-        titulo = f'Diagrama 3D con la placa · máximo θ {theta[it]:.0f}°, φ {phi[ip]:.0f}°'
+        titulo = tr('Diagrama 3D con la placa · máximo θ {0:.0f}°, φ {1:.0f}°', theta[it], phi[ip])
     eje = dict(showticklabels=False, title='', showgrid=False, zeroline=False, showbackground=False)
     fig.update_layout(title=titulo, margin=dict(l=0, r=0, t=30, b=0),
                       scene=dict(xaxis=eje, yaxis=eje, zaxis=eje, aspectmode='data',

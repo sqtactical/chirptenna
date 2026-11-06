@@ -123,6 +123,19 @@ archivos modificados después de la última revisión. La marca de esa revisión
 ## Convenciones de código
 
 - Todo en español: nombres, comentarios, docstrings, mensajes y claves de JSON.
+- **Idiomas de la interfaz (i18n, rama `i18n`)**: el castellano es el texto fuente y sirve de clave (estilo gettext).
+  `antenas/i18n.py`: `tr('texto {0}', x)` traduce y formatea (si falta la traducción sale el castellano, nunca
+  falla); `N_()` solo marca. Un idioma es `antenas/idiomas/<código>.json` (`_nombre` + `textos`): **para añadir uno,
+  `python herramientas/i18n.py nuevo fr Français`, traducir los valores y listo** (sale solo en el selector de la
+  cabecera). Reglas: todo texto nuevo de la interfaz o de un mensaje al usuario va con `tr(...)`; en f-strings,
+  `tr('plantilla {0:.1f}', valor)` (nunca f-string dentro de `tr`); **nada de `tr` a nivel de módulo ni en
+  valores por defecto** (se evalúa al importar, con el idioma equivocado): los textos de datos estáticos
+  (`guia`, `tipos`, `problemas.FIJOS`…) se dejan en castellano y la interfaz los traduce al mostrarlos
+  (`tr(p.etiqueta)`). Las claves internas (nombres de tipo/parámetro de `diseno.json`, `BANDAS`, categorías de
+  consejos) no se traducen. `herramientas/i18n.py faltan [código]` lista lo que falta (código 1; lo pasa la CI),
+  `actualizar` añade claves nuevas, `limpiar` quita las que sobran. El idioma es global del proceso (interfaz de un
+  solo usuario): `app.storage.general['idioma']`, `?idioma=en` en la URL o `CHIRPTENNA_IDIOMA`; el subproceso de
+  simulación lo hereda. Pendiente: `web/app.js`, `web_api.py` y la exportación KiCad.
 - Unidades: la geometría de openEMS en mm (`SetDeltaUnit(1e-3)`) y las frecuencias
   internas en Hz. En la línea de comandos se pasan MHz y en los resúmenes se escriben GHz
   o MHz, con la unidad en el nombre de la clave (`f_centro_banda_GHz`, `longitud_mm`).

@@ -2,6 +2,7 @@
 import numpy as np
 
 from .geometria import poligonos
+from .i18n import tr
 
 
 def _anillos(geom):
@@ -38,7 +39,7 @@ def dibujar_png(antena, ruta, titulo=None):
     bx, by = antena.puerto['borde']
     ax.plot(bx, by, 'r>', ms=12)
     ax.set_aspect('equal'); ax.autoscale()
-    ax.set_title(titulo or f"{antena.tipo} — f estimada {antena.info.get('f_estimada_MHz')} MHz")
+    ax.set_title(titulo or tr('{0} — f estimada {1} MHz', antena.tipo, antena.info.get('f_estimada_MHz')))
     ax.set_xlabel('mm'); ax.set_ylabel('mm')
     fig.savefig(ruta, dpi=110)
     plt.close(fig)
@@ -78,8 +79,8 @@ def figura_plotly(antena):
     for tx_, ty_, d in taladros:
         fig.add_shape(type='circle', x0=tx_ - d/2, x1=tx_ + d/2, y0=ty_ - d/2, y1=ty_ + d/2,
                       line=dict(color='#444', width=1))
-    trazas(antena.cobre('B.Cu'), '#7f9ed6', 'Masa (cara inferior)', 0.45)
-    trazas(antena.cobre('F.Cu'), '#c8892b', 'Cobre (cara superior)', 0.95)
+    trazas(antena.cobre('B.Cu'), '#7f9ed6', tr('Masa (cara inferior)'), 0.45)
+    trazas(antena.cobre('F.Cu'), '#c8892b', tr('Cobre (cara superior)'), 0.95)
     aj = antena.ajuste or {}
     # Componentes de ajuste (red en π, puentes): contorno de cada pad y su referencia
     xs, ys, tx, ty, tt = [], [], [], [], []
@@ -110,8 +111,8 @@ def figura_plotly(antena):
                                  hoverinfo='skip'))
     bx, by = antena.puerto['borde']
     fig.add_trace(go.Scatter(x=[bx], y=[by], mode='markers', marker=dict(symbol='triangle-right', size=14, color='red'),
-                             name=('Toma del coaxial' if antena.puerto.get('tipo') in ('coaxial', 'pasante') else
-                                   f'Conector ({"IPEX" if antena.puerto.get("conector") == 1 else "SMA"})')))
+                             name=(tr('Toma del coaxial') if antena.puerto.get('tipo') in ('coaxial', 'pasante') else
+                                   tr('Conector ({0})', "IPEX" if antena.puerto.get("conector") == 1 else "SMA"))))
     if antena.puerto.get('conector') == 1:
         from .conector import pads_ipex
         pads, vias, _ = pads_ipex(antena.puerto)

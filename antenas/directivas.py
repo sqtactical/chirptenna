@@ -22,6 +22,7 @@ from . import geometria as g
 from . import ajuste
 from .materiales import ancho_microstrip, eps_eff_microstrip, lambda0_mm, C0
 from .modelo import Antena
+from .i18n import tr
 
 BORDE_COBRE = 0.5
 
@@ -120,7 +121,7 @@ def generar_yagi(p, s, eps_eff_impreso):
     ganancia = 4 + 2.2*math.log2(1 + nd)
     avisos = []
     if nd > 4 and p['separacion_director'] < 0.1*lambda0_mm(f_est):
-        avisos.append('Directores muy juntos para tantos elementos: separación típica 0,15–0,3 λ0.')
+        avisos.append(tr('Directores muy juntos para tantos elementos: separación típica 0,15–0,3 λ0.'))
     return Antena(tipo='yagi_koch', parametros=dict(p), capas={'F.Cu': cobre, 'B.Cu': masa}, ajuste=aj,
                   radiador=radiador, contorno=contorno,
                   zona_libre=g.rectangulo(cx0, lg, cx1, alto).intersection(contorno),
@@ -220,7 +221,7 @@ def generar_yagi_boom(p, s, eps_eff_impreso):
         # izquierda con una vía al brazo de abajo. Con conductores iguales la impedancia es ~4 veces la del
         # dipolo simple: los 10–15 Ω con los parásitos cerca pasan a ~40–60 Ω sin adaptador. Solo recto.
         if n > 0:
-            avisos.append('El dipolo plegado se hace siempre recto: la iteración de Koch solo afecta a los parásitos.')
+            avisos.append(tr('El dipolo plegado se hace siempre recto: la iteración de Koch solo afecta a los parásitos.'))
         sp = p['separacion_plegado']
         y_s = y_d + sp
         sup.append(g.engordar([(0.0, y_d), (la, y_d), (la, y_s), (-la, y_s), (-la, y_d)], w))
@@ -263,10 +264,9 @@ def generar_yagi_boom(p, s, eps_eff_impreso):
     sep_l = p['separacion_reflector'] + p['separacion_director']*nd
     ganancia = 4.5 + 2.2*math.log2(1 + nd)              # reflector + dipolo ≈ 4,5 dBi; +~2,2 dB por duplicar
     if not 0.1 <= p['separacion_reflector'] <= 0.3 and not plegado:
-        avisos.append(f'Reflector a {p["separacion_reflector"]:.2f} λ0 del dipolo: lo habitual '
-                      'es 0,15–0,25 λ0 (más cerca baja la impedancia y la eficiencia).')
+        avisos.append(tr('Reflector a {0:.2f} λ0 del dipolo: lo habitual es 0,15–0,25 λ0 (más cerca baja la impedancia y la eficiencia).', p["separacion_reflector"]))
     if p['factor_reflector'] <= 1.0:
-        avisos.append('Reflector más corto que el dipolo: actuará como director y el haz irá hacia atrás.')
+        avisos.append(tr('Reflector más corto que el dipolo: actuará como director y el haz irá hacia atrás.'))
     return Antena(tipo='yagi_boom', parametros=dict(p), capas={'F.Cu': cobre_sup, 'B.Cu': cobre_inf},
                   ajuste=ajuste.vacio(), radiador=unary_union([cobre_sup, cobre_inf]), contorno=contorno,
                   zona_libre=None, vias=vias,
@@ -322,7 +322,7 @@ def generar_panel_dipolos(p, s, eps_eff_impreso):
     """
     n = int(p['tamano'])
     if n not in (1, 2, 4):
-        raise ValueError('El panel admite un solo elemento, 2×2 o 4×4')
+        raise ValueError(tr('El panel admite un solo elemento, 2×2 o 4×4'))
     elemento = int(p.get('elemento', 0))             # 0 = dipolo recto, 1 = bowtie, 2 = bowtie de Sierpinski
     h2 = s.h/2
     w100 = float(ancho_microstrip(50, s.er, h2))
@@ -363,7 +363,7 @@ def generar_panel_dipolos(p, s, eps_eff_impreso):
         nx, ny = -uy, ux
         d = (HUECO_CRUCE + w)/math.sqrt(2)          # así las diagonales paralelas quedan a HUECO_CRUCE
         if largo < 2*d + 2*w:
-            avisos.append('La rama es demasiado corta para el cruce de tiras: sube la separación.')
+            avisos.append(tr('La rama es demasiado corta para el cruce de tiras: sube la separación.'))
         mx, my = (x0 + x1)/2, (y0 + y1)/2
         ca, cb = (mx - d*ux, my - d*uy), (mx + d*ux, my + d*uy)
         va, vb = (mx + d*nx, my + d*ny), (mx - d*nx, my - d*ny)
@@ -377,7 +377,7 @@ def generar_panel_dipolos(p, s, eps_eff_impreso):
         (x0, y0), (x1, y1) = desde, hacia
         largo = math.hypot(x1 - x0, y1 - y0)
         if largo < l70 + w100:
-            avisos.append('Las ramas de la red son más cortas que el λ/4 de 70,7 Ω: sube la separación.')
+            avisos.append(tr('Las ramas de la red son más cortas que el λ/4 de 70,7 Ω: sube la separación.'))
         k = min(l70/largo, 1.0)
         medio = (x0 + k*(x1 - x0), y0 + k*(y1 - y0))
         tira(desde, medio, w70)
@@ -441,16 +441,15 @@ def generar_panel_dipolos(p, s, eps_eff_impreso):
     d_apertura = 10*math.log10(4*math.pi*(rx1 - rx0)*(ry1 - ry0)/lam0**2)
     d_est = min(d_ideal, d_apertura)
     if not 0.15 <= p['separacion_reflector'] <= 0.3:
-        avisos.append(f'Reflector a {p["separacion_reflector"]:.2f} λ0: lo habitual es 0,2–0,25 λ0 (más cerca baja '
-                      'la impedancia y la banda; más lejos el haz se deforma).')
+        avisos.append(tr('Reflector a {0:.2f} λ0: lo habitual es 0,2–0,25 λ0 (más cerca baja la impedancia y la banda; más lejos el haz se deforma).', p["separacion_reflector"]))
     if n > 1 and p['separacion'] > 0.9:
-        avisos.append('Separación entre dipolos > 0,9 λ0: aparecen lóbulos de difracción.')
+        avisos.append(tr('Separación entre dipolos > 0,9 λ0: aparecen lóbulos de difracción.'))
     if n > 1 and elemento and 2*la*math.tan(math.radians(p.get('apertura', 70))/2) + 4 > dy:
-        avisos.append('Las bowtie casi se tocan en vertical: sube la separación o cierra la apertura.')
+        avisos.append(tr('Las bowtie casi se tocan en vertical: sube la separación o cierra la apertura.'))
     if n > 1 and 2*la + 4 > dx:
-        avisos.append('Los dipolos casi se tocan en la dirección de sus brazos: sube la separación.')
+        avisos.append(tr('Los dipolos casi se tocan en la dirección de sus brazos: sube la separación.'))
     if max(rx1 - rx0, ry1 - ry0) > 400:
-        avisos.append('Reflector de más de 400 mm: mejor una chapa de aluminio que una PCB.')
+        avisos.append(tr('Reflector de más de 400 mm: mejor una chapa de aluminio que una PCB.'))
     return Antena(tipo='panel_dipolos', parametros=dict(p), capas={'F.Cu': cobre_sup, 'B.Cu': cobre_inf},
                   ajuste=ajuste.vacio(), radiador=cobre_sup, contorno=contorno, zona_libre=None,
                   puerto={'tipo': 'pasante', 'borde': (0.0, 0.0), 'direccion': (0, 1), 'alimentacion': (0.0, 0.0),
@@ -499,7 +498,7 @@ def generar_array(p, s, parche_fn, f_parche, R_borde):
     """
     n = int(p['tamano'])
     if n not in (2, 4):
-        raise ValueError('El array admite 2×2 o 4×4')
+        raise ValueError(tr('El array admite 2×2 o 4×4'))
     lam0 = lambda0_mm(f_parche)
     dx = dy = p['separacion']*lam0
     w100, w50 = ancho_microstrip(100, s.er, s.h), ancho_microstrip(50, s.er, s.h)
@@ -524,8 +523,8 @@ def generar_array(p, s, parche_fn, f_parche, R_borde):
         # Minkowski de iteración alta: el centro del parche es un cuello estrecho y la muesca lo
         # partiría en dos mitades sueltas. Se acorta la inserción hasta que el parche siga entero.
         inset = round(0.8*inset, 3) if inset > 0.5 else 0.0
-        avisos_inset = ['Inserción acortada para no partir el parche (cuello central estrecho): la '
-                        'adaptación saldrá peor; usa menos iteración o profundidad de Minkowski.']
+        avisos_inset = [tr('Inserción acortada para no partir el parche (cuello central estrecho): la '
+                        'adaptación saldrá peor; usa menos iteración o profundidad de Minkowski.')]
     parche0 = recortado
     y_borde = parche0.bounds[1]                    # lo más bajo del parche (la red va por debajo)
     y_ent = y_ent + inset                          # punto de alimentación dentro del parche
@@ -556,8 +555,7 @@ def generar_array(p, s, parche_fn, f_parche, R_borde):
         y1 = y_l + w100/2 + w50
         y2 = y1 + 2*w50
         if y2 + w50 > y_r - w50/2:
-            avisos.append(f'Pasillo entre filas de {pasillo:.1f} mm: muy justo para la U de fase; '
-                          'sube la separación entre parches.')
+            avisos.append(tr('Pasillo entre filas de {0:.1f} mm: muy justo para la U de fase; sube la separación entre parches.', pasillo))
         piezas.append(g.engordar([(cx, y_l), (cx, y1), (cx - salida*a, y1), (cx - salida*a, y2),
                                   (cx, y2), (cx, y_r)], w50))
         piezas.append(g.engordar([(cx, y_u), (cx, y_r)], w50))

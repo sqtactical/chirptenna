@@ -6,6 +6,7 @@ import time
 
 from . import tipos
 from . import __version__
+from .i18n import tr
 
 # Bandas de uso: (inicio, fin) en MHz. La antena se centra en el centro de la banda.
 # Los canales LoRa sueltos van en «Otra» (centro + ancho)
@@ -109,7 +110,7 @@ def lineas_serigrafia(s, clave, f_MHz, nombre='', resultado_sim=None):
     s: selección ({'tipo': bool, …, 'libre': str}); resultado_sim: resultado.json de la simulación guardada."""
     lineas = []
     if s.get('tipo'):
-        lineas.append(f"{tipos.CATALOGO[clave].nombre.split(' (')[0]} {f_MHz:g} MHz")
+        lineas.append(f"{tr(tipos.CATALOGO[clave].nombre).split(' (')[0]} {f_MHz:g} MHz")
     if s.get('nombre') and nombre:
         lineas.append(nombre)
     if s.get('sim') and resultado_sim:

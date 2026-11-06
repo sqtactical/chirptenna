@@ -1,3 +1,4 @@
+from .i18n import tr
 """Problemas conocidos de cada tipo de antena (lo encontrado al simular), para avisar en la interfaz.
 
 `problemas(clave, parametros, f_MHz)` devuelve [(nivel, texto)] con nivel en
@@ -34,7 +35,7 @@ ESTADO_TEXTO = {'validada': 'Validada', 'pendiente': 'Pendiente de validación',
 
 def estado(clave):
     """(estado, comentario) del tipo; los tipos nuevos sin entrada cuentan como pendientes de validación."""
-    return ESTADO.get(clave, ('pendiente', 'Pendiente de validación'))
+    return ESTADO.get(clave, ('pendiente', tr('Pendiente de validación')))
 
 # Problemas que no dependen de los parámetros
 FIJOS = {
@@ -93,44 +94,42 @@ def problemas(clave, p=None, f_MHz=None):
     it = int(p.get('iteracion', 0) or 0)
     if clave == 'yagi_boom':
         if it > 0:
-            out.append(('grave', 'Con elementos de Koch la Yagi ha salido mal en simulación (adapta mal y radia más '
-                                 'hacia atrás que hacia los directores). Usar elementos rectos (iteración 0).'))
+            out.append(('grave', tr('Con elementos de Koch la Yagi ha salido mal en simulación (adapta mal y radia más '
+                                 'hacia atrás que hacia los directores). Usar elementos rectos (iteración 0).')))
         alim = int(p.get('alimentacion', 0) or 0)
         if alim == 1:
-            out.append(('aviso', 'Con transformador λ/4: radia hacia delante, pero banda estrecha (~50 MHz) y '
-                                 'eficiencia ~55 %.'))
+            out.append(('aviso', tr('Con transformador λ/4: radia hacia delante, pero banda estrecha (~50 MHz) y '
+                                 'eficiencia ~55 %.')))
         elif alim == 2:
-            out.append(('grave', 'Con dipolo plegado ha salido radiando hacia atrás (F/B −3,6 dB) y con menos '
-                                 'ganancia (5,6 dBi). Usar alimentación directa.'))
+            out.append(('grave', tr('Con dipolo plegado ha salido radiando hacia atrás (F/B −3,6 dB) y con menos '
+                                 'ganancia (5,6 dBi). Usar alimentación directa.')))
         if int(p.get('unir_boom', 0) or 0) == 1:
-            out.append(('aviso', 'Con los directores unidos al boom la frecuencia salta entre modos durante el '
-                                 'ajuste y adapta algo peor que con directores sueltos.'))
+            out.append(('aviso', tr('Con los directores unidos al boom la frecuencia salta entre modos durante el '
+                                 'ajuste y adapta algo peor que con directores sueltos.')))
     if clave == 'parche_minkowski' and it >= 2:
-        out.append(('grave', f'Iteración {it}: impedancia de borde muy baja (~14 Ω), S11 ≈ −5 dB y eficiencia ~23 % en '
-                             'simulación (la ranura no lo arregla); la estimación del tamaño falla 10–40 %. '
-                             'Usar la iteración 1.'))
+        out.append(('grave', tr('Iteración {0}: impedancia de borde muy baja (~14 Ω), S11 ≈ −5 dB y eficiencia ~23 % en simulación (la ranura no lo arregla); la estimación del tamaño falla 10–40 %. Usar la iteración 1.', it)))
     if clave == 'array_parches' and int(p.get('elemento', 0) or 0) == 1 and it >= 3:
-        out.append(('aviso', 'Minkowski de iteración 3 en el array: los cuellos pueden quedar por debajo de las '
-                             'reglas de fabricación.'))
+        out.append(('aviso', tr('Minkowski de iteración 3 en el array: los cuellos pueden quedar por debajo de las '
+                             'reglas de fabricación.')))
     if clave == 'panel_dipolos' and int(p.get('simetrico', 0) or 0) == 1:
-        out.append(('aviso', 'La disposición simétrica con cruce no corrige la inclinación del haz y empeora la '
-                             'adaptación (−10 dB frente a −15,7 dB de la normal). Mejor «Todos iguales».'))
+        out.append(('aviso', tr('La disposición simétrica con cruce no corrige la inclinación del haz y empeora la '
+                             'adaptación (−10 dB frente a −15,7 dB de la normal). Mejor «Todos iguales».')))
     if clave == 'dipolo' and it > 0 and int(p.get('forma', 0) or 0) == 0:
-        out.append(('info', 'Dipolo de Koch sin validar en simulación (el recto sí).'))
+        out.append(('info', tr('Dipolo de Koch sin validar en simulación (el recto sí).')))
     if (clave == 'dipolo' and int(p.get('forma', 0) or 0) > 0) or \
             (clave == 'panel_dipolos' and (int(p.get('elemento', 0) or 0) > 0 or int(p.get('tamano', 2) or 2) == 1)):
-        out.append(('aviso', 'Bowtie, bowtie de Sierpinski y panel de un solo elemento: tipos nuevos, pendientes de '
+        out.append(('aviso', tr('Bowtie, bowtie de Sierpinski y panel de un solo elemento: tipos nuevos, pendientes de '
                              'validar en simulación (el tamaño inicial sale de una estimación sin calibrar). '
-                             'Simúlala y ajústala antes de fabricar.'))
+                             'Simúlala y ajústala antes de fabricar.')))
     if int(p.get('conector', 0) or 0) == 1 and clave.startswith('monopolo'):
-        out.append(('aviso', 'Con IPEX el monopolo recto adaptó mal en simulación (−7 dB): la transición del pad '
-                             'central está en revisión. Con SMA va bien.'))
+        out.append(('aviso', tr('Con IPEX el monopolo recto adaptó mal en simulación (−7 dB): la transición del pad '
+                             'central está en revisión. Con SMA va bien.')))
     if int(p.get('aligerado', 0) or 0) == 1:
-        out.append(('info', 'Los recortes de aligerado no se han simulado todavía: quitar FR4 sube algo la frecuencia. '
-                            'Simúlala antes de fabricar.'))
+        out.append(('info', tr('Los recortes de aligerado no se han simulado todavía: quitar FR4 sube algo la frecuencia. '
+                            'Simúlala antes de fabricar.')))
     if f_MHz and abs(f_MHz - 2441.75)/2441.75 > 0.2 and clave not in VALIDADOS_868:
-        out.append(('info', 'Este tipo solo se ha validado en simulación a 2,4 GHz: a otras frecuencias la estimación '
-                            'puede fallar más. Simúlala.'))
+        out.append(('info', tr('Este tipo solo se ha validado en simulación a 2,4 GHz: a otras frecuencias la estimación '
+                            'puede fallar más. Simúlala.')))
     return out
 
 

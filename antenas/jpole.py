@@ -21,6 +21,7 @@ from . import geometria as g
 from . import ajuste
 from .materiales import C0, lambda0_mm
 from .modelo import Antena
+from .i18n import tr
 
 BORDE_COBRE = 0.5
 
@@ -74,7 +75,7 @@ def generar(p, s, eps_radiador):
     vacio = Polygon()
     avisos = []
     if p['toma'] < 0.08 or p['toma'] > 0.6:
-        avisos.append('La toma suele estar entre el 10 y el 40 % del adaptador para 50 Ω.')
+        avisos.append(tr('La toma suele estar entre el 10 y el 40 % del adaptador para 50 Ω.'))
     return Antena(tipo=p['_clave'], parametros={k: v for k, v in p.items() if k != '_clave'}, ajuste=aj,
                   capas={'F.Cu': cobre, 'B.Cu': vacio}, radiador=cobre, contorno=contorno,
                   zona_libre=contorno,

@@ -33,6 +33,7 @@ from . import conector
 from .tipos_base import Parametro
 from .materiales import SUSTRATOS, SUSTRATO_POR_DEFECTO, ancho_microstrip, eps_eff_microstrip, lambda0_mm, C0
 from .modelo import Antena
+from .i18n import tr
 
 BORDE_COBRE = 0.5            # retranqueo del cobre respecto al borde de la placa [mm]
 
@@ -225,8 +226,7 @@ def _generar_monopolo(tipo, p, sustrato):
     hueco = huecos[tipo.clave]() if tipo.clave in huecos else None
     avisos = []
     if lg < 0.95*le:
-        avisos.append(f'Masa de {lg:.0f} mm, el {100*lg/((le + lg)/2):.0f} % de λ/4: menos eficiencia y ancho '
-                      'de banda, y el cable pasa a formar parte de la antena (usar ferrita al medir).')
+        avisos.append(tr('Masa de {0:.0f} mm, el {1:.0f} % de λ/4: menos eficiencia y ancho de banda, y el cable pasa a formar parte de la antena (usar ferrita al medir).', lg, 100*lg/((le + lg)/2)))
     sup = unary_union([alim, radiador])
     if ajuste.activo(p) and int(p.get('red_pi', 0)) == 1:
         # red en π en la línea de 50 Ω, lo más cerca posible de la antena pero por encima del SMA
@@ -705,7 +705,7 @@ def _aligerar(a, p):
         a.info['ventanas_aligerado'] = len(ventanas)
         a.info['fr4_quitado_%'] = round(100*(1 - a.contorno.area/antes), 1)
     else:
-        a.info.setdefault('avisos', []).append('Recortes: no cabe ninguna ventana con ese margen y ese nervio.')
+        a.info.setdefault('avisos', []).append(tr('Recortes: no cabe ninguna ventana con ese margen y ese nervio.'))
 
 
 def sustrato(nombre=None):
@@ -791,7 +791,7 @@ def ajustar_ancho_banda(clave, f_obj, bw_necesario, parametros=None, nombre_sust
 
     fbw, a = bw_de(p)
     if fbw >= objetivo:
-        return p, f'Ya cubre la banda: {100*fbw:.1f} % estimado frente a {100*objetivo:.1f} % necesario (con margen).'
+        return p, tr('Ya cubre la banda: {0:.1f} % estimado frente a {1:.1f} % necesario (con margen).', 100*fbw, 100*objetivo)
     candidatos = []
     if 'ancho_pista' in p:
         w0 = p['ancho_pista']
@@ -816,20 +816,18 @@ def ajustar_ancho_banda(clave, f_obj, bw_necesario, parametros=None, nombre_sust
         if fq > mejor[0]:
             mejor = (fq, q)
         if fq >= objetivo:
-            return q, (f'Ancho de banda ampliado a {100*fq:.1f} % ({nombre.replace("_", " ")} = {valor} mm), '
-                       f'necesario {100*objetivo:.1f} % con margen.')
+            return q, (tr('Ancho de banda ampliado a {0:.1f} % ({1} = {2} mm), necesario {3:.1f} % con margen.', 100*fq, nombre.replace("_", " "), valor, 100*objetivo))
     fbw, q = mejor
-    consejo = {'monopolo': 'baja la iteración/orden, usa la masa λ/4 o un radiador más ancho (Sierpinski)',
-               'yagi': 'usa dipolo recto (iteración 0) o menos directores',
-               'panel': 'ensancha los brazos de los dipolos o separa más el reflector',
-               'parche': 'usa un sustrato más grueso (o con menos εr, como RO4350B)',
-               'array': 'usa un sustrato más grueso (o con menos εr, como RO4350B)',
-               'dipolo': 'usa brazos rectos (iteración 0) o más anchos',
-               'colineal': 'usa menos tramos o elementos (la banda se estrecha al añadirlos)'}[tipo.familia]
+    consejo = {'monopolo': tr('baja la iteración/orden, usa la masa λ/4 o un radiador más ancho (Sierpinski)'),
+               'yagi': tr('usa dipolo recto (iteración 0) o menos directores'),
+               'panel': tr('ensancha los brazos de los dipolos o separa más el reflector'),
+               'parche': tr('usa un sustrato más grueso (o con menos εr, como RO4350B)'),
+               'array': tr('usa un sustrato más grueso (o con menos εr, como RO4350B)'),
+               'dipolo': tr('usa brazos rectos (iteración 0) o más anchos'),
+               'colineal': tr('usa menos tramos o elementos (la banda se estrecha al añadirlos)')}[tipo.familia]
     if clave == 'parche_minkowski' or (clave == 'array_parches' and int(p['elemento']) == 1):
         consejo += ', o parches rectangulares (las muescas estrechan la banda)'
-    return q, (f'No llega: {100*fbw:.1f} % estimado frente a {100*objetivo:.1f} % necesario (con margen). '
-               f'Para ganar ancho de banda: {consejo}.')
+    return q, (tr('No llega: {0:.1f} % estimado frente a {1:.1f} % necesario (con margen). Para ganar ancho de banda: {2}.', 100*fbw, 100*objetivo, consejo))
 
 
 RUTA_CALIBRACION = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'calibracion_estimaciones.json')
@@ -877,8 +875,8 @@ def precision_estimacion(clave, p=None):
     if not c:
         return CATALOGO[clave].precision
     if c.get('dispersion_%') is None:
-        return f"calibrada con {c['n']} simulación{'es' if c['n'] > 1 else ''} (sin datos de dispersión)"
-    return f"±{max(c['dispersion_%'], 1.0):.0f} % (calibrada con {c['n']} simulaciones)"
+        return tr('calibrada con {0} simulación{1} (sin datos de dispersión)', c['n'], 'es' if c['n'] > 1 else '')
+    return tr('±{0:.0f} % (calibrada con {1} simulaciones)', max(c['dispersion_%'], 1.0), c['n'])
 
 
 def estimar_f(clave, parametros, nombre_sustrato=None, calibrada=True):
@@ -950,6 +948,5 @@ def dimensionar(clave, f_obj, parametros=None, nombre_sustrato=None, fijos=()):
     p = {k: (round(v, 2) if isinstance(v, float) else v) for k, v in con_escala((lo + hi)/2).items()}
     f_conseguida = estimar_f(clave, p, nombre_sustrato)
     if abs(f_conseguida - f_obj)/f_obj > 0.01:
-        p['_aviso'] = (f'No se alcanza {f_obj/1e6:.0f} MHz dentro de los límites de "{par.etiqueta}" '
-                       f'(queda en {f_conseguida/1e6:.0f} MHz): cambia otros parámetros.')
+        p['_aviso'] = (tr('No se alcanza {0:.0f} MHz dentro de los límites de "{1}" (queda en {2:.0f} MHz): cambia otros parámetros.', f_obj/1e6, par.etiqueta, f_conseguida/1e6))
     return p

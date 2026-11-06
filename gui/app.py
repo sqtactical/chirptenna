@@ -25,6 +25,8 @@ from nicegui import app, ui, run, background_tasks   # noqa: E402
 
 from antenas import tipos, vista, fabricacion, exportar, consejos, graficas, ajuste, biblioteca, problemas   # noqa: E402
 from antenas import guia   # noqa: E402
+from antenas import i18n   # noqa: E402
+from antenas.i18n import tr   # noqa: E402
 from antenas import __version__   # noqa: E402
 from antenas.materiales import ancho_microstrip, eps_eff_microstrip   # noqa: E402
 
@@ -81,7 +83,8 @@ def _orden_galeria():
 def _etiqueta_tipo(clave):
     """Etiqueta del selector de tipos: «nombre|resumen|estado|comentario» (la parte el slot de la lista)."""
     est, comentario = problemas.estado(clave)
-    return '|'.join([tipos.CATALOGO[clave].nombre, guia.info_tipo(clave)[1], est, comentario])
+    return '|'.join([tr(tipos.CATALOGO[clave].nombre), tr(guia.info_tipo(clave)[1]), est, tr(comentario),
+                     tr(problemas.ESTADO_TEXTO[est])])
 
 
 def _miniatura(clave):
@@ -102,7 +105,7 @@ SLOT_OPCION_TIPO = r'''
       {{ props.opt.label.split('|')[0] }}
       <q-badge v-if="props.opt.label.split('|')[2] !== 'validada'" class="q-ml-xs"
                :color="props.opt.label.split('|')[2] === 'no_funciona' ? 'negative' : 'orange-8'">
-        {{ props.opt.label.split('|')[2] === 'no_funciona' ? 'No funciona' : 'Pendiente de validación' }}
+        {{ props.opt.label.split('|')[4] }}
       </q-badge>
     </q-item-label>
     <q-item-label caption>{{ props.opt.label.split('|')[1] }}</q-item-label>
@@ -113,9 +116,11 @@ SLOT_ELEGIDO_TIPO = r'''<span>{{ props.opt.label.split('|')[0] }}</span>'''
 
 
 @ui.page('/')
-def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
+def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''):
     """Página única. Parámetros de la URL (opcionales), p. ej. `/?diseno=mi_yagi&pestana=simulacion`:
     pestana (una de PESTANAS_URL), diseno (nombre en «Mis diseños») y tema ('claro'/'oscuro', sin guardarlo)."""
+    # idioma: el de la URL (sin guardarlo), si no el guardado, si no CHIRPTENNA_IDIOMA o el castellano
+    i18n.fijar_idioma(i18n.idioma_inicial(idioma or app.storage.general.get('idioma')))
     ui.add_css('''
         body.body--light { background: #eef1f3; }
         body.body--dark { background: #121417; }
@@ -148,11 +153,13 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
     with ui.header().classes('bg-blue-grey-9 items-center q-py-xs gap-3'):
         if os.path.exists(LOGO):
             ui.image(LOGO).classes('w-9 h-9')
-        ui.label('Chirptenna').classes('text-h6')
-        ui.label('antenas impresas para PCB').classes('text-caption text-blue-grey-2 gt-xs')
+        ui.label(tr('Chirptenna')).classes('text-h6')
+        ui.label(tr('antenas impresas para PCB')).classes('text-caption text-blue-grey-2 gt-xs')
         ui.badge(f'v{__version__}', color='orange-9').props('outline').classes('gt-xs') \
-            .tooltip('Alpha: validado solo en simulación. Mide siempre la antena fabricada.')
+            .tooltip(tr('Alpha: validado solo en simulación. Mide siempre la antena fabricada.'))
         ui.space()
+        sel_idioma = ui.select(i18n.idiomas(), value=i18n.idioma()).props('dense borderless options-dense dark') \
+            .classes('text-caption w-28').tooltip(tr('Idioma de la interfaz'))
         lbl_diseno = ui.label().classes('text-subtitle2')
         lbl_resumen = ui.label().classes('text-caption text-blue-grey-2 gt-sm')
         btn_tema = ui.button().props('flat round dense color=white')
@@ -165,8 +172,8 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
     if tema['modo'] != 'auto':              # modo fijo: se aplica ya, antes de dibujar nada
         tema['oscuro'] = tema['modo'] == 'oscuro'
         modo_oscuro.value = tema['oscuro']
-    ICONOS_TEMA = {'auto': ('brightness_auto', 'Tema: automático (como el sistema)'),
-                   'claro': ('light_mode', 'Tema: claro'), 'oscuro': ('dark_mode', 'Tema: oscuro')}
+    ICONOS_TEMA = {'auto': ('brightness_auto', tr('Tema: automático (como el sistema)')),
+                   'claro': ('light_mode', tr('Tema: claro')), 'oscuro': ('dark_mode', tr('Tema: oscuro'))}
 
     def T(fig):
         """Adapta una figura de Plotly al tema actual (se llama en cada ui.plotly / update_figure)."""
@@ -179,12 +186,12 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         fig.update_yaxes(gridcolor=rejilla, zerolinecolor='#555')
         if fig.layout.polar is not None:
             fig.update_polars(bgcolor=fondo, radialaxis_gridcolor=rejilla, angularaxis_gridcolor=rejilla)
-        for tr in fig.data:
-            linea = getattr(tr, 'line', None)
+        for traza in fig.data:
+            linea = getattr(traza, 'line', None)
             if linea is not None and linea.color in ('#444', 'black', '#999', '#ddd'):
-                tr.line.color = {'#999': '#777', '#ddd': '#3f4449'}.get(linea.color, '#cfd8dc')
-            if getattr(tr, 'mode', None) == 'text':
-                tr.textfont.color = texto
+                traza.line.color = {'#999': '#777', '#ddd': '#3f4449'}.get(linea.color, '#cfd8dc')
+            if getattr(traza, 'mode', None) == 'text':
+                traza.textfont.color = texto
         for sh in fig.layout.shapes or ():
             if sh.line is not None and sh.line.color == '#444':
                 sh.line.color = '#cfd8dc'
@@ -220,101 +227,109 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
 
     btn_tema.on_click(cambiar_tema)
 
+    def cambiar_idioma(e):
+        if e.value == i18n.idioma():
+            return
+        app.storage.general['idioma'] = e.value
+        ui.navigate.to('/')            # la página se reconstruye entera con el idioma nuevo (y sin parámetros de URL)
+
+    sel_idioma.on_value_change(cambiar_idioma)
+
     # ================================================================== barra del diseño (siempre visible)
     with ui.card().classes('w-full barra-diseno q-pa-sm').props('flat bordered'):
         with ui.row().classes('w-full items-end wrap gap-x-3 gap-y-1'):
-            nombre_in = ui.input('Nombre del diseño', value='antena').classes('w-48')
+            nombre_in = ui.input(tr('Nombre del diseño'), value='antena').classes('w-48')
             sel_tipo = ui.select({k: _etiqueta_tipo(k) for k in _orden_galeria()}, value=estado['clave'],
-                                 label='Tipo de antena').classes('w-80')
+                                 label=tr('Tipo de antena')).classes('w-80')
             sel_tipo.add_slot('option', SLOT_OPCION_TIPO)
             sel_tipo.add_slot('selected-item', SLOT_ELEGIDO_TIPO)
             with ui.column().classes('gap-0'):
-                ui.label('Banda de uso').classes('text-caption texto-sec')
-                banda = ui.toggle(list(BANDAS), value='2,4 GHz').props('dense no-caps')
-            f_in = ui.number('Centro [MHz]', value=estado['f_MHz'], min=100, max=10000, step=0.005,
+                ui.label(tr('Banda de uso')).classes('text-caption texto-sec')
+                banda = ui.toggle({k: tr(k) for k in BANDAS}, value='2,4 GHz').props('dense no-caps')
+            f_in = ui.number(tr('Centro [MHz]'), value=estado['f_MHz'], min=100, max=10000, step=0.005,
                              format='%.3f').classes('w-32')
-            bw_in = ui.number('Ancho [MHz]', value=estado['bw_MHz'], min=0.05, max=5000, step=0.05,
+            bw_in = ui.number(tr('Ancho [MHz]'), value=estado['bw_MHz'], min=0.05, max=5000, step=0.05,
                               format='%.2f').classes('w-28')
             rango = ui.label().classes('text-caption texto-sec self-center')
             ui.space()
-            btn_guardar = ui.button('Guardar diseño', icon='save').props('color=primary no-caps')
+            btn_guardar = ui.button(tr('Guardar diseño'), icon='save').props('color=primary no-caps')
         desc = ui.label().classes('text-caption texto-sec')
         cont_problemas = ui.column().classes('w-full gap-0')
 
     # ================================================================== pestañas
     with ui.tabs().classes('w-full pestanas').props('align=left inline-label no-caps') as pestanas:
-        t_gal = ui.tab('Elegir antena', icon='apps')
-        t_diseno = ui.tab('Diseño', icon='architecture')
-        t_sim = ui.tab('Simulación', icon='insights')
-        t_fab = ui.tab('Fabricar', icon='precision_manufacturing')
-        t_medir = ui.tab('Medir', icon='settings_input_antenna')
-        t_bib = ui.tab('Mis diseños', icon='folder_special')
+        t_gal = ui.tab(tr('Elegir antena'), icon='apps')
+        t_diseno = ui.tab(tr('Diseño'), icon='architecture')
+        t_sim = ui.tab(tr('Simulación'), icon='insights')
+        t_fab = ui.tab(tr('Fabricar'), icon='precision_manufacturing')
+        t_medir = ui.tab(tr('Medir'), icon='settings_input_antenna')
+        t_bib = ui.tab(tr('Mis diseños'), icon='folder_special')
 
     with ui.tab_panels(pestanas, value=t_gal).classes('w-full bg-transparent'):
         # -------------------------------------------------------------- 0. Galería de tipos
         with ui.tab_panel(t_gal).classes('q-pa-sm'):
             with ui.row().classes('w-full items-center gap-2'):
-                ui.label('Elige el tipo de antena').classes('text-h6')
+                ui.label(tr('Elige el tipo de antena')).classes('text-h6')
                 ui.space()
-                ui.button('Abrir un diseño guardado', icon='folder_open',
+                ui.button(tr('Abrir un diseño guardado'), icon='folder_open',
                           on_click=lambda: pestanas.set_value(t_bib)).props('outline no-caps')
-            ui.label('Al elegirla se dimensiona para la banda de la barra de arriba. Solo verás los parámetros '
-                     'básicos; el resto está en «Ajustes avanzados». Todo está validado solo en simulación.'
+            ui.label(tr('Al elegirla se dimensiona para la banda de la barra de arriba. Solo verás los parámetros '
+                     'básicos; el resto está en «Ajustes avanzados». Todo está validado solo en simulación.')
                      ).classes('text-caption texto-sec')
             for g_clave, g_titulo, g_desc in guia.GRUPOS:
                 claves = [k for k in _orden_galeria() if guia.info_tipo(k)[0] == g_clave]
                 if not claves:
                     continue
-                ui.label(g_titulo).classes('text-subtitle1 text-weight-medium q-mt-md')
-                ui.label(g_desc).classes('text-caption texto-sec')
+                ui.label(tr(g_titulo)).classes('text-subtitle1 text-weight-medium q-mt-md')
+                ui.label(tr(g_desc)).classes('text-caption texto-sec')
                 with ui.row().classes('w-full wrap gap-3 items-stretch'):
                     for k in claves:
                         est, comentario = problemas.estado(k)
                         with ui.card().classes('w-60 cursor-pointer tarjeta-tipo q-pa-sm') \
                                 .on('click', lambda k=k: elegir_tipo(k)):
                             ui.html(_miniatura(k), sanitize=False).classes('miniatura self-center')
-                            ui.label(tipos.CATALOGO[k].nombre.split(' (')[0]).classes('text-weight-medium')
-                            ui.label(guia.info_tipo(k)[1]).classes('text-caption')
-                            ui.badge(problemas.ESTADO_TEXTO[est], color=COLOR_ESTADO[est]) \
-                                .props('outline' if est == 'validada' else '').tooltip(comentario)
+                            ui.label(tr(tipos.CATALOGO[k].nombre).split(' (')[0]).classes('text-weight-medium')
+                            ui.label(tr(guia.info_tipo(k)[1])).classes('text-caption')
+                            ui.badge(tr(problemas.ESTADO_TEXTO[est]), color=COLOR_ESTADO[est]) \
+                                .props('outline' if est == 'validada' else '').tooltip(tr(comentario))
 
         # -------------------------------------------------------------- 1. Diseño
         with ui.tab_panel(t_diseno).classes('q-pa-sm'):
             with ui.row().classes('w-full wrap items-start gap-4'):
                 with ui.column().classes('w-full sm:w-[380px] gap-2'):
                     with ui.card().classes('w-full'):
-                        _titulo_card('Tamaño y material', 'straighten')
-                        sel_sus = ui.select(list(SUSTRATOS), value=estado['sustrato'], label='Sustrato').classes('w-full')
-                        btn_ajustar = ui.button('Ajustar tamaño a la frecuencia', icon='tune') \
+                        _titulo_card(tr('Tamaño y material'), 'straighten')
+                        sel_sus = ui.select({k: tr(k) for k in SUSTRATOS}, value=estado['sustrato'], label=tr('Sustrato')).classes('w-full')
+                        btn_ajustar = ui.button(tr('Ajustar tamaño a la frecuencia'), icon='tune') \
                             .props('color=primary no-caps').classes('w-full')
-                        btn_bw = ui.button('Ampliar ancho de banda', icon='open_in_full') \
+                        btn_bw = ui.button(tr('Ampliar ancho de banda'), icon='open_in_full') \
                             .props('outline color=primary no-caps').classes('w-full')
                         aviso_ajuste = ui.label().classes('text-caption text-orange-9')
                     with ui.card().classes('w-full'):
-                        _titulo_card('Parámetros', 'tune')
+                        _titulo_card(tr('Parámetros'), 'tune')
                         cont_params = ui.column().classes('w-full gap-0')
                 with ui.column().classes('grow basis-[320px] min-w-0 gap-2'):
                     with ui.card().classes('w-full'):
                         grafico = ui.plotly({}).classes('w-full h-[560px]')
                     with ui.row().classes('w-full wrap items-start gap-2'):
                         with ui.card().classes('grow basis-[280px]'):
-                            _titulo_card('Resultado (estimación)', 'analytics')
+                            _titulo_card(tr('Resultado (estimación)'), 'analytics')
                             tabla_info = ui.column().classes('w-full gap-0')
                         with ui.card().classes('grow basis-[280px]'):
-                            _titulo_card('Consejos', 'lightbulb')
+                            _titulo_card(tr('Consejos'), 'lightbulb')
                             lista_consejos = ui.column().classes('w-full gap-1')
 
         # -------------------------------------------------------------- 2. Simulación
         with ui.tab_panel(t_sim).classes('q-pa-sm'):
             with ui.card().classes('w-full'):
-                _titulo_card('Simulación con openEMS', 'insights')
+                _titulo_card(tr('Simulación con openEMS'), 'insights')
                 with ui.row().classes('w-full items-center wrap gap-2'):
-                    sel_prec = ui.select(list(PRECISIONES), value='normal', label='Precisión').classes('w-32')
-                    chk_ajustar = ui.checkbox('Ajustar a la frecuencia simulando', value=True)
-                    btn_sim = ui.button('Simular', icon='play_arrow').props('color=deep-purple no-caps')
-                ui.label('Rápida: para tantear (±3 %). Normal: diseño. Fina: comprobación final (más lenta). '
+                    sel_prec = ui.select(list(PRECISIONES), value='normal', label=tr('Precisión')).classes('w-32')
+                    chk_ajustar = ui.checkbox(tr('Ajustar a la frecuencia simulando'), value=True)
+                    btn_sim = ui.button(tr('Simular'), icon='play_arrow').props('color=deep-purple no-caps')
+                ui.label(tr('Rápida: para tantear (±3 %). Normal: diseño. Fina: comprobación final (más lenta). '
                          'Cada simulación tarda de 1 a 15 min según el tamaño; el ajuste hace 2–5. '
-                         'Si el diseño está guardado, el resultado se guarda con él.'
+                         'Si el diseño está guardado, el resultado se guarda con él.')
                          ).classes('text-caption texto-sec')
                 registro = ui.log(max_lines=200).classes('w-full h-32 text-caption')
             res_sim = ui.column().classes('w-full gap-2 q-mt-sm')
@@ -323,35 +338,35 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         with ui.tab_panel(t_fab).classes('q-pa-sm'):
             with ui.row().classes('w-full wrap items-start gap-4'):
                 with ui.card().classes('grow basis-[340px]'):
-                    _titulo_card('Comprobaciones de fabricación', 'rule')
-                    sel_reg = ui.select(list(fabricacion.REGLAS), value=estado['reglas'],
-                                        label='Reglas del fabricante').classes('w-full')
+                    _titulo_card(tr('Comprobaciones de fabricación'), 'rule')
+                    sel_reg = ui.select({k: tr(k) for k in fabricacion.REGLAS}, value=estado['reglas'],
+                                        label=tr('Reglas del fabricante')).classes('w-full')
                     lista_drc = ui.column().classes('w-full gap-1 q-mt-sm')
                 with ui.card().classes('grow basis-[340px]'):
-                    _titulo_card('Exportar', 'download')
-                    ui.label('Guarda el diseño y exporta la placa de prueba KiCad, la huella, los Gerber para JLC '
-                             '(con taladros) y el DXF en la carpeta «fabricacion» del diseño. Pasa el DRC de KiCad.'
+                    _titulo_card(tr('Exportar'), 'download')
+                    ui.label(tr('Guarda el diseño y exporta la placa de prueba KiCad, la huella, los Gerber para JLC '
+                             '(con taladros) y el DXF en la carpeta «fabricacion» del diseño. Pasa el DRC de KiCad.')
                              ).classes('text-caption texto-sec')
-                    btn_export = ui.button('Exportar KiCad + Gerber + DXF', icon='download') \
+                    btn_export = ui.button(tr('Exportar KiCad + Gerber + DXF'), icon='download') \
                         .props('color=positive no-caps').classes('w-full q-mt-sm')
                     res_export = ui.column().classes('w-full gap-1')
                 with ui.card().classes('grow basis-[340px]'):
-                    _titulo_card('Serigrafía (inscripciones)', 'format_paint')
-                    ui.label('Van en la cara de abajo, espejadas para leerse al darle la vuelta, donde no estorban: '
+                    _titulo_card(tr('Serigrafía (inscripciones)'), 'format_paint')
+                    ui.label(tr('Van en la cara de abajo, espejadas para leerse al darle la vuelta, donde no estorban: '
                              'sobre la masa o lejos de la antena. Si no cabe todo, se mantienen el logo y la primera '
                              'línea y se quitan las últimas. Las marcas de corte, «vivo»/«malla» y las referencias de '
-                             'los componentes se ponen siempre.').classes('text-caption texto-sec')
-                    sel_logo = ui.select(LOGO_OPCIONES, value=estado['serigrafia'].get('logo', 'grande'),
-                                         label='Logo de Chirptenna').classes('w-full')
-                    aviso_logo = ui.label(AVISO_SIN_LOGO).classes('text-caption texto-violeta')
+                             'los componentes se ponen siempre.')).classes('text-caption texto-sec')
+                    sel_logo = ui.select({k: tr(v) for k, v in LOGO_OPCIONES.items()}, value=estado['serigrafia'].get('logo', 'grande'),
+                                         label=tr('Logo de Chirptenna')).classes('w-full')
+                    aviso_logo = ui.label(tr(AVISO_SIN_LOGO)).classes('text-caption texto-violeta')
                     aviso_logo.set_visibility(estado['serigrafia'].get('logo') == 'ninguno')
                     chk_seri = {}
                     for clave_s, texto_s in SERIGRAFIA_OPCIONES:
-                        chk_seri[clave_s] = ui.checkbox(texto_s, value=bool(estado['serigrafia'].get(clave_s)))
-                    seri_libre = ui.textarea('Texto libre (una línea por renglón)',
+                        chk_seri[clave_s] = ui.checkbox(tr(texto_s), value=bool(estado['serigrafia'].get(clave_s)))
+                    seri_libre = ui.textarea(tr('Texto libre (una línea por renglón)'),
                                              value=estado['serigrafia'].get('libre', '')) \
                         .classes('w-full').props('autogrow dense')
-                    ui.label('Así quedará el texto:').classes('text-caption texto-sec q-mt-sm')
+                    ui.label(tr('Así quedará el texto:')).classes('text-caption texto-sec q-mt-sm')
                     seri_vista = ui.column().classes('w-full gap-0 q-pa-xs').style(
                         'font-family: monospace; border: 1px dashed #8a9aa3; border-radius: 4px')
 
@@ -360,22 +375,22 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
             with ui.row().classes('w-full wrap items-start gap-4'):
                 with ui.card().classes('w-full sm:w-[420px] q-pa-none'):
                     with ui.row().classes('items-center q-px-md q-pt-sm'):
-                        _titulo_card('Asistente del NanoVNA', 'settings_input_antenna')
+                        _titulo_card(tr('Asistente del NanoVNA'), 'settings_input_antenna')
                     with ui.stepper().props('vertical flat header-nav').classes('w-full') as pasos_vna:
                         # ---- 1. conectar
-                        with ui.step('Conectar el NanoVNA', icon='usb'):
-                            ui.label('Conéctalo por USB. Solo se lee su estado: su calibración y sus slots '
-                                     'guardados no se tocan.').classes('text-caption texto-sec')
+                        with ui.step(tr('Conectar el NanoVNA'), icon='usb'):
+                            ui.label(tr('Conéctalo por USB. Solo se lee su estado: su calibración y sus slots '
+                                     'guardados no se tocan.')).classes('text-caption texto-sec')
                             info_vna = ui.label().classes('text-caption')
                             with ui.stepper_navigation():
-                                btn_conectar = ui.button('Buscar el NanoVNA', icon='search').props('color=teal no-caps')
-                                ui.button('Saltar (subir un .s1p)', on_click=lambda: pasos_vna.set_value('Medir y ajustar')
+                                btn_conectar = ui.button(tr('Buscar el NanoVNA'), icon='search').props('color=teal no-caps')
+                                ui.button(tr('Saltar (subir un .s1p)'), on_click=lambda: pasos_vna.set_value('Medir y ajustar')
                                           ).props('flat no-caps')
                         # ---- 2. calibrar
-                        with ui.step('Calibración', icon='tune'):
-                            ui.label('Calibra al final del latiguillo que vayas a usar con la antena: el plano de '
-                                     'medida queda ahí.').classes('text-caption texto-sec')
-                            modo_cal = ui.toggle({0: 'Usar una guardada', 1: 'Calibrar ahora'}, value=0) \
+                        with ui.step(tr('Calibración'), icon='tune'):
+                            ui.label(tr('Calibra al final del latiguillo que vayas a usar con la antena: el plano de '
+                                     'medida queda ahí.')).classes('text-caption texto-sec')
+                            modo_cal = ui.toggle({0: tr('Usar una guardada'), 1: tr('Calibrar ahora')}, value=0) \
                                 .props('dense no-caps')
                             cont_cal_guardada = ui.column().classes('w-full gap-1')
                             with cont_cal_guardada:
@@ -386,64 +401,64 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
                                 except Exception:
                                     pass
                                 sel_cal = ui.select(calibs, value=(calibs[-1] if calibs else None),
-                                                    label='Calibración del PC').classes('w-full')
+                                                    label=tr('Calibración del PC')).classes('w-full')
                                 info_cal = ui.label().classes('text-caption')
                             cont_cal_nueva = ui.column().classes('w-full gap-1')
                             with cont_cal_nueva:
                                 with ui.row().classes('w-full no-wrap gap-2'):
-                                    cal_ini = ui.number('Desde [MHz]', format='%.1f', min=0.05, max=6000).classes('grow')
-                                    cal_fin = ui.number('Hasta [MHz]', format='%.1f', min=0.05, max=6000).classes('grow')
-                                    cal_pts = ui.number('Puntos', value=301, min=11, max=2020, step=1, format='%.0f'
+                                    cal_ini = ui.number(tr('Desde [MHz]'), format='%.1f', min=0.05, max=6000).classes('grow')
+                                    cal_fin = ui.number(tr('Hasta [MHz]'), format='%.1f', min=0.05, max=6000).classes('grow')
+                                    cal_pts = ui.number(tr('Puntos'), value=301, min=11, max=2020, step=1, format='%.0f'
                                                         ).classes('w-20')
-                                cal_nombre = ui.input('Nombre de la calibración').classes('w-full')
-                                btn_cal_empezar = ui.button('Empezar', icon='play_arrow').props('outline color=teal no-caps')
+                                cal_nombre = ui.input(tr('Nombre de la calibración')).classes('w-full')
+                                btn_cal_empezar = ui.button(tr('Empezar'), icon='play_arrow').props('outline color=teal no-caps')
                                 filas_cal = ui.column().classes('w-full gap-1')
-                                btn_cal_guardar = ui.button('Guardar calibración', icon='save') \
+                                btn_cal_guardar = ui.button(tr('Guardar calibración'), icon='save') \
                                     .props('color=teal no-caps').classes('w-full')
                                 res_cal = ui.label().classes('text-caption')
                             with ui.stepper_navigation():
-                                ui.button('Siguiente', on_click=lambda: pasos_vna.next()).props('color=teal no-caps')
-                                ui.button('Atrás', on_click=lambda: pasos_vna.previous()).props('flat no-caps')
+                                ui.button(tr('Siguiente'), on_click=lambda: pasos_vna.next()).props('color=teal no-caps')
+                                ui.button(tr('Atrás'), on_click=lambda: pasos_vna.previous()).props('flat no-caps')
                         # ---- 3. comprobar
-                        with ui.step('Comprobar la calibración', icon='fact_check'):
-                            ui.label('Pon la CARGA de 50 Ω al final del latiguillo. Bien calibrado, |S11| queda '
-                                     'por debajo de −30 dB.').classes('text-caption texto-sec')
+                        with ui.step(tr('Comprobar la calibración'), icon='fact_check'):
+                            ui.label(tr('Pon la CARGA de 50 Ω al final del latiguillo. Bien calibrado, |S11| queda '
+                                     'por debajo de −30 dB.')).classes('text-caption texto-sec')
                             res_verif = ui.label().classes('text-caption')
                             with ui.stepper_navigation():
-                                btn_verif = ui.button('Comprobar', icon='fact_check').props('color=teal no-caps')
-                                ui.button('Siguiente', on_click=lambda: pasos_vna.next()).props('flat no-caps')
-                                ui.button('Atrás', on_click=lambda: pasos_vna.previous()).props('flat no-caps')
+                                btn_verif = ui.button(tr('Comprobar'), icon='fact_check').props('color=teal no-caps')
+                                ui.button(tr('Siguiente'), on_click=lambda: pasos_vna.next()).props('flat no-caps')
+                                ui.button(tr('Atrás'), on_click=lambda: pasos_vna.previous()).props('flat no-caps')
                         # ---- 4. medir y ajustar
-                        with ui.step('Medir y ajustar', icon='straighten'):
-                            ui.label('Conecta la antena. Cada medida se guarda en el diseño con su etiqueta; el modo '
+                        with ui.step(tr('Medir y ajustar'), icon='straighten'):
+                            ui.label(tr('Conecta la antena. Cada medida se guarda en el diseño con su etiqueta; el modo '
                                      'en vivo repite la medida cerca de la banda mientras cortas o cambias la red '
-                                     'en π, sin guardarla.').classes('text-caption texto-sec')
-                            etiqueta_in = ui.input('Etiqueta', placeholder='p. ej. sin cortar, tras la marca 2') \
+                                     'en π, sin guardarla.')).classes('text-caption texto-sec')
+                            etiqueta_in = ui.input(tr('Etiqueta'), placeholder='p. ej. sin cortar, tras la marca 2') \
                                 .classes('w-full')
-                            notas_medida = ui.input('Notas (opcional)').classes('w-full')
+                            notas_medida = ui.input(tr('Notas (opcional)')).classes('w-full')
                             with ui.row().classes('w-full items-center gap-2'):
-                                btn_medir = ui.button('Medir y guardar', icon='add_chart').props('color=teal no-caps')
-                                sw_vivo = ui.switch('En vivo')
+                                btn_medir = ui.button(tr('Medir y guardar'), icon='add_chart').props('color=teal no-caps')
+                                sw_vivo = ui.switch(tr('En vivo'))
                             vivo_txt = ui.label().classes('text-caption text-weight-medium')
                             vivo_graf = ui.plotly({}).classes('w-full h-[220px]')
                             vivo_graf.set_visibility(False)
-                            btn_guardar_vivo = ui.button('Guardar esta medida', icon='save') \
+                            btn_guardar_vivo = ui.button(tr('Guardar esta medida'), icon='save') \
                                 .props('outline color=teal no-caps')
                             btn_guardar_vivo.set_visibility(False)
                             ui.separator().classes('q-my-sm')
-                            subida = ui.upload(label='…o sube un .s1p', auto_upload=True, max_files=1) \
+                            subida = ui.upload(label=tr('…o sube un .s1p'), auto_upload=True, max_files=1) \
                                 .props('accept=.s1p,.S1P flat bordered').classes('w-full')
                             with ui.stepper_navigation():
-                                ui.button('Atrás', on_click=lambda: pasos_vna.previous()).props('flat no-caps')
+                                ui.button(tr('Atrás'), on_click=lambda: pasos_vna.previous()).props('flat no-caps')
                 with ui.column().classes('grow basis-[340px] min-w-0 gap-2'):
                     with ui.card().classes('w-full'):
-                        _titulo_card('Simulado frente a medido', 'stacked_line_chart')
+                        _titulo_card(tr('Simulado frente a medido'), 'stacked_line_chart')
                         lista_medidas = ui.column().classes('w-full gap-0')
                         cont_comparacion = ui.column().classes('w-full')
                     with ui.card().classes('w-full'):
-                        _titulo_card('Asistente de ajuste', 'build')
-                        ui.label('A partir de una medida te dice qué marca cortar, cuántos puentes cerrar o qué '
-                                 'poner en la red en π. Pulsa «Analizar» en una medida.'
+                        _titulo_card(tr('Asistente de ajuste'), 'build')
+                        ui.label(tr('A partir de una medida te dice qué marca cortar, cuántos puentes cerrar o qué '
+                                 'poner en la red en π. Pulsa «Analizar» en una medida.')
                                  ).classes('text-caption texto-sec')
                         res_asist = ui.column().classes('w-full gap-1')
 
@@ -451,54 +466,54 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         with ui.tab_panel(t_bib).classes('q-pa-sm'):
             with ui.card().classes('w-full'):
                 with ui.row().classes('w-full items-center'):
-                    _titulo_card('Mis diseños', 'folder_special')
+                    _titulo_card(tr('Mis diseños'), 'folder_special')
                     ui.space()
                     ui.label(biblioteca.carpeta_base()).classes('text-caption texto-sec')
                     ui.button(icon='folder_open', on_click=lambda: os.startfile(biblioteca.carpeta_base())) \
-                        .props('flat round dense').tooltip('Abrir la carpeta')
+                        .props('flat round dense').tooltip(tr('Abrir la carpeta'))
                     ui.button(icon='refresh', on_click=lambda: refrescar_biblioteca()).props('flat round dense') \
-                        .tooltip('Actualizar')
+                        .tooltip(tr('Actualizar'))
                 columnas = [
-                    {'name': 'nombre', 'label': 'Nombre', 'field': 'nombre', 'align': 'left', 'sortable': True},
-                    {'name': 'tipo', 'label': 'Tipo', 'field': 'tipo_txt', 'align': 'left', 'sortable': True},
-                    {'name': 'f', 'label': 'Objetivo [MHz]', 'field': 'f_txt', 'sortable': True},
-                    {'name': 'sim', 'label': 'Simulada [MHz]', 'field': 'sim_txt'},
-                    {'name': 'fab', 'label': 'Exportada', 'field': 'fab_txt'},
-                    {'name': 'medidas', 'label': 'Medidas', 'field': 'medidas', 'sortable': True},
-                    {'name': 'mod', 'label': 'Modificado', 'field': 'modificado', 'sortable': True},
-                    {'name': 'notas', 'label': 'Notas', 'field': 'notas', 'align': 'left',
+                    {'name': 'nombre', 'label': tr('Nombre'), 'field': 'nombre', 'align': 'left', 'sortable': True},
+                    {'name': 'tipo', 'label': tr('Tipo'), 'field': 'tipo_txt', 'align': 'left', 'sortable': True},
+                    {'name': 'f', 'label': tr('Objetivo [MHz]'), 'field': 'f_txt', 'sortable': True},
+                    {'name': 'sim', 'label': tr('Simulada [MHz]'), 'field': 'sim_txt'},
+                    {'name': 'fab', 'label': tr('Exportada'), 'field': 'fab_txt'},
+                    {'name': 'medidas', 'label': tr('Medidas'), 'field': 'medidas', 'sortable': True},
+                    {'name': 'mod', 'label': tr('Modificado'), 'field': 'modificado', 'sortable': True},
+                    {'name': 'notas', 'label': tr('Notas'), 'field': 'notas', 'align': 'left',
                      'classes': 'ellipsis', 'style': 'max-width: 260px'},
                 ]
                 tabla_bib = ui.table(columns=columnas, rows=[], row_key='nombre', selection='single',
                                      pagination=15).classes('w-full').props('dense flat')
                 with ui.row().classes('items-center gap-2'):
-                    btn_abrir = ui.button('Abrir', icon='open_in_new').props('color=primary no-caps')
-                    btn_carpeta = ui.button('Abrir carpeta', icon='folder_open').props('outline no-caps')
-                    btn_renombrar = ui.button('Renombrar', icon='drive_file_rename_outline').props('outline no-caps')
-                    btn_archivar = ui.button('Archivar', icon='archive').props('outline color=grey-8 no-caps') \
-                        .tooltip('Lo aparta a la subcarpeta _archivados (no borra nada)')
+                    btn_abrir = ui.button(tr('Abrir'), icon='open_in_new').props('color=primary no-caps')
+                    btn_carpeta = ui.button(tr('Abrir carpeta'), icon='folder_open').props('outline no-caps')
+                    btn_renombrar = ui.button(tr('Renombrar'), icon='drive_file_rename_outline').props('outline no-caps')
+                    btn_archivar = ui.button(tr('Archivar'), icon='archive').props('outline color=grey-8 no-caps') \
+                        .tooltip(tr('Lo aparta a la subcarpeta _archivados (no borra nada)'))
             with ui.card().classes('w-full'):
-                _titulo_card('Notas del diseño abierto', 'edit_note')
-                notas_in = ui.textarea(placeholder='Pedido, fecha de fabricación, qué se cortó, resultados…') \
+                _titulo_card(tr('Notas del diseño abierto'), 'edit_note')
+                notas_in = ui.textarea(placeholder=tr('Pedido, fecha de fabricación, qué se cortó, resultados…')) \
                     .classes('w-full').props('autogrow')
-                btn_notas = ui.button('Guardar notas', icon='save').props('outline no-caps')
+                btn_notas = ui.button(tr('Guardar notas'), icon='save').props('outline no-caps')
 
     # Pie: versión, licencia y enlace al código fuente (la AGPL pide ofrecerlo a quien use el programa por red)
     with ui.row().classes('w-full justify-center items-center gap-2 q-pa-md text-caption texto-sec'):
-        ui.label(f'Chirptenna v{__version__} · software libre')
-        ui.link('código fuente', URL_PROYECTO, new_tab=True)
+        ui.label(tr('Chirptenna v{0} · software libre', __version__))
+        ui.link(tr('código fuente'), URL_PROYECTO, new_tab=True)
         ui.label('·')
-        ui.link('licencia AGPL-3.0', URL_PROYECTO + '/blob/main/LICENSE', new_tab=True)
-        ui.label('· diseños publicados: CC BY-NC 4.0')
+        ui.link(tr('licencia AGPL-3.0'), URL_PROYECTO + '/blob/main/LICENSE', new_tab=True)
+        ui.label(tr('· diseños publicados: CC BY-NC 4.0'))
 
     entradas = {}
 
     # ================================================================== estado del diseño
     def actualizar_cabecera():
         n = estado['diseno']
-        lbl_diseno.text = (f'{n}{" •" if estado["sucio"] else ""}' if n else 'Diseño sin guardar')
+        lbl_diseno.text = (f'{n}{" •" if estado["sucio"] else ""}' if n else tr('Diseño sin guardar'))
         lo, hi = banda_actual()
-        lbl_resumen.text = f'{tipos.CATALOGO[estado["clave"]].nombre.split(" (")[0]} · {lo:g}–{hi:g} MHz'
+        lbl_resumen.text = tr('{0} · {1:g}–{2:g} MHz', tr(tipos.CATALOGO[estado["clave"]].nombre).split(" (")[0], lo, hi)
         btn_guardar.props(f'color={"orange-9" if (estado["sucio"] or not n) else "primary"}')
 
     def marcar_cambio():
@@ -510,7 +525,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         cont_params.clear()
         entradas.clear()
         tipo = tipos.CATALOGO[estado['clave']]
-        desc.text = tipo.descripcion
+        desc.text = tr(tipo.descripcion)
         p_act = estado['params']
         visibles = set(presentacion.parametros_visibles(estado['clave'], p_act))
         basicos = set(guia.basicos(estado['clave'], p_act))
@@ -520,12 +535,12 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
             valor = p_act.get(p.nombre, p.defecto)
             with ui.row().classes('w-full no-wrap items-center gap-1'):
                 if p.opciones:
-                    n = ui.select(p.opciones, value=int(valor), label=p.etiqueta).classes('grow')
+                    n = ui.select({k: tr(v) for k, v in p.opciones.items()}, value=int(valor), label=tr(p.etiqueta)).classes('grow')
                 else:
-                    n = ui.number(p.etiqueta, value=valor, min=p.minimo, max=p.maximo, step=p.paso,
+                    n = ui.number(tr(p.etiqueta), value=valor, min=p.minimo, max=p.maximo, step=p.paso,
                                   format='%.0f' if p.entero else '%.2f').classes('grow')
                 # ayuda del parámetro: burbuja al pinchar el icono (se cierra al pinchar fuera)
-                texto_ayuda = guia.ayuda(estado['clave'], p)
+                texto_ayuda = tr(guia.ayuda(estado['clave'], p))
                 with ui.button(icon='help_outline').props('flat round dense size=sm').classes('ayuda-param'):
                     with ui.menu().props('anchor="top right" self="top left"').classes('q-pa-sm'):
                         ui.label(texto_ayuda).classes('text-body2').style('max-width: 320px')
@@ -538,7 +553,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
                     campo(p)
             avanzados = [p for p in visibles_p if p.nombre not in basicos]
             if avanzados:
-                exp_av = ui.expansion(f'Ajustes avanzados ({len(avanzados)})', icon='tune',
+                exp_av = ui.expansion(tr('Ajustes avanzados ({0})', len(avanzados)), icon='tune',
                                       value=estado.get('avanzados_abiertos', False)).classes('w-full q-mt-sm') \
                     .props('dense')
                 exp_av.on_value_change(lambda e: estado.update(avanzados_abiertos=bool(e.value)))
@@ -558,7 +573,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
                 estado['silencio'] = True
                 entradas['escalado'].value = 0
                 estado['silencio'] = False
-            ui.notify('Medidas secundarias pasadas a «Manuales» para respetar el valor que has puesto.')
+            ui.notify(tr('Medidas secundarias pasadas a «Manuales» para respetar el valor que has puesto.'))
         if nombre == 'escalado' and int(valor) == 1:
             ajustar()                   # vuelve a escalar las medidas con la frecuencia actual
             return
@@ -578,7 +593,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         try:
             a = tipos.generar(estado['clave'], estado['params'], estado['sustrato'])
         except Exception as ex:      # geometría imposible con estos parámetros
-            ui.notify(f'No se puede generar: {ex}', type='negative')
+            ui.notify(tr('No se puede generar: {0}', ex), type='negative')
             return
         estado['antena'] = a
         grafico.update_figure(T(vista.figura_plotly(a)))
@@ -592,20 +607,19 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
                 with ui.row().classes('w-full no-wrap items-center q-mb-xs'):
                     ui.icon('check_circle' if holgado else ('warning' if cubre else 'cancel'),
                             color='positive' if holgado else ('warning' if cubre else 'negative'))
-                    ui.label(f"Banda estimada {bw['f_inf_MHz']:g}–{bw['f_sup_MHz']:g} MHz "
-                             f"({bw['MHz']:g} MHz, {bw['porcentaje']:g} %) · necesaria {lo:g}–{hi:g} MHz"
+                    ui.label(tr('Banda estimada {0:g}–{1:g} MHz ({2:g} MHz, {3:g} %) · necesaria {4:g}–{5:g} MHz', bw['f_inf_MHz'], bw['f_sup_MHz'], bw['MHz'], bw['porcentaje'], lo, hi)
                              ).classes('text-caption text-weight-medium')
             for etiqueta, valor in presentacion.filas_info(a.info):
                 with ui.row().classes('w-full no-wrap justify-between'):
-                    ui.label(etiqueta).classes('text-caption texto-sec')
+                    ui.label(tr(etiqueta)).classes('text-caption texto-sec')
                     ui.label(valor).classes('text-caption text-weight-medium text-right')
         lista_consejos.clear()
         with lista_consejos:
             for cat, texto in consejos.consejos(a, estado['f_MHz']*1e6, (lo*1e6, hi*1e6)):
                 icono, color = ICONOS_CONSEJO.get(cat, ('info', 'grey'))
                 with ui.row().classes('items-start no-wrap'):
-                    ui.icon(icono, color=color).tooltip(cat)
-                    ui.label(texto).classes('text-caption')
+                    ui.icon(icono, color=color).tooltip(tr(cat))
+                    ui.label(tr(texto)).classes('text-caption')
         mostrar_drc()
         mostrar_problemas()
         actualizar_cabecera()
@@ -624,7 +638,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
                 icono, color, clase = ICONOS_PROBLEMA[nivel]
                 with ui.row().classes('items-start no-wrap gap-1'):
                     ui.icon(icono, color=color, size='xs').classes('q-mt-xs')
-                    ui.label(texto).classes(f'text-caption {clase}')
+                    ui.label(tr(texto)).classes(f'text-caption {clase}')
         return lista
 
     def mostrar_drc():
@@ -638,10 +652,10 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
             for t in graves:
                 with ui.row().classes('items-start no-wrap'):
                     ui.icon('report', color='negative')
-                    ui.label('Problema conocido: ' + t).classes('text-caption text-negative')
+                    ui.label(tr('Problema conocido: ') + tr(t)).classes('text-caption text-negative')
             with ui.row().classes('items-start no-wrap'):
                 ui.icon('science', color='blue-grey-6')
-                ui.label(problemas.AVISO_GENERAL).classes('text-caption texto-sec')
+                ui.label(tr(problemas.AVISO_GENERAL)).classes('text-caption texto-sec')
             colores = {'ok': 'positive', 'aviso': 'warning', 'error': 'negative', 'info': 'teal'}
             iconos = {'ok': 'check_circle', 'aviso': 'warning', 'error': 'error', 'info': 'build'}
             mensajes = (fabricacion.comprobar(a, estado['reglas']) + [('aviso', m) for m in a.info.get('avisos', [])]
@@ -649,7 +663,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
             for nivel, msg in mensajes:
                 with ui.row().classes('items-start no-wrap'):
                     ui.icon(iconos[nivel], color=colores[nivel])
-                    ui.label(msg).classes('text-caption')
+                    ui.label(tr(msg)).classes('text-caption')
 
     def elegir_tipo(clave):
         """Desde la galería: pone el tipo (lo dimensiona para la banda actual) y pasa a la pestaña Diseño."""
@@ -672,7 +686,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
 
     def mostrar_rango():
         lo, hi = banda_actual()
-        rango.text = f'{lo:g}–{hi:g} MHz'
+        rango.text = tr('{0:g}–{1:g} MHz', lo, hi)
 
     def cambiar_banda(e):
         if estado.get('silencio_banda'):
@@ -721,7 +735,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         p, msg = tipos.ajustar_ancho_banda(estado['clave'], estado['f_MHz']*1e6, estado['bw_MHz']*1e6,
                                            estado['params'], estado['sustrato'])
         aviso_ajuste.text = msg
-        ui.notify(msg, type='positive' if msg.startswith(('Ya', 'Ancho')) else 'warning', multi_line=True)
+        ui.notify(msg, type='positive' if msg.startswith((tr('Ya'), tr('Ancho'))) else 'warning', multi_line=True)
         marcar_cambio()
         poner_params(p)
 
@@ -735,8 +749,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         if nombre != nombre_in.value:
             nombre_in.value = nombre
         if not forzar and nombre != estado['diseno'] and biblioteca.existe(nombre):
-            confirmar(f'Ya hay un diseño llamado «{nombre}». ¿Sustituir su geometría por la actual? '
-                      'Sus simulaciones, medidas y notas se conservan.', lambda: guardar_diseno(True))
+            confirmar(tr('Ya hay un diseño llamado «{0}». ¿Sustituir su geometría por la actual? Sus simulaciones, medidas y notas se conservan.', nombre), lambda: guardar_diseno(True))
             return False
         a = estado['antena']
         biblioteca.guardar(nombre, estado['clave'], estado['params'], estado['sustrato'], estado['reglas'],
@@ -749,7 +762,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         refrescar_biblioteca()
         mostrar_medidas()
         notas_in.value = (biblioteca.cargar(nombre) or {}).get('notas', '')
-        ui.notify(f'Diseño «{nombre}» guardado', type='positive')
+        ui.notify(tr('Diseño «{0}» guardado', nombre), type='positive')
         return True
 
     def asegurar_guardado():
@@ -764,14 +777,14 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         with ui.dialog() as dlg, ui.card():
             ui.label(texto)
             with ui.row().classes('w-full justify-end'):
-                ui.button('Cancelar', on_click=dlg.close).props('flat no-caps')
-                ui.button('Sí', on_click=lambda: (dlg.close(), accion())).props('color=primary no-caps')
+                ui.button(tr('Cancelar'), on_click=dlg.close).props('flat no-caps')
+                ui.button(tr('Sí'), on_click=lambda: (dlg.close(), accion())).props('color=primary no-caps')
         dlg.open()
 
     def abrir_diseno(nombre, avisar=True):
         d = biblioteca.cargar(nombre)
         if not d or d.get('tipo') not in tipos.CATALOGO:
-            ui.notify(f'No se puede abrir «{nombre}»', type='negative')
+            ui.notify(tr('No se puede abrir «{0}»', nombre), type='negative')
             return
         estado.update(clave=d['tipo'], sustrato=d.get('sustrato', SUSTRATO_POR_DEFECTO),
                       reglas=d.get('reglas', fabricacion.REGLAS_POR_DEFECTO),
@@ -806,12 +819,12 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         res_sim.clear()
         registro.clear()
         if sim_g:
-            registro.push(f'Simulación guardada con el diseño ({sim_g[0].get("precision", "")}).')
+            registro.push(tr('Simulación guardada con el diseño ({0}).', sim_g[0].get("precision", "")))
             pintar_simulacion(*sim_g)
         mostrar_medidas()
         pestanas.value = t_diseno
         if avisar:
-            ui.notify(f'Diseño «{nombre}» abierto', type='positive')
+            ui.notify(tr('Diseño «{0}» abierto', nombre), type='positive')
 
     def refrescar_biblioteca():
         filas = []
@@ -820,13 +833,13 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
             filas.append(dict(d, tipo_txt=t.nombre.split(' (')[0] if t else d['tipo'],
                               f_txt=f"{d['f_objetivo_MHz']:g}" if d['f_objetivo_MHz'] else '',
                               sim_txt=f"{d['simulado']:g}" if d['simulado'] else '—',
-                              fab_txt='sí' if d['fabricado'] else '—'))
+                              fab_txt=tr('sí') if d['fabricado'] else '—'))
         tabla_bib.rows = filas
         tabla_bib.update()
 
     def seleccionado():
         if not tabla_bib.selected:
-            ui.notify('Elige un diseño de la lista', type='warning')
+            ui.notify(tr('Elige un diseño de la lista'), type='warning')
             return None
         return tabla_bib.selected[0]['nombre']
 
@@ -835,7 +848,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         if not n:
             return
         with ui.dialog() as dlg, ui.card():
-            nuevo = ui.input('Nuevo nombre', value=n).classes('w-64')
+            nuevo = ui.input(tr('Nuevo nombre'), value=n).classes('w-64')
 
             def hacer():
                 try:
@@ -850,8 +863,8 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
                     actualizar_cabecera()
                 refrescar_biblioteca()
             with ui.row().classes('w-full justify-end'):
-                ui.button('Cancelar', on_click=dlg.close).props('flat no-caps')
-                ui.button('Renombrar', on_click=hacer).props('color=primary no-caps')
+                ui.button(tr('Cancelar'), on_click=dlg.close).props('flat no-caps')
+                ui.button(tr('Renombrar'), on_click=hacer).props('color=primary no-caps')
         dlg.open()
 
     def archivar_click():
@@ -866,16 +879,16 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
                 actualizar_cabecera()
                 mostrar_medidas()
             refrescar_biblioteca()
-            ui.notify(f'«{n}» movido a _archivados', type='positive')
-        confirmar(f'¿Archivar «{n}»? Se mueve a la subcarpeta _archivados; no se borra nada.', hacer)
+            ui.notify(tr('«{0}» movido a _archivados', n), type='positive')
+        confirmar(tr('¿Archivar «{0}»? Se mueve a la subcarpeta _archivados; no se borra nada.', n), hacer)
 
     def guardar_notas():
         if not estado['diseno']:
-            ui.notify('Guarda primero el diseño', type='warning')
+            ui.notify(tr('Guarda primero el diseño'), type='warning')
             return
         biblioteca.guardar_notas(estado['diseno'], notas_in.value or '')
         refrescar_biblioteca()
-        ui.notify('Notas guardadas', type='positive')
+        ui.notify(tr('Notas guardadas'), type='positive')
 
     # ================================================================== simulación
     sim = {'proc': None, 'lineas': [], 'carpeta': None, 'diseno': None}
@@ -889,7 +902,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
 
     def simular_click():
         if sim['proc'] is not None:
-            ui.notify('Ya hay una simulación en marcha', type='warning')
+            ui.notify(tr('Ya hay una simulación en marcha'), type='warning')
             return
         carpeta = os.path.join(DIR_SALIDAS, '_simulaciones', time.strftime('%Y%m%d_%H%M%S'))
         os.makedirs(carpeta, exist_ok=True)
@@ -900,9 +913,8 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         with open(ruta, 'w', encoding='utf-8') as fh:
             json.dump(trabajo, fh, ensure_ascii=False, default=float)
         registro.clear()
-        registro.push(f'Simulando {tipos.CATALOGO[estado["clave"]].nombre} a {estado["f_MHz"]:g} MHz '
-                      f'({sel_prec.value}{", con ajuste" if chk_ajustar.value else ""})…')
-        entorno = dict(os.environ, PYTHONIOENCODING='utf-8')
+        registro.push(tr('Simulando {0} a {1:g} MHz ({2}{3})…', tr(tipos.CATALOGO[estado["clave"]].nombre), estado["f_MHz"], sel_prec.value, ", con ajuste" if chk_ajustar.value else ""))
+        entorno = dict(os.environ, PYTHONIOENCODING='utf-8', CHIRPTENNA_IDIOMA=i18n.idioma())
         proc = subprocess.Popen([sys.executable, '-u', '-m', 'antenas.simular_cli', ruta], cwd=RAIZ, env=entorno,
                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding='utf-8',
                                 errors='replace', creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
@@ -925,24 +937,24 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         ruta = os.path.join(carpeta, 'resultado.json')
         res_sim.clear()
         if not os.path.exists(ruta):
-            registro.push('La simulación terminó sin resultado (mira la consola).')
+            registro.push(tr('La simulación terminó sin resultado (mira la consola).'))
             return
         r = json.load(open(ruta, encoding='utf-8'))
         if not r.get('ok'):
-            registro.push(f'Error: {r.get("error")}')
-            ui.notify(f'Error en la simulación: {r.get("error")}', type='negative', multi_line=True)
+            registro.push(tr('Error: {0}', r.get("error")))
+            ui.notify(tr('Error en la simulación: {0}', r.get("error")), type='negative', multi_line=True)
             return
         if diseno and biblioteca.existe(diseno):
             biblioteca.guardar_simulacion(diseno, carpeta)
-            registro.push(f'Resultado guardado en el diseño «{diseno}».')
+            registro.push(tr('Resultado guardado en el diseño «{0}».', diseno))
             refrescar_biblioteca()
             if diseno == estado['diseno']:
                 mostrar_medidas()
         else:
-            registro.push('El diseño no estaba guardado (o cambió durante la simulación): '
-                          'el resultado queda solo en salidas/_simulaciones.')
+            registro.push(tr('El diseño no estaba guardado (o cambió durante la simulación): '
+                          'el resultado queda solo en salidas/_simulaciones.'))
         pintar_simulacion(r, dict(np.load(os.path.join(carpeta, 'datos.npz'))))
-        ui.notify('Simulación terminada', type='positive')
+        ui.notify(tr('Simulación terminada'), type='positive')
 
     def antena_simulada(r):
         """Geometría que se simuló (con los parámetros ajustados, si los hay); si no se puede, la actual."""
@@ -967,30 +979,28 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
                     with ui.row().classes('items-start no-wrap'):
                         ui.icon('warning', color='warning')
                         ui.label(av).classes('text-caption')
-                filas = [('Resonancia', f"{r['f_resonancia_MHz']:g} MHz ({r.get('criterio') or 'centro de banda'})"),
-                         ('Banda a −10 dB', '—' if not r['banda_MHz'] else
-                          f"{r['banda_MHz'][0]:g}–{r['banda_MHz'][1]:g} MHz ({r['ancho_banda_MHz']:g} MHz)"),
-                         ('Banda necesaria', f'{lo:g}–{hi:g} MHz'),
-                         ('S11 mínimo', f"{r['s11_min_dB']:g} dB a {r['f_min_s11_MHz']:g} MHz"),
-                         ('Directividad / ganancia', f"{r['directividad_dBi']:g} / {r['ganancia_dBi']:g} dBi"),
-                         ('Eficiencia de radiación / total',
+                filas = [(tr('Resonancia'), tr('{0:g} MHz ({1})', r['f_resonancia_MHz'], r.get('criterio') or 'centro de banda')),
+                         (tr('Banda a −10 dB'), '—' if not r['banda_MHz'] else
+                          tr('{0:g}–{1:g} MHz ({2:g} MHz)', r['banda_MHz'][0], r['banda_MHz'][1], r['ancho_banda_MHz'])),
+                         (tr('Banda necesaria'), tr('{0:g}–{1:g} MHz', lo, hi)),
+                         (tr('S11 mínimo'), tr('{0:g} dB a {1:g} MHz', r['s11_min_dB'], r['f_min_s11_MHz'])),
+                         (tr('Directividad / ganancia'), tr('{0:g} / {1:g} dBi', r['directividad_dBi'], r['ganancia_dBi'])),
+                         (tr('Eficiencia de radiación / total'),
                           f"{r['eficiencia_radiacion_%']:g} % / {r['eficiencia_total_%']:g} %"),
-                         ('Malla / tiempo', f"{r['celdas']/1e6:.2f} M celdas, paso {r['paso_malla_mm']} mm, "
-                                            f"{r['tiempo_s']:g} s")]
+                         (tr('Malla / tiempo'), tr('{0:.2f} M celdas, paso {1} mm, {2:g} s', r['celdas']/1e6, r['paso_malla_mm'], r['tiempo_s']))]
                 cubre = bool(r['banda_MHz']) and r['banda_MHz'][0] <= lo and r['banda_MHz'][1] >= hi
                 with ui.row().classes('items-center no-wrap'):
                     ui.icon('check_circle' if cubre else 'cancel', color='positive' if cubre else 'negative')
-                    ui.label('La simulación cubre la banda' if cubre else 'La simulación NO cubre la banda entera'
+                    ui.label(tr('La simulación cubre la banda') if cubre else tr('La simulación NO cubre la banda entera')
                              ).classes('text-caption text-weight-medium')
                 with ui.grid(columns=2).classes('w-full gap-x-4 gap-y-0'):
                     for k, v in filas:
-                        ui.label(k).classes('text-caption texto-sec')
+                        ui.label(tr(k)).classes('text-caption texto-sec')
                         ui.label(v).classes('text-caption text-weight-medium')
                 if r.get('historial'):
-                    ui.label('Ajuste: ' + ' → '.join(f"{h['escala_mm']} mm: {h['f_resonancia_MHz']} MHz "
-                                                    f"({h['error_%']:+} %)" for h in r['historial'])
+                    ui.label(tr('Ajuste: ') + ' → '.join(tr('{0} mm: {1} MHz ({2:+} %)', h['escala_mm'], h['f_resonancia_MHz'], h['error_%']) for h in r['historial'])
                              ).classes('text-caption')
-                    ui.button('Aplicar los parámetros ajustados', icon='done_all',
+                    ui.button(tr('Aplicar los parámetros ajustados'), icon='done_all',
                               on_click=lambda q=r['parametros']: aplicar_ajustados(q)) \
                         .props('outline color=deep-purple no-caps')
             with ui.row().classes('w-full wrap gap-2'):
@@ -1018,7 +1028,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
     def aplicar_ajustados(q):
         marcar_cambio()
         poner_params({k: v for k, v in q.items() if not k.startswith('_')})
-        ui.notify('Parámetros ajustados aplicados. Guarda el diseño para conservarlos.', type='positive')
+        ui.notify(tr('Parámetros ajustados aplicados. Guarda el diseño para conservarlos.'), type='positive')
 
     ui.timer(0.5, vigilar)
 
@@ -1031,17 +1041,17 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         n = estado['diseno']
         if not n:
             with lista_medidas:
-                ui.label('Guarda el diseño (o haz una medida) para ver aquí sus medidas y su simulación.'
+                ui.label(tr('Guarda el diseño (o haz una medida) para ver aquí sus medidas y su simulación.')
                          ).classes('text-caption texto-sec')
             return
         ms = biblioteca.medidas(n)
         sim_g = biblioteca.leer_simulacion(n)
         with lista_medidas:
             if not ms and not sim_g:
-                ui.label('Este diseño aún no tiene simulación ni medidas.').classes('text-caption texto-sec')
+                ui.label(tr('Este diseño aún no tiene simulación ni medidas.')).classes('text-caption texto-sec')
             if sim_g:
                 r = sim_g[0]
-                ui.checkbox(f"Simulación ({r['f_resonancia_MHz']:g} MHz, {r.get('precision', '')})",
+                ui.checkbox(tr('Simulación ({0:g} MHz, {1})', r['f_resonancia_MHz'], r.get('precision', '')),
                             value=visibles.get('_sim', True),
                             on_change=lambda e: (visibles.__setitem__('_sim', e.value), pintar_comparacion()))
             for fichero, meta in ms:
@@ -1053,11 +1063,11 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
                                 ).classes('grow')
                     if meta.get('notas'):
                         ui.icon('notes', color='grey-7').tooltip(meta['notas'])
-                    ui.button('Analizar', icon='build', on_click=lambda f=fichero, t=texto: analizar_medida(f, t)) \
+                    ui.button(tr('Analizar'), icon='build', on_click=lambda f=fichero, t=texto: analizar_medida(f, t)) \
                         .props('flat dense no-caps color=teal')
                     ui.button(icon='download',
                               on_click=lambda f=fichero: ui.download(os.path.join(biblioteca.carpeta(n, 'medidas'), f))
-                              ).props('flat dense round').tooltip('Descargar .s1p')
+                              ).props('flat dense round').tooltip(tr('Descargar .s1p'))
         pintar_comparacion()
 
     def pintar_comparacion():
@@ -1068,7 +1078,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         curvas = []
         sim_g = biblioteca.leer_simulacion(n)
         if sim_g and visibles.get('_sim', True):
-            curvas.append(('Simulación', sim_g[1]['f'], sim_g[1]['s11'], True))
+            curvas.append((tr('Simulación'), sim_g[1]['f'], sim_g[1]['s11'], True))
         for fichero, meta in biblioteca.medidas(n):
             if not visibles.get(fichero, True):
                 continue
@@ -1091,9 +1101,9 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         try:
             f, s11 = biblioteca.leer_medida(estado['diseno'], fichero)
         except Exception as ex:
-            ui.notify(f'No se puede leer la medida: {ex}', type='negative')
+            ui.notify(tr('No se puede leer la medida: {0}', ex), type='negative')
             return
-        mostrar_asistente(f, s11, f'Medida «{texto}»')
+        mostrar_asistente(f, s11, tr('Medida «{0}»', texto))
 
     def recomendacion(f, s11):
         a = estado['antena']
@@ -1114,25 +1124,21 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
                     (fa, sa), etiqueta_a = anterior
                     ra = recomendacion(fa, sa)
                     d = rec['f_medida_MHz'] - ra['f_medida_MHz']
-                    ui.label(f'Respecto a «{etiqueta_a}»: resonancia {ra["f_medida_MHz"]:g} → {rec["f_medida_MHz"]:g} MHz '
-                             f'({d:+.1f} MHz); en el objetivo {ra["s11_en_f_obj_dB"]:g} → {rec["s11_en_f_obj_dB"]:g} dB'
+                    ui.label(tr('Respecto a «{0}»: resonancia {1:g} → {2:g} MHz ({3:+.1f} MHz); en el objetivo {4:g} → {5:g} dB', etiqueta_a, ra["f_medida_MHz"], rec["f_medida_MHz"], d, ra["s11_en_f_obj_dB"], rec["s11_en_f_obj_dB"])
                              ).classes('text-caption texto-violeta')
                 except Exception:
                     pass
-            ui.label(f'{origen}: resonancia medida {rec["f_medida_MHz"]:g} MHz ({rec["desvio_%"]:+g} % respecto a '
-                     f'{estado["f_MHz"]:g} MHz), S11 mínimo {rec["s11_min_dB"]:g} dB; en el objetivo '
-                     f'{rec["s11_en_f_obj_dB"]:g} dB, Z = {rec["Z_en_f_obj_ohm"][0]:g} {rec["Z_en_f_obj_ohm"][1]:+g}j Ω'
+            ui.label(tr('{0}: resonancia medida {1:g} MHz ({2:+g} % respecto a {3:g} MHz), S11 mínimo {4:g} dB; en el objetivo {5:g} dB, Z = {6:g} {7:+g}j Ω', origen, rec["f_medida_MHz"], rec["desvio_%"], estado["f_MHz"], rec["s11_min_dB"], rec["s11_en_f_obj_dB"], rec["Z_en_f_obj_ohm"][0], rec["Z_en_f_obj_ohm"][1])
                      ).classes('text-caption text-weight-medium')
             for acc in rec['acciones']:
                 with ui.row().classes('items-start no-wrap'):
                     ui.icon('build', color='teal')
                     ui.label(acc).classes('text-caption')
             if rec.get('redes'):
-                txt = lambda c: '0 Ω' if c[0] == '0 Ω' else (f'{c[1]:g} nH' if c[0] == 'L' else f'{c[1]:g} pF')
-                ui.label('Alternativas para la red en π (valores comerciales E24):').classes('text-caption q-mt-xs')
+                txt = lambda c: '0 Ω' if c[0] == '0 Ω' else (tr('{0:g} nH', c[1]) if c[0] == 'L' else tr('{0:g} pF', c[1]))
+                ui.label(tr('Alternativas para la red en π (valores comerciales E24):')).classes('text-caption q-mt-xs')
                 for r_ in rec['redes']:
-                    ui.label(f'· Z1 = {txt(r_["serie"])}, {r_["posicion"]} = {txt(r_["derivacion"])} → |S11| ≈ '
-                             f'{r_["s11_dB"]} dB').classes('text-caption')
+                    ui.label(tr('· Z1 = {0}, {1} = {2} → |S11| ≈ {3} dB', txt(r_["serie"]), r_["posicion"], txt(r_["derivacion"]), r_["s11_dB"])).classes('text-caption')
             lo, hi = banda_actual()
             ui.plotly(T(graficas.smith(f, s11, (lo*1e6, hi*1e6), estado['f_MHz']*1e6))).classes('w-full h-[300px]')
 
@@ -1154,8 +1160,8 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         notas_medida.value = ''
         mostrar_medidas()
         refrescar_biblioteca()
-        mostrar_asistente(f, s11, f'Medida «{etiqueta or os.path.basename(ruta)}»', anterior)
-        ui.notify(f'Medida guardada en el diseño «{estado["diseno"]}»', type='positive')
+        mostrar_asistente(f, s11, tr('Medida «{0}»', etiqueta or os.path.basename(ruta)), anterior)
+        ui.notify(tr('Medida guardada en el diseño «{0}»', estado["diseno"]), type='positive')
 
     async def subir_s1p(e):
         try:
@@ -1168,10 +1174,10 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         try:
             f, s11 = ajuste.leer_s1p(datos.decode('utf-8', errors='replace'))
         except Exception as ex:
-            ui.notify(f'No se puede leer el .s1p: {ex}', type='negative')
+            ui.notify(tr('No se puede leer el .s1p: {0}', ex), type='negative')
             return
         if not len(f):
-            ui.notify('El .s1p no tiene datos', type='negative')
+            ui.notify(tr('El .s1p no tiene datos'), type='negative')
             return
         if not etiqueta_in.value:
             etiqueta_in.value = os.path.splitext(nombre)[0]
@@ -1190,7 +1196,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         try:
             return await run.io_bound(funcion, *args)
         except Exception as ex:
-            ui.notify(f'NanoVNA: {ex}', type='negative', multi_line=True)
+            ui.notify(tr('NanoVNA: {0}', ex), type='negative', multi_line=True)
             return None
         finally:
             boton.props(remove='loading')
@@ -1199,11 +1205,10 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         av = _modulo_vna()
         i = await tarea_vna(btn_conectar, av.info_equipo)
         if i is None:
-            info_vna.text = 'No se ha podido conectar.'
+            info_vna.text = tr('No se ha podido conectar.')
             return
         ini, fin, pts = i['barrido']
-        info_vna.text = (f"{i['version'].split()[0] if i['version'] else 'NanoVNA'} en {i['puerto']} · barrido "
-                         f"{ini/1e6:g}–{fin/1e6:g} MHz, {pts} puntos · calibración del equipo: {i['cal'] or '—'}")
+        info_vna.text = (tr('{0} en {1} · barrido {2:g}–{3:g} MHz, {4} puntos · calibración del equipo: {5}', i['version'].split()[0] if i['version'] else 'NanoVNA', i['puerto'], ini/1e6, fin/1e6, pts, i['cal'] or '—'))
         pasos_vna.next()
 
     def mostrar_modo_cal():
@@ -1220,16 +1225,15 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
     def mostrar_info_cal():
         info_cal.text = ''
         if not sel_cal.value:
-            info_cal.text = 'No hay calibraciones guardadas: calibra ahora.'
+            info_cal.text = tr('No hay calibraciones guardadas: calibra ahora.')
             return
         i = _modulo_vna().info_calibracion(sel_cal.value)
         if not i:
             return
         lo, hi = banda_actual()
         dentro = i['f_ini_Hz'] <= lo*1e6 and i['f_fin_Hz'] >= hi*1e6
-        info_cal.text = (f"{i['f_ini_Hz']/1e6:g}–{i['f_fin_Hz']/1e6:g} MHz, {i['puntos']} puntos, "
-                         f"{', '.join(i['estandares']).upper()} · {i['fecha'][:16].replace('T', ' ')}"
-                         + ('' if dentro else ' · ⚠ no cubre la banda del diseño'))
+        info_cal.text = (tr('{0:g}–{1:g} MHz, {2} puntos, {3} · {4}', i['f_ini_Hz']/1e6, i['f_fin_Hz']/1e6, i['puntos'], ', '.join(i['estandares']).upper(), i['fecha'][:16].replace('T', ' '))
+                         + ('' if dentro else tr(' · ⚠ no cubre la banda del diseño')))
         info_cal.classes(replace='text-caption ' + ('' if dentro else 'text-negative'))
 
     def pintar_pasos_cal():
@@ -1238,8 +1242,8 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         btn_cal_guardar.set_visibility(cg is not None)
         if cg is None:
             return
-        textos = {'open': 'Pon el OPEN (abierto)', 'short': 'Pon el SHORT (cortocircuito)',
-                  'load': 'Pon la CARGA de 50 Ω'}
+        textos = {'open': tr('Pon el OPEN (abierto)'), 'short': tr('Pon el SHORT (cortocircuito)'),
+                  'load': tr('Pon la CARGA de 50 Ω')}
         with filas_cal:
             for paso in cg.PASOS:
                 hecho = paso in cg.hechos()
@@ -1257,10 +1261,9 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
             vna['cal_guiada'] = _modulo_vna().CalibracionGuiada(nombre, float(cal_ini.value)*1e6,
                                                                 float(cal_fin.value)*1e6, int(cal_pts.value))
         except Exception as ex:
-            ui.notify(f'No se puede empezar: {ex}', type='negative')
+            ui.notify(tr('No se puede empezar: {0}', ex), type='negative')
             return
-        res_cal.text = (f'{cal_ini.value:g}–{cal_fin.value:g} MHz, {int(cal_pts.value)} puntos '
-                        f'({-(-int(cal_pts.value)//101)} barridos por estándar).')
+        res_cal.text = (tr('{0:g}–{1:g} MHz, {2} puntos ({3} barridos por estándar).', cal_ini.value, cal_fin.value, int(cal_pts.value), -(-int(cal_pts.value)//101)))
         pintar_pasos_cal()
 
     async def medir_estandar(paso, boton):
@@ -1270,9 +1273,9 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
             return
         bien, texto = r
         if bien:
-            ui.notify(f'{paso.upper()} medido. {texto}', type='positive')
+            ui.notify(tr('{0} medido. {1}', paso.upper(), texto), type='positive')
         else:
-            ui.notify(f'{paso.upper()} NO guardado: {texto}', type='warning', multi_line=True)
+            ui.notify(tr('{0} NO guardado: {1}', paso.upper(), texto), type='warning', multi_line=True)
         pintar_pasos_cal()
 
     async def guardar_calibracion():
@@ -1283,7 +1286,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         if r is None:
             return
         nombre, errores = r
-        res_cal.text = ('Guardada. Autocomprobación: ' +
+        res_cal.text = (tr('Guardada. Autocomprobación: ') +
                         ', '.join(f'{k.upper()} {v:.0e}' for k, v in errores.items()))
         import calibracion as _c
         sel_cal.options = _c.listar()
@@ -1292,20 +1295,19 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         vna['cal_guiada'] = None
         pintar_pasos_cal()
         modo_cal.value = 0
-        ui.notify(f'Calibración «{nombre}» guardada en vna/calibraciones', type='positive')
+        ui.notify(tr('Calibración «{0}» guardada en vna/calibraciones', nombre), type='positive')
         pasos_vna.next()
 
     async def verificar_click():
         if not sel_cal.value:
-            ui.notify('Elige o haz antes una calibración', type='warning')
+            ui.notify(tr('Elige o haz antes una calibración'), type='warning')
             return
         r = await tarea_vna(btn_verif, _modulo_vna().verificar, sel_cal.value)
         if r is None:
             return
         bien = r['max_dB'] < -25
-        res_verif.text = (f"|S11| con la carga: mediana {r['mediana_dB']:.1f} dB, peor {r['max_dB']:.1f} dB "
-                          f"a {r['f_max_MHz']:.0f} MHz · " + ('bien' if bien else
-                          'revisa: ¿está la carga puesta? Si sí, el latiguillo o los conectores han cambiado: recalibra'))
+        res_verif.text = (tr('|S11| con la carga: mediana {0:.1f} dB, peor {1:.1f} dB a {2:.0f} MHz · ', r['mediana_dB'], r['max_dB'], r['f_max_MHz']) + ('bien' if bien else
+                          tr('revisa: ¿está la carga puesta? Si sí, el latiguillo o los conectores han cambiado: recalibra')))
         res_verif.classes(replace='text-caption ' + ('text-positive' if bien else 'text-negative'))
 
     def ventana_medida(ancho=0.5):
@@ -1315,11 +1317,11 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
 
     async def medir_click():
         if not sel_cal.value:
-            ui.notify('Elige o haz antes una calibración', type='warning')
+            ui.notify(tr('Elige o haz antes una calibración'), type='warning')
             return
         r = await tarea_vna(btn_medir, _modulo_vna().medir, sel_cal.value, *ventana_medida(1.0))
         if r is not None:
-            nueva_medida(r[0], r[1], f'NanoVNA ({sel_cal.value})')
+            nueva_medida(r[0], r[1], tr('NanoVNA ({0})', sel_cal.value))
 
     async def bucle_vivo():
         av = _modulo_vna()
@@ -1327,7 +1329,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
             try:
                 f, s11 = await run.io_bound(av.medir, sel_cal.value, *ventana_medida(0.5))
             except Exception as ex:
-                ui.notify(f'NanoVNA: {ex}', type='negative', multi_line=True)
+                ui.notify(tr('NanoVNA: {0}', ex), type='negative', multi_line=True)
                 sw_vivo.value = False
                 break
             vna['ultima'] = (f, s11)
@@ -1339,17 +1341,16 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
                 w50 = ancho_microstrip(50, s.er, s.h)
                 rec = ajuste.asistente(a, f, s11, estado['f_MHz']*1e6, ajuste.distancia_conector_a_red(a),
                                        eps_eff_microstrip(s.er, s.h, w50))
-                vivo_txt.text = (f'{time.strftime("%H:%M:%S")} · resonancia {rec["f_medida_MHz"]:g} MHz '
-                                 f'({rec["desvio_%"]:+g} %) · en el objetivo {rec["s11_en_f_obj_dB"]:g} dB · '
+                vivo_txt.text = (tr('{0} · resonancia {1:g} MHz ({2:+g} %) · en el objetivo {3:g} dB · ', time.strftime("%H:%M:%S"), rec["f_medida_MHz"], rec["desvio_%"], rec["s11_en_f_obj_dB"])
                                  + (rec['acciones'][0] if rec['acciones'] else ''))
             except Exception:
                 db = 20*np.log10(np.abs(s11))
-                vivo_txt.text = f'{time.strftime("%H:%M:%S")} · S11 mínimo {db.min():.1f} dB a {f[db.argmin()]/1e6:.1f} MHz'
+                vivo_txt.text = tr('{0} · S11 mínimo {1:.1f} dB a {2:.1f} MHz', time.strftime("%H:%M:%S"), db.min(), f[db.argmin()]/1e6)
             await asyncio.sleep(0.3)
 
     def cambiar_vivo(e):
         if e.value and not sel_cal.value:
-            ui.notify('Elige o haz antes una calibración', type='warning')
+            ui.notify(tr('Elige o haz antes una calibración'), type='warning')
             sw_vivo.value = False
             return
         vna['vivo'] = bool(e.value)
@@ -1364,7 +1365,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         if vna['ultima'] is None:
             return
         f, s11 = vna['ultima']
-        nueva_medida(f, s11, f'NanoVNA en vivo ({sel_cal.value})')
+        nueva_medida(f, s11, tr('NanoVNA en vivo ({0})', sel_cal.value))
 
     # ================================================================== serigrafía
     def lineas_serigrafia():
@@ -1381,15 +1382,15 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         with seri_vista:
             modo = estado['serigrafia'].get('logo', 'grande')
             if modo != 'ninguno':
-                ui.label('[logo grande: grillo + Chirptenna]' if modo == 'grande'
-                         else '[logo pequeño de Chirptenna]').classes('text-caption texto-sec')
+                ui.label(tr('[logo grande: grillo + Chirptenna]') if modo == 'grande'
+                         else tr('[logo pequeño de Chirptenna]')).classes('text-caption texto-sec')
             elif not lineas:
                 ui.label('(sin inscripciones)').classes('text-caption texto-sec')
             for t in lineas:
                 ui.label(t).classes('text-caption')
             if estado['serigrafia'].get('sim') and not any(t.startswith('sim ') for t in lineas):
-                ui.label('La línea de la simulación aparece cuando el diseño está guardado, sin cambios y '
-                         'simulado.').classes('text-caption texto-aviso')
+                ui.label(tr('La línea de la simulación aparece cuando el diseño está guardado, sin cambios y '
+                         'simulado.')).classes('text-caption texto-aviso')
 
     def cambiar_serigrafia(clave_s, valor):
         if estado.get('silencio'):
@@ -1422,46 +1423,46 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
         nombre = estado['diseno']
         carpeta = biblioteca.carpeta(nombre, 'fabricacion')
         try:
-            titulo = f"{tipos.CATALOGO[a.tipo].nombre.split(' (')[0]} {a.info.get('f_estimada_MHz')} MHz"
+            titulo = tr('{0} {1} MHz', tr(tipos.CATALOGO[a.tipo].nombre).split(' (')[0], a.info.get('f_estimada_MHz'))
             modo_logo = estado['serigrafia'].get('logo', 'grande')
             r = exportar.exportar_todo(a, carpeta, nombre, titulo, etiqueta=lineas_serigrafia(),
                                        logo=None if modo_logo == 'ninguno' else modo_logo)
         except Exception as ex:
-            ui.notify(f'Error al exportar: {ex}', type='negative', multi_line=True)
+            ui.notify(tr('Error al exportar: {0}', ex), type='negative', multi_line=True)
             return
         refrescar_biblioteca()
         res_export.clear()
         with res_export:
             with ui.row().classes('items-center no-wrap'):
-                ui.label(f'Guardado en {carpeta}').classes('text-caption')
+                ui.label(tr('Guardado en {0}', carpeta)).classes('text-caption')
                 ui.button(icon='folder_open', on_click=lambda: os.startfile(carpeta)).props('flat round dense')
-            for clave, texto in (('gerber_zip', 'Gerber para JLC (.zip)'), ('placa', 'Placa de prueba KiCad (.kicad_pcb)'),
-                                 ('huella', 'Huella KiCad (.kicad_mod)'), ('dxf', 'DXF para EasyEDA'),
-                                 ('gerber_zip_reflector', 'Reflector: Gerber para JLC (.zip)'),
-                                 ('placa_reflector', 'Reflector: placa KiCad (.kicad_pcb)'),
-                                 ('dxf_reflector', 'Reflector: DXF (chapa o placa)')):
+            for clave, texto in (('gerber_zip', tr('Gerber para JLC (.zip)')), ('placa', tr('Placa de prueba KiCad (.kicad_pcb)')),
+                                 ('huella', tr('Huella KiCad (.kicad_mod)')), ('dxf', tr('DXF para EasyEDA')),
+                                 ('gerber_zip_reflector', tr('Reflector: Gerber para JLC (.zip)')),
+                                 ('placa_reflector', tr('Reflector: placa KiCad (.kicad_pcb)')),
+                                 ('dxf_reflector', tr('Reflector: DXF (chapa o placa)'))):
                 if clave not in r:
                     continue
                 ui.button(texto, icon='file_download', on_click=lambda r=r, c=clave: ui.download(r[c])) \
                     .props('flat dense no-caps').classes('w-full justify-start')
             s = r.get('serigrafia') or {}
             if s.get('logo_forma') == 'texto':
-                ui.label('Serigrafía: no cabe el grillo; va la palabra «Chirptenna»').classes('text-caption texto-aviso')
+                ui.label(tr('Serigrafía: no cabe el grillo; va la palabra «Chirptenna»')).classes('text-caption texto-aviso')
             elif s.get('logo_mm'):
                 forma = 'solo el grillo' if s.get('logo_forma') == 'icono' else 'grillo + nombre'
-                ui.label(f"Serigrafía: logo de {s['logo_mm']:g} mm ({forma})").classes('text-caption')
+                ui.label(tr('Serigrafía: logo de {0:g} mm ({1})', s['logo_mm'], forma)).classes('text-caption')
             else:
-                ui.label('Serigrafía sin logo. Si compartes la placa, menciona Chirptenna. ¡Gracias!') \
+                ui.label(tr('Serigrafía sin logo. Si compartes la placa, menciona Chirptenna. ¡Gracias!')) \
                     .classes('text-caption texto-violeta')
             if s.get('quitadas'):
-                ui.label('No caben en la serigrafía: ' + ' · '.join(s['quitadas'])).classes('text-caption texto-aviso')
+                ui.label(tr('No caben en la serigrafía: ') + ' · '.join(s['quitadas'])).classes('text-caption texto-aviso')
             if r['drc']:
-                ui.label(f'DRC de KiCad: {len(r["drc"])} infracciones').classes('text-caption text-negative')
+                ui.label(tr('DRC de KiCad: {0} infracciones', len(r["drc"]))).classes('text-caption text-negative')
                 for t, sev, d in r['drc'][:5]:
                     ui.label(f'· {t}: {d}').classes('text-caption')
             else:
-                ui.label('DRC de KiCad sin errores').classes('text-caption text-positive')
-        ui.notify(f'Exportado en el diseño «{nombre}»', type='positive')
+                ui.label(tr('DRC de KiCad sin errores')).classes('text-caption text-positive')
+        ui.notify(tr('Exportado en el diseño «{0}»', nombre), type='positive')
 
     # ================================================================== eventos
     sel_tipo.on_value_change(cambiar_tipo)
@@ -1485,7 +1486,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = ''):
             return
         aviso_logo.set_visibility(e.value == 'ninguno')
         if e.value == 'ninguno':
-            ui.notify(AVISO_SIN_LOGO, type='info', multi_line=True, timeout=9000)
+            ui.notify(tr(AVISO_SIN_LOGO), type='info', multi_line=True, timeout=9000)
         cambiar_serigrafia('logo', e.value)
     sel_logo.on_value_change(cambiar_logo)
     btn_guardar.on_click(lambda: guardar_diseno())
