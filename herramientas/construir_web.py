@@ -50,6 +50,8 @@ def main():
             z.write(os.path.join(RAIZ, 'antenas', m + '.py'), f'antenas/{m}.py')
         for d in DATOS:
             z.write(os.path.join(RAIZ, 'antenas', d), f'antenas/{d}')
+        for f in sorted(os.listdir(os.path.join(RAIZ, 'antenas', 'idiomas'))):      # catálogos de idioma (Python y JS)
+            z.write(os.path.join(RAIZ, 'antenas', 'idiomas', f), f'antenas/idiomas/{f}')
     # Catálogo y miniaturas precalculados: la galería sale al instante, mientras Pyodide todavía carga
     from antenas import web_api, guia
     errores = guia.comprobar()
@@ -63,6 +65,14 @@ def main():
     spec = importlib.util.spec_from_file_location('ver', os.path.join(RAIZ, 'antenas', '__init__.py'))
     ver = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(ver)
+    # Idiomas para el navegador: los mismos catálogos que usa Python, más la lista del selector (sin el easter egg)
+    from antenas import i18n
+    os.makedirs(os.path.join(salida, 'idiomas'))
+    for c in i18n.idiomas():
+        if c != i18n.IDIOMA_BASE:
+            shutil.copy2(os.path.join(RAIZ, 'antenas', 'idiomas', c + '.json'), os.path.join(salida, 'idiomas', c + '.json'))
+    with open(os.path.join(salida, 'idiomas', 'idiomas.json'), 'w', encoding='utf-8') as fh:
+        json.dump(i18n.idiomas(), fh, ensure_ascii=False)
     with open(os.path.join(salida, 'version.json'), 'w', encoding='utf-8') as fh:
         json.dump({'version': ver.__version__}, fh)
     # GitHub Pages: sin Jekyll (no ignora carpetas ni procesa nada)

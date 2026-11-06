@@ -15,6 +15,7 @@ from shapely import affinity
 from shapely.geometry import Point, Polygon, box
 
 from . import conector
+from .i18n import tr
 from .geometria import poligonos, sin_agujeros
 
 def _buscar_kicad_cli():
@@ -301,8 +302,8 @@ def placa_kicad(antena, ruta, titulo='', etiqueta=None, logo=True):
     if coaxial:
         (xm, ym), (xv, yv) = antena.puerto['pads']
         dentro = antena.contorno.buffer(-0.6)
-        for texto, (x, y), opciones in (('vivo', (xv, yv), ((4.0, 0), (0, 3.0), (0, 5.5))),
-                                        ('malla', (xm, ym), ((-4.5, 0), (0, -3.0), (0, -5.5)))):
+        for texto, (x, y), opciones in ((tr('vivo'), (xv, yv), ((4.0, 0), (0, 3.0), (0, 5.5))),
+                                        (tr('malla'), (xm, ym), ((-4.5, 0), (0, -3.0), (0, -5.5)))):
             # al lado del pad si cabe; si no (placas estrechas), encima o debajo: es lo que guía al soldar
             ancho = 0.8*len(texto) + 0.4
             dx, dy = next((o for o in opciones if dentro.contains(box(x + o[0] - ancho/2, y + o[1] - 0.6,
@@ -313,8 +314,8 @@ def placa_kicad(antena, ruta, titulo='', etiqueta=None, logo=True):
                           f'    (effects (font (size 1 1) (thickness 0.15))))')
     elif pasante:
         xa, ya = antena.puerto['alimentacion']
-        for capa, lado, texto, espejo in (('F', antena.puerto['pad_vivo_mm'], 'vivo', ''),
-                                          ('B', antena.puerto['pad_malla_mm'], 'malla', ' (justify mirror)')):
+        for capa, lado, texto, espejo in (('F', antena.puerto['pad_vivo_mm'], tr('vivo'), ''),
+                                          ('B', antena.puerto['pad_malla_mm'], tr('malla'), ' (justify mirror)')):
             tx, ty = conv.p(xa, ya - lado/2 - 1.8)
             cuerpo.append(f'  (gr_text "{texto}" (at {tx:.3f} {ty:.3f} 0) (layer "{capa}.SilkS") (uuid "{_u()}")\n'
                           f'    (effects (font (size 1 1) (thickness 0.15)){espejo}))')
@@ -574,8 +575,8 @@ def placa_reflector(antena, ruta, titulo=''):
                   f'    (attr exclude_from_pos_files exclude_from_bom)\n' + '\n'.join(pads) + '\n  )')
     minx, miny, maxx, maxy = refl['contorno'].bounds
     tx, ty = conv.p((minx + maxx)/2, maxy - 4)
-    texto = (f'{titulo} - reflector a {refl["separacion_mm"]:.1f} mm de la placa' if titulo
-             else f'Reflector a {refl["separacion_mm"]:.1f} mm de la placa')
+    texto = (tr('{0} - reflector a {1:.1f} mm de la placa', titulo, refl['separacion_mm']) if titulo
+             else tr('Reflector a {0:.1f} mm de la placa', refl['separacion_mm']))
     cuerpo.append(f'  (gr_text "{texto}" (at {tx:.3f} {ty:.3f} 0) (layer "F.SilkS") (uuid "{_u()}")\n'
                   f'    (effects (font (size 1.5 1.5) (thickness 0.2))))')
     _escribir_pcb(ruta, ['', 'GND'], cuerpo, hoja)
@@ -708,7 +709,8 @@ def huella_kicad(antena, ruta, nombre):
         pts = [(x - ancla[0], y - ancla[1]) for x, y in conv.anillo(antena.zona_libre.exterior.coords)]
         lineas.append(f'  (fp_poly (pts {_xy(pts)}) (stroke (width 0.05) (type solid)) (fill none) '
                       f'(layer "F.CrtYd") (uuid "{_u()}"))')
-        lineas.append(f'  (fp_text user "Sin cobre en ambas caras" (at {pts[0][0] + 2:.3f} {pts[0][1] - 1:.3f} 0) '
+        sin_cobre = tr('Sin cobre en ambas caras')
+        lineas.append(f'  (fp_text user "{sin_cobre}" (at {pts[0][0] + 2:.3f} {pts[0][1] - 1:.3f} 0) '
                       f'(layer "Cmts.User") (uuid "{_u()}") (effects (font (size 1 1) (thickness 0.15)) (justify left)))')
     texto = (f'(footprint "{nombre}" (version 20240108) (generator "generador_antenas") (generator_version "8.0")\n'
              f'  (layer "F.Cu")\n  (descr "{antena.tipo} generado; f estimada {antena.info.get("f_estimada_MHz")} MHz; '
@@ -725,7 +727,7 @@ def huella_kicad(antena, ruta, nombre):
 def gerber(ruta_pcb, carpeta, ruta_zip):
     """Gerber + taladros con kicad-cli, empaquetados en un .zip para JLC."""
     if not os.path.exists(KICAD_CLI):
-        raise FileNotFoundError(f'No se encuentra kicad-cli en {KICAD_CLI}')
+        raise FileNotFoundError(tr('No se encuentra kicad-cli en {0}', KICAD_CLI))
     os.makedirs(carpeta, exist_ok=True)
     for n in os.listdir(carpeta):
         os.remove(os.path.join(carpeta, n))
@@ -735,7 +737,7 @@ def gerber(ruta_pcb, carpeta, ruta_zip):
                   carpeta + os.sep, ruta_pcb]):
         r = subprocess.run([KICAD_CLI] + args, capture_output=True, text=True)
         if r.returncode != 0:
-            raise RuntimeError(f'kicad-cli falló: {r.stderr or r.stdout}')
+            raise RuntimeError(tr('kicad-cli falló: {0}', r.stderr or r.stdout))
     with zipfile.ZipFile(ruta_zip, 'w', zipfile.ZIP_DEFLATED) as z:
         for n in sorted(os.listdir(carpeta)):
             z.write(os.path.join(carpeta, n), n)

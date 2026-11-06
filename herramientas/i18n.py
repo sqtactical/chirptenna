@@ -25,11 +25,11 @@ DIR_IDIOMAS = os.path.join(RAIZ, 'antenas', 'idiomas')
 CARPETAS = [os.path.join(RAIZ, 'gui'), os.path.join(RAIZ, 'antenas')]
 # Módulos con textos de interfaz escritos como datos (no dentro de tr)
 DATOS = ['guia', 'tipos', 'problemas', 'presentacion', 'consejos', 'ajuste', 'materiales', 'miniaturas', 'conector',
-         'fabricacion']
+         'fabricacion', 'web_api']
 # Textos que parecen de interfaz pero no lo son (claves internas, identificadores…)
-IGNORAR = {'Chirptenna', 'DejaVu Sans', 'F.Cu', 'B.Cu', 'GND', 'ANT'}
+IGNORAR = {'Chirptenna', 'DejaVu Sans', 'F.Cu', 'B.Cu', 'GND', 'ANT', 'Antenas.pretty/', 'texto {0}'}
 # Textos cortos que el filtro descartaría (se muestran en la interfaz sin pasar por tr)
-EXTRA = {'Otra'}
+EXTRA = {'Otra', 'vivo', 'malla'}
 # Mensajes solo para quien desarrolla (comprobaciones de guia.py) y trozos de plantillas no traducibles
 IGNORAR_CONTIENE = ('guia.TIPOS', 'preserveAspectRatio', ': el básico «', ': el parámetro «', '» no es un parámetro', '» no tiene ayuda', 'consejos(antena', 'problemas(clave')
 
@@ -72,6 +72,32 @@ def textos_de_fichero(ruta, todos):
     return hallados
 
 
+def textos_web():
+    """Textos de la web lite: T('…') y N_('…') de web/app.js y los elementos con data-t de web/index.html."""
+    out = set()
+    ruta_js = os.path.join(RAIZ, 'web', 'app.js')
+    if os.path.exists(ruta_js):
+        js = open(ruta_js, encoding='utf-8').read()
+        for m in re.finditer(r"\b(?:T|N_)\(\s*(?:'((?:[^'\\]|\\.)*)'|\"((?:[^\"\\]|\\.)*)\")", js):
+            s = m.group(1) if m.group(1) is not None else m.group(2)
+            out.add(s.replace("\\'", "'").replace('\\"', '"').replace('\\n', '\n').replace('\\\\', '\\'))
+    ruta_html = os.path.join(RAIZ, 'web', 'index.html')
+    if os.path.exists(ruta_html):
+        html = open(ruta_html, encoding='utf-8').read()
+        attrs = r"((?:[^>'\"]|\"[^\"]*\"|'[^']*')*)"
+        for m in re.finditer(r'<(\w+)\b' + attrs + r'>', html):      # etiquetas de apertura (con data-t, sin anidar)
+            a_ = m.group(2)
+            v = re.search(r"\bdata-t(?:=(?:'([^']*)'|\"([^\"]*)\"))?(?=\s|$)", a_)
+            if not v:
+                continue
+            cierre = html.find(f'</{m.group(1)}>', m.end())
+            interior = html[m.end():cierre] if cierre >= 0 else ''
+            clave = v.group(1) or v.group(2) or re.sub(r'\s+', ' ', interior).strip()
+            if clave:
+                out.add(clave)
+    return out
+
+
 def extraer():
     """Conjunto de todos los textos traducibles del código."""
     out = set()
@@ -79,6 +105,7 @@ def extraer():
         for nombre in sorted(os.listdir(carpeta)):
             if nombre.endswith('.py') and nombre != 'i18n.py':
                 out |= textos_de_fichero(os.path.join(carpeta, nombre), nombre[:-3] in DATOS and carpeta.endswith('antenas'))
+    out |= textos_web()
     return {t for t in out | EXTRA if t not in IGNORAR}
 
 

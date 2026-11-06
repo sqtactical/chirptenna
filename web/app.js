@@ -5,6 +5,41 @@
 'use strict';
 
 const $ = (id) => document.getElementById(id);
+
+// ------------------------------------------------------------------ idiomas
+// El texto fuente está en castellano y es la clave (igual que en el escritorio: antenas/i18n.py). Los catálogos
+// son los mismos antenas/idiomas/<código>.json. `T('texto {0}', x)` traduce y sustituye {0}, {1}…
+// Lo que genera Python (consejos, avisos, comprobaciones…) lo traduce Python: la entrada lleva `idioma`.
+// «lora» es el easter egg: no tiene catálogo, cada letra pasa a un trazo de chirrido.
+const N_ = (s) => s;                    // marca un texto para extraerlo sin traducirlo aún
+let IDIOMA = 'es';
+let TXT = {};
+const IDIOMAS_SELECTOR = {};            // código -> nombre (idiomas/idiomas.json)
+function chirp(texto) {
+  return texto.replace(/\{[^}]*\}|<[^>]*>|\p{L}+/gu, (m) => {
+    if (m[0] === '{' || m[0] === '<') return m;
+    return [...m].map((c) => {
+      const b = c.normalize('NFD')[0].toLowerCase();
+      return '/_\\'[b >= 'a' && b <= 'z' ? (b.charCodeAt(0) - 97) % 3 : 1];
+    }).join('');
+  });
+}
+function T(texto, ...args) {
+  let t = String(texto);
+  if (IDIOMA === 'lora') t = chirp(t);
+  else if (TXT[t]) t = TXT[t];
+  return args.length ? t.replace(/\{(\d+)(?::[^}]*)?\}/g, (m, i) => (args[+i] ?? m)) : t;
+}
+async function cargarIdioma(cod) {
+  TXT = {};
+  if (cod !== 'es' && cod !== 'lora') {
+    try { TXT = (await (await fetch(`idiomas/${cod}.json`)).json()).textos || {}; } catch (e) { cod = 'es'; }
+  }
+  IDIOMA = cod;
+  document.documentElement.lang = cod === 'lora' ? 'es' : cod;
+}
+const TEXTOS_MOTOR = [N_('Cargando Python (Pyodide)…'), N_('Cargando numpy y shapely…'),
+  N_('Cargando el generador de Chirptenna…'), N_('Cargando ezdxf (DXF)…'), N_('Preparando…')];
 const CLAVE_LOCAL = 'chirptenna-web-diseno';
 const ICONOS = { grave: '⛔', error: '⛔', aviso: '⚠️', info: 'ℹ️', ok: '✅' };
 const ICONOS_CONSEJO = { banda: '📡', 'diseño': '💡', montaje: '🔧', medida: '📏' };
@@ -16,8 +51,8 @@ let siguienteId = 1;
 let motorListo = false;
 motor.onmessage = (ev) => {
   const m = ev.data;
-  if (m.progreso) { $('carga-texto').textContent = m.progreso; $('carga-barra').style.width = `${100 * m.fraccion}%`; return; }
-  if (m.fallo) { $('carga').hidden = false; $('carga-texto').textContent = 'No se ha podido cargar el motor: ' + m.fallo; return; }
+  if (m.progreso) { $('carga-texto').textContent = T(m.progreso); $('carga-barra').style.width = `${100 * m.fraccion}%`; return; }
+  if (m.fallo) { $('carga').hidden = false; $('carga-texto').textContent = T('No se ha podido cargar el motor: {0}', m.fallo); return; }
   if (m.listo) { motorListo = true; $('carga').hidden = true; return; }
   const p = pendientes.get(m.id);
   if (!p) return;
@@ -28,7 +63,7 @@ function llamar(fn, arg) {
   return new Promise((resolver, rechazar) => {
     const id = siguienteId++;
     pendientes.set(id, { resolver, rechazar });
-    motor.postMessage({ id, fn, arg: arg === undefined ? undefined : JSON.stringify(arg) });
+    motor.postMessage({ id, fn, arg: arg === undefined ? undefined : JSON.stringify({ idioma: IDIOMA, ...arg }) });
   });
 }
 
@@ -43,7 +78,7 @@ const estado = {
 function tipoDe(clave) { return cat.tipos.find((t) => t.clave === clave); }
 function tipoActual() { return tipoDe(estado.clave); }
 function defectos(clave) { return Object.fromEntries(tipoDe(clave).parametros.map((p) => [p.nombre, p.defecto])); }
-function nombreCorto(t) { return t.nombre.split(' (')[0]; }
+function nombreCorto(t) { return T(t.nombre).split(' (')[0]; }
 function entrada(extra = {}) {
   return { clave: estado.clave, f_MHz: estado.f_MHz, bw_MHz: estado.bw_MHz, sustrato: estado.sustrato,
     reglas: estado.reglas, parametros: estado.parametros, serigrafia: estado.serigrafia, nombre: estado.nombre, ...extra };
@@ -99,7 +134,7 @@ function mostrarGaleria() {
   $('carga').hidden = true;
   const b = $('btn-continuar');
   b.hidden = !estado.parametros;
-  b.textContent = `Seguir con «${estado.nombre}» (${nombreCorto(tipoActual())})`;
+  b.textContent = T('Seguir con «{0}» ({1})', estado.nombre, nombreCorto(tipoActual()));
   window.scrollTo(0, 0);
 }
 function mostrarDiseno() {
@@ -110,7 +145,7 @@ function mostrarDiseno() {
   window.scrollTo(0, 0);
 }
 function chapa(t) {
-  return el('span', 'chapa ' + t.estado, cat.estados[t.estado]);
+  return el('span', 'chapa ' + t.estado, T(cat.estados[t.estado]));
 }
 function construirGaleria() {
   const cont = $('grupos');
@@ -119,16 +154,16 @@ function construirGaleria() {
     const tipos = cat.tipos.filter((t) => t.grupo === g);
     if (!tipos.length) continue;
     const sec = el('section', 'grupo-galeria');
-    sec.append(el('h2', '', titulo), el('p', 'sec pequeno', desc));
+    sec.append(el('h2', '', T(titulo)), el('p', 'sec pequeno', T(desc)));
     const rejilla = el('div', 'rejilla');
     for (const t of tipos) {
       const f = el('button', 'ficha');
       f.type = 'button';
       const img = el('img'); img.src = `miniaturas/${t.clave}.svg`; img.alt = ''; img.loading = 'lazy';
-      f.append(img, el('span', 'titulo', nombreCorto(t)), el('span', 'resumen', t.resumen));
-      if (t.estado !== 'validada') f.append(el('span', 'comentario ' + t.estado, '⚠ ' + t.estado_comentario));
+      f.append(img, el('span', 'titulo', nombreCorto(t)), el('span', 'resumen', T(t.resumen)));
+      if (t.estado !== 'validada') f.append(el('span', 'comentario ' + t.estado, '⚠ ' + T(t.estado_comentario)));
       f.append(chapa(t));
-      f.title = t.estado_comentario;
+      f.title = T(t.estado_comentario);
       f.onclick = () => elegirTipo(t.clave, true);
       rejilla.append(f);
     }
@@ -144,7 +179,7 @@ function construirLista() {
   for (const [g, titulo] of cat.grupos) {
     const tipos = cat.tipos.filter((t) => t.grupo === g);
     if (!tipos.length) continue;
-    lst.append(el('div', 'cabeza-grupo', titulo));
+    lst.append(el('div', 'cabeza-grupo', T(titulo)));
     for (const t of tipos) {
       const o = el('div', 'opcion-tipo');
       o.setAttribute('role', 'option');
@@ -153,8 +188,8 @@ function construirLista() {
       const img = el('img'); img.src = `miniaturas/${t.clave}.svg`; img.alt = ''; img.loading = 'lazy';
       const tit = el('div', 'titulo', nombreCorto(t));
       if (t.estado !== 'validada') tit.append(chapa(t));
-      o.append(img, tit, el('div', 'resumen', t.resumen));
-      if (t.estado !== 'validada') o.append(el('div', 'comentario ' + t.estado, '⚠ ' + t.estado_comentario));
+      o.append(img, tit, el('div', 'resumen', T(t.resumen)));
+      if (t.estado !== 'validada') o.append(el('div', 'comentario ' + t.estado, '⚠ ' + T(t.estado_comentario)));
       o.onclick = () => { cerrarLista(); elegirTipo(t.clave, false); };
       o.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); o.click(); } };
       lst.append(o);
@@ -257,13 +292,13 @@ function dibujar(v, encajar) {
   }
   const [px, py] = v.puerto; const t = 3 * g + letra / 3;
   const coax = v.tipo_puerto === 'coaxial' || v.tipo_puerto === 'pasante';
-  s += `<path d="M${px - t},${-py - t}L${px + t},${-py}L${px - t},${-py + t}Z" fill="red"><title>${svgEsc(coax ? 'Toma del coaxial' : 'Conector ' + v.conector)}</title></path>`;
+  s += `<path d="M${px - t},${-py - t}L${px + t},${-py}L${px - t},${-py + t}Z" fill="red"><title>${svgEsc(coax ? T('Toma del coaxial') : T('Conector {0}', v.conector))}</title></path>`;
   $('vista').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${caja.x} ${caja.y} ${caja.w} ${caja.h}" preserveAspectRatio="xMidYMid meet">${s}</svg>`;
-  const ley = [['var(--cobre)', 'Cobre (cara superior)'], ['var(--masa)', 'Masa (cara inferior)']];
-  if (v.pads.length) ley.push(['var(--pads)', 'Componentes de ajuste']);
-  if (v.marcas.length) ley.push(['var(--texto)', 'Marcas de corte (MHz)']);
-  if (v.reflector) ley.push(['var(--sec)', `Reflector (a ${v.separacion_reflector_mm.toFixed(1)} mm por detrás)`]);
-  ley.push(['red', coax ? 'Toma del coaxial' : `Conector (${v.conector})`]);
+  const ley = [['var(--cobre)', T('Cobre (cara superior)')], ['var(--masa)', T('Masa (cara inferior)')]];
+  if (v.pads.length) ley.push(['var(--pads)', T('Componentes de ajuste')]);
+  if (v.marcas.length) ley.push(['var(--texto)', T('Marcas de corte (MHz)')]);
+  if (v.reflector) ley.push(['var(--sec)', T('Reflector (a {0} mm por detrás)', v.separacion_reflector_mm.toFixed(1))]);
+  ley.push(['red', coax ? T('Toma del coaxial') : T('Conector ({0})', v.conector)]);
   $('leyenda').innerHTML = ley.map(([c, t2]) => `<span><i style="background:${c}"></i>${svgEsc(t2)}</span>`).join('');
 }
 function ponerCaja() { const svg = $('vista').querySelector('svg'); if (svg) svg.setAttribute('viewBox', `${caja.x} ${caja.y} ${caja.w} ${caja.h}`); }
@@ -298,11 +333,11 @@ let visiblesActuales = '';
 function campoParametro(p) {
   const valor = estado.parametros[p.nombre] ?? p.defecto;
   const fila = el('div', 'fila-param');
-  const lab = el('label', '', p.etiqueta);
+  const lab = el('label', '', T(p.etiqueta));
   let campo;
   if (p.opciones) {
     campo = document.createElement('select');
-    for (const [k, txt] of Object.entries(p.opciones)) campo.add(new Option(txt, k, false, Number(k) === Number(valor)));
+    for (const [k, txt] of Object.entries(p.opciones)) campo.add(new Option(T(txt), k, false, Number(k) === Number(valor)));
     campo.onchange = () => cambiarParametro(p, Number(campo.value));
   } else {
     campo = document.createElement('input');
@@ -318,10 +353,10 @@ function campoParametro(p) {
   lab.append(campo);
   const ayuda = el('button', 'ayuda', '?');
   ayuda.type = 'button';
-  ayuda.title = 'Qué hace este parámetro';
-  ayuda.setAttribute('aria-label', 'Ayuda: ' + p.etiqueta);
+  ayuda.title = T('Qué hace este parámetro');
+  ayuda.setAttribute('aria-label', T('Ayuda: {0}', T(p.etiqueta)));
   ayuda.setAttribute('aria-expanded', 'false');
-  ayuda.onclick = (e) => { e.stopPropagation(); abrirBurbuja(ayuda, p.ayuda); };
+  ayuda.onclick = (e) => { e.stopPropagation(); abrirBurbuja(ayuda, T(p.ayuda)); };
   fila.append(lab, ayuda);
   return fila;
 }
@@ -349,7 +384,7 @@ function cambiarParametro(p, valor) {
   if (t.escalables.includes(p.nombre) && Number(estado.parametros.escalado ?? 0) === 1) {
     // medida fijada a mano: si siguiera en «proporcionales», el próximo ajuste la pisaría
     estado.parametros.escalado = 0;
-    avisar('Medidas secundarias pasadas a «Manuales» para respetar el valor que has puesto.');
+    avisar(T('Medidas secundarias pasadas a «Manuales» para respetar el valor que has puesto.'));
   }
   if ((p.nombre === 'escalado' && valor === 1) || p.nombre === 'masa' || (p.nombre === 'conector' && t.familia === 'monopolo')) {
     dimensionar();
@@ -394,9 +429,9 @@ function mostrar(r, encajar) {
     return tr;
   }));
   lista($('consejos'), r.consejos.map(([cat_, t]) => ['info', t, ICONOS_CONSEJO[cat_] || '•']));
-  const graves = r.problemas.filter(([n]) => n === 'grave' || n === 'aviso').map(([, t]) => ['error', 'Problema conocido: ' + t]);
+  const graves = r.problemas.filter(([n]) => n === 'grave' || n === 'aviso').map(([, t]) => ['error', T('Problema conocido: ') + t]);
   lista($('comprobaciones'), graves.concat(r.comprobaciones));
-  $('seri-vista').textContent = (estado.serigrafia.logo !== 'ninguno' ? '[logo de Chirptenna]\n' : '') + r.serigrafia.join('\n');
+  $('seri-vista').textContent = (estado.serigrafia.logo !== 'ninguno' ? T('[logo de Chirptenna]') + '\n' : '') + r.serigrafia.join('\n');
 }
 
 // ------------------------------------------------------------------ barra del diseño
@@ -451,7 +486,7 @@ function deBase64Url(t) {
 function cargarDiseno(d) {
   // acepta el estado de la web o un diseno.json de la aplicación de escritorio
   const clave = d.clave || d.tipo;
-  if (!cat.tipos.some((t) => t.clave === clave)) throw new Error(`Tipo desconocido: ${clave}`);
+  if (!cat.tipos.some((t) => t.clave === clave)) throw new Error(T('Tipo desconocido: {0}', clave));
   estado.clave = clave;
   estado.nombre = d.nombre || 'antena';
   estado.f_MHz = Number(d.f_MHz ?? d.f_objetivo_MHz ?? estado.f_MHz);
@@ -473,21 +508,21 @@ async function abrirArchivo(ev) {
     ponerBarra();
     mostrarDiseno();
     await regenerar(true);
-    avisar(`Abierto «${estado.nombre}».`);
-  } catch (err) { avisar('No se puede abrir: ' + err.message, true); }
+    avisar(T('Abierto «{0}».', estado.nombre));
+  } catch (err) { avisar(T('No se puede abrir: {0}', err.message), true); }
 }
 $('abrir').onchange = abrirArchivo;
 $('abrir-galeria').onchange = abrirArchivo;
 $('btn-enlace').onclick = async () => {
   const url = location.href.split('#')[0] + '#d=' + aBase64Url(JSON.stringify(estado));
   history.replaceState(null, '', url);
-  try { await navigator.clipboard.writeText(url); avisar('Enlace copiado: quien lo abra verá este mismo diseño.'); }
-  catch (e) { avisar('Enlace listo en la barra de direcciones: cópialo desde ahí.'); }
+  try { await navigator.clipboard.writeText(url); avisar(T('Enlace copiado: quien lo abra verá este mismo diseño.')); }
+  catch (e) { avisar(T('Enlace listo en la barra de direcciones: cópialo desde ahí.')); }
 };
 $('btn-exportar').onclick = async () => {
   const b = $('btn-exportar');
   b.disabled = true;
-  $('estado-exportar').textContent = motorListo ? 'Generando la placa…' : 'Esperando a que termine de cargar el motor…';
+  $('estado-exportar').textContent = motorListo ? T('Generando la placa…') : T('Esperando a que termine de cargar el motor…');
   try {
     const { zip, info } = await llamar('exportar', entrada());
     const url = URL.createObjectURL(new Blob([zip], { type: 'application/zip' }));
@@ -496,37 +531,42 @@ $('btn-exportar').onclick = async () => {
     document.body.append(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 10000);
     const s = info.serigrafia || {};
-    let txt = `Descargado ${info.nombre}_chirptenna.zip. Ábrelo en KiCad y pasa el DRC antes de sacar los Gerber.`;
-    if (s.logo_forma === 'texto') txt += ' Serigrafía: no cabe el grillo; va la palabra «Chirptenna».';
-    else if (s.logo_mm) txt += ` Serigrafía: logo de ${s.logo_mm} mm.`;
-    if (s.quitadas && s.quitadas.length) txt += ' No caben: ' + s.quitadas.join(' · ') + '.';
+    let txt = T('Descargado {0}_chirptenna.zip. Ábrelo en KiCad y pasa el DRC antes de sacar los Gerber.', info.nombre);
+    if (s.logo_forma === 'texto') txt += ' ' + T('Serigrafía: no cabe el grillo; va la palabra «Chirptenna»');
+    else if (s.logo_mm) txt += ' ' + T('Serigrafía: logo de {0} mm', s.logo_mm);
+    if (s.quitadas && s.quitadas.length) txt += ' ' + T('No caben en la serigrafía: ') + s.quitadas.join(' · ') + '.';
     $('estado-exportar').textContent = txt;
   } catch (err) {
     $('estado-exportar').textContent = '';
-    avisar('Error al exportar: ' + err.message, true, 8000);
+    avisar(T('Error al exportar: {0}', err.message), true, 8000);
   } finally { b.disabled = false; }
 };
 
-// ------------------------------------------------------------------ arranque
-async function iniciar() {
-  cat = await (await fetch('catalogo.json', { cache: 'no-cache' })).json();
-  $('version').textContent = 'v' + cat.version;
-  $('pie-version').textContent = 'Chirptenna v' + cat.version;
-  $('aviso-general').textContent = cat.aviso_general;
-  for (const s of cat.sustratos) $('sustrato').add(new Option(s, s));
-  for (const r of cat.reglas) $('reglas').add(new Option(r, r));
-  for (const [k, txt] of Object.entries(cat.logo_opciones)) $('logo').add(new Option(txt, k));
-  $('aviso-logo').textContent = cat.aviso_sin_logo;
+// ------------------------------------------------------------------ controles que dependen del idioma
+function construirControles() {
+  const sel = (id, valores, texto) => {
+    const c = $(id); const v = c.value;
+    c.replaceChildren(...valores.map((x) => new Option(texto(x), x)));
+    if (v) c.value = v;
+  };
+  sel('sustrato', cat.sustratos, (s) => T(s));
+  sel('reglas', cat.reglas, (r) => T(r));
+  sel('logo', Object.keys(cat.logo_opciones), (k) => T(cat.logo_opciones[k]));
+  $('aviso-logo').textContent = T(cat.aviso_sin_logo);
+  $('aviso-general').textContent = T(cat.aviso_general);
+  const marcadas = Object.fromEntries([...$('seri-opciones').querySelectorAll('input')].map((c) => [c.dataset.clave, c.checked]));
+  $('seri-opciones').replaceChildren();
   for (const [k, txt] of cat.serigrafia_opciones) {
     const lab = el('label', 'casilla');
     const c = document.createElement('input');
-    c.type = 'checkbox'; c.dataset.clave = k;
+    c.type = 'checkbox'; c.dataset.clave = k; c.checked = !!marcadas[k];
     c.onchange = () => { estado.serigrafia[k] = c.checked; regenerar(); };
-    lab.append(c, txt);
+    lab.append(c, T(txt));
     $('seri-opciones').append(lab);
   }
+  $('bandas').replaceChildren();
   for (const n of Object.keys(cat.bandas)) {
-    const b = el('button', 'opcion', n);
+    const b = el('button', 'opcion', T(n));
     b.dataset.banda = n;
     b.onclick = () => {
       const rango = cat.bandas[n];
@@ -536,6 +576,63 @@ async function iniciar() {
     };
     $('bandas').append(b);
   }
+  // selector de idioma (el easter egg «lora» solo aparece mientras está activo)
+  const idi = $('idioma');
+  const lista = { ...IDIOMAS_SELECTOR };
+  if (IDIOMA === 'lora') lista.lora = '/\\_/\\\\/ LoRa';
+  idi.replaceChildren(...Object.entries(lista).map(([c, n]) => new Option(n, c)));
+  idi.value = IDIOMA;
+}
+function traducirEstatico() {
+  for (const e of document.querySelectorAll('[data-t]')) {
+    if (e.dataset.clave === undefined) e.dataset.clave = e.dataset.t || e.textContent.replace(/\s+/g, ' ').trim();
+    if (e.dataset.t) e.innerHTML = T(e.dataset.clave); else e.textContent = T(e.dataset.clave);
+  }
+  $('btn-tema').title = T('Tema claro/oscuro');
+  $('btn-tema').setAttribute('aria-label', T('Cambiar tema'));
+  $('idioma').setAttribute('aria-label', T('Idioma de la interfaz'));
+  $('vista').setAttribute('aria-label', T('Vista de la antena'));
+  document.title = 'Chirptenna web';
+}
+async function cambiarIdioma(cod) {
+  await cargarIdioma(cod);
+  try { localStorage.setItem('chirptenna-idioma', IDIOMA); } catch (e) { /* nada */ }
+  construirControles();
+  traducirEstatico();
+  construirGaleria();
+  construirLista();
+  cerrarLista(); cerrarBurbuja();
+  if (estado.parametros) {
+    ponerBarra();
+    $('aviso-ajuste').textContent = '';
+    visiblesActuales = '';
+    if (!$('galeria').hidden) mostrarGaleria();
+    if (!$('app').hidden) await regenerar(false);
+  }
+}
+$('idioma').onchange = () => cambiarIdioma($('idioma').value);
+// easter egg: 5 pinchazos seguidos en el grillo pasan al «idioma LoRa» (y otros 5 lo quitan)
+let clicsLogo = 0, ultimoClic = 0;
+$('logo-cabecera').onclick = () => {
+  const ahora = Date.now();
+  clicsLogo = ahora - ultimoClic < 1500 ? clicsLogo + 1 : 1;
+  ultimoClic = ahora;
+  if (clicsLogo >= 5) { clicsLogo = 0; cambiarIdioma(IDIOMA === 'lora' ? 'es' : 'lora'); }
+};
+
+// ------------------------------------------------------------------ arranque
+async function iniciar() {
+  cat = await (await fetch('catalogo.json', { cache: 'no-cache' })).json();
+  $('version').textContent = 'v' + cat.version;
+  $('pie-version').textContent = 'Chirptenna v' + cat.version;
+  // idioma: ?idioma= (sin guardarlo) > el elegido antes > el del navegador > castellano
+  try { Object.assign(IDIOMAS_SELECTOR, await (await fetch('idiomas/idiomas.json')).json()); } catch (e) { IDIOMAS_SELECTOR.es = 'Castellano'; }
+  let cod = new URLSearchParams(location.search).get('idioma');
+  try { cod = cod || localStorage.getItem('chirptenna-idioma'); } catch (e) { /* nada */ }
+  cod = cod || (navigator.language || 'es').slice(0, 2);
+  await cargarIdioma(cod in IDIOMAS_SELECTOR || cod === 'lora' ? cod : 'es');
+  construirControles();
+  traducirEstatico();
   construirGaleria();
   construirLista();
 
@@ -548,12 +645,12 @@ async function iniciar() {
     if (location.hash.startsWith('#d=')) enlace = JSON.parse(deBase64Url(location.hash.slice(3)));
     else guardado = JSON.parse(localStorage.getItem(CLAVE_LOCAL) || 'null');
   } catch (e) { /* nada */ }
-  try { if (enlace || guardado) cargarDiseno(enlace || guardado); } catch (e) { avisar('No se ha podido abrir el diseño guardado.', true); }
+  try { if (enlace || guardado) cargarDiseno(enlace || guardado); } catch (e) { avisar(T('No se ha podido abrir el diseño guardado.'), true); }
 
   $('nombre').onchange = () => { estado.nombre = $('nombre').value.trim() || 'antena'; regenerar(); };
   $('f').onchange = () => {
     const v = Number($('f').value);
-    if (v > 0) { estado.f_MHz = v; mostrarRango(); marcarBanda(); regenerar(); $('aviso-ajuste').textContent = 'Frecuencia cambiada: pulsa «Ajustar tamaño a la frecuencia».'; }
+    if (v > 0) { estado.f_MHz = v; mostrarRango(); marcarBanda(); regenerar(); $('aviso-ajuste').textContent = T('Frecuencia cambiada: pulsa «Ajustar tamaño a la frecuencia».'); }
   };
   $('bw').onchange = () => { const v = Number($('bw').value); if (v > 0) { estado.bw_MHz = v; mostrarRango(); marcarBanda(); regenerar(); } };
   $('sustrato').onchange = () => { estado.sustrato = $('sustrato').value; regenerar(); };
@@ -565,7 +662,7 @@ async function iniciar() {
   $('logo').onchange = () => {
     estado.serigrafia.logo = $('logo').value;
     $('aviso-logo').hidden = estado.serigrafia.logo !== 'ninguno';
-    if (estado.serigrafia.logo === 'ninguno') avisar(cat.aviso_sin_logo, false, 9000);
+    if (estado.serigrafia.logo === 'ninguno') avisar(T(cat.aviso_sin_logo), false, 9000);
     regenerar();
   };
   $('seri-libre').onchange = () => { estado.serigrafia.libre = $('seri-libre').value; regenerar(); };
@@ -578,4 +675,4 @@ async function iniciar() {
     mostrarGaleria();
   }
 }
-iniciar().catch((e) => { $('carga').hidden = false; $('carga-texto').textContent = 'Error al arrancar: ' + e.message; });
+iniciar().catch((e) => { $('carga').hidden = false; $('carga-texto').textContent = T('Error al arrancar: {0}', e.message); });

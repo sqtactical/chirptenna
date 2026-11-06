@@ -20,6 +20,8 @@ if sys.platform == 'emscripten':          # navegador (Pyodide): GEOS 3.12, oper
     robusto.activar()
 
 from . import tipos, fabricacion, consejos, problemas, presentacion, guia, exportar as exp, __version__
+from . import i18n
+from .i18n import tr
 from .geometria import poligonos
 from .materiales import SUSTRATOS, SUSTRATO_POR_DEFECTO
 
@@ -79,6 +81,7 @@ def catalogo():
 
 def _entrada(texto):
     e = json.loads(texto)
+    i18n.fijar_idioma(e.get('idioma') or i18n.IDIOMA_BASE)      # idioma de los textos que genera Python
     clave = e['clave']
     p = tipos.CATALOGO[clave].defectos()
     p.update(e.get('parametros') or {})
@@ -144,14 +147,14 @@ def generar(texto):
     try:
         a = tipos.generar(clave, p, e.get('sustrato'))
     except Exception as ex:      # geometría imposible con estos parámetros
-        return _json({'error': f'No se puede generar: {ex}', 'visibles': presentacion.parametros_visibles(clave, p),
+        return _json({'error': tr('No se puede generar: {0}', ex), 'visibles': presentacion.parametros_visibles(clave, p),
                       'basicos': guia.basicos(clave, p)})
     bw = a.info.get('ancho_banda_estimado')
     banda = None
     if bw:
         cubre = bw['f_inf_MHz'] <= lo and bw['f_sup_MHz'] >= hi
-        banda = {'texto': f"Banda estimada {bw['f_inf_MHz']:g}–{bw['f_sup_MHz']:g} MHz ({bw['MHz']:g} MHz, "
-                          f"{bw['porcentaje']:g} %) · necesaria {lo:g}–{hi:g} MHz",
+        banda = {'texto': tr('Banda estimada {0:g}–{1:g} MHz ({2:g} MHz, {3:g} %) · necesaria {4:g}–{5:g} MHz',
+                             bw['f_inf_MHz'], bw['f_sup_MHz'], bw['MHz'], bw['porcentaje'], lo, hi),
                  'estado': 'holgado' if cubre and bw['MHz'] >= 1.5*(hi - lo) else ('justo' if cubre else 'no')}
     comprobaciones = (fabricacion.comprobar(a, e.get('reglas') or fabricacion.REGLAS_POR_DEFECTO)
                       + [('aviso', m) for m in a.info.get('avisos', [])]
@@ -159,15 +162,15 @@ def generar(texto):
     s = e.get('serigrafia') or presentacion.SERIGRAFIA_DEFECTO
     return _json({
         'vista': _vista(a),
-        'info': presentacion.filas_info(a.info),
+        'info': [(tr(k), v) for k, v in presentacion.filas_info(a.info)],
         'banda': banda,
-        'consejos': consejos.consejos(a, f_MHz*1e6, (lo*1e6, hi*1e6)),
-        'problemas': problemas.problemas(clave, p, f_MHz),
-        'comprobaciones': comprobaciones,
+        'consejos': [(c, tr(t)) for c, t in consejos.consejos(a, f_MHz*1e6, (lo*1e6, hi*1e6))],
+        'problemas': [(n, tr(t)) for n, t in problemas.problemas(clave, p, f_MHz)],
+        'comprobaciones': [(n, tr(m)) for n, m in comprobaciones],
         'visibles': presentacion.parametros_visibles(clave, p),
         'basicos': guia.basicos(clave, p),
         'serigrafia': presentacion.lineas_serigrafia(s, clave, f_MHz, e.get('nombre', '')),
-        'descripcion': tipos.CATALOGO[clave].descripcion,
+        'descripcion': tr(tipos.CATALOGO[clave].descripcion),
     })
 
 
@@ -201,7 +204,7 @@ def exportar(texto):
     a = tipos.generar(clave, p, e.get('sustrato'))
     s = e.get('serigrafia') or presentacion.SERIGRAFIA_DEFECTO
     modo_logo = s.get('logo', 'grande')
-    titulo = f"{tipos.CATALOGO[clave].nombre.split(' (')[0]} {a.info.get('f_estimada_MHz')} MHz"
+    titulo = f"{tr(tipos.CATALOGO[clave].nombre).split(' (')[0]} {a.info.get('f_estimada_MHz')} MHz"
     sustrato = e.get('sustrato') or SUSTRATO_POR_DEFECTO
     extra, salida = '', io.BytesIO()
     with tempfile.TemporaryDirectory() as tmp:
@@ -216,13 +219,13 @@ def exportar(texto):
             ref = os.path.join(tmp, f'{nombre}_reflector.kicad_pcb')
             exp.placa_reflector(a, ref, titulo)
             archivos.append((ref, f'{nombre}_reflector.kicad_pcb'))
-            extra += f'  {nombre}_reflector.kicad_pcb   Placa del reflector (va detrás, separada).\n'
+            extra += f'  {nombre}_reflector.kicad_pcb   ' + tr('Placa del reflector (va detrás, separada).') + '\n'
         try:
             import ezdxf  # noqa: F401
             ruta = os.path.join(tmp, f'{nombre}.dxf')
             exp.dxf(a, ruta)
             archivos.append((ruta, f'{nombre}.dxf'))
-            extra += f'  {nombre}.dxf               Dibujo para EasyEDA u otros programas.\n'
+            extra += f'  {nombre}.dxf               ' + tr('Dibujo para EasyEDA u otros programas.') + '\n'
             if a.reflector:
                 ruta = os.path.join(tmp, f'{nombre}_reflector.dxf')
                 exp.dxf_reflector(a, ruta)
@@ -241,6 +244,6 @@ def exportar(texto):
             for ruta, arc in archivos:
                 z.write(ruta, f'{nombre}/{arc}')
             z.writestr(f'{nombre}/diseno.json', json.dumps(diseno, ensure_ascii=False, indent=2, default=float))
-            z.writestr(f'{nombre}/LEEME.txt', LEEME.format(version=__version__, nombre=nombre, titulo=titulo,
-                                                          extra=extra, sustrato=sustrato, url=URL_PROYECTO))
+            z.writestr(f'{nombre}/LEEME.txt', tr(LEEME, version=__version__, nombre=nombre, titulo=titulo,
+                                                 extra=extra, sustrato=tr(sustrato), url=URL_PROYECTO))
     return salida.getvalue(), _json({'nombre': nombre, 'serigrafia': seri})
