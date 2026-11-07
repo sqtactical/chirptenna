@@ -5,6 +5,23 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ## [Sin publicar]
 
+### Añadido
+
+- **Campaña de simulaciones en GPU** (06–07-11, 146 barridos en 7 bandas: 868 MHz, 915 ISM, 1,2 GHz, GPS L1, Iridium,
+  2,4 y 5,8 GHz): `herramientas/barrido.py` (barrido genérico, centrado por simulación y modo `cruz`),
+  `herramientas/campana.py` (todos los tipos en todas las bandas), `doble_banda.py`, `cola_extra.py` y la tabla de
+  resultados `docs/desarrollo/barridos_gpu.md`. Guía y flujo de GitHub Actions para compilar openEMS con GPU
+  (`docs/GPU.md`, `compilar-gpu.yml`).
+- Monopolo de punta de flecha de Sierpinski (curiosidad; no adapta), Sierpinski de dos bandas (868/915 + 2,4 GHz,
+  `multibanda`) y bandas «LoRa 863–928 MHz».
+- Panel de dipolos con o sin reflector; calibraciones de las estimaciones de tamaño con los diseños centrados.
+
+### Cambiado
+
+- Estados de los tipos según la campaña: IFA, PIFA, dipolo con manga, Vivaldi y colineal de dipolos pasan a
+  «Validada en simulación»; monopolos, dipolo y bowtie, de 868 MHz a 5,8 GHz. La J-pole recta no adapta (usar la de
+  Koch). La Yagi con elementos de Koch sigue sin funcionar: la configuración que adapta (−21 dB) radia hacia atrás.
+
 ## [0.2.0-alpha] · 2026-11-06
 
 ### Añadido

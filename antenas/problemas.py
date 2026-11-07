@@ -14,28 +14,28 @@ VALIDADOS_868 = {'monopolo_recto', 'monopolo_meandro', 'monopolo_koch', 'monopol
 # Estado de cada tipo para el selector y la galería: (estado, comentario breve). Estados: 'validada' (en
 # simulación), 'pendiente' (pendiente de validación) y 'no_funciona'. Mantener al día con FIJOS y los README.
 ESTADO = {
-    'monopolo_recto': ('validada', 'Validada en simulación (2,4 GHz y 868 MHz)'),
-    'monopolo_meandro': ('validada', 'Validada en simulación (2,4 GHz y 868 MHz)'),
-    'monopolo_koch': ('validada', 'Validada en simulación (2,4 GHz y 868 MHz)'),
+    'monopolo_recto': ('validada', 'Validada en simulación (de 868 MHz a 5,8 GHz)'),
+    'monopolo_meandro': ('validada', 'Validada en simulación (de 868 MHz a 5,8 GHz)'),
+    'monopolo_koch': ('validada', 'Validada en simulación (de 868 MHz a 5,8 GHz)'),
     'monopolo_hilbert': ('no_funciona', 'No funciona sin red en π'),
     'monopolo_flecha': ('no_funciona', 'No adapta en simulación (mejor −5,3 dB; curiosidad)'),
-    'monopolo_sierpinski': ('validada', 'Validada en simulación (2,4 GHz y 868 MHz)'),
+    'monopolo_sierpinski': ('validada', 'Validada en simulación (de 868 MHz a 5,8 GHz)'),
     'parche_rectangular': ('validada', 'Validada en simulación (banda estrecha)'),
     'parche_minkowski': ('pendiente', 'Pendiente de validación (eficiencia baja en FR4)'),
     'parche_circular': ('pendiente', 'Sin testear ni validar'),
     'parche_ranura': ('pendiente', 'Sin testear ni validar'),
     'parche_apilado': ('pendiente', 'Sin testear ni validar'),
-    'ifa': ('pendiente', 'Sin testear ni validar'),
-    'pifa': ('pendiente', 'Sin testear ni validar'),
-    'dipolo_sleeve': ('pendiente', 'Sin testear ni validar'),
-    'vivaldi': ('pendiente', 'Sin testear ni validar'),
-    'colineal_dipolos': ('pendiente', 'Sin testear ni validar'),
+    'ifa': ('validada', 'Validada en simulación (868 MHz, 2,4 y 5,8 GHz)'),
+    'pifa': ('validada', 'Validada en simulación (868 MHz, 2,4 y 5,8 GHz)'),
+    'dipolo_sleeve': ('validada', 'Validada en simulación (de 868 MHz a 5,8 GHz)'),
+    'vivaldi': ('validada', 'Validada en simulación (2,4 y 5,8 GHz)'),
+    'colineal_dipolos': ('validada', 'Validada en simulación (2,4 GHz)'),
     'yagi_koch': ('no_funciona', 'No funciona: radia hacia atrás'),
     'yagi_boom': ('validada', 'Validada en simulación con elementos rectos (2,4 GHz y 868 MHz)'),
     'array_parches': ('pendiente', 'Pendiente de validación'),
     'panel_dipolos': ('validada', 'Validada en simulación (2×2 con dipolos o Sierpinski, 2,4 GHz)'),
-    'dipolo': ('validada', 'Validada en simulación (recto y Koch; 2,4 GHz y 868 MHz)'),
-    'dipolo_bowtie': ('validada', 'Validada en simulación (bowtie y bowtie de Sierpinski; 2,4 GHz y 868 MHz)'),
+    'dipolo': ('validada', 'Validada en simulación (recto y Koch; de 868 MHz a 5,8 GHz)'),
+    'dipolo_bowtie': ('validada', 'Validada en simulación (bowtie y bowtie de Sierpinski; de 868 MHz a 5,8 GHz)'),
     'colineal_coco': ('pendiente', 'Pendiente de validación (poca ganancia en FR4; a 868 MHz no sirve)'),
     'colineal_franklin': ('pendiente', 'Adapta, pero con poca banda y poca ganancia'),
     'jpole': ('pendiente', 'Casi adapta (−8 a −9 dB): mejor la de Koch'),
@@ -71,27 +71,26 @@ FIJOS = {
                   'Eficiencia ~47 % por las pérdidas del FR4.'),
     ],
     'ifa': [
-        ('aviso', 'Sin testear ni validar: no se ha simulado ni medido. El largo del brazo y la distancia de la toma al '
-                  'cortocircuito no están calibrados; la toma fija la impedancia y hay que afinarla simulando.'),
+        ('info', 'Simulada a 868 MHz, 2,4 y 5,8 GHz (−11 a −17 dB) con la toma y la altura centradas por simulación; '
+                 'a 1,2 GHz no adapta. La toma fija la impedancia: afínala simulando. Sin medir.'),
     ],
     'pifa': [
-        ('aviso', 'Sin testear ni validar: no se ha simulado ni medido. Sobre una placa de 1,6 mm, el brazo ancho '
-                  'da más banda que la F invertida fina, pero el tamaño y la toma no están calibrados.'),
+        ('info', 'Simulada a 868 MHz, 2,4 y 5,8 GHz (−12 a −22 dB, con más banda que la IFA fina) con la toma, la altura y '
+                 'el ancho del brazo centrados por simulación. Sin medir.'),
     ],
     'dipolo_sleeve': [
-        ('aviso', 'Sin testear ni validar: no se ha simulado ni medido. Con el conector SMA, la manga de masa es el '
+        ('aviso', 'Simulada de 868 MHz a 5,8 GHz (−13 a −18 dB), sin medir. Con el conector SMA, la manga de masa es el '
                   'segundo brazo; el cable puede radiar si la manga es corta (usa una ferrita al medir).'),
     ],
     'vivaldi': [
-        ('aviso', 'Sin testear ni validar: no se ha simulado ni medido. El tamaño de la boca y la tasa de apertura no '
-                  'están calibrados; la transición de la línea a las aletas puede necesitar ajuste. A 868 MHz la placa '
-                  'sale muy grande.'),
+        ('aviso', 'Simulada a 2,4 y 5,8 GHz (−18 dB, banda muy ancha), sin medir; la transición de la línea a las aletas '
+                  'puede necesitar ajuste. A 868 MHz la placa sale muy grande y no se ha simulado.'),
     ],
     'colineal_dipolos': [
-        ('aviso', 'Sin testear ni validar: no se ha simulado ni medido. La ganancia de apilar dipolos se la comen en parte '
-                  'las pérdidas del FR4 en los tramos de microstrip (~0,05 dB/cm a 2,4 GHz); con muchos dipolos la '
-                  'ganancia deja de crecer. La placa es larga. El cable coaxial real, pegado a la placa, no está modelado: '
-                  'en la simulación la alimentación es la línea desde el borde.'),
+        ('aviso', 'Simulada a 2,4 GHz (−16 dB, 4,4 dBi, η 69 %) con las líneas un 10 % más cortas; a 5,8 GHz resuena un 13 % '
+                  'por debajo. Las pérdidas del FR4 en los tramos de microstrip (~0,05 dB/cm a 2,4 GHz) se comen parte de la '
+                  'ganancia: con RO4350B sube a 7 dBi, pero deja de adaptar. La placa es larga. El cable coaxial real, pegado '
+                  'a la placa, no está modelado: en la simulación la alimentación es la línea desde el borde.'),
     ],
     'parche_ranura': [
         ('aviso', 'Sin testear ni validar: no se ha simulado ni medido. La ranura en U ensancha la banda, pero su '
@@ -149,8 +148,9 @@ def problemas(clave, p=None, f_MHz=None):
     it = int(p.get('iteracion', 0) or 0)
     if clave == 'yagi_boom':
         if it > 0:
-            out.append(('grave', tr('Con elementos de Koch la Yagi ha salido mal en simulación (adapta mal y radia más '
-                                 'hacia atrás que hacia los directores). Usar elementos rectos (iteración 0).')))
+            out.append(('grave', tr('Con elementos de Koch la Yagi sigue sin funcionar en simulación: la configuración que '
+                                 'adapta (−21 dB, iteración 1) radia hacia atrás, y las que radian hacia los directores '
+                                 'adaptan mal (−7 a −9 dB). Usar elementos rectos (iteración 0).')))
         alim = int(p.get('alimentacion', 0) or 0)
         if alim == 1:
             out.append(('aviso', tr('Con transformador λ/4: radia hacia delante, pero banda estrecha (~50 MHz) y '

@@ -82,8 +82,8 @@ The resulting board (KiCad render): top side and bottom side with the logo and l
 
 | Type | Family | Simulation status |
 |---|---|---|
-| Straight, meander and Koch monopoles | monopole | ✅ validated (2.4 GHz and 868 MHz) |
-| Sierpinski monopole (with «Two bands»: 869 MHz and 2.4 GHz at once, simulation only) | monopole | ✅ validated (2.4 GHz and 868 MHz) |
+| Straight, meander and Koch monopoles | monopole | ✅ validated (868 MHz to 5.8 GHz, including 915 ISM, 1.2 GHz, GPS L1 and Iridium) |
+| Sierpinski monopole (with «Two bands»: 869 MHz and 2.4 GHz at once, simulation only) | monopole | ✅ validated (868 MHz to 5.8 GHz) |
 | Hilbert monopole | monopole | ⚠️ resonates, but does not match without a π network |
 | Rectangular patch | patch | ✅ validated (narrowband) |
 | Sierpinski arrowhead monopole (a curiosity) | monopole | ⚠️ not tested or validated |
@@ -91,14 +91,14 @@ The resulting board (KiCad render): top side and bottom side with the logo and l
 | Circularly polarised patch (cut corners, single feed; GPS, Iridium) | patch | ⚠️ not tested or validated |
 | Patch with U-slot | patch | ⚠️ not tested or validated |
 | Patch with coupled parasitic (flat alternative to stacked) | patch | ⚠️ not tested or validated |
-| Inverted-F antenna (F-shaped J-pole) and PIFA | monopole | ⚠️ not tested or validated |
-| Sleeve dipole | monopole | ⚠️ not tested or validated |
-| Antipodal Vivaldi | vivaldi | ⚠️ not tested or validated |
-| Series dipole collinear (microstrip line) | collinear | ⚠️ not tested or validated |
-| Printed dipole (straight or Koch; printed balun or centre-fed coax) | dipole | ✅ validated (2.4 GHz and 868 MHz) |
-| Bowtie dipole or Sierpinski bowtie | dipole_bowtie | ✅ validated (2.4 GHz and 868 MHz); twice the bandwidth of the straight one |
-| J-pole and Koch J-pole | jpole | ✅ Koch validated (2.4 GHz and 868 MHz); the straight one almost matches (−8 to −9 dB) |
-| Double-sided Yagi with boom | yagi | ✅ straight elements (6–7 dBi; 2.4 GHz and 868 MHz); Koch is experimental |
+| Inverted-F antenna (F-shaped J-pole) and PIFA | monopole | ✅ validated in simulation (868 MHz, 2.4 and 5.8 GHz); they do not match at 1.2 GHz |
+| Sleeve dipole | monopole | ✅ validated in simulation (868 MHz to 5.8 GHz) |
+| Antipodal Vivaldi | vivaldi | ✅ validated in simulation (2.4 and 5.8 GHz, −18 dB, very wide band) |
+| Series dipole collinear (microstrip line) | collinear | ✅ validated in simulation at 2.4 GHz (−16 dB, 4.4 dBi); on FR4 the gain falls short |
+| Printed dipole (straight or Koch; printed balun or centre-fed coax) | dipole | ✅ validated (868 MHz to 5.8 GHz) |
+| Bowtie dipole or Sierpinski bowtie | dipole_bowtie | ✅ validated (868 MHz to 5.8 GHz; marginal at 5.8 GHz); twice the bandwidth of the straight one |
+| J-pole and Koch J-pole | jpole | ✅ Koch validated (2.4 GHz and 868 MHz); the straight one does not match (−2 to −3 dB in the GPU campaign) |
+| Double-sided Yagi with boom | yagi | ✅ straight elements (6–9 dBi; 2.4 GHz and 868 MHz); Koch not fixed (the matched one radiates backwards) |
 | Quasi-Yagi with Koch dipole | yagi | ⚠️ experimental |
 | 2×2 / 4×4 panel of dipoles, bowties or Sierpinski bowties over a reflector | panel | ✅ 2×2 ≈ 12.1 dBi (dipoles) and 12.6 dBi (Sierpinski), 4×4 ≈ 14.6–16.6 dBi; single element, untuned |
 | 2×2 / 4×4 patch array | array | ⚠️ validation not finished |
@@ -118,8 +118,8 @@ before trusting it. The GUI shows these warnings when you pick the type and when
 | Monopoles with IPEX | The straight monopole with IPEX matched poorly (−7 dB): the centre-pad transition is under review. Fine with SMA. |
 | Rectangular patch | Narrowband on 1.6 mm FR4 (~36 MHz): does not cover the whole 2.4 GHz ISM band. η ~47 %. |
 | Minkowski patch | Iteration 1: η ~33 % and ~1 dBi. Iteration 3: it matches (−17.5 dB) but η ~30 % and < 1 dBi. |
-| Straight J-pole | Resonates but barely matches (−8 to −9 dB). The Koch J-pole matches better. |
-| Yagi with boom, Koch elements | Poor match and radiates more backwards than towards the directors. Use straight elements. |
+| Straight J-pole | Resonates but does not match (−2 to −3 dB at 2.4 GHz in the GPU campaign). The Koch J-pole matches better (−20 dB at 868 MHz, −9 dB at 2.4 GHz), but not at 5.8 GHz or 1.2 GHz. |
+| Yagi with boom, Koch elements | Iteration 1 at 2.4 GHz: the configuration that matches (−21 dB) radiates backwards; those radiating towards the directors match at −7…−9 dB. Use straight elements. |
 | Yagi with boom, folded dipole | Radiates backwards (F/B −3.6 dB). Use direct feed (reflector at ~0.39 λ0, longer board). |
 | Yagi with boom, λ/4 transformer | Narrow band (~50 MHz) and η ~55 %. |
 | Koch quasi-Yagi | Radiates backwards and matches poorly (−3.5 dB). Experimental. |
@@ -128,7 +128,7 @@ before trusting it. The GUI shows these warnings when you pick the type and when
 | COCO collinear | Radiates, but FR4 losses leave η ~53 % and ~1.9 dBi at 2.4 GHz; at 868 MHz, η 26 %, −2 dBi and S11 −7.8 dB. |
 | Franklin collinear | Matches (−19 dB at 2.4 GHz, −35 dB at 868 MHz) but with 62 and 23 MHz of bandwidth and 2.2–2.8 dBi. Experimental. |
 | Lightening cutouts | Lightened Yagi simulated: −1.3 dBi and the reflector has to be readjusted; for the rest, not simulated. |
-| Outside 2.4 GHz | Simulated at 868 MHz: the straight, meander, Koch and Sierpinski monopoles, the dipole, the Koch J-pole, the Yagi with boom and the Franklin and COCO collinears; the rest, only at 2.4 GHz. |
+| Other bands | GPU campaign of 6–7 Nov (`docs/desarrollo/barridos_gpu.md`): monopoles, dipoles, bowtie and sleeve work from 868 MHz to 5.8 GHz (most also at 915 ISM, 1.2 GHz, GPS L1 and Iridium); IFA and PIFA at 868 MHz, 2.4 and 5.8 GHz; Vivaldi at 2.4 and 5.8 GHz. Panel, collinears, Koch J-pole, patches and array do not match outside the bands tested. |
 
 ## Requirements
 

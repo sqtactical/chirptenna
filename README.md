@@ -80,8 +80,8 @@ La placa resultante (render de KiCad): cara superior y cara inferior con el logo
 
 | Tipo | Familia | Estado en simulación |
 |---|---|---|
-| Monopolo recto, meandro, Koch | monopolo | ✅ validados (2,4 GHz y 868 MHz) |
-| Monopolo de Sierpinski (con «Dos bandas»: 869 MHz y 2,4 GHz a la vez, solo en simulación) | monopolo | ✅ validado (2,4 GHz y 868 MHz) |
+| Monopolo recto, meandro, Koch | monopolo | ✅ validados (de 868 MHz a 5,8 GHz, incluidas 915 ISM, 1,2 GHz, GPS L1 e Iridium) |
+| Monopolo de Sierpinski (con «Dos bandas»: 869 MHz y 2,4 GHz a la vez, solo en simulación) | monopolo | ✅ validado (de 868 MHz a 5,8 GHz) |
 | Monopolo de Hilbert | monopolo | ⚠️ resuena, pero sin red en π no adapta |
 | Parche rectangular | parche | ✅ validado (banda estrecha) |
 | Monopolo de punta de flecha de Sierpinski (curiosidad) | monopolo | ⚠️ sin testear ni validar |
@@ -89,14 +89,14 @@ La placa resultante (render de KiCad): cara superior y cara inferior con el logo
 | Parche de polarización circular (esquinas cortadas, una sola entrada; GPS, Iridium) | parche | ⚠️ sin testear ni validar |
 | Parche con ranura en U | parche | ⚠️ sin testear ni validar |
 | Parche con parásito acoplado (alternativa plana al apilado) | parche | ⚠️ sin testear ni validar |
-| Antena F invertida (J-pole en F) y PIFA | monopolo | ⚠️ sin testear ni validar |
-| Dipolo con manga (sleeve) | monopolo | ⚠️ sin testear ni validar |
-| Vivaldi antipodal | vivaldi | ⚠️ sin testear ni validar |
-| Colineal de dipolos en serie (línea microstrip) | colineal | ⚠️ sin testear ni validar |
-| Dipolo impreso (recto o de Koch; balun impreso o coaxial al centro) | dipolo | ✅ validado (2,4 GHz y 868 MHz) |
-| Dipolo bowtie (pajarita) o bowtie de Sierpinski | dipolo_bowtie | ✅ validado (2,4 GHz y 868 MHz); da el doble de banda que el recto |
-| J-pole y J-pole de Koch | jpole | ✅ Koch validada (2,4 GHz y 868 MHz); la recta casi adapta (−8 a −9 dB) |
-| Yagi con boom (doble cara) | yagi | ✅ elementos rectos (6–7 dBi; 2,4 GHz y 868 MHz); con Koch, experimental |
+| Antena F invertida (J-pole en F) y PIFA | monopolo | ✅ validadas en simulación (868 MHz, 2,4 y 5,8 GHz); a 1,2 GHz no adaptan |
+| Dipolo con manga (sleeve) | monopolo | ✅ validado en simulación (de 868 MHz a 5,8 GHz) |
+| Vivaldi antipodal | vivaldi | ✅ validado en simulación (2,4 y 5,8 GHz, −18 dB, banda muy ancha) |
+| Colineal de dipolos en serie (línea microstrip) | colineal | ✅ validada en simulación a 2,4 GHz (−16 dB, 4,4 dBi); con FR4 la ganancia queda corta |
+| Dipolo impreso (recto o de Koch; balun impreso o coaxial al centro) | dipolo | ✅ validado (de 868 MHz a 5,8 GHz) |
+| Dipolo bowtie (pajarita) o bowtie de Sierpinski | dipolo_bowtie | ✅ validado (de 868 MHz a 5,8 GHz; a 5,8 GHz justo); da el doble de banda que el recto |
+| J-pole y J-pole de Koch | jpole | ✅ Koch validada (2,4 GHz y 868 MHz); la recta no adapta (−2 a −3 dB en la campaña de GPU) |
+| Yagi con boom (doble cara) | yagi | ✅ elementos rectos (6–9 dBi; 2,4 GHz y 868 MHz); con Koch, sin arreglar (la que adapta radia hacia atrás) |
 | Quasi-Yagi con dipolo de Koch | yagi | ⚠️ experimental |
 | Panel de dipolos, bowtie o bowtie de Sierpinski, 2×2 / 4×4, sobre reflector | panel | ✅ 2×2 ≈ 12,1 dBi (dipolos) y 12,6 dBi (Sierpinski), 4×4 ≈ 14,6–16,6 dBi; un solo elemento, sin afinar |
 | Array de parches 2×2 / 4×4 | array | ⚠️ sin terminar de validar |
@@ -116,8 +116,8 @@ antes de darla por buena. La interfaz muestra estos avisos al elegir el tipo y a
 | Monopolos con IPEX | El monopolo recto con IPEX adaptó mal (−7 dB): la transición del pad central está en revisión. Con SMA va bien. |
 | Parche rectangular | Banda estrecha en FR4 de 1,6 mm (~36 MHz): no cubre toda la ISM de 2,4 GHz. η ~47 %. |
 | Parche de Minkowski | Iteración 1: η ~33 % y ~1 dBi. Iteración 3: adapta (−17,5 dB) pero η ~30 % y < 1 dBi. |
-| J-pole recta | Resuena pero apenas adapta (−8 a −9 dB). La J-pole de Koch adapta mejor. |
-| Yagi con boom de Koch | Adapta mal y radia más hacia atrás que hacia los directores. Usar elementos rectos. |
+| J-pole recta | Resuena pero no adapta (−2 a −3 dB a 2,4 GHz en la campaña de GPU). La J-pole de Koch adapta mejor (−20 dB a 868 MHz, −9 dB a 2,4 GHz) y a 5,8 GHz y 1,2 GHz tampoco. |
+| Yagi con boom de Koch | Iteración 1 a 2,4 GHz: la configuración que adapta (−21 dB) radia hacia atrás; las que radian hacia los directores adaptan a −7…−9 dB. Usar elementos rectos. |
 | Yagi con boom, dipolo plegado | Radia hacia atrás (F/B −3,6 dB). Usar alimentación directa (el reflector queda a ~0,39 λ0 y la placa es más larga). |
 | Yagi con boom, transformador λ/4 | Banda estrecha (~50 MHz) y η ~55 %. |
 | Quasi-Yagi de Koch | Radia hacia atrás y adapta mal (−3,5 dB). Experimental. |
@@ -126,7 +126,7 @@ antes de darla por buena. La interfaz muestra estos avisos al elegir el tipo y a
 | Colineal COCO | Radia, pero las pérdidas del FR4 dejan η ~53 % y ~1,9 dBi a 2,4 GHz; a 868 MHz, η 26 %, −2 dBi y S11 −7,8 dB. |
 | Colineal Franklin | Adapta (−19 dB a 2,4 GHz, −35 dB a 868 MHz) pero con 62 y 23 MHz de banda y 2,2–2,8 dBi. Experimental. |
 | Recortes de aligerado | Yagi aligerada simulada: −1,3 dBi y hay que reajustar el reflector; en el resto, sin simular. |
-| Fuera de 2,4 GHz | A 868 MHz están simulados los monopolos recto, meandro, Koch y Sierpinski, el dipolo, la J-pole de Koch, la Yagi con boom y las colineales Franklin y COCO; el resto, solo a 2,4 GHz. |
+| Otras bandas | Campaña de GPU del 06–07-11 (`docs/desarrollo/barridos_gpu.md`): monopolos, dipolos, bowtie y sleeve van de 868 MHz a 5,8 GHz (la mayoría también en 915 ISM, 1,2 GHz, GPS L1 e Iridium); IFA y PIFA a 868 MHz, 2,4 y 5,8 GHz; Vivaldi a 2,4 y 5,8 GHz. Panel, colineales, J-pole de Koch, parches y array no adaptan fuera de las bandas probadas. |
 
 Los detalles de cada simulación y los errores encontrados por el camino están en
 [`CLAUDE.md`](CLAUDE.md) (lecciones aprendidas), [`RETOMAR.md`](RETOMAR.md) (estado) y

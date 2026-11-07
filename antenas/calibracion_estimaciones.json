@@ -1,33 +1,49 @@
 {
-  "colineal_franklin": {
+  "colineal_dipolos": {
     "puntos": [
       [
-        2365.0,
-        0.6804
+        2475.6,
+        1.1732
       ]
     ],
     "n": 1,
     "dispersion_%": null,
     "muestras": [
       {
-        "clave": "colineal_franklin",
-        "origen": "salidas\\_validacion4\\colineal_franklin_2441.75MHz",
-        "f_formula_MHz": 3475.7,
-        "f_simulada_MHz": 2364.99,
-        "factor": 0.6804,
-        "criterio": "centro de la banda a −10 dB"
+        "clave": "colineal_dipolos",
+        "origen": "salidas\\_barridos\\C_colineal_dipolos_24GHz",
+        "f_formula_MHz": 2110.1,
+        "f_simulada_MHz": 2475.6,
+        "factor": 1.1732,
+        "criterio": "centrado por simulación"
       }
     ]
   },
   "dipolo@it0": {
     "puntos": [
       [
-        2464.8,
-        0.9864
+        1539.3,
+        0.9899
+      ],
+      [
+        1599.1,
+        0.9994
+      ],
+      [
+        2458.4,
+        0.9979
+      ],
+      [
+        861.9,
+        1.0502
+      ],
+      [
+        911.6,
+        0.9997
       ]
     ],
-    "n": 2,
-    "dispersion_%": 4.1,
+    "n": 7,
+    "dispersion_%": 3.7,
     "muestras": [
       {
         "clave": "dipolo@it0",
@@ -44,6 +60,246 @@
         "f_simulada_MHz": 2464.21,
         "factor": 0.9464,
         "criterio": "centro de la banda a −10 dB"
+      },
+      {
+        "clave": "dipolo@it0",
+        "origen": "salidas\\_barridos\\C_dipolo_24GHz",
+        "f_formula_MHz": 2394.7,
+        "f_simulada_MHz": 2445.7,
+        "factor": 1.0213,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "dipolo@it0",
+        "origen": "salidas\\_barridos\\C_dipolo_868",
+        "f_formula_MHz": 820.7,
+        "f_simulada_MHz": 861.9,
+        "factor": 1.0502,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "dipolo@it0",
+        "origen": "salidas\\_barridos\\C_dipolo_915ISM",
+        "f_formula_MHz": 911.9,
+        "f_simulada_MHz": 911.6,
+        "factor": 0.9997,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "dipolo@it0",
+        "origen": "salidas\\_barridos\\C_dipolo_GPSL1",
+        "f_formula_MHz": 1555.0,
+        "f_simulada_MHz": 1539.3,
+        "factor": 0.9899,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "dipolo@it0",
+        "origen": "salidas\\_barridos\\C_dipolo_Iridium",
+        "f_formula_MHz": 1600.1,
+        "f_simulada_MHz": 1599.1,
+        "factor": 0.9994,
+        "criterio": "centrado por simulación"
+      }
+    ]
+  },
+  "dipolo_bowtie": {
+    "puntos": [
+      [
+        1255.9,
+        0.9514
+      ],
+      [
+        1577.5,
+        0.9752
+      ],
+      [
+        1610.3,
+        0.9643
+      ],
+      [
+        2400.7,
+        1.0025
+      ],
+      [
+        872.1,
+        0.9671
+      ],
+      [
+        910.3,
+        0.9629
+      ]
+    ],
+    "n": 6,
+    "dispersion_%": null,
+    "muestras": [
+      {
+        "clave": "dipolo_bowtie",
+        "origen": "salidas\\_barridos\\C_dipolo_bowtie_12GHz",
+        "f_formula_MHz": 1320.1,
+        "f_simulada_MHz": 1255.9,
+        "factor": 0.9514,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "dipolo_bowtie",
+        "origen": "salidas\\_barridos\\C_dipolo_bowtie_24GHz",
+        "f_formula_MHz": 2394.7,
+        "f_simulada_MHz": 2400.7,
+        "factor": 1.0025,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "dipolo_bowtie",
+        "origen": "salidas\\_barridos\\C_dipolo_bowtie_868",
+        "f_formula_MHz": 901.7,
+        "f_simulada_MHz": 872.1,
+        "factor": 0.9671,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "dipolo_bowtie",
+        "origen": "salidas\\_barridos\\C_dipolo_bowtie_915ISM",
+        "f_formula_MHz": 945.3,
+        "f_simulada_MHz": 910.3,
+        "factor": 0.9629,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "dipolo_bowtie",
+        "origen": "salidas\\_barridos\\C_dipolo_bowtie_GPSL1",
+        "f_formula_MHz": 1617.6,
+        "f_simulada_MHz": 1577.5,
+        "factor": 0.9752,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "dipolo_bowtie",
+        "origen": "salidas\\_barridos\\C_dipolo_bowtie_Iridium",
+        "f_formula_MHz": 1670.0,
+        "f_simulada_MHz": 1610.3,
+        "factor": 0.9643,
+        "criterio": "centrado por simulación"
+      }
+    ]
+  },
+  "dipolo_sleeve": {
+    "puntos": [
+      [
+        1251.6,
+        0.9975
+      ],
+      [
+        1572.3,
+        0.9838
+      ],
+      [
+        2418.4,
+        0.9395
+      ],
+      [
+        5966.6,
+        0.8296
+      ],
+      [
+        867.7,
+        1.0172
+      ],
+      [
+        920.0,
+        1.0196
+      ]
+    ],
+    "n": 7,
+    "dispersion_%": 0.3,
+    "muestras": [
+      {
+        "clave": "dipolo_sleeve",
+        "origen": "salidas\\_barridos\\C_dipolo_sleeve_12GHz",
+        "f_formula_MHz": 1254.7,
+        "f_simulada_MHz": 1251.6,
+        "factor": 0.9975,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "dipolo_sleeve",
+        "origen": "salidas\\_barridos\\C_dipolo_sleeve_24GHz",
+        "f_formula_MHz": 2574.1,
+        "f_simulada_MHz": 2418.4,
+        "factor": 0.9395,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "dipolo_sleeve",
+        "origen": "salidas\\_barridos\\C_dipolo_sleeve_58GHz",
+        "f_formula_MHz": 7192.5,
+        "f_simulada_MHz": 5966.6,
+        "factor": 0.8296,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "dipolo_sleeve",
+        "origen": "salidas\\_barridos\\C_dipolo_sleeve_868",
+        "f_formula_MHz": 853.0,
+        "f_simulada_MHz": 867.7,
+        "factor": 1.0172,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "dipolo_sleeve",
+        "origen": "salidas\\_barridos\\C_dipolo_sleeve_915ISM",
+        "f_formula_MHz": 902.4,
+        "f_simulada_MHz": 920.0,
+        "factor": 1.0196,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "dipolo_sleeve",
+        "origen": "salidas\\_barridos\\C_dipolo_sleeve_GPSL1",
+        "f_formula_MHz": 1575.6,
+        "f_simulada_MHz": 1555.4,
+        "factor": 0.9872,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "dipolo_sleeve",
+        "origen": "salidas\\_barridos\\C_dipolo_sleeve_Iridium",
+        "f_formula_MHz": 1621.0,
+        "f_simulada_MHz": 1589.3,
+        "factor": 0.9804,
+        "criterio": "centrado por simulación"
+      }
+    ]
+  },
+  "ifa": {
+    "puntos": [
+      [
+        2467.8,
+        1.0259
+      ],
+      [
+        5761.8,
+        0.9507
+      ]
+    ],
+    "n": 2,
+    "dispersion_%": null,
+    "muestras": [
+      {
+        "clave": "ifa",
+        "origen": "salidas\\_barridos\\C_ifa_24GHz",
+        "f_formula_MHz": 2405.6,
+        "f_simulada_MHz": 2467.8,
+        "factor": 1.0259,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "ifa",
+        "origen": "salidas\\_barridos\\C_ifa_58GHz",
+        "f_formula_MHz": 6060.4,
+        "f_simulada_MHz": 5761.8,
+        "factor": 0.9507,
+        "criterio": "centrado por simulación"
       }
     ]
   },
@@ -78,16 +334,20 @@
   "jpole_koch@it2": {
     "puntos": [
       [
-        2459.5,
-        1.3103
+        2457.7,
+        1.3189
+      ],
+      [
+        859.0,
+        1.4527
       ],
       [
         893.6,
         1.1978
       ]
     ],
-    "n": 2,
-    "dispersion_%": null,
+    "n": 4,
+    "dispersion_%": 0.7,
     "muestras": [
       {
         "clave": "jpole_koch@it2",
@@ -104,6 +364,42 @@
         "f_simulada_MHz": 893.63,
         "factor": 1.1978,
         "criterio": "reactancia nula en los terminales (no llega a −10 dB cerca del objetivo)"
+      },
+      {
+        "clave": "jpole_koch@it2",
+        "origen": "salidas\\_barridos\\C_jpole_koch_24GHz",
+        "f_formula_MHz": 1850.0,
+        "f_simulada_MHz": 2455.9,
+        "factor": 1.3275,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "jpole_koch@it2",
+        "origen": "salidas\\_barridos\\C_jpole_koch_868",
+        "f_formula_MHz": 591.3,
+        "f_simulada_MHz": 859.0,
+        "factor": 1.4527,
+        "criterio": "centrado por simulación"
+      }
+    ]
+  },
+  "monopolo_flecha@it3": {
+    "puntos": [
+      [
+        2492.8,
+        0.7569
+      ]
+    ],
+    "n": 1,
+    "dispersion_%": null,
+    "muestras": [
+      {
+        "clave": "monopolo_flecha@it3",
+        "origen": "salidas\\_barridos\\C_monopolo_flecha_24GHz",
+        "f_formula_MHz": 3293.2,
+        "f_simulada_MHz": 2492.8,
+        "factor": 0.7569,
+        "criterio": "centrado por simulación"
       }
     ]
   },
@@ -130,16 +426,36 @@
   "monopolo_koch@it2": {
     "puntos": [
       [
-        2327.8,
-        0.9864
+        1281.8,
+        1.0491
       ],
       [
-        834.7,
-        1.0432
+        1578.7,
+        1.0106
+      ],
+      [
+        1633.7,
+        1.0146
+      ],
+      [
+        2384.4,
+        0.995
+      ],
+      [
+        5852.9,
+        0.9325
+      ],
+      [
+        852.1,
+        1.0452
+      ],
+      [
+        917.4,
+        1.0431
       ]
     ],
-    "n": 2,
-    "dispersion_%": null,
+    "n": 9,
+    "dispersion_%": 0.6,
     "muestras": [
       {
         "clave": "monopolo_koch@it2",
@@ -156,22 +472,94 @@
         "f_simulada_MHz": 834.66,
         "factor": 1.0432,
         "criterio": "centro de la banda a −10 dB"
+      },
+      {
+        "clave": "monopolo_koch@it2",
+        "origen": "salidas\\_barridos\\C_monopolo_koch_12GHz",
+        "f_formula_MHz": 1221.8,
+        "f_simulada_MHz": 1281.8,
+        "factor": 1.0491,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "monopolo_koch@it2",
+        "origen": "salidas\\_barridos\\C_monopolo_koch_24GHz",
+        "f_formula_MHz": 2433.4,
+        "f_simulada_MHz": 2442.5,
+        "factor": 1.0037,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "monopolo_koch@it2",
+        "origen": "salidas\\_barridos\\C_monopolo_koch_58GHz",
+        "f_formula_MHz": 6276.8,
+        "f_simulada_MHz": 5852.9,
+        "factor": 0.9325,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "monopolo_koch@it2",
+        "origen": "salidas\\_barridos\\C_monopolo_koch_868",
+        "f_formula_MHz": 830.7,
+        "f_simulada_MHz": 869.9,
+        "factor": 1.0472,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "monopolo_koch@it2",
+        "origen": "salidas\\_barridos\\C_monopolo_koch_915ISM",
+        "f_formula_MHz": 879.5,
+        "f_simulada_MHz": 917.4,
+        "factor": 1.0431,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "monopolo_koch@it2",
+        "origen": "salidas\\_barridos\\C_monopolo_koch_GPSL1",
+        "f_formula_MHz": 1562.1,
+        "f_simulada_MHz": 1578.7,
+        "factor": 1.0106,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "monopolo_koch@it2",
+        "origen": "salidas\\_barridos\\C_monopolo_koch_Iridium",
+        "f_formula_MHz": 1610.2,
+        "f_simulada_MHz": 1633.7,
+        "factor": 1.0146,
+        "criterio": "centrado por simulación"
       }
     ]
   },
   "monopolo_meandro": {
     "puntos": [
       [
-        2451.3,
-        1.1832
+        1269.4,
+        1.1875
       ],
       [
-        844.4,
-        1.1237
+        1594.6,
+        1.2014
+      ],
+      [
+        1617.4,
+        1.1811
+      ],
+      [
+        2468.4,
+        1.1744
+      ],
+      [
+        851.1,
+        1.1565
+      ],
+      [
+        916.4,
+        1.2207
       ]
     ],
-    "n": 3,
-    "dispersion_%": 7.8,
+    "n": 9,
+    "dispersion_%": 5.7,
     "muestras": [
       {
         "clave": "monopolo_meandro",
@@ -196,22 +584,86 @@
         "f_simulada_MHz": 831.21,
         "factor": 1.0395,
         "criterio": "reactancia nula en los terminales (no llega a −10 dB cerca del objetivo)"
+      },
+      {
+        "clave": "monopolo_meandro",
+        "origen": "salidas\\_barridos\\C_monopolo_meandro_12GHz",
+        "f_formula_MHz": 1069.0,
+        "f_simulada_MHz": 1269.4,
+        "factor": 1.1875,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "monopolo_meandro",
+        "origen": "salidas\\_barridos\\C_monopolo_meandro_24GHz",
+        "f_formula_MHz": 2132.4,
+        "f_simulada_MHz": 2485.6,
+        "factor": 1.1656,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "monopolo_meandro",
+        "origen": "salidas\\_barridos\\C_monopolo_meandro_868",
+        "f_formula_MHz": 705.7,
+        "f_simulada_MHz": 864.6,
+        "factor": 1.2251,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "monopolo_meandro",
+        "origen": "salidas\\_barridos\\C_monopolo_meandro_915ISM",
+        "f_formula_MHz": 750.7,
+        "f_simulada_MHz": 916.4,
+        "factor": 1.2207,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "monopolo_meandro",
+        "origen": "salidas\\_barridos\\C_monopolo_meandro_GPSL1",
+        "f_formula_MHz": 1327.3,
+        "f_simulada_MHz": 1594.6,
+        "factor": 1.2014,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "monopolo_meandro",
+        "origen": "salidas\\_barridos\\C_monopolo_meandro_Iridium",
+        "f_formula_MHz": 1369.4,
+        "f_simulada_MHz": 1617.4,
+        "factor": 1.1811,
+        "criterio": "centrado por simulación"
       }
     ]
   },
   "monopolo_recto": {
     "puntos": [
       [
-        2445.0,
-        1.0113
+        1274.2,
+        0.98
       ],
       [
-        866.9,
-        1.0508
+        1555.1,
+        1.0007
+      ],
+      [
+        2439.4,
+        0.9817
+      ],
+      [
+        5730.8,
+        0.8716
+      ],
+      [
+        873.1,
+        1.0512
+      ],
+      [
+        914.4,
+        1.0106
       ]
     ],
-    "n": 2,
-    "dispersion_%": null,
+    "n": 9,
+    "dispersion_%": 1.7,
     "muestras": [
       {
         "clave": "monopolo_recto",
@@ -228,18 +680,94 @@
         "f_simulada_MHz": 866.9,
         "factor": 1.0508,
         "criterio": "centro de la banda a −10 dB"
+      },
+      {
+        "clave": "monopolo_recto",
+        "origen": "salidas\\_barridos\\C_monopolo_recto_12GHz",
+        "f_formula_MHz": 1300.3,
+        "f_simulada_MHz": 1274.2,
+        "factor": 0.98,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "monopolo_recto",
+        "origen": "salidas\\_barridos\\C_monopolo_recto_24GHz",
+        "f_formula_MHz": 2554.0,
+        "f_simulada_MHz": 2433.8,
+        "factor": 0.9529,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "monopolo_recto",
+        "origen": "salidas\\_barridos\\C_monopolo_recto_58GHz",
+        "f_formula_MHz": 6574.7,
+        "f_simulada_MHz": 5730.8,
+        "factor": 0.8716,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "monopolo_recto",
+        "origen": "salidas\\_barridos\\C_monopolo_recto_868",
+        "f_formula_MHz": 836.1,
+        "f_simulada_MHz": 879.3,
+        "factor": 1.0516,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "monopolo_recto",
+        "origen": "salidas\\_barridos\\C_monopolo_recto_915ISM",
+        "f_formula_MHz": 904.8,
+        "f_simulada_MHz": 914.4,
+        "factor": 1.0106,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "monopolo_recto",
+        "origen": "salidas\\_barridos\\C_monopolo_recto_GPSL1",
+        "f_formula_MHz": 1531.0,
+        "f_simulada_MHz": 1536.5,
+        "factor": 1.0036,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "monopolo_recto",
+        "origen": "salidas\\_barridos\\C_monopolo_recto_Iridium",
+        "f_formula_MHz": 1577.3,
+        "f_simulada_MHz": 1574.0,
+        "factor": 0.9979,
+        "criterio": "centrado por simulación"
       }
     ]
   },
   "monopolo_sierpinski@it2": {
     "puntos": [
       [
-        2461.9,
-        0.9609
+        1279.4,
+        0.968
+      ],
+      [
+        1583.3,
+        0.9658
+      ],
+      [
+        1647.0,
+        0.9762
+      ],
+      [
+        2456.6,
+        0.9628
+      ],
+      [
+        859.6,
+        0.9644
+      ],
+      [
+        912.1,
+        0.968
       ]
     ],
-    "n": 1,
-    "dispersion_%": null,
+    "n": 7,
+    "dispersion_%": 0.2,
     "muestras": [
       {
         "clave": "monopolo_sierpinski@it2",
@@ -248,18 +776,90 @@
         "f_simulada_MHz": 2461.87,
         "factor": 0.9609,
         "criterio": "centro de la banda a −10 dB"
+      },
+      {
+        "clave": "monopolo_sierpinski@it2",
+        "origen": "salidas\\_barridos\\C_monopolo_sierpinski_12GHz",
+        "f_formula_MHz": 1321.6,
+        "f_simulada_MHz": 1279.4,
+        "factor": 0.968,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "monopolo_sierpinski@it2",
+        "origen": "salidas\\_barridos\\C_monopolo_sierpinski_24GHz",
+        "f_formula_MHz": 2541.0,
+        "f_simulada_MHz": 2451.3,
+        "factor": 0.9647,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "monopolo_sierpinski@it2",
+        "origen": "salidas\\_barridos\\C_monopolo_sierpinski_868",
+        "f_formula_MHz": 891.4,
+        "f_simulada_MHz": 859.6,
+        "factor": 0.9644,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "monopolo_sierpinski@it2",
+        "origen": "salidas\\_barridos\\C_monopolo_sierpinski_915ISM",
+        "f_formula_MHz": 942.2,
+        "f_simulada_MHz": 912.1,
+        "factor": 0.968,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "monopolo_sierpinski@it2",
+        "origen": "salidas\\_barridos\\C_monopolo_sierpinski_GPSL1",
+        "f_formula_MHz": 1639.4,
+        "f_simulada_MHz": 1583.3,
+        "factor": 0.9658,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "monopolo_sierpinski@it2",
+        "origen": "salidas\\_barridos\\C_monopolo_sierpinski_Iridium",
+        "f_formula_MHz": 1687.2,
+        "f_simulada_MHz": 1647.0,
+        "factor": 0.9762,
+        "criterio": "centrado por simulación"
+      }
+    ]
+  },
+  "parche_circular": {
+    "puntos": [
+      [
+        2448.2,
+        1.0027
+      ]
+    ],
+    "n": 1,
+    "dispersion_%": null,
+    "muestras": [
+      {
+        "clave": "parche_circular",
+        "origen": "salidas\\_barridos\\C_parche_circular_24GHz",
+        "f_formula_MHz": 2441.7,
+        "f_simulada_MHz": 2448.2,
+        "factor": 1.0027,
+        "criterio": "centrado por simulación"
       }
     ]
   },
   "parche_minkowski@it1": {
     "puntos": [
       [
-        2442.4,
-        0.9498
+        2438.9,
+        0.9547
+      ],
+      [
+        5830.3,
+        0.9547
       ]
     ],
-    "n": 2,
-    "dispersion_%": 2.0,
+    "n": 4,
+    "dispersion_%": 1.8,
     "muestras": [
       {
         "clave": "parche_minkowski@it1",
@@ -276,6 +876,22 @@
         "f_simulada_MHz": 2455.5,
         "factor": 0.9691,
         "criterio": "centro de la banda a −10 dB"
+      },
+      {
+        "clave": "parche_minkowski@it1",
+        "origen": "salidas\\_barridos\\C_parche_minkowski_24GHz",
+        "f_formula_MHz": 2520.7,
+        "f_simulada_MHz": 2431.9,
+        "factor": 0.9648,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "parche_minkowski@it1",
+        "origen": "salidas\\_barridos\\C_parche_minkowski_58GHz",
+        "f_formula_MHz": 6107.1,
+        "f_simulada_MHz": 5830.3,
+        "factor": 0.9547,
+        "criterio": "centrado por simulación"
       }
     ]
   },
@@ -302,12 +918,16 @@
   "parche_rectangular": {
     "puntos": [
       [
-        2433.5,
-        0.9606
+        2434.4,
+        0.9593
+      ],
+      [
+        5760.2,
+        0.9346
       ]
     ],
-    "n": 1,
-    "dispersion_%": null,
+    "n": 3,
+    "dispersion_%": 0.1,
     "muestras": [
       {
         "clave": "parche_rectangular",
@@ -316,18 +936,58 @@
         "f_simulada_MHz": 2433.54,
         "factor": 0.9606,
         "criterio": "centro de la banda a −10 dB"
+      },
+      {
+        "clave": "parche_rectangular",
+        "origen": "salidas\\_barridos\\C_parche_rectangular_24GHz",
+        "f_formula_MHz": 2541.9,
+        "f_simulada_MHz": 2435.2,
+        "factor": 0.958,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "parche_rectangular",
+        "origen": "salidas\\_barridos\\C_parche_rectangular_58GHz",
+        "f_formula_MHz": 6163.5,
+        "f_simulada_MHz": 5760.2,
+        "factor": 0.9346,
+        "criterio": "centrado por simulación"
+      }
+    ]
+  },
+  "pifa": {
+    "puntos": [
+      [
+        5743.5,
+        1.1463
+      ]
+    ],
+    "n": 1,
+    "dispersion_%": null,
+    "muestras": [
+      {
+        "clave": "pifa",
+        "origen": "salidas\\_barridos\\C_pifa_58GHz",
+        "f_formula_MHz": 5010.5,
+        "f_simulada_MHz": 5743.5,
+        "factor": 1.1463,
+        "criterio": "centrado por simulación"
       }
     ]
   },
   "yagi_boom@it0": {
     "puntos": [
       [
-        2381.2,
-        0.9962
+        2428.9,
+        1.0126
+      ],
+      [
+        883.4,
+        1.1542
       ]
     ],
-    "n": 3,
-    "dispersion_%": 2.4,
+    "n": 9,
+    "dispersion_%": 3.2,
     "muestras": [
       {
         "clave": "yagi_boom@it0",
@@ -347,11 +1007,59 @@
       },
       {
         "clave": "yagi_boom@it0",
+        "origen": "salidas\\_validacion4\\yagi_boom_2441.75MHz_iteracion0_directores2_separacion_reflector0.39",
+        "f_formula_MHz": 2468.4,
+        "f_simulada_MHz": 2419.16,
+        "factor": 0.9801,
+        "criterio": "centro de la banda a −10 dB"
+      },
+      {
+        "clave": "yagi_boom@it0",
         "origen": "salidas\\_validacion4\\yagi_boom_2441.75MHz_iteracion0_directores3",
         "f_formula_MHz": 2411.4,
         "f_simulada_MHz": 2391.75,
         "factor": 0.9919,
         "criterio": "centro de la banda a −10 dB"
+      },
+      {
+        "clave": "yagi_boom@it0",
+        "origen": "salidas\\_validacion4\\yagi_boom_2450MHz_iteracion0_directores2_separacion_reflector0.39",
+        "f_formula_MHz": 2340.3,
+        "f_simulada_MHz": 2445.31,
+        "factor": 1.0449,
+        "criterio": "centro de la banda a −10 dB"
+      },
+      {
+        "clave": "yagi_boom@it0",
+        "origen": "salidas\\_validacion4\\yagi_boom_2450MHz_iteracion0_directores3_separacion_reflector0.17_alimentacion1",
+        "f_formula_MHz": 2322.2,
+        "f_simulada_MHz": 2449.88,
+        "factor": 1.055,
+        "criterio": "centro de la banda a −10 dB"
+      },
+      {
+        "clave": "yagi_boom@it0",
+        "origen": "salidas\\_validacion4\\yagi_boom_2450MHz_iteracion0_directores3_separacion_reflector0.17_alimentacion2",
+        "f_formula_MHz": 2492.8,
+        "f_simulada_MHz": 2463.68,
+        "factor": 0.9883,
+        "criterio": "centro de la banda a −10 dB"
+      },
+      {
+        "clave": "yagi_boom@it0",
+        "origen": "salidas\\_barridos\\C_yagi_boom_24GHz",
+        "f_formula_MHz": 2400.6,
+        "f_simulada_MHz": 2512.6,
+        "factor": 1.0467,
+        "criterio": "centrado por simulación"
+      },
+      {
+        "clave": "yagi_boom@it0",
+        "origen": "salidas\\_barridos\\C_yagi_boom_868",
+        "f_formula_MHz": 765.4,
+        "f_simulada_MHz": 883.4,
+        "factor": 1.1542,
+        "criterio": "centrado por simulación"
       }
     ]
   },
