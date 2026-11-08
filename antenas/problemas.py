@@ -38,7 +38,7 @@ ESTADO = {
     'dipolo_bowtie': ('validada', 'Validada en simulación (bowtie y bowtie de Sierpinski; de 868 MHz a 5,8 GHz)'),
     'colineal_coco': ('no_funciona', 'No adapta bien ni radia con eficiencia en FR4 (−4 dB, η 24–35 %)'),
     'colineal_franklin': ('pendiente', 'Adapta, pero con poca banda y poca ganancia'),
-    'jpole': ('validada', 'Validada en simulación a 868 MHz y 2,4 GHz (con el hueco ampliado); a 1,2 y 5,8 GHz no llega'),
+    'jpole': ('validada', 'Validada en simulación (de 868 MHz a 2,4 GHz)'),
     'jpole_koch': ('validada', 'Validada en simulación (868 MHz y 1,2 GHz; 2,4 GHz casi)'),
 }
 ESTADO_TEXTO = {'validada': 'Validada', 'pendiente': 'Pendiente de validación', 'no_funciona': 'No funciona'}
@@ -125,9 +125,10 @@ FIJOS = {
                   '5,2 dBi, pero la banda es de solo ~19 MHz. A 5,8 GHz −8,5 dB.'),
     ],
     'jpole': [
-        ('aviso', 'J-pole recta: a 868 MHz adapta (−12,9 dB, η 92 %, banda 841–879 MHz) con el hueco entre brazos ×5 (14 mm). '
-                  'A 2,4 GHz también adapta (−10,9 dB, η 85 %) con el hueco ×6 (6 mm); a 1,2 GHz da como mucho −9,8 dB (hueco ×8) y a 5,8 GHz −6,5 dB: '
-                  'la parte real se queda en ~20 Ω. La J-pole de Koch adapta mejor.'),
+        ('aviso', 'J-pole recta: con el hueco entre brazos ampliado y la toma al 26 % del adaptador (los valores por defecto desde la 0.3.0) '
+                  'adapta a 868 MHz (−15 dB), 915 MHz (−10 dB), 1,2 GHz (−9,7 dB), GPS L1 (−11,8 dB) y 2,4 GHz (−12 dB), con η del 86 al 92 %; '
+                  'simulada sin centrar y sin medir. A 5,8 GHz no adapta (la parte real se queda en ~20 Ω). Si cambias el hueco o la toma, '
+                  'vuelve a simular: el largo del radiador está calibrado para esos valores.'),
         ('info', 'Con dos J-pole unidas por un puente en la cara inferior (herramienta herramientas/jpole_dual.py, modo union; '
                  'aún no está en la interfaz) cubre 868 MHz y 2,4 GHz en simulación (−11,2 y −10,6 dB, η 63 % y 87 %), pero es '
                  'estrecha. Con radiadores de Koch no funciona (−5 dB como mucho).'),

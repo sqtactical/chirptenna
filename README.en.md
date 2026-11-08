@@ -97,7 +97,7 @@ The resulting board (KiCad render): top side and bottom side with the logo and l
 | Series dipole collinear (microstrip line) | collinear | ✅ validated in simulation at 2.4 GHz (−12.7 dB, 4.1 dBi, η 59 %) and 5.8 GHz (−13.8 dB, 3.5 dBi, η 50 %); on FR4 the gain falls short |
 | Printed dipole (straight or Koch; printed balun or centre-fed coax) | dipole | ✅ validated (868 MHz to 5.8 GHz) |
 | Bowtie dipole or Sierpinski bowtie | dipole_bowtie | ✅ validated (868 MHz to 5.8 GHz; marginal at 5.8 GHz); twice the bandwidth of the straight one |
-| J-pole and Koch J-pole | jpole | ✅ Koch validated (868 MHz and 1.2 GHz; 2.4 GHz almost, −9 dB); the straight one at 868 MHz (−12.9 dB with the gap between arms ×5) and 2.4 GHz (−10.9 dB with the gap ×6) |
+| J-pole and Koch J-pole | jpole | ✅ Koch validated (868 MHz and 1.2 GHz; 2.4 GHz almost, −9 dB); the straight one from 868 MHz to 2.4 GHz (−15 dB at 868 MHz and −12 dB at 2.4 GHz; now the default) |
 | Dual-band J-pole (two joined J-poles) and dual-band IFA (868 MHz + 2.4 GHz) | tools | 🧪 simulation only (−11 dB in both bands), narrow; not in the interface yet (`herramientas/jpole_dual.py`, `rama_dual.py`) |
 | Test bench for new topologies (crossed-dipole turnstile for circular polarisation, slot antenna, tri-band IFA) | tools | 🧪 in simulation (`herramientas/topologias.py`); no results yet |
 | Double-sided Yagi with boom | yagi | ✅ straight elements (6–9 dBi; 868 MHz, 2.4 and 5.8 GHz); Koch iteration 2 also works at 2.4 GHz (−14.4 dB, beam forward, but 2.6 dBi) |
@@ -121,7 +121,7 @@ before trusting it. The GUI shows these warnings when you pick the type and when
 | Rectangular patch | Narrowband on 1.6 mm FR4 (~36 MHz): does not cover the whole 2.4 GHz ISM band. η ~47 %. At 5.8 GHz with a slot feed it does match the whole band (−10.6 dB, η 60 %). |
 | Circular patch | Does not reach −10 dB (best −4.4 dB on RO4350B at GPS L1 and −5.9 dB at 2.4 GHz) and the axial ratio never drops below 6 dB; on FR4 η 4–44 %. The diagonal sets the rotation sense. Do not use it for GPS. |
 | Minkowski patch | Iteration 1: η ~33 % and ~1 dBi. Iteration 3: it matches (−17.5 dB) but η ~30 % and < 1 dBi. |
-| Straight J-pole | At 868 MHz it matches (−12.9 dB, η 92 %) with the gap between arms ×5; at 2.4 GHz −10.9 dB (gap ×6), at 1.2 GHz at best −9.8 dB and at 5.8 GHz −6.5 dB (the real part stays at ~20 Ω). The Koch J-pole matches at 868 MHz (−17 to −20 dB), 1.2 GHz (−10.6 dB) and almost at 2.4 GHz (−9 dB). |
+| Straight J-pole | With the wider gap and the tap at 26 % (default since 0.3.0) it matches at 868 MHz (−15 dB), 915 MHz (−10 dB), 1.2 GHz (−9.7 dB), GPS L1 (−11.8 dB) and 2.4 GHz (−12 dB); at 5.8 GHz it does not (−6.5 dB; the real part stays at ~20 Ω). The Koch J-pole matches at 868 MHz (−17 to −20 dB), 1.2 GHz (−10.6 dB) and almost at 2.4 GHz (−9 dB). |
 | Yagi with boom, Koch elements | Iteration 1 at 2.4 GHz: the configuration that matches (−21 dB) radiates backwards. Iteration 2 works (−14.4 dB, beam forward, η 81 %) but with only 2.6 dBi: straight elements give more gain. |
 | Yagi with boom, folded dipole | Radiates backwards (F/B −3.6 dB). Use direct feed (reflector at ~0.39 λ0, longer board). |
 | Yagi with boom, λ/4 transformer | Narrow band (~50 MHz) and η ~55 %. |

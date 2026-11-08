@@ -95,7 +95,7 @@ La placa resultante (render de KiCad): cara superior y cara inferior con el logo
 | Colineal de dipolos en serie (línea microstrip) | colineal | ✅ validada en simulación a 2,4 GHz (−12,7 dB, 4,1 dBi, η 59 %) y a 5,8 GHz (−13,8 dB, 3,5 dBi, η 50 %); con FR4 la ganancia queda corta |
 | Dipolo impreso (recto o de Koch; balun impreso o coaxial al centro) | dipolo | ✅ validado (de 868 MHz a 5,8 GHz; a 1,2 GHz −14,4 dB con la pista de 2,9 mm) |
 | Dipolo bowtie (pajarita) o bowtie de Sierpinski | dipolo_bowtie | ✅ validado (de 868 MHz a 5,8 GHz; con apertura 55°, −13,0 dB a 2,4 GHz y −11,6 dB a 5,8 GHz); da el doble de banda que el recto |
-| J-pole y J-pole de Koch | jpole | ✅ Koch validada (868 MHz y 1,2 GHz; 2,4 GHz casi, −9 dB); la recta a 868 MHz (−12,9 dB con el hueco entre brazos ×5) y a 2,4 GHz (−10,9 dB con el hueco ×6) |
+| J-pole y J-pole de Koch | jpole | ✅ Koch validada (868 MHz y 1,2 GHz; 2,4 GHz casi, −9 dB); la recta de 868 MHz a 2,4 GHz (−15 dB a 868 MHz y −12 dB a 2,4 GHz; ya sale así por defecto) |
 | J-pole bibanda (dos J-pole unidas) e IFA bibanda (868 MHz + 2,4 GHz) | herramientas | 🧪 solo simulación (−11 dB en las dos bandas), estrechas; aún no están en la interfaz (`herramientas/jpole_dual.py`, `rama_dual.py`) |
 | Banco de pruebas de topologías nuevas (torniquete de dipolos para polarización circular, antena de ranura, IFA de tres bandas) | herramientas | 🧪 en simulación (`herramientas/topologias.py`); aún sin resultados |
 | Yagi con boom (doble cara) | yagi | ✅ elementos rectos (6–9 dBi; 868 MHz, 2,4 y 5,8 GHz); con Koch de iteración 2 a 2,4 GHz también (−14,4 dB, haz hacia delante, pero 2,6 dBi) |
@@ -119,7 +119,7 @@ antes de darla por buena. La interfaz muestra estos avisos al elegir el tipo y a
 | Parche rectangular | Banda estrecha en FR4 de 1,6 mm (~36 MHz): no cubre toda la ISM de 2,4 GHz. η ~47 %. A 5,8 GHz con alimentación por ranura sí adapta en toda la banda (−10,6 dB, η 60 %). |
 | Parche circular | No llega a −10 dB (mejor −4,4 dB en RO4350B en GPS L1 y −5,9 dB a 2,4 GHz) y la razón axial no baja de 6 dB; en FR4 η 4–44 %. La diagonal elige el sentido de giro. No usarlo para GPS. |
 | Parche de Minkowski | Iteración 1: η ~33 % y ~1 dBi. Iteración 3: adapta (−17,5 dB) pero η ~30 % y < 1 dBi. |
-| J-pole recta | A 868 MHz adapta (−12,9 dB, η 92 %) con el hueco entre brazos ×5; a 2,4 GHz −10,9 dB (hueco ×6), a 1,2 GHz como mucho −9,8 dB y a 5,8 GHz −6,5 dB (la parte real se queda en ~20 Ω). La J-pole de Koch adapta a 868 MHz (−17 a −20 dB), 1,2 GHz (−10,6 dB) y casi a 2,4 GHz (−9 dB). |
+| J-pole recta | Con el hueco ampliado y la toma al 26 % (por defecto desde la 0.3.0) adapta a 868 MHz (−15 dB), 915 MHz (−10 dB), 1,2 GHz (−9,7 dB), GPS L1 (−11,8 dB) y 2,4 GHz (−12 dB); a 5,8 GHz no (−6,5 dB; la parte real se queda en ~20 Ω). La J-pole de Koch adapta a 868 MHz (−17 a −20 dB), 1,2 GHz (−10,6 dB) y casi a 2,4 GHz (−9 dB). |
 | Yagi con boom de Koch | Iteración 1 a 2,4 GHz: la configuración que adapta (−21 dB) radia hacia atrás. La iteración 2 funciona (−14,4 dB, haz hacia delante, η 81 %) pero con solo 2,6 dBi: los elementos rectos dan más ganancia. |
 | Yagi con boom, dipolo plegado | Radia hacia atrás (F/B −3,6 dB). Usar alimentación directa (el reflector queda a ~0,39 λ0 y la placa es más larga). |
 | Yagi con boom, transformador λ/4 | Banda estrecha (~50 MHz) y η ~55 %. |

@@ -25,6 +25,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ### Cambiado
 
+- **J-pole recta arreglada**: `dimensionar` ahora da el hueco entre brazos ampliado (×5 a 868 MHz, ×6 a 2,4 GHz, interpolado entre
+  las dos) y la toma al 26 %, con el largo del radiador recalibrado. Simulada sin centrar: −15 dB a 868 MHz, −10 dB a 915 MHz,
+  −9,7 dB a 1,2 GHz, −11,8 dB en GPS L1 y −12 dB a 2,4 GHz (antes −7 dB). A 5,8 GHz sigue sin adaptar. El hueco puede llegar a
+  40 mm. Sin medir.
 - Estados de los tipos según la campaña: IFA, PIFA, dipolo con manga, Vivaldi y colineal de dipolos pasan a
   «Validada en simulación»; monopolos, dipolo y bowtie, de 868 MHz a 5,8 GHz. La Yagi con elementos de Koch sigue sin
   funcionar: la configuración que adapta (−21 dB) radia hacia atrás.

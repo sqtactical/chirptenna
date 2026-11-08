@@ -71,7 +71,7 @@ TIPOS = {
                       ['largo_seccion', 'secciones']),
     'colineal_franklin': ('experimental', 'Colineal Franklin con horquillas: adapta, pero con poca banda y poca ganancia.',
                           ['largo_elemento', 'elementos', 'masa', 'conector']),
-    'jpole': ('experimental', 'J-pole recta: adapta a 868 MHz y 2,4 GHz con el hueco entre brazos ampliado; la J-pole de Koch es más fácil de ajustar.',
+    'jpole': ('experimental', 'J-pole recta: adapta de 868 MHz a 2,4 GHz (ya viene con el hueco ampliado); la J-pole de Koch es más compacta.',
               ['largo_radiador', 'ajuste']),
     'yagi_koch': ('experimental', 'Quasi-Yagi con dipolo de Koch: radia hacia atrás en simulación.',
                   ['largo_brazo', 'iteracion', 'directores', 'conector', 'ajuste', 'aligerado']),

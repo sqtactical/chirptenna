@@ -306,28 +306,64 @@
   "jpole": {
     "puntos": [
       [
-        2490.2,
-        1.0795
+        1046.3,
+        1.1929
+      ],
+      [
+        2281.5,
+        1.056
+      ],
+      [
+        693.2,
+        1.2464
+      ],
+      [
+        732.0,
+        1.2135
       ]
     ],
-    "n": 2,
-    "dispersion_%": 2.3,
+    "n": 4,
+    "dispersion_%": null,
     "muestras": [
       {
         "clave": "jpole",
-        "origen": "salidas\\_validacion2\\jpole_2441.75MHz",
-        "f_formula_MHz": 2308.3,
-        "f_simulada_MHz": 2434.55,
-        "factor": 1.0547,
-        "criterio": "reactancia nula en los terminales (no llega a −10 dB)"
+        "origen": "salidas\\_barridos\\V_jpole_defecto_868",
+        "f_formula_MHz": 693.2,
+        "f_simulada_MHz": 864.0,
+        "f_banda_MHz": 866.5,
+        "f_x_MHz": 693.2,
+        "factor": 1.2464,
+        "criterio": "centrado por simulación con el hueco grande"
       },
       {
         "clave": "jpole",
-        "origen": "salidas\\_validacion3\\jpole_2441.75MHz",
-        "f_formula_MHz": 2305.5,
-        "f_simulada_MHz": 2547.17,
-        "factor": 1.1048,
-        "criterio": "reactancia nula en los terminales (no llega a −10 dB cerca del objetivo)"
+        "origen": "salidas\\_barridos\\V_jpole_defecto_915",
+        "f_formula_MHz": 732.0,
+        "f_simulada_MHz": 888.3,
+        "f_banda_MHz": 915.0,
+        "f_x_MHz": 732.0,
+        "factor": 1.2135,
+        "criterio": "centrado por simulación con el hueco grande"
+      },
+      {
+        "clave": "jpole",
+        "origen": "salidas\\_barridos\\V_jpole_defecto_12GHz",
+        "f_formula_MHz": 1046.3,
+        "f_simulada_MHz": 1248.1,
+        "f_banda_MHz": 1270.0,
+        "f_x_MHz": 1046.3,
+        "factor": 1.1929,
+        "criterio": "centrado por simulación con el hueco grande"
+      },
+      {
+        "clave": "jpole",
+        "origen": "salidas\\_barridos\\V_jpole_defecto_24GHz",
+        "f_formula_MHz": 2281.5,
+        "f_simulada_MHz": 2409.3,
+        "f_banda_MHz": 2441.75,
+        "f_x_MHz": 2281.5,
+        "factor": 1.056,
+        "criterio": "centrado por simulación con el hueco grande"
       }
     ]
   },

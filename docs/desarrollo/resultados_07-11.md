@@ -9,6 +9,7 @@ la cola seguía corriendo (los barridos `P_*`, `Z_*`, `V_*` y `U_*` aún no se h
 
 | Antena | Banda | Peor S11 | Detalle |
 |---|---|---|---|
+| J-pole recta (valores por defecto del generador, sin centrar) | 868 / 915 MHz / 1,2 / 2,4 GHz / GPS L1 | −15,4 / −10,1 / −9,7 / −12,0 / −11,8 dB | desde el 08-11 `dimensionar` da el hueco ampliado y la toma al 26 %: η 86–92 % |
 | J-pole recta | 868 MHz | −12,9 dB | `hueco` ×5 (14,1 mm), `toma` 0,26, `factor_adaptador` 1: banda −10 dB 841–879 MHz, η 92 % |
 | J-pole de Koch | 1,2 GHz | −10,6 dB | `toma` 0,369, `factor_adaptador` 1,13–1,16: banda 1226–1311 MHz, η 92 % |
 | Parche rectangular con ranura | 5,8 GHz | −10,6 dB | `alimentacion` 1, ranura estimada, `largo_alimentacion` 4,21 mm: toda la banda 5725–5875, η 60 %, 4,7 dBi |

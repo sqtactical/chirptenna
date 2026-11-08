@@ -110,20 +110,47 @@ def muestras_barridos():
                'criterio': 'centrado por simulación'}
 
 
+def muestras_jpole():
+    """J-pole recta con el hueco grande y la toma al 26 % (08-11): el diseño por defecto de `dimensionar` simulado sin
+    centrar (`barrido.py jpole <banda> factor_adaptador=1`, etiquetas V_jpole_defecto_*). Sustituyen a las
+    muestras antiguas de la J-pole (hueco pequeño, que adaptaba mal) en la calibración."""
+    for barrido in ('V_jpole_defecto_868', 'V_jpole_defecto_915', 'V_jpole_defecto_12GHz', 'V_jpole_defecto_24GHz'):
+        ruta = os.path.join(RAIZ, 'salidas', '_barridos', barrido, 'resultados.jsonl')
+        if not os.path.exists(ruta):
+            continue
+        filas = [json.loads(l) for l in open(ruta, encoding='utf-8')]
+        filas = [f for f in filas if 'peor_banda_dB' in f and f.get('parametros')]
+        if not filas:
+            continue
+        f = min(filas, key=lambda x: x['peor_banda_dB'])
+        p = dict(f['parametros'])
+        f_obj = f.get('f_MHz') or {'868': 866.5, '915': 915.0, '12GHz': 1270.0, '24GHz': 2441.75}[barrido.rsplit('_', 1)[-1]]
+        f_form = tipos.estimar_f('jpole', p, calibrada=False)/1e6
+        yield {'clave': 'jpole', 'origen': os.path.join('salidas', '_barridos', barrido), 'f_formula_MHz': round(f_form, 1),
+               'f_simulada_MHz': f['f_res_MHz'], 'f_banda_MHz': f_obj, 'f_x_MHz': round(f_form, 1), 'factor': round(f['f_res_MHz']/f_form, 4),
+               'criterio': 'centrado por simulación con el hueco grande'}
+
+
 def main():
     por_tipo = {}
     for m in list(muestras()) + list(muestras_barridos()):
+        if m['clave'] == 'jpole':
+            continue                       # las antiguas (hueco pequeño) no valen para el diseño actual
+        por_tipo.setdefault(m['clave'], []).append(m)
+    for m in muestras_jpole():
         por_tipo.setdefault(m['clave'], []).append(m)
     salida = {}
     print(f'{"tipo":22s} {"n":>2s}  factor por banda                 dispersión')
     for clave, ms in sorted(por_tipo.items()):
         bandas = {}
         for m in ms:
-            bandas.setdefault(banda_mas_cercana(m['f_simulada_MHz']), []).append(m)
+            bandas.setdefault(banda_mas_cercana(m.get('f_banda_MHz', m['f_simulada_MHz'])), []).append(m)
         puntos = []
         for b, mb in sorted(bandas.items()):
             lk = [math.log(m['factor']) for m in mb]
-            puntos.append([round(math.exp(sum(math.log(m['f_simulada_MHz']) for m in mb)/len(mb)), 1),
+            # abscisa del punto: la frecuencia simulada (o, si la muestra lo pide con f_x_MHz, la de la fórmula: `factor_calibracion`
+            # se consulta con la frecuencia de la fórmula, y con factores de ~1,25 la diferencia entre las dos importa)
+            puntos.append([round(math.exp(sum(math.log(m.get('f_x_MHz', m['f_simulada_MHz'])) for m in mb)/len(mb)), 1),
                            round(math.exp(sum(lk)/len(lk)), 4)])
         # dispersión: desviación de cada muestra respecto al factor de su banda (en %), solo en las
         # bandas con dos o más muestras (con una sola no hay con qué compararla)

@@ -679,7 +679,7 @@ CATALOGO = {t.clave: t for t in [
 
 _PARAMS_JPOLE = [
     Parametro('ancho_pista', 'Ancho de las pistas [mm]', 1.0, 0.2, 15, 0.05),
-    Parametro('hueco', 'Hueco entre los brazos del adaptador [mm]', 1.0, 0.2, 15, 0.05),
+    Parametro('hueco', 'Hueco entre los brazos del adaptador [mm]', 1.0, 0.2, 40, 0.05),
     Parametro('toma', 'Altura de la toma (fracción del adaptador)', 0.2, 0.03, 0.9, 0.01,
               ayuda='Punto donde se suelda el coaxial; más arriba = más impedancia'),
     Parametro('factor_adaptador', 'Corrección del largo del adaptador', 1.0, 0.7, 1.3, 0.01,
@@ -1153,6 +1153,24 @@ MULTIBANDA_SIERPINSKI = {'apertura': 85, 'iteracion': 2, 'k_alto': 0.98}
 MULTIBANDA_ALTURAS = ((860e6, 880e6, 50.17), (880e6, 930e6, 49.7))        # (f_min, f_max, altura [mm]) simuladas
 _dimensionar_una_banda = dimensionar
 
+# J-pole recta (08-11, GPU): con el hueco pequeño de antes (1 mm a 2,4 GHz) adapta mal (−7 dB); con un hueco mayor y la toma al 26 %
+# del adaptador sí. Multiplicador del hueco que sale de ESCALABLES (1 mm a 2,4 GHz, escalado con λ), simulado y centrado:
+#   868 MHz: ×5 (14,1 mm) -> S11 −12,9 dB, η 92 %, banda 841–879 MHz;  2,4 GHz: ×6 (6,0 mm) -> −10,9 dB, η 85 %, 2375–2491 MHz.
+# Entre las dos se interpola en log f; fuera de ellas se usa el de la banda más cercana (1,2 GHz da −9,8 dB como mucho y
+# 5,8 GHz no adapta). El largo del radiador sale de la calibración de `calibracion_estimaciones.json` con estos huecos.
+JPOLE_HUECO = ((868e6, 5.0), (2441.75e6, 6.0))
+JPOLE_TOMA = 0.26
+
+
+def _multiplicador_hueco_jpole(f_obj):
+    (f0, k0), (f1, k1) = JPOLE_HUECO
+    if f_obj <= f0:
+        return k0
+    if f_obj >= f1:
+        return k1
+    t = (math.log(f_obj) - math.log(f0))/(math.log(f1) - math.log(f0))
+    return k0 + t*(k1 - k0)
+
 
 def dimensionar(clave, f_obj, parametros=None, nombre_sustrato=None, fijos=()):
     """Ver `_dimensionar_una_banda`. El Sierpinski de dos bandas se ajusta a la banda baja con la apertura y la
@@ -1168,4 +1186,12 @@ def dimensionar(clave, f_obj, parametros=None, nombre_sustrato=None, fijos=()):
         if aviso is not None:
             p['_aviso'] = aviso
         return p
-    return _dimensionar_una_banda(clave, f_obj, parametros, nombre_sustrato, fijos=fijos)
+    p = _dimensionar_una_banda(clave, f_obj, parametros, nombre_sustrato, fijos=fijos)
+    if clave == 'jpole' and int(p.get('escalado', 0)) == 1:
+        # hueco y toma de la J-pole recta calibrados por simulación; lo que el usuario fija (`fijos`) no se toca
+        par = next(q for q in CATALOGO['jpole'].parametros if q.nombre == 'hueco')
+        if 'hueco' not in fijos:
+            p['hueco'] = round(min(max(p['hueco']*_multiplicador_hueco_jpole(f_obj), par.minimo), par.maximo), 2)
+        if 'toma' not in fijos:
+            p['toma'] = JPOLE_TOMA
+    return p
