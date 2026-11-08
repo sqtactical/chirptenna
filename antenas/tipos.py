@@ -485,7 +485,7 @@ CATALOGO = {t.clave: t for t in [
                'alto'),
     TipoAntena('ifa', 'Antena F invertida (J-pole en F)',
                'Monopolo λ/4 plegado en «F»: brazo horizontal paralelo a la masa, alimentado por una toma y '
-               'cortocircuitado a masa con una vía. Compacta y baja. Sin validar.', 'monopolo',
+               'cortocircuitado a masa con una vía. Compacta y baja.', 'monopolo',
                [Parametro('largo_brazo', 'Largo del brazo horizontal [mm]', 20, 3, 200, 0.1),
                 Parametro('altura', 'Altura del brazo sobre la masa [mm]', 7, 1, 50, 0.1),
                 Parametro('separacion_toma', 'Distancia entre el cortocircuito y la toma [mm]', 3.5, 1, 30, 0.1,
@@ -495,7 +495,7 @@ CATALOGO = {t.clave: t for t in [
                precision='±15 % (sin calibrar)'),
     TipoAntena('pifa', 'Antena PIFA (F invertida plana)',
                'Como la F invertida pero con el brazo y el cortocircuito anchos (placas): más banda y menos '
-               'sensible a la masa. Sin validar.', 'monopolo',
+               'sensible a la masa.', 'monopolo',
                [Parametro('largo_brazo', 'Largo del brazo horizontal [mm]', 18, 3, 200, 0.1),
                 Parametro('altura', 'Altura del brazo sobre la masa [mm]', 6, 1, 50, 0.1),
                 Parametro('separacion_toma', 'Distancia entre el cortocircuito y la toma [mm]', 7, 1, 40, 0.1),
@@ -503,8 +503,7 @@ CATALOGO = {t.clave: t for t in [
                 Parametro('ancho_corto', 'Ancho del cortocircuito [mm]', 4, 0.5, 20, 0.05)] + PARAMS_MASA, 'largo_brazo',
                precision='±20 % (sin calibrar)'),
     TipoAntena('dipolo_sleeve', 'Dipolo con manga (sleeve)',
-               'Tira λ/4 arriba y manga λ/4 de masa debajo: un dipolo alimentado con la línea por dentro de la manga. '
-               'Sin validar.', 'monopolo',
+               'Tira λ/4 arriba y manga λ/4 de masa debajo: un dipolo alimentado con la línea por dentro de la manga.', 'monopolo',
                [Parametro('alto', 'Largo de la tira [mm]', 23.6, 3, 200, 0.1),
                 PISTA] + [
                 Parametro('masa', 'Plano de masa', 0, 0, 3, 1, True, opciones=MODOS_MASA,
@@ -534,7 +533,7 @@ CATALOGO = {t.clave: t for t in [
                bandas=[2.4e9, 868e6]),
     TipoAntena('parche_circular', 'Parche de polarización circular (esquinas cortadas)',
                'Parche casi cuadrado con dos esquinas opuestas cortadas y una sola entrada: la polarización sale '
-               'circular (GPS, Iridium). Sin testear ni validar.', 'parche',
+               'circular (GPS, Iridium) en teoría; en simulación no adapta ni da polarización circular.', 'parche',
                [Parametro('largo', 'Lado (largo resonante) [mm]', 28, 3, 200, 0.1),
                 Parametro('ancho', 'Ancho [mm] (igual al lado = cuadrado)', 28, 3, 250, 0.1),
                 Parametro('corte', 'Corte de las esquinas (fracción del lado)', 0.15, 0.03, 0.4, 0.01,
@@ -562,7 +561,7 @@ CATALOGO = {t.clave: t for t in [
                bandas=[2.4e9, 868e6], precision='±8 % (sin calibrar)'),
     TipoAntena('parche_apilado', 'Parche con parásito acoplado (alternativa plana al apilado)',
                'Parche con un segundo parche acoplado por el borde radiante, en la misma cara: más ancho de banda '
-               'que el simple. Un apilado de verdad necesita una segunda placa. Sin validar.', 'parche',
+               'que el simple. Un apilado de verdad necesita una segunda placa. En simulación no adapta.', 'parche',
                [Parametro('largo', 'Largo L (resonante) [mm]', 29, 3, 200, 0.1),
                 Parametro('ancho', 'Ancho W [mm]', 38, 3, 250, 0.1),
                 Parametro('parasito_hueco', 'Hueco entre el parche y el parásito [mm]', 1.0, 0.3, 10, 0.1,
@@ -730,7 +729,7 @@ for _td in [
                'largo_brazo'),
     TipoAntena('vivaldi', 'Vivaldi antipodal',
                'Dos aletas exponenciales, una en cada cara: banda ancha y directiva hacia la boca (~5–7 dBi). '
-               'Grande a 868 MHz. Sin validar.', 'vivaldi',
+               'Grande a 868 MHz.', 'vivaldi',
                [Parametro('ancho_apertura', 'Ancho de la boca [mm]', 48, 8, 400, 0.5),
                 Parametro('largo_aleta', 'Largo de las aletas [mm]', 55, 8, 500, 0.5),
                 Parametro('tasa', 'Tasa de apertura exponencial', 3.0, 1.0, 8.0, 0.1,
@@ -743,7 +742,7 @@ for _td in [
                'Varios dipolos en serie sobre una línea central: cada uno es una «U» en la cara de arriba (vivo) y una '
                '«U» invertida en la de abajo (malla), unidos por tramos de microstrip de λg que los ponen en fase. '
                'Más ganancia omnidireccional que un dipolo; placa larga. El coaxial se suelda en el arranque de la '
-               'línea. Sin validar.', 'colineal',
+               'línea.', 'colineal',
                [Parametro('largo_brazo', 'Largo de cada pata de la U [mm]', 22, 3, 300, 0.1),
                 Parametro('elementos', 'Número de dipolos', 4, 2, 10, 1, True),
                 Parametro('separacion_patas', 'Distancia de las patas de la U al eje [mm]', 7, 2, 40, 0.1),
