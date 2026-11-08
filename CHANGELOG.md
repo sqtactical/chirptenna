@@ -5,6 +5,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ## [Sin publicar]
 
+## [0.3.0-alpha] · 2026-11-08
+
 ### Añadido
 
 - **Campaña de simulaciones en GPU** (06–07-11, 146 barridos en 7 bandas: 868 MHz, 915 ISM, 1,2 GHz, GPS L1, Iridium,
@@ -15,12 +17,34 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 - Monopolo de punta de flecha de Sierpinski (curiosidad; no adapta), Sierpinski de dos bandas (868/915 + 2,4 GHz,
   `multibanda`) y bandas «LoRa 863–928 MHz».
 - Panel de dipolos con o sin reflector; calibraciones de las estimaciones de tamaño con los diseños centrados.
+- **Bibanda 868 MHz + 2,4 GHz** (tanda del 07–08-11, solo simulación y fuera de la interfaz): `herramientas/jpole_dual.py`
+  (dos J-pole unidas por un puente en B.Cu, −11,2 y −10,6 dB; el abanico de radiadores no va y con radiadores de Koch
+  tampoco), `rama_dual.py` (IFA y monopolo con una segunda rama; IFA −11,7 y −10,8 dB), `radiacion_bibanda.py` y
+  `diagrama_bibanda.py` (η, ganancia y diagramas de radiación en cada banda). Informe: `docs/desarrollo/resultados_07-11.md`. Banco de pruebas
+  `topologias.py` (torniquete de dipolos para polarización circular, antena de ranura, IFA de tres bandas), en simulación.
 
 ### Cambiado
 
 - Estados de los tipos según la campaña: IFA, PIFA, dipolo con manga, Vivaldi y colineal de dipolos pasan a
-  «Validada en simulación»; monopolos, dipolo y bowtie, de 868 MHz a 5,8 GHz. La J-pole recta no adapta (usar la de
-  Koch). La Yagi con elementos de Koch sigue sin funcionar: la configuración que adapta (−21 dB) radia hacia atrás.
+  «Validada en simulación»; monopolos, dipolo y bowtie, de 868 MHz a 5,8 GHz. La Yagi con elementos de Koch sigue sin
+  funcionar: la configuración que adapta (−21 dB) radia hacia atrás.
+- Tanda del 07–08-11: la J-pole recta pasa a «Validada» a 868 MHz (−12,9 dB con el hueco ×5), la J-pole de Koch también
+  a 1,2 GHz (−10,6 dB), el parche rectangular a 5,8 GHz con ranura (−10,6 dB) y la Yagi con boom a 5,8 GHz (−10,8 dB con
+  el haz hacia delante). La colineal de dipolos a 2,4 GHz da −12,7 dB con el factor de línea por defecto. El parche
+  circular pasa a «No funciona» (mejor −4,4 dB, razón axial ≥ 6 dB). Más resultados: la IFA y la PIFA a 1,2 GHz, el dipolo a
+  1,2 GHz, el bowtie a 2,4 y 5,8 GHz, el sleeve y el Vivaldi a 5,8 GHz, la colineal de dipolos a 5,8 GHz, la J-pole recta a
+  2,4 GHz, el monopolo con IPEX a 2,4 GHz (con masa manual) y la flecha de Sierpinski con iteración 1 llegan a −10 dB; la Yagi
+  con boom de Koch de iteración 2 funciona a 2,4 GHz con el haz hacia delante (2,6 dBi). El parche con parásito y la COCO pasan a «No funciona». Los recortes de
+  aligerado de la Yagi casi no cambian nada a 868 MHz y 5,8 GHz, pero con el margen por defecto rompen la de 2,4 GHz.
+
+*English: GPU simulation campaign over 7 bands (868 MHz to 5.8 GHz); most antenna types are now validated in
+simulation (J-pole at 868 MHz and 2.4 GHz, Koch J-pole at 868 MHz and 1.2 GHz, IFA and PIFA from 868 MHz to 5.8 GHz,
+Vivaldi, bowtie, sleeve, dipole collinear, Yagi with boom at 868 MHz, 2.4 and 5.8 GHz, slot-fed patch at 5.8 GHz);
+the circular patch, the patch with a parasitic, the COCO and the Hilbert monopole are marked as not working. New
+experimental tools, outside the interface: dual-band 868 MHz + 2.4 GHz antennas (two joined J-poles, IFA with a second
+branch; −11 dB in both bands in simulation), radiation and sensitivity-to-εr tools, and a test bench for new topologies
+(crossed-dipole turnstile, slot antenna, tri-band IFA). Everything is simulation only: no board has been measured yet; the
+first measurements (εr coupons and 2.4 GHz antennas ordered from JLC) are expected soon.*
 
 ## [0.2.0-alpha] · 2026-11-06
 

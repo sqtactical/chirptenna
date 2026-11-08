@@ -8,7 +8,7 @@ README.en.md («Problemas conocidos») y con las lecciones de CLAUDE.md.
 from .i18n import tr
 
 # Tipos validados en simulación también a 868 MHz (el resto solo a 2,4 GHz)
-VALIDADOS_868 = {'monopolo_recto', 'monopolo_meandro', 'monopolo_koch', 'monopolo_sierpinski', 'jpole_koch', 'dipolo', 'dipolo_bowtie',
+VALIDADOS_868 = {'monopolo_recto', 'monopolo_meandro', 'monopolo_koch', 'monopolo_sierpinski', 'jpole', 'jpole_koch', 'dipolo', 'dipolo_bowtie',
                  'yagi_boom', 'colineal_franklin'}
 
 # Estado de cada tipo para el selector y la galería: (estado, comentario breve). Estados: 'validada' (en
@@ -18,28 +18,28 @@ ESTADO = {
     'monopolo_meandro': ('validada', 'Validada en simulación (de 868 MHz a 5,8 GHz)'),
     'monopolo_koch': ('validada', 'Validada en simulación (de 868 MHz a 5,8 GHz)'),
     'monopolo_hilbert': ('no_funciona', 'No funciona sin red en π'),
-    'monopolo_flecha': ('no_funciona', 'No adapta en simulación (mejor −5,3 dB; curiosidad)'),
+    'monopolo_flecha': ('validada', 'Validada en simulación a 2,4 GHz con la iteración 1 (las iteraciones 2 y 3 no adaptan)'),
     'monopolo_sierpinski': ('validada', 'Validada en simulación (de 868 MHz a 5,8 GHz)'),
-    'parche_rectangular': ('validada', 'Validada en simulación (banda estrecha)'),
+    'parche_rectangular': ('validada', 'Validada en simulación (banda estrecha; a 5,8 GHz con ranura)'),
     'parche_minkowski': ('pendiente', 'Pendiente de validación (eficiencia baja en FR4)'),
-    'parche_circular': ('pendiente', 'Sin testear ni validar'),
+    'parche_circular': ('no_funciona', 'No adapta ni da polarización circular en simulación (−4 a −6 dB, razón axial ≥ 6 dB)'),
     'parche_ranura': ('pendiente', 'Sin testear ni validar'),
-    'parche_apilado': ('pendiente', 'Sin testear ni validar'),
+    'parche_apilado': ('no_funciona', 'No adapta en simulación (−0,6 dB, η 7 %)'),
     'ifa': ('validada', 'Validada en simulación (868 MHz, 2,4 y 5,8 GHz)'),
     'pifa': ('validada', 'Validada en simulación (868 MHz, 2,4 y 5,8 GHz)'),
     'dipolo_sleeve': ('validada', 'Validada en simulación (de 868 MHz a 5,8 GHz)'),
     'vivaldi': ('validada', 'Validada en simulación (2,4 y 5,8 GHz)'),
     'colineal_dipolos': ('validada', 'Validada en simulación (2,4 GHz)'),
     'yagi_koch': ('no_funciona', 'No funciona: radia hacia atrás'),
-    'yagi_boom': ('validada', 'Validada en simulación con elementos rectos (2,4 GHz y 868 MHz)'),
+    'yagi_boom': ('validada', 'Validada en simulación con elementos rectos (868 MHz, 2,4 y 5,8 GHz)'),
     'array_parches': ('pendiente', 'Pendiente de validación'),
     'panel_dipolos': ('validada', 'Validada en simulación (2×2 con dipolos o Sierpinski, 2,4 GHz)'),
     'dipolo': ('validada', 'Validada en simulación (recto y Koch; de 868 MHz a 5,8 GHz)'),
     'dipolo_bowtie': ('validada', 'Validada en simulación (bowtie y bowtie de Sierpinski; de 868 MHz a 5,8 GHz)'),
-    'colineal_coco': ('pendiente', 'Pendiente de validación (poca ganancia en FR4; a 868 MHz no sirve)'),
+    'colineal_coco': ('no_funciona', 'No adapta bien ni radia con eficiencia en FR4 (−4 dB, η 24–35 %)'),
     'colineal_franklin': ('pendiente', 'Adapta, pero con poca banda y poca ganancia'),
-    'jpole': ('pendiente', 'Casi adapta (−8 a −9 dB): mejor la de Koch'),
-    'jpole_koch': ('validada', 'Validada en simulación (2,4 GHz y 868 MHz)'),
+    'jpole': ('validada', 'Validada en simulación a 868 MHz y 2,4 GHz (con el hueco ampliado); a 1,2 y 5,8 GHz no llega'),
+    'jpole_koch': ('validada', 'Validada en simulación (868 MHz y 1,2 GHz; 2,4 GHz casi)'),
 }
 ESTADO_TEXTO = {'validada': 'Validada', 'pendiente': 'Pendiente de validación', 'no_funciona': 'No funciona'}
 
@@ -50,32 +50,45 @@ def estado(clave):
 
 # Problemas que no dependen de los parámetros
 FIJOS = {
+    'monopolo_recto': [
+        ('info', 'Con el conector IPEX a 2,4 GHz la masa automática da −6,9 dB; con la masa manual (largo 25 mm, ancho 40 mm) '
+                 'adapta (−14,6 dB, η 95 %).'),
+        ('info', 'Con una placa en vez de una pista (monopolo de placa, sin masa bajo la placa) también adapta a 2,4 GHz: 3 mm de ancho '
+                 '−12,9 dB (η 99 %), 6 mm −10,0 dB con 260 MHz de banda; no mejora a la pista fina.'),
+    ],
+    'dipolo': [
+        ('aviso', 'Con brazos anchos de tipo parche no funciona: de 4 a 12 veces el ancho de pista da de −6,7 a −1,6 dB a 2,4 GHz y '
+                  'de −5,8 a −2,2 dB a 5,8 GHz aun recentrando el largo. Para más banda usa el bowtie.'),
+    ],
     'monopolo_meandro': [
         ('aviso', 'La frecuencia salta varios % con pequeños cambios del alto (ruido de malla con el meandro): '
                   'el ajuste puede necesitar más iteraciones. Con masa pequeña puede no llegar a −10 dB.'),
     ],
     'monopolo_flecha': [
-        ('aviso', 'Sin testear ni validar: no se ha simulado ni medido, y no se conoce ninguna antena publicada con esta curva. '
-                  'Como el Hilbert, es una pista larga y fina (más cara de simular y sensible a la fabricación): el tamaño y la '
-                  'longitud equivalente son una estimación sin calibrar.'),
+        ('aviso', 'Simulada a 2,4 GHz: con la iteración 1 y la pista de 0,79 mm adapta (−15,9 dB, η 93 %, 2,2 dBi); las iteraciones 2 y 3 '
+                  'no (−3 a −7 dB). No se conoce ninguna antena publicada con esta curva. El tamaño y la longitud equivalente son una '
+                  'estimación sin calibrar. Sin medir.'),
     ],
     'monopolo_hilbert': [
         ('grave', 'Resuena, pero sin red en π adapta muy mal (−2,7 dB a 2,4 GHz y −4,6 dB a 868 MHz en simulación). '
-                  'Usar la versión ajustable con red en π. A 868 MHz cada simulación tarda más de 3 h.'),
+                  'Usar la versión ajustable con red en π. A 868 MHz cada simulación tarda más de 3 h. Con orden 2 y pista de 0,2 mm el mejor es −1,4 dB a 2,4 GHz.'),
     ],
     'monopolo_sierpinski': [
         ('info', 'Banda muy ancha: durante el ajuste el centro de banda puede saltar entre dos resonancias.'),
     ],
     'parche_rectangular': [
         ('aviso', 'Banda estrecha en FR4 de 1,6 mm (~36 MHz a 2,4 GHz): no cubre toda la ISM de 83,5 MHz. '
-                  'Eficiencia ~47 % por las pérdidas del FR4.'),
+                  'Eficiencia ~47 % por las pérdidas del FR4. A 5,8 GHz con alimentación por ranura (alimentacion = 1, ranura estimada) '
+                  'adapta en toda la banda (−10,6 dB, η 60 %, 4,7 dBi); a 1,2 GHz no.'),
     ],
     'ifa': [
-        ('info', 'Simulada a 868 MHz, 2,4 y 5,8 GHz (−11 a −17 dB) con la toma y la altura centradas por simulación; '
-                 'a 1,2 GHz no adapta. La toma fija la impedancia: afínala simulando. Sin medir.'),
+        ('info', 'Simulada a 868 MHz, 1,2 GHz, 2,4 y 5,8 GHz (−11 a −17 dB; −14 dB a 1,2 GHz con la altura y la toma ajustadas) con la toma y la altura centradas por simulación. '
+                 'La toma fija la impedancia: afínala simulando. Sin medir.'),
+        ('info', 'Con una segunda rama corta para la banda alta (herramienta herramientas/rama_dual.py, aún no está en la interfaz) '
+                 'cubre 868 MHz y 2,4 GHz a la vez en simulación (−11,7 y −10,8 dB, η 79–82 %). Es estrecha: ajústala simulando.'),
     ],
     'pifa': [
-        ('info', 'Simulada a 868 MHz, 2,4 y 5,8 GHz (−12 a −22 dB, con más banda que la IFA fina) con la toma, la altura y '
+        ('info', 'Simulada a 868 MHz, 1,2 GHz (−13,7 dB), 2,4 y 5,8 GHz (−12 a −22 dB, con más banda que la IFA fina) con la toma, la altura y '
                  'el ancho del brazo centrados por simulación. Sin medir.'),
     ],
     'dipolo_sleeve': [
@@ -83,34 +96,46 @@ FIJOS = {
                   'segundo brazo; el cable puede radiar si la manga es corta (usa una ferrita al medir).'),
     ],
     'vivaldi': [
-        ('aviso', 'Simulada a 2,4 y 5,8 GHz (−18 dB, banda muy ancha), sin medir; la transición de la línea a las aletas '
+        ('aviso', 'Simulada a 2,4 GHz (−18 dB, banda muy ancha) y a 5,8 GHz (−12,3 dB con la aleta de 69 mm y la tasa 4), sin medir; la transición de la línea a las aletas '
                   'puede necesitar ajuste. A 868 MHz la placa sale muy grande y no se ha simulado.'),
     ],
     'colineal_dipolos': [
-        ('aviso', 'Simulada a 2,4 GHz (−16 dB, 4,4 dBi, η 69 %) con las líneas un 10 % más cortas; a 5,8 GHz resuena un 13 % '
-                  'por debajo. Las pérdidas del FR4 en los tramos de microstrip (~0,05 dB/cm a 2,4 GHz) se comen parte de la '
-                  'ganancia: con RO4350B sube a 7 dBi, pero deja de adaptar. La placa es larga. El cable coaxial real, pegado '
-                  'a la placa, no está modelado: en la simulación la alimentación es la línea desde el borde.'),
+        ('aviso', 'Simulada a 2,4 GHz (−12,7 dB, banda 2357–2520 MHz, 4,1 dBi, η 59 %) con el factor de línea por defecto (1,0: '
+                  'acortar las líneas un 10 % empeora, −8,4 dB); a 5,8 GHz −13,8 dB con 4 elementos, factor de línea 1,1 y ancho de brazo ×1,05 (η 50 %, 3,5 dBi; con el factor 1,0, −7,7 dB). Las pérdidas del FR4 en los tramos de '
+                  'microstrip (~0,05 dB/cm a 2,4 GHz) se comen parte de la ganancia: con RO4350B sube a 7 dBi, pero deja de adaptar. '
+                  'La placa es larga. El cable coaxial real, pegado a la placa, no está modelado: en la simulación la alimentación '
+                  'es la línea desde el borde.'),
     ],
     'parche_ranura': [
         ('aviso', 'Sin testear ni validar: no se ha simulado ni medido. La ranura en U ensancha la banda, pero su '
                   'tamaño y posición no están calibrados y desplazan la frecuencia: simula y ajusta.'),
     ],
     'parche_apilado': [
-        ('aviso', 'Sin testear ni validar: no se ha simulado ni medido. Es un parásito acoplado en la misma cara, no un '
-                  'apilado de verdad (que necesitaría una segunda placa). El hueco y el largo del parásito no están calibrados.'),
+        ('aviso', 'Simulado a 2,4 GHz: no adapta (−0,6 dB, η 7 %) con ninguna variante del hueco (0,2 a 0,6 mm) ni del factor (0,94 a 0,98) '
+                  'del parásito. Es un parásito acoplado en la misma cara, no un apilado de verdad (que necesitaría una segunda placa).'),
     ],
     'parche_circular': [
-        ('aviso', 'Sin testear ni validar: no se ha simulado ni medido. Ni el tamaño ni el corte de las esquinas están '
-                  'calibrados, y no se ha comprobado la razón axial ni el sentido de giro (GPS e Iridium son de giro derecho). '
-                  'La polarización circular solo se mantiene en un ancho de banda muy pequeño y el FR4 (εr ±2–3 %) la desajusta fácilmente.'),
+        ('grave', 'Simulado en GPS L1, 2,4 y 5,8 GHz: no llega a −10 dB en la banda (mejor −4,4 dB en RO4350B en GPS L1 y −5,9 dB '
+                  'a 2,4 GHz) y la razón axial no baja de 6 dB (hace falta < 3 dB para polarización circular). Con FR4 la eficiencia '
+                  'es del 4 al 44 %. La diagonal elige el sentido de giro (0: derecho, 1: izquierdo). La alimentación por el borde no '
+                  'da polarización circular en estas pruebas: no usarlo para GPS.'),
     ],
     'parche_minkowski': [
-        ('aviso', 'Eficiencia baja en FR4 (~33 % en la iteración 1, ganancia ~1 dBi) y banda estrecha (~36–41 MHz).'),
+        ('aviso', 'Eficiencia baja en FR4 (~33 % en la iteración 1, ganancia ~1 dBi) y banda estrecha (~36–41 MHz). En RO4350B η 76 % y '
+                  '5,2 dBi, pero la banda es de solo ~19 MHz. A 5,8 GHz −8,5 dB.'),
     ],
     'jpole': [
-        ('aviso', 'La J-pole recta resuena donde toca pero apenas adapta (−8 a −9 dB a 2,4 GHz y 868 MHz en '
-                  'simulación): mover la toma no lo arregla del todo. La J-pole de Koch adapta mejor.'),
+        ('aviso', 'J-pole recta: a 868 MHz adapta (−12,9 dB, η 92 %, banda 841–879 MHz) con el hueco entre brazos ×5 (14 mm). '
+                  'A 2,4 GHz también adapta (−10,9 dB, η 85 %) con el hueco ×6 (6 mm); a 1,2 GHz da como mucho −9,8 dB (hueco ×8) y a 5,8 GHz −6,5 dB: '
+                  'la parte real se queda en ~20 Ω. La J-pole de Koch adapta mejor.'),
+        ('info', 'Con dos J-pole unidas por un puente en la cara inferior (herramienta herramientas/jpole_dual.py, modo union; '
+                 'aún no está en la interfaz) cubre 868 MHz y 2,4 GHz en simulación (−11,2 y −10,6 dB, η 63 % y 87 %), pero es '
+                 'estrecha. Con radiadores de Koch no funciona (−5 dB como mucho).'),
+    ],
+    'jpole_koch': [
+        ('info', 'Simulada a 868 MHz (−17,5 a −19,8 dB), 1,2 GHz (−10,6 dB con la toma 0,37 y el adaptador ×1,13) y 2,4 GHz '
+                 '(−9,2 dB); a 5,8 GHz no adapta (−3 dB). Eficiencia del 89 al 94 %. Sin medir. A 868 MHz el Koch no acorta el '
+                 'radiador: sale más grande que el recto.'),
     ],
     'yagi_koch': [
         ('grave', 'Radia hacia atrás (hacia el reflector) y adapta mal (−3,5 dB) en simulación. Experimental: '
@@ -118,22 +143,28 @@ FIJOS = {
     ],
     'yagi_boom': [
         ('aviso', 'Con alimentación directa, la Yagi solo adapta alejando el reflector (~0,39 λ0), lo que alarga la '
-                  'placa. La versión probada: elementos rectos, 2 directores, 7,2 dBi (2,4 GHz y 868 MHz).'),
+                  'placa. La versión probada: elementos rectos, 2 directores, 7,2 dBi (2,4 GHz y 868 MHz); a 5,8 GHz adapta con el haz '
+                  'hacia delante (−16,4 dB, 5,9 dBi, η 74 %, con el reflector ×1,15).'),
+        ('info', 'Con recortes de aligerado (aligerado = 1): a 868 MHz y a 5,8 GHz casi no cambia (−8,6 dB y −12,0 dB, η 87 % y 72 %; '
+                 'la frecuencia sube un 6–8 %), pero a 2,4 GHz con el margen por defecto la adaptación cae a −2,3 dB y el haz se invierte; '
+                 'con el margen a 6 mm da −6,0 dB, η 75 %, con el haz hacia delante. Simula siempre una Yagi aligerada antes de fabricarla.'),
     ],
     'array_parches': [
         ('aviso', 'Sin terminar de validar: el centro de la banda salta mucho con cambios pequeños y cada iteración '
                   'tarda horas (17 M celdas en el 2×2); con el tamaño por defecto resuena un 16 % por debajo y la '
-                  'eficiencia es ~22 %.'),
+                  'eficiencia es ~22 %. A 5,8 GHz, agrandado ×1,2, llega a −7,7 dB pero con η 12 %.'),
     ],
     'panel_dipolos': [
         ('info', 'El ajuste no itera la frecuencia (el S11 de la red corporativa es ondulado): el tamaño inicial está '
                  'calibrado con simulaciones 2×2 a 2,4 GHz; en otras bandas y en el 4×4, simúlala. Con la malla fina el '
                  'haz sale casi de frente (0–3°): la inclinación de 9° de antes era un artefacto de la malla. En el 2×2 de '
-                 'Sierpinski las iteraciones 1, 2 y 3 dan lo mismo (≈12,6 dBi, mismo largo de brazo).'),
+                 'Sierpinski las iteraciones 1, 2 y 3 dan lo mismo (≈12,6 dBi, mismo largo de brazo). A 2,4 GHz −10,1 dB con el reflector '
+                 'a 0,125–0,163 λ y el brazo ×1,04; a 5,8 GHz −9,8 dB con el reflector a 0,175 λ y el brazo ×0,82. Con recortes de aligerado a 2,4 GHz, −7,8 dB '
+                 '(la frecuencia sube un 3 %).'),
     ],
     'colineal_coco': [
         ('aviso', 'Radia (D 4,7 dBi) pero las pérdidas del FR4 dejan la eficiencia en ~53 % y la ganancia en ~1,9 dBi: '
-                  'no se nota la ganancia de colineal. A 868 MHz sale peor (η 26 %, −2 dBi, S11 −7,8 dB): no la uses ahí.'),
+                  'no se nota la ganancia de colineal. A 868 MHz sale peor (η 26 %, −2 dBi, S11 −7,8 dB): no la uses ahí. Con 2 a 6 secciones, otro ancho exterior y otro hueco, a 2,4 GHz el mejor da −4,1 dB y η 24–35 %.'),
     ],
     'colineal_franklin': [
         ('aviso', 'Adapta (−19 dB a 2,4 GHz, −35 dB a 868 MHz) pero con poca banda (62 y 23 MHz) y solo 2,2–2,8 dBi: '
@@ -148,9 +179,9 @@ def problemas(clave, p=None, f_MHz=None):
     it = int(p.get('iteracion', 0) or 0)
     if clave == 'yagi_boom':
         if it > 0:
-            out.append(('grave', tr('Con elementos de Koch la Yagi sigue sin funcionar en simulación: la configuración que '
-                                 'adapta (−21 dB, iteración 1) radia hacia atrás, y las que radian hacia los directores '
-                                 'adaptan mal (−7 a −9 dB). Usar elementos rectos (iteración 0).')))
+            out.append(('aviso', tr('Con elementos de Koch: la iteración 1 adapta (−21 dB) pero radia hacia atrás; la iteración 2 '
+                                 'a 2,4 GHz sí funciona con el haz hacia delante (−14,4 dB, η 81 %, con el reflector ×1,35 y '
+                                 'el director ×0,76), pero con solo 2,6 dBi. Los elementos rectos dan más ganancia (iteración 0).')))
         alim = int(p.get('alimentacion', 0) or 0)
         if alim == 1:
             out.append(('aviso', tr('Con transformador λ/4: radia hacia delante, pero banda estrecha (~50 MHz) y '

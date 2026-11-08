@@ -75,7 +75,7 @@ archivos modificados después de la última revisión. La marca de esa revisión
 | `placa_sim/` | Importador Gerber → openEMS de una placa entera (`simular_placa.py`) y `comparar_sim.py` |
 | `salidas/` | Exportaciones de la interfaz (`salidas/<nombre>/`); `_pruebas/` son pruebas internas |
 | `referencias/` | Modelos de antenas reales para comparar simulación y medida: `yagi_comercial.py` (Yagi 2,4/5,8 del usuario: dipolo plegado apilado con balun de «U», `python -m referencias.yagi_comercial [dibujar\|simular]` → `salidas/_referencias/`) |
-| `herramientas/` | `comprobar_tipos.py`: **antes de cada release o cambio en un tipo**, genera y exporta los 16 tipos a 868 y 2441,75 MHz (DRC + reglas, ~2 min, código 1 si algo falla; resumen en `salidas/_comprobar_tipos`). `cola.py`: **cola FIFO de simulaciones** en `%LOCALAPPDATA%\antenas\cola` (`pendientes/`, `en_curso/`, `hechos/`, `registros/`): `añadir <nombre> <comando…>`, `ver`, `trabajar [--hilos 6]` (dos trabajadores = dos simulaciones a la vez; cogen por orden de nombre, así que se reordena renombrando; acaban tras 10 min sin trabajo). Usarla en vez de encadenar scripts de espera. `mantener_despierto.ps1`: evita la suspensión mientras haya simulaciones (SetThreadExecutionState; la pantalla sí puede apagarse); se cierra solo tras 10 min sin ellas (las detecta por línea de comandos o por un python con > 30 s de CPU por minuto). Lanzarlo en segundo plano junto a lotes largos |
+| `herramientas/` | `comprobar_tipos.py`: **antes de cada release o cambio en un tipo**, genera y exporta los 16 tipos a 868 y 2441,75 MHz (DRC + reglas, ~2 min, código 1 si algo falla; resumen en `salidas/_comprobar_tipos`). `cola.py`: **cola FIFO de simulaciones** en `%LOCALAPPDATA%\antenas\cola` (`pendientes/`, `en_curso/`, `hechos/`, `registros/`): `añadir <nombre> <comando…>`, `ver`, `trabajar [--hilos 6]` (dos trabajadores = dos simulaciones a la vez; cogen por orden de nombre, así que se reordena renombrando; acaban tras 10 min sin trabajo). Usarla en vez de encadenar scripts de espera. `mantener_despierto.ps1`: evita la suspensión mientras haya simulaciones (SetThreadExecutionState; la pantalla sí puede apagarse); se cierra solo tras 10 min sin ellas (las detecta por línea de comandos o por un python con > 30 s de CPU por minuto). Lanzarlo en segundo plano junto a lotes largos. **Barridos** (`barrido.py`, `campana.py`, `cola_extra.py`, `resumen_barridos.py`, `doble_banda.py`) y **bibanda experimental** (`jpole_dual.py`, `rama_dual.py`, `radiacion_bibanda.py`, `diagrama_bibanda.py`; ver lecciones 56–57 y 64–66) |
 | `placas/` | Gerber + taladros + `FlyingProbeTesting.json` (EasyEDA/JLC) de 6 placas: Scho_Ka_mesh_v1.0, Scout_2.4_V1.3, Stick_18650_2.4G_v1.0, Stick_21700_v1.1, Stick_Touch_raw_v1.0 y Tracker_21700_v1.0. **Son datos de entrada: no modificarlos** |
 
 ### `vna/`
@@ -397,3 +397,51 @@ archivos modificados después de la última revisión. La marca de esa revisión
 63. **Panel**: el largo del brazo apenas mueve la resonancia (+4 % de largo baja solo ~1 %; a 5,8 GHz el 2×2 resuena a 4800 MHz con el
     tamaño por defecto, −17 %): el factor de malla `K_MALLA_FINA_PANEL` no vale igual en todas las bandas. Pendiente
     calibrarlo por banda.
+64. **Bibanda 868 MHz + 2,4 GHz (07–08-11, solo simulación, fuera de la interfaz)**: tres herramientas que simulan en banda ancha
+    (0,45–3,8 × f_baja) y miden el peor S11 en cada banda: `doble_banda.py` (cualquier tipo; **no** tiene `--solo-lista`: no se
+    lanza para validar), `jpole_dual.py` y `rama_dual.py` (sí la tienen). Funcionan: **dos J-pole unidas** (`jpole_dual.py --modo
+    union`: brazo corto y barra compartidos, brazos largos unidos por una tira en B.Cu con vías; `k2` 1, `sep2` 3, `a2` 0,9,
+    `toma2` 0,25, `factor_adaptador` 0,95: −11,2 y −10,6 dB, η 63/87 %) e **IFA con segunda rama** (`rama_dual.py ifa x_largo_brazo=1.17
+    k2=1 h2=0.6`: −11,7 y −10,8 dB, η 79/82 %). Son estrechas (los vecinos del punto caen a −8 dB). No funcionan: la J-pole en
+    abanico (un adaptador, dos radiadores; −2,9 dB) y la J-pole unida con radiadores de Koch (−0,8 a −5 dB en ~40 simulaciones: a
+    868 MHz el Koch no acorta, 152 mm frente a 144 mm recto, y cada ajuste que sube una banda baja la otra). El Sierpinski
+    bibanda del dipolo llega a −8,5/−9,5 dB. `radiacion_bibanda.py` y `diagrama_bibanda.py` dan η, ganancia y diagramas en cada
+    banda (los cuatro mejores irradian bien, η 63–89 %; la J-pole unida a 2,4 GHz tiene varios lóbulos porque la placa mide 1,7 λ).
+65. **Errores de método de la tanda del 07–08-11**: (a) las distancias entre pistas de una variante deben superar el ancho de
+    pista del tipo a esa frecuencia (a 868 MHz `ancho_pista` es 2,81 mm: un `sep2` de 3 mm dejó 0,19 mm de hueco, malla de
+    0,07 mm y 78 min sin acabar una simulación); (b) matar una simulación a mano deja el `openEMS.exe` huérfano y el
+    bloqueo `%LOCALAPPDATA%\antenas\gpu.lock` apuntando a un proceso muerto, y la cola espera para siempre; (c) con `--koch` el
+    adaptador de la segunda J-pole se escalaba con el de la curva de Koch (un 35 % más largo): las referencias de una variante
+    salen siempre del diseño recto de la misma frecuencia; (d) con `--centrar` el tamaño base cambia de un barrido a otro, así
+    que el mismo punto puede dar −5,7 y −8,2 dB en dos barridos: comparar dentro de un mismo barrido; (e) `mantener_despierto.ps1`
+    se para solo con frecuencia: relanzarlo con cada revisión de la cola.
+66. **Resultados de una sola banda de la tanda** (en `docs/desarrollo/resultados_07-11.md`): llegan a −10 dB la J-pole recta a 868 MHz
+    (hueco ×5 = 14 mm, `toma` 0,26: −12,9 dB, η 92 %), la J-pole de Koch a 1,2 GHz (`toma` 0,37, `factor_adaptador` 1,13–1,16:
+    −10,6 dB), el parche rectangular con ranura a 5,8 GHz (−10,6 dB en toda la banda, η 60 %), la colineal de dipolos a 2,4 GHz
+    (factor de línea 1,0: −12,7 dB; **0,9 empeora**, ya no hace falta) y la Yagi con boom a 5,8 GHz (−10,8 dB con el haz hacia delante;
+    la mejor por S11, −17,7 dB, radiaba hacia atrás). No van: el parche circular (GPS L1 y 2,4 GHz: ≥ −5,9 dB, razón axial ≥ 6 dB;
+    la alimentación por el borde no da polarización circular y el generador no varía la posición de la entrada), la J-pole recta
+    a 5,8 GHz (la parte real se queda en ~20 Ω) y el parche en ranura en U.
+67. **Más resultados de la misma tanda (08-11, GPU)**: llegan a −10 dB la IFA a 1,2 GHz (`separacion_toma` 6,7, `altura` 12,1,
+    `ancho_pista` 1,9: −14,0 dB), la PIFA a 1,2 GHz centrada (−13,7 dB), el dipolo a 1,2 GHz (`largo_brazo` 43,5, `ancho_pista` 2,9:
+    −14,4 dB), el bowtie (apertura 55°: −13,0 dB a 2,4 GHz y −11,6 dB a 5,8 GHz), el sleeve a 5,8 GHz (−17,9 dB, `alto` 8,5,
+    `largo_masa` 10, `ancho_placa` 13), el Vivaldi a 5,8 GHz (**la aleta, no la apertura, mueve la resonancia**: `largo_aleta` 68,6 mm,
+    `tasa` 4: −12,3 dB), la colineal de dipolos a 5,8 GHz (4 elementos, `factor_linea` 1,1, `ancho_brazo` ×1,05: −13,8 dB, η 50 %), la
+    J-pole recta a 2,4 GHz (`hueco` 6 mm: −10,9 dB), el monopolo con **IPEX** a 2,4 GHz (**masa manual** `largo_masa` 25 / `ancho_placa`
+    40: −14,6 dB; con la masa automática −6,9), el panel a 2,4 GHz (reflector a 0,125–0,163 λ: −10,1 dB) y la Yagi con boom a 5,8 GHz
+    (`factor_reflector` 1,15: −16,4 dB, haz hacia delante). **La flecha de Sierpinski adapta con iteración 1** (−15,9 dB, η 93 %): lo que
+    fallaba era la iteración 3. **La Yagi con boom de Koch de iteración 2 funciona a 2,4 GHz** con el haz hacia delante (−14,4 dB, η 81 %,
+    `factor_reflector` 1,35, `factor_director` 0,76) aunque con 2,6 dBi. No van: Hilbert (−1,4 dB, pista de 0,2 mm), Minkowski en FR4
+    (η 29 %), array de parches a 5,8 GHz (η 12 %), Franklin a 5,8 y 2,4 GHz, parche rectangular a 1,2 GHz (el centrado tardó 89 min).
+    Los barridos con `--centrar` no son comparables entre sí (lección 65 d).
+68. **Aligerado, plano de tierra y topologías nuevas (08-11)**: (a) los recortes de aligerado de la Yagi con boom casi no cambian nada a
+    868 MHz (−8,6 dB en los dos casos, η 87 %) ni a 5,8 GHz (−12,0 frente a −13,3 dB), pero a 2,4 GHz con el margen por defecto bajan
+    de −12,8 a −2,3 dB, suben la frecuencia un 7 % e invierten el haz (φ 270°): con `margen_aligerado` 6 mm da −6,0 dB con el haz
+    delante; el panel aligerado a 2,4 GHz da −7,8 dB (sin recortes −10,1). Simular siempre antes de fabricar. (b) **Sin plano de
+    tierra**: un parche de verdad no existe (la cavidad la forma la masa); una placa rectangular sin masa debajo es un monopolo de
+    placa y a 2,4 GHz funciona (3 mm −12,9 dB η 99 %; 6 mm −10,0 dB con 260 MHz de banda) sin mejorar a la pista fina; el dipolo con
+    brazos anchos tipo parche NO funciona ni recentrado (−6,7 a −1,6 dB): el bowtie es la forma buena. (c) Parche con parásito
+    (−0,6 dB, η 7 %) y COCO (−4,1 dB, η 24–35 %) no van. (d) `herramientas/topologias.py` es un banco de pruebas con tres generadores
+    (torniquete de dipolos cruzados para GPS L1 con un puerto vertical pasante y largos distintos para el desfase de 90°, ranura de
+    λ/2 en la masa alimentada por microstrip, IFA de tres bandas): el puerto `pasante` necesita también las claves `borde` y
+    `direccion` (sin ellas `simular` lanza `KeyError: 'borde'`); la ranura de largo λ0/(2√((εr+1)/2)) resuena un ~20 % alta.

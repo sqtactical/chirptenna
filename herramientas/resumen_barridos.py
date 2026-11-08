@@ -22,6 +22,8 @@ def main():
     for ruta in sorted(glob.glob(os.path.join(RAIZ, 'salidas', '_barridos', '*', 'resumen.json'))):
         nombre = os.path.basename(os.path.dirname(ruta))
         r = json.load(open(ruta, encoding='utf-8'))
+        if 'filas' not in r:                          # DIAG_*/RAD_*: no son barridos
+            continue
         def radiacion(f):
             return f.get('radiacion') or next((m.get('radiacion') for m in r.get('mejores', []) if m['cambios'] == f['cambios']), None) or {}
 

@@ -1,4 +1,4 @@
-# Barridos en GPU: qué va y qué no (07-11-2026)
+# Barridos en GPU: qué va y qué no (08-11-2026)
 
 Generado por `python herramientas/resumen_barridos.py` a partir de `salidas/_barridos/*/resumen.json`.
 Solo simulación (openEMS en GPU, FR4 de 1,6 mm con εr 4,5): sin medir ninguna placa. La ganancia y la eficiencia en GPU salen algo altas. En las Yagi se prefiere la mejor configuración cuyo haz sale hacia los directores («haz atrás» = solo adapta radiando al revés). «Peor S11» es el peor valor en toda la banda de uso; va ≤ −10 dB, justo hasta −6 dB. Etiquetas: `A_` = tamaño base de `dimensionar`; `B_` = barrido de parámetros; sin prefijo = campaña de los tipos nuevos.
@@ -6,20 +6,30 @@ Solo simulación (openEMS en GPU, FR4 de 1,6 mm con εr 4,5): sin medir ninguna 
 | Tipo | f (MHz) | Barrido | Configs | Peor S11 (dB) | Veredicto | f res. (MHz) | Banda −10 dB | G (dBi) | η (%) | Mejor |
 |---|---|---|---|---|---|---|---|---|---|---|
 | array_parches | 5800 | A_array_parches_58GHz | 1 | -4.8 | **no va** | 7147.0 | [7057, 7238] | 5.46 | 41.6 | `{}` |
+| array_parches | 5800 | R_array_parches_58GHz | 4 | -7.7 | **justo** | 5627.6 | [5564, 5692] | -0.08 | 11.6 | `{"largo": 14.512, "ancho": 18.696}` |
+| array_parches | 5800 | Y_array_parches_58GHz | 1 | -4.8 | **no va** | 7147.0 | [7057, 7238] | 5.46 | 41.6 | `{}` |
 | colineal_coco | 2441.75 | A_colineal_coco_24GHz | 1 | -2.2 | **no va** | 2604.1 | [2557, 2652] | 1.4 | 45.0 | `{}` |
 | colineal_coco | 5800 | A_colineal_coco_58GHz | 1 | -1.7 | **no va** | 6902.6 | [6771, 7037] | 0.35 | 44.5 | `{}` |
 | colineal_dipolos | 2441.75 | C_colineal_dipolos_24GHz | 5 | -10.8 | **va** | 2207.5 | [1934, 2520] | 2.64 | 56.4 | `{"factor_linea": 1.1, "elementos": 4}` |
 | colineal_dipolos | 2441.75 | X_colineal_dipolos_FR4_24GHz | 2 | -10.9 | **va** | 2217.1 | [1861, 2642] | 3.6 | 42.0 | `{"elementos": 6}` |
 | colineal_dipolos | 2441.75 | X_colineal_dipolos_RO4350B_24GHz | 2 | -6.3 | **justo** | 1963.0 | [1903, 2025] | 7.16 | 87.3 | `{"elementos": 6}` |
+| colineal_dipolos | 2441.75 | Y_colineal_factor_24GHz | 2 | -12.7 | **va** | 2437.1 | [2357, 2520] | 4.07 | 59.1 | `{"elementos": 4, "factor_linea": 1.0}` |
 | colineal_dipolos | 2441.75 | colineal_dipolos_2g4 | 9 | -15.9 | **va** | 2455.8 | [2266, 2662] | 4.41 | 68.6 | `{"factor_linea": 0.9, "largo_brazo": 22.0}` |
 | colineal_dipolos | 5800 | A_colineal_dipolos_58GHz | 1 | -8.7 | **justo** | 5029.9 | [4949, 5112] | 1.75 | 37.0 | `{}` |
+| colineal_dipolos | 5800 | R_colineal_dipolos_58GHz | 6 | -13.8 | **va** | 5760.1 | [5448, 6090] | 3.48 | 49.7 | `{"elementos": 4, "factor_linea": 1.1, "ancho_brazo": 1.05}` |
+| colineal_dipolos | 5800 | Y_colineal_dipolos_58GHz | 1 | -7.7 | **justo** | 5616.0 | None | 1.38 | 35.0 | `{}` |
 | colineal_franklin | 2441.75 | A_colineal_franklin_24GHz | 1 | -6.9 | **justo** | 2790.4 | [2738, 2844] | 2.34 | 80.6 | `{}` |
 | colineal_franklin | 2441.75 | C_colineal_franklin_24GHz | 6 | -7.7 | **justo** | 2442.5 | [2425, 2460] | 3.19 | 81.9 | `{"factor_horquilla": 1.0, "elementos": 1}` |
+| colineal_franklin | 2441.75 | V_franklin_elementos_24GHz | 3 | -7.8 | **justo** | 2693.5 | [2640, 2748] | 2.77 | 77.3 | `{"elementos": 2, "factor_horquilla": 1.0}` |
+| colineal_franklin | 2441.75 | Z_franklin_24GHz | 4 | -5.4 | **no va** | 2398.3 | [2359, 2438] | 2.12 | 75.1 | `{"factor_horquilla": 1.1, "hueco_horquilla": 1.0}` |
 | colineal_franklin | 5800 | A_colineal_franklin_58GHz | 1 | -2.5 | **no va** | 5242.4 | [5154, 5332] | 1.86 | 56.9 | `{}` |
+| colineal_franklin | 5800 | Y_colineal_franklin_58GHz | 1 | -1.7 | **no va** | 6307.1 | [6175, 6442] | 1.47 | 50.9 | `{}` |
 | dipolo | 866.5 | C_dipolo_868 | 1 | -14.1 | **va** | 861.9 | [824, 901] | 2.17 | 97.5 | `{}` |
 | dipolo | 915 | C_dipolo_915ISM | 1 | -14.0 | **va** | 911.6 | [872, 953] | 2.03 | 95.5 | `{}` |
 | dipolo | 1270 | A_dipolo_12GHz | 1 | -9.0 | **justo** | 1225.8 | [1168, 1287] | 2.1 | 96.2 | `{}` |
 | dipolo | 1270 | C_dipolo_12GHz | 1 | -7.1 | **justo** | 1199.6 | [1143, 1259] | 2.1 | 95.6 | `{}` |
+| dipolo | 1270 | R_dipolo_12GHz | 6 | -14.4 | **va** | 1271.4 | [1210, 1336] | 2.14 | 97.0 | `{"largo_brazo": 43.459, "ancho_pista": 2.88}` |
+| dipolo | 1270 | Y_dipolo_12GHz | 1 | -7.9 | **justo** | 1214.5 | [1159, 1273] | 2.09 | 96.0 | `{}` |
 | dipolo | 1575.42 | C_dipolo_GPSL1 | 1 | -12.5 | **va** | 1539.3 | [1463, 1620] | 2.42 | 98.5 | `{}` |
 | dipolo | 1621.25 | C_dipolo_Iridium | 1 | -14.2 | **va** | 1599.1 | [1517, 1685] | 3.01 | 104.9 | `{}` |
 | dipolo | 2441.75 | A_dipolo_24GHz | 1 | -11.7 | **va** | 2558.8 | [2370, 2762] | 2.48 | 97.9 | `{}` |
@@ -36,8 +46,10 @@ Solo simulación (openEMS en GPU, FR4 de 1,6 mm con εr 4,5): sin medir ninguna 
 | dipolo_bowtie | 2441.75 | A_dipolo_bowtie_24GHz | 1 | -18.3 | **va** | 2591.8 | [2185, 3075] | 2.47 | 98.7 | `{}` |
 | dipolo_bowtie | 2441.75 | C_dipolo_bowtie_24GHz | 5 | -22.5 | **va** | 2593.8 | [2222, 3028] | 2.1 | 96.0 | `{"apertura": 55.0, "forma": 1}` |
 | dipolo_bowtie | 2441.75 | F_dipolo_flecha_24GHz | 3 | -3.3 | **no va** | 2494.0 | None | 0.82 | 69.8 | `{"forma": 3, "alimentacion": 0, "iteracion_s": 3}` |
+| dipolo_bowtie | 2441.75 | Z_bowtie_24GHz | 4 | -13.0 | **va** | 2357.8 | [2102, 2645] | 2.5 | 98.4 | `{"apertura": 55.0, "ancho_pista": 1.5}` |
 | dipolo_bowtie | 5800 | A_dipolo_bowtie_58GHz | 1 | -8.3 | **justo** | 7153.9 | [6303, 8120] | 2.7 | 90.2 | `{}` |
 | dipolo_bowtie | 5800 | C_dipolo_bowtie_58GHz | 1 | -7.6 | **justo** | 6211.9 | [5877, 6566] | 3.07 | 83.3 | `{}` |
+| dipolo_bowtie | 5800 | Z_bowtie_58GHz | 4 | -11.6 | **va** | 5786.9 | [4806, 6968] | 3.01 | 87.8 | `{"apertura": 55.0, "ancho_pista": 0.63}` |
 | dipolo_sleeve | 866.5 | C_dipolo_sleeve_868 | 5 | -18.4 | **va** | 867.7 | [811, 928] | 2.3 | 96.6 | `{"largo_masa": 67.63, "ancho_pista": 2.82}` |
 | dipolo_sleeve | 915 | C_dipolo_sleeve_915ISM | 1 | -16.9 | **va** | 920.0 | [861, 983] | 2.01 | 94.1 | `{}` |
 | dipolo_sleeve | 1270 | A_dipolo_sleeve_12GHz | 1 | -14.4 | **va** | 1264.2 | [1183, 1351] | 2.68 | 99.2 | `{}` |
@@ -48,26 +60,53 @@ Solo simulación (openEMS en GPU, FR4 de 1,6 mm con εr 4,5): sin medir ninguna 
 | dipolo_sleeve | 2441.75 | sleeve_2g4 | 9 | -17.1 | **va** | 2441.1 | [2294, 2598] | 2.78 | 99.0 | `{"alto": 23.6, "largo_masa": 20.0}` |
 | dipolo_sleeve | 5800 | A_dipolo_sleeve_58GHz | 1 | -6.2 | **justo** | 5113.8 | [4783, 5467] | 3.08 | 91.0 | `{}` |
 | dipolo_sleeve | 5800 | C_dipolo_sleeve_58GHz | 5 | -13.1 | **va** | 5652.0 | [5286, 6044] | 3.07 | 91.8 | `{"largo_masa": 10.1, "ancho_pista": 0.252}` |
+| dipolo_sleeve | 5800 | Z_sleeve_58GHz | 4 | -17.9 | **va** | 5902.1 | [5398, 6453] | 2.84 | 89.5 | `{"alto": 8.48, "largo_masa": 10.1, "ancho_placa": 13.0}` |
 | ifa | 866.5 | C_ifa_868 | 8 | -17.0 | **va** | 864.9 | [837, 894] | 2.02 | 91.0 | `{"separacion_toma": 15.776, "altura": 13.811, "ancho_pista": 1.692}` |
 | ifa | 1270 | A_ifa_12GHz | 1 | -2.0 | **no va** | 1215.2 | None | -0.07 | 62.8 | `{}` |
+| ifa | 1270 | R_ifa_12GHz | 7 | -14.0 | **va** | 1273.2 | [1223, 1326] | 2.02 | 91.0 | `{"separacion_toma": 6.73, "altura": 12.114, "ancho_pista": 1.92}` |
+| ifa | 1270 | Y_ifa_12GHz | 1 | -9.7 | **justo** | 1244.9 | [1195, 1296] | 2.27 | 93.4 | `{}` |
 | ifa | 2441.75 | C_ifa_24GHz | 7 | -11.3 | **va** | 2391.3 | [2285, 2502] | 2.24 | 90.4 | `{"separacion_toma": 3.5, "altura": 7.0, "ancho_pista": 1.0}` |
+| ifa | 2441.75 | Z_ifa_24GHz | 6 | -15.1 | **va** | 2429.6 | [2325, 2539] | 2.2 | 89.9 | `{"altura": 7.0, "separacion_toma": 3.5, "ancho_pista": 1.0}` |
 | ifa | 2441.75 | ifa_2g4 | 9 | -8.2 | **justo** | 2392.7 | [2359, 2427] | 2.12 | 88.5 | `{"separacion_toma": 3.5, "largo_brazo": 20.0}` |
 | ifa | 5800 | A_ifa_58GHz | 1 | -4.3 | **no va** | 6167.3 | None | 3.79 | 86.0 | `{}` |
 | ifa | 5800 | C_ifa_58GHz | 7 | -11.0 | **va** | 5761.8 | [5479, 6059] | 2.58 | 86.3 | `{"separacion_toma": 1.47, "altura": 2.95, "ancho_pista": 0.42}` |
+| jpole | 866.5 | R_jpole2_868 | 6 | -12.9 | **va** | 859.7 | [841, 879] | 3.42 | 92.5 | `{"toma": 0.26, "hueco": 14.1, "factor_adaptador": 1.0}` |
+| jpole | 866.5 | S_jpole_868 | 6 | -7.1 | **justo** | 896.5 | None | 2.82 | 87.9 | `{"hueco": 8.46, "toma": 0.26, "factor_adaptador": 1.0}` |
 | jpole | 1270 | A_jpole_12GHz | 1 | -4.0 | **no va** | 1333.6 | None | 2.07 | 82.0 | `{}` |
+| jpole | 1270 | R_jpole_hueco_12GHz | 4 | -3.9 | **no va** | 1230.4 | [1205, 1256] | 3.04 | 88.8 | `{"toma": 0.26, "hueco": 19.2, "factor_adaptador": 1.0}` |
+| jpole | 1270 | Y_jpole_separada_12GHz | 6 | -6.9 | **justo** | 1284.3 | [1269, 1300] | 2.64 | 86.6 | `{"hueco": 7.68, "toma": 0.26}` |
+| jpole | 1270 | Z_jpole_hueco_12GHz | 5 | -9.8 | **justo** | 1270.5 | [1241, 1300] | 2.73 | 88.8 | `{"hueco": 15.36, "toma": 0.26}` |
 | jpole | 2441.75 | A_jpole_24GHz | 1 | -1.5 | **no va** | 2390.5 | None | 1.57 | 72.9 | `{}` |
 | jpole | 2441.75 | C_jpole_24GHz | 3 | -2.8 | **no va** | 2546.0 | None | 1.58 | 74.0 | `{"toma": 0.26, "hueco": 1.0}` |
+| jpole | 2441.75 | Y_jpole_separada_24GHz | 9 | -7.4 | **justo** | 2483.1 | [2456, 2510] | 2.35 | 85.4 | `{"hueco": 4.0, "toma": 0.26, "factor_adaptador": 1.0}` |
+| jpole | 2441.75 | Z_jpole_hueco_24GHz | 5 | -10.9 | **va** | 2432.1 | [2375, 2491] | 2.38 | 85.3 | `{"hueco": 6.0, "toma": 0.26}` |
 | jpole | 5800 | A_jpole_58GHz | 1 | -0.9 | **no va** | 5397.4 | None | 2.22 | 70.9 | `{}` |
+| jpole | 5800 | R_jpole2_58GHz | 6 | -5.7 | **no va** | 5859.8 | None | 1.86 | 78.5 | `{"hueco": 1.26, "toma": 0.26, "factor_adaptador": 1.1}` |
+| jpole | 5800 | R_jpole3_58GHz | 6 | -6.5 | **justo** | 6019.8 | None | 1.86 | 78.5 | `{"hueco": 1.26, "toma": 0.32, "factor_adaptador": 1.08}` |
+| jpole | 5800 | R_jpole_58GHz | 4 | -8.2 | **justo** | 6018.2 | None | 1.93 | 80.8 | `{"hueco": 1.26, "factor_adaptador": 1.1, "toma": 0.26}` |
+| jpole | 5800 | S_jpole_58GHz | 8 | -5.3 | **no va** | 6069.9 | None | 2.0 | 76.3 | `{"hueco": 1.26, "toma": 0.35, "factor_adaptador": 0.99}` |
 | jpole_koch | 866.5 | C_jpole_koch_868 | 5 | -19.8 | **va** | 869.4 | [847, 892] | 2.96 | 94.4 | `{"toma": 0.268, "hueco": 4.512}` |
+| jpole_koch | 866.5 | W_jpole_koch_hueco_868 | 4 | -17.5 | **va** | 860.7 | [838, 884] | 2.88 | 93.9 | `{"toma": 0.294, "hueco": 2.82}` |
 | jpole_koch | 1270 | A_jpole_koch_12GHz | 1 | -0.8 | **no va** | 1483.7 | [1472, 1496] | 2.41 | 70.2 | `{}` |
+| jpole_koch | 1270 | R_jpole_koch2_12GHz | 4 | -9.9 | **justo** | 1261.4 | [1225, 1299] | 2.78 | 93.1 | `{"toma": 0.365}` |
+| jpole_koch | 1270 | R_jpole_koch3_12GHz | 3 | -9.9 | **justo** | 1261.9 | [1226, 1299] | 2.8 | 93.5 | `{"toma": 0.369, "factor_adaptador": 1.13}` |
+| jpole_koch | 1270 | R_jpole_koch4_12GHz | 4 | -10.6 | **va** | 1273.3 | [1237, 1311] | 2.62 | 92.5 | `{"toma": 0.369, "factor_adaptador": 1.13}` |
+| jpole_koch | 1270 | R_jpole_koch_12GHz | 5 | -9.9 | **justo** | 1261.4 | [1225, 1299] | 2.78 | 93.1 | `{"hueco": 1.92, "toma": 0.365}` |
+| jpole_koch | 1270 | W_jpole_koch_hueco_12GHz | 5 | -9.4 | **justo** | 1258.9 | [1223, 1296] | 2.82 | 93.9 | `{"hueco": 1.92, "toma": 0.348}` |
+| jpole_koch | 1270 | Y_jpole_koch_12GHz | 1 | -9.4 | **justo** | 1258.9 | [1223, 1296] | 2.82 | 93.9 | `{}` |
 | jpole_koch | 2441.75 | A_jpole_koch_24GHz | 1 | -3.0 | **no va** | 2510.0 | [2486, 2535] | 3.01 | 92.6 | `{}` |
 | jpole_koch | 2441.75 | C_jpole_koch_24GHz | 5 | -9.2 | **justo** | 2455.9 | [2406, 2507] | 2.71 | 89.3 | `{"toma": 0.26, "hueco": 1.0}` |
+| jpole_koch | 2441.75 | Z_jpole_koch_24GHz | 4 | -8.1 | **justo** | 2467.2 | [2414, 2522] | 2.5 | 87.8 | `{"hueco": 1.0, "toma": 0.26}` |
 | jpole_koch | 5800 | A_jpole_koch_58GHz | 1 | -1.0 | **no va** | 4391.4 | None | 1.65 | 79.1 | `{}` |
+| jpole_koch | 5800 | W_jpole_koch_hueco_58GHz | 5 | -3.0 | **no va** | 7190.7 | [6979, 7409] | 0.18 | 53.5 | `{"hueco": 1.26, "toma": 0.35}` |
 | jpole_koch | 5800 | Y_jpole_koch_58GHz | 1 | -1.8 | **no va** | 6793.3 | [6616, 6975] | -0.22 | 45.9 | `{}` |
 | monopolo_flecha | 2441.75 | C_monopolo_flecha_24GHz | 6 | -6.8 | **justo** | 2388.6 | None | 1.29 | 81.8 | `{"iteracion": 2, "ancho_pista": 0.265}` |
 | monopolo_flecha | 2441.75 | H_flecha_armonicos_24GHz | 5 | -5.3 | **no va** | 1559.1 | [1483, 1639] | 2.7 | 69.8 | `{"alto": 38.82}` |
+| monopolo_flecha | 2441.75 | V_flecha_iter_24GHz | 3 | -15.9 | **va** | 2456.8 | [2326, 2595] | 2.16 | 93.3 | `{"iteracion": 1, "ancho_pista": 0.786}` |
+| monopolo_flecha | 2441.75 | Z_flecha_24GHz | 3 | -2.8 | **no va** | 2591.6 | None | 1.95 | 88.5 | `{"iteracion": 2, "ancho_pista": 0.356}` |
 | monopolo_hilbert | 2441.75 | A_monopolo_hilbert_24GHz | 1 | -2.1 | **no va** | 2271.6 | None | -1.36 | 45.9 | `{}` |
 | monopolo_hilbert | 2441.75 | H_hilbert_armonicos_24GHz | 3 | -2.8 | **no va** | 3088.8 | [2989, 3192] | 1.79 | 70.1 | `{"lado": 10.36}` |
+| monopolo_hilbert | 2441.75 | U_hilbert_24GHz | 5 | -1.4 | **no va** | 2526.4 | None | -0.64 | 51.3 | `{"orden": 2, "ancho_pista": 0.215, "largo_masa": 40.0}` |
 | monopolo_koch | 866.5 | C_monopolo_koch_868 | 1 | -22.7 | **va** | 869.9 | [820, 923] | 2.54 | 99.8 | `{}` |
 | monopolo_koch | 915 | C_monopolo_koch_915ISM | 1 | -19.7 | **va** | 917.4 | [865, 973] | 2.62 | 100.4 | `{}` |
 | monopolo_koch | 1270 | A_monopolo_koch_12GHz | 1 | -11.6 | **va** | 1307.6 | [1228, 1393] | 2.58 | 99.1 | `{}` |
@@ -96,6 +135,8 @@ Solo simulación (openEMS en GPU, FR4 de 1,6 mm con εr 4,5): sin medir ninguna 
 | monopolo_recto | 1621.25 | C_monopolo_recto_Iridium | 1 | -11.5 | **va** | 1574.0 | [1500, 1652] | 3.51 | 107.9 | `{}` |
 | monopolo_recto | 2441.75 | A_monopolo_recto_24GHz | 1 | -9.4 | **justo** | 2318.6 | [2181, 2465] | 2.95 | 98.5 | `{}` |
 | monopolo_recto | 2441.75 | C_monopolo_recto_24GHz | 3 | -15.1 | **va** | 2433.8 | [2287, 2590] | 2.82 | 98.3 | `{"ancho_pista": 1.0}` |
+| monopolo_recto | 2441.75 | R_monopolo_IPEX_masa_24GHz | 4 | -14.6 | **va** | 2392.3 | [2206, 2595] | 2.74 | 95.0 | `{"conector": 1, "masa": 0, "largo_masa": 25.0, "ancho_placa": 40.0}` |
+| monopolo_recto | 2441.75 | Y_monopolo_IPEX_24GHz | 2 | -6.9 | **justo** | 2432.0 | None | 2.58 | 96.2 | `{"conector": 1, "ancho_pista": 1.5}` |
 | monopolo_recto | 2441.75 | prueba_herramienta | 3 | -12.5 | **va** | 2508.4 | [2355, 2671] | 2.83 | 98.6 | `{"alto": 22.0}` |
 | monopolo_recto | 5800 | A_monopolo_recto_58GHz | 1 | -7.7 | **justo** | 5038.7 | [4601, 5518] | 3.27 | 90.5 | `{}` |
 | monopolo_recto | 5800 | C_monopolo_recto_58GHz | 1 | -14.1 | **va** | 5730.8 | [5077, 6469] | 3.5 | 92.0 | `{}` |
@@ -113,30 +154,54 @@ Solo simulación (openEMS en GPU, FR4 de 1,6 mm con εr 4,5): sin medir ninguna 
 | panel_dipolos | 2441.75 | C_panel_dipolos_24GHz | 3 | -7.6 | **justo** | 2594.6 | [2499, 2694] | 12.41 | 73.0 | `{"separacion_reflector": 0.224}` |
 | panel_dipolos | 2441.75 | X_panel_sin_reflector_24GHz | 4 | -11.4 | **va** | 2479.6 | [2364, 2601] | 12.97 | 80.0 | `{"elemento": 1, "tamano": 2, "reflector": 1}` |
 | panel_dipolos | 2441.75 | Y_panel_largo_24GHz | 3 | -9.1 | **justo** | 2872.7 | [2414, 3418] | 12.56 | 75.0 | `{"largo_brazo": 20.671}` |
+| panel_dipolos | 2441.75 | Y_panel_reflector_24GHz | 4 | -9.3 | **justo** | 2557.2 | [2429, 2692] | 12.75 | 75.2 | `{"largo_brazo": 19.906, "separacion_reflector": 0.2}` |
+| panel_dipolos | 2441.75 | Z_panel_reflector_24GHz | 4 | -10.1 | **va** | 2501.3 | [2380, 2629] | 12.14 | 67.4 | `{"largo_brazo": 19.906, "separacion_reflector": 0.125}` |
 | panel_dipolos | 5800 | A_panel_dipolos_58GHz | 1 | -4.6 | **no va** | 4836.3 | [4675, 5003] | 12.09 | 76.7 | `{}` |
 | panel_dipolos | 5800 | C_panel_dipolos_58GHz | 3 | -5.4 | **no va** | 4804.1 | [4663, 4949] | 12.64 | 77.4 | `{"separacion_reflector": 0.2}` |
+| panel_dipolos | 5800 | R_panel_reflector_58GHz | 9 | -9.8 | **justo** | 5871.7 | [5730, 6017] | 10.96 | 63.9 | `{"largo_brazo": 6.609, "separacion_reflector": 0.175}` |
 | panel_dipolos | 5800 | Y_panel_largo_58GHz | 3 | -4.6 | **no va** | 4836.3 | [4675, 5003] | 12.09 | 76.7 | `{"largo_brazo": 8.06}` |
+| panel_dipolos | 5800 | Y_panel_reflector_58GHz | 6 | -8.4 | **justo** | 5919.7 | [5765, 6078] | 10.87 | 66.7 | `{"largo_brazo": 6.609, "separacion_reflector": 0.25}` |
+| panel_dipolos | 5800 | Z_panel_reflector_58GHz | 9 | -9.8 | **justo** | 5871.7 | [5730, 6017] | 10.96 | 63.9 | `{"largo_brazo": 6.609, "separacion_reflector": 0.175}` |
 | parche_apilado | 2441.75 | parche_apilado_2g4 | 9 | -2.8 | **no va** | 2901.6 | None | 1.79 | 34.9 | `{"parasito_hueco": 0.6, "parasito_factor": 0.96}` |
 | parche_apilado | 5800 | A_parche_apilado_58GHz | 1 | -3.0 | **no va** | 6606.5 | None | 4.86 | 51.4 | `{}` |
+| parche_circular | 1575.42 | R_circular_GPSL1_RO4350B | 5 | -4.4 | **no va** | 1569.6 | [1563, 1576] | 5.0 | 74.0 | `{"corte": 0.15, "ancho": 50.626, "diagonal": 0}` |
+| parche_circular | 1575.42 | Y_parche_circular_GPSL1 | 4 | -0.6 | **no va** | 1588.2 | None | -7.56 | 3.6 | `{"corte": 0.105, "diagonal": 0}` |
+| parche_circular | 1575.42 | Y_parche_circular_GPSL1_RO4350B | 3 | -4.4 | **no va** | 1569.6 | [1563, 1576] | 5.0 | 74.0 | `{"corte": 0.15}` |
 | parche_circular | 2441.75 | C_parche_circular_24GHz | 3 | -6.0 | **justo** | 2448.2 | [2434, 2463] | 2.44 | 43.0 | `{"corte": 0.15}` |
+| parche_circular | 2441.75 | R_circular_FR4_24GHz | 5 | -5.9 | **no va** | 2450.6 | [2432, 2469] | 2.61 | 43.5 | `{"corte": 0.165, "largo_alimentacion": 10.0, "diagonal": 0}` |
+| parche_circular | 2441.75 | R_circular_RO4350B_24GHz | 4 | -5.8 | **no va** | 2444.1 | [2424, 2465] | 5.85 | 86.0 | `{"corte": 0.105, "diagonal": 0}` |
+| parche_circular | 2441.75 | S_circular_24GHz | 5 | -5.7 | **no va** | 2439.2 | [2421, 2458] | 2.6 | 43.6 | `{"largo_alimentacion": 10.0, "margen_masa": 15.0, "corte": 0.15}` |
+| parche_circular | 2441.75 | S_circular_RO4350B_24GHz | 4 | -5.8 | **no va** | 2444.1 | [2424, 2465] | 5.85 | 86.0 | `{"corte": 0.105, "largo_alimentacion": 10.0}` |
 | parche_circular | 2441.75 | parche_circular_2g4 | 8 | -5.1 | **no va** | 2458.8 | [2445, 2473] | 2.46 | 43.0 | `{"corte": 0.16, "diagonal": 1}` |
 | parche_circular | 5800 | A_parche_circular_58GHz | 1 | -5.6 | **no va** | 5647.9 | [5529, 5769] | 4.19 | 59.1 | `{}` |
 | parche_minkowski | 2441.75 | A_parche_minkowski_24GHz | 1 | -1.7 | **no va** | 2497.0 | [2479, 2515] | 0.89 | 30.7 | `{}` |
 | parche_minkowski | 2441.75 | C_parche_minkowski_24GHz | 4 | -3.9 | **no va** | 2431.9 | [2414, 2450] | 1.1 | 33.1 | `{"iteracion": 1, "profundidad": 0.5}` |
+| parche_minkowski | 2441.75 | S_minkowski_RO4350B_24GHz | 4 | -2.5 | **no va** | 2435.3 | None | 5.16 | 72.8 | `{"iteracion": 1, "profundidad": 0.5, "alimentacion": 1}` |
+| parche_minkowski | 2441.75 | U_minkowski_24GHz | 4 | -5.9 | **no va** | 2436.0 | [2419, 2453] | 0.66 | 28.8 | `{"iteracion": 1, "profundidad": 0.5, "alimentacion": 1}` |
 | parche_minkowski | 5800 | A_parche_minkowski_58GHz | 1 | -8.5 | **justo** | 5830.3 | [5746, 5916] | 3.3 | 48.1 | `{}` |
 | parche_minkowski | 5800 | C_parche_minkowski_58GHz | 4 | -8.5 | **justo** | 5830.3 | [5746, 5916] | 3.3 | 48.1 | `{"iteracion": 1, "profundidad": 0.5}` |
+| parche_minkowski | 5800 | Z_parche_minkowski_ranura_58GHz | 3 | -1.9 | **no va** | 5539.1 | None | 1.66 | 34.6 | `{"alimentacion": 1, "muesca": 2.0}` |
 | parche_ranura | 2441.75 | parche_ranura_2g4 | 9 | -0.5 | **no va** | 2826.8 | None | -8.07 | 4.3 | `{"ranura_ancho": 0.4, "ranura_largo": 0.3}` |
 | parche_ranura | 5800 | A_parche_ranura_58GHz | 1 | -0.6 | **no va** | 6271.5 | None | -8.22 | 6.2 | `{}` |
 | parche_rectangular | 1270 | A_parche_rectangular_12GHz | 1 | -1.4 | **no va** | 1610.8 | None | 1.53 | 33.5 | `{}` |
 | parche_rectangular | 2441.75 | A_parche_rectangular_24GHz | 1 | -5.4 | **no va** | 2435.2 | [2416, 2455] | 3.05 | 47.1 | `{}` |
 | parche_rectangular | 2441.75 | C_parche_rectangular_24GHz | 4 | -5.4 | **no va** | 2435.2 | [2416, 2455] | 3.05 | 47.1 | `{"ancho": 35.56, "alimentacion": 0}` |
+| parche_rectangular | 2441.75 | U_parche_ancho_24GHz | 4 | -5.0 | **no va** | 2463.6 | [2442, 2486] | 1.1 | 32.7 | `{"ancho": 56.816, "alimentacion": 0}` |
+| parche_rectangular | 2441.75 | V_parche_margen_24GHz | 3 | -4.0 | **no va** | 2462.0 | [2442, 2482] | 3.02 | 46.6 | `{"margen_masa": 3.0}` |
+| parche_rectangular | 2441.75 | V_parche_ranura_FR4_24GHz | 3 | -6.0 | **justo** | 2418.1 | [2404, 2432] | 3.24 | 47.5 | `{"alimentacion": 1, "muesca": 5.0}` |
+| parche_rectangular | 2441.75 | V_parche_ranura_RO4350B_24GHz | 3 | -2.4 | **no va** | 2411.5 | None | 6.49 | 89.1 | `{"alimentacion": 1, "muesca": 5.0}` |
 | parche_rectangular | 2441.75 | X_parche_RO4350B_24GHz | 1 | -2.5 | **no va** | 2418.9 | [2401, 2437] | 6.37 | 89.1 | `{}` |
 | parche_rectangular | 2441.75 | X_parche_margen_masa_24GHz | 3 | -5.4 | **no va** | 2435.2 | [2416, 2455] | 3.05 | 47.1 | `{"masa": 0, "margen_masa": 7.5}` |
+| parche_rectangular | 2441.75 | Y_parche_ranura_FR4_24GHz | 3 | -7.3 | **justo** | 2452.2 | [2424, 2481] | 3.26 | 47.8 | `{"alimentacion": 1, "muesca": 6.0}` |
+| parche_rectangular | 2441.75 | Y_parche_ranura_RO4350B_24GHz | 3 | -3.6 | **no va** | 2430.6 | None | 6.24 | 86.1 | `{"alimentacion": 1, "muesca": 6.0}` |
 | parche_rectangular | 5800 | A_parche_rectangular_58GHz | 1 | -5.4 | **no va** | 5646.1 | [5533, 5761] | 4.91 | 63.0 | `{}` |
 | parche_rectangular | 5800 | C_parche_rectangular_58GHz | 4 | -12.0 | **va** | 5793.2 | [5688, 5901] | 5.37 | 65.7 | `{"ancho": 17.964, "alimentacion": 0}` |
+| parche_rectangular | 5800 | S_parche_ranura_58GHz | 4 | -10.6 | **va** | 5787.7 | [5696, 5881] | 4.71 | 59.8 | `{"alimentacion": 1, "muesca": 0.0, "largo_alimentacion": 4.21}` |
 | pifa | 866.5 | C_pifa_868 | 7 | -12.2 | **va** | 827.3 | [761, 899] | 2.63 | 96.3 | `{"separacion_toma": 19.73, "altura": 16.91, "ancho_pista": 19.73}` |
 | pifa | 1270 | A_pifa_12GHz | 1 | -6.1 | **justo** | 1324.9 | None | 1.37 | 82.0 | `{}` |
+| pifa | 1270 | Y_pifa_12GHz | 1 | -13.7 | **va** | 1252.5 | [1152, 1361] | 2.45 | 95.4 | `{}` |
 | pifa | 2441.75 | C_pifa_24GHz | 7 | -22.1 | **va** | 2547.9 | [2237, 2902] | 2.72 | 93.8 | `{"separacion_toma": 7.0, "altura": 6.0, "ancho_pista": 7.0}` |
+| pifa | 2441.75 | V_pifa_largo_24GHz | 3 | -11.3 | **va** | 2332.8 | [2115, 2574] | 2.96 | 95.6 | `{"largo_brazo": 22.0, "altura": 7.8}` |
 | pifa | 2441.75 | pifa_2g4 | 9 | -9.3 | **justo** | 2665.7 | [2416, 2941] | 2.52 | 92.2 | `{"separacion_toma": 7.0, "largo_brazo": 20.0}` |
 | pifa | 5800 | A_pifa_58GHz | 1 | -9.0 | **justo** | 3586.6 | [3480, 3697] | 3.41 | 89.4 | `{}` |
 | pifa | 5800 | C_pifa_58GHz | 7 | -13.9 | **va** | 5588.2 | [4768, 6550] | 2.72 | 88.6 | `{"separacion_toma": 2.95, "altura": 3.542, "ancho_pista": 2.95}` |
@@ -144,10 +209,22 @@ Solo simulación (openEMS en GPU, FR4 de 1,6 mm con εr 4,5): sin medir ninguna 
 | vivaldi | 2441.75 | vivaldi_2g4 | 9 | -12.2 | **va** | 2765.1 | [2237, 3418] | 2.28 | 92.3 | `{"ancho_apertura": 56.0, "largo_aleta": 45.0}` |
 | vivaldi | 5800 | A_vivaldi_58GHz | 1 | -6.5 | **justo** | 6417.7 | None | 2.23 | 80.1 | `{}` |
 | vivaldi | 5800 | C_vivaldi_58GHz | 5 | -18.3 | **va** | 6059.1 | [5116, 7177] | 2.49 | 83.6 | `{"largo_aleta": 30.753, "tasa": 3.0}` |
+| vivaldi | 5800 | R_vivaldi2_58GHz | 4 | -12.3 | **va** | 5965.0 | [5645, 6303] | 2.62 | 65.7 | `{"tasa": 4.0, "ancho_apertura": 24.0, "largo_aleta": 68.595}` |
+| vivaldi | 5800 | R_vivaldi_58GHz | 9 | -9.1 | **justo** | 6797.8 | [6415, 7204] | 1.96 | 67.2 | `{"tasa": 4.0, "ancho_apertura": 24.0}` |
+| vivaldi | 5800 | Z_vivaldi_58GHz | 4 | -8.8 | **justo** | 6971.6 | [5986, 8120] | 2.55 | 82.8 | `{"tasa": 4.0, "ancho_apertura": 22.075}` |
 | yagi_boom | 866.5 | C_yagi_boom_868 | 6 | -15.3 | **va** | 865.8 | [841, 892] | 9.36 | 87.0 | `{"directores": 3, "separacion_reflector": 0.204}` |
 | yagi_boom | 2441.75 | A_yagi_boom_24GHz | 1 | -3.3 | **no va** | 2461.0 | None | 3.37 | 61.4 | `{}` |
 | yagi_boom | 2441.75 | C_yagi_boom_24GHz | 5 | -13.7 | **va** | 2471.0 | [2362, 2585] | 7.16 | 79.0 | `{"directores": 2, "separacion_reflector": 0.4}` |
+| yagi_boom | 2441.75 | V_yagi_koch_it2_borde_24GHz | 5 | -14.4 | **va** | 2440.9 | [2318, 2570] | 2.64 | 81.1 | `{"iteracion": 2, "directores": 2, "separacion_reflector": 0.39, "factor_director": 0.76, "factor_reflector": 1.35}` |
 | yagi_boom | 2441.75 | X_yagi_koch_it1_24GHz | 7 | -8.6 | **justo** | 2508.4 | [2442, 2577] | 4.81 | 77.6 | `{"directores": 2, "iteracion": 1, "factor_director": 0.81, "factor_reflector": 1.05}` |
+| yagi_boom | 2441.75 | Y_yagi_koch_it2_24GHz | 7 | -7.1 | **justo** | 2577.0 | [2517, 2639] | 4.59 | 76.5 | `{"iteracion": 2, "directores": 2, "factor_director": 0.855, "factor_reflector": 1.155, "separacion_reflector": 0.39}` |
+| yagi_boom | 2441.75 | Y_yagi_koch_it3_24GHz | 7 | -7.2 | **justo** | 2658.5 | [2482, 2847] | 6.51 | 78.0 | `{"iteracion": 3, "directores": 2, "factor_director": 0.9, "factor_reflector": 1.05, "separacion_reflector": 0.364}` |
+| yagi_boom | 2441.75 | Z_yagi_koch_it2_directores_24GHz | 3 | -7.3 | **justo** | 2626.6 | [2473, 2790] | 4.18 | 78.9 | `{"iteracion": 2, "directores": 1, "factor_director": 0.769}` |
+| yagi_boom | 2441.75 | Z_yagi_koch_it3_directores_24GHz | 3 | -7.2 | **justo** | 2628.9 | [2500, 2764] | 2.82 | 74.4 | `{"iteracion": 3, "directores": 1, "factor_director": 0.81}` |
 | yagi_boom | 5800 | A_yagi_boom_58GHz | 1 | -4.8 | **no va (haz atrás)** | 5991.1 | None | 5.37 | 70.4 | `{}` |
 | yagi_boom | 5800 | C_yagi_boom_58GHz | 5 | -18.8 | **va (haz atrás)** | 6308.4 | [5560, 7157] | 6.82 | 75.4 | `{"directores": 2, "separacion_reflector": 0.39}` |
+| yagi_boom | 5800 | Y_yagi_58GHz_haz | 8 | -10.8 | **va** | 6317.1 | [5696, 7006] | 4.82 | 71.9 | `{"factor_director": 0.81, "factor_reflector": 1.05, "ancho_boom": 8.0, "separacion_reflector": 0.39}` |
+| yagi_boom | 5800 | Z_yagi_58GHz_afinar | 6 | -16.4 | **va** | 6480.5 | [5564, 7548] | 5.85 | 73.7 | `{"ancho_boom": 8.0, "separacion_reflector": 0.39, "factor_director": 0.81, "factor_reflector": 1.15}` |
 | yagi_koch | 2441.75 | A_yagi_koch_24GHz | 1 | -3.1 | **no va (haz atrás)** | 2476.1 | None | 2.84 | 53.5 | `{}` |
+| yagi_koch | 2441.75 | Y_quasi_yagi_it2_24GHz | 7 | -6.8 | **justo** | 2341.1 | [2243, 2443] | 3.21 | 63.2 | `{"iteracion": 2, "directores": 2, "factor_director": 0.8, "separacion_director": 38.607, "alto_cps": 27.0}` |
+| yagi_koch | 2441.75 | Y_quasi_yagi_it3_24GHz | 6 | -2.6 | **no va (haz atrás)** | 2650.5 | None | 1.53 | 56.1 | `{"iteracion": 3, "directores": 2, "factor_director": 0.8, "separacion_director": 26.221, "alto_cps": 12.0}` |

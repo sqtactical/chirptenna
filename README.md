@@ -6,7 +6,7 @@
 
 *[English version](README.en.md)*
 
-> **Estado: alpha (v0.2.0-alpha).** Validado solo en simulación: todavía no se ha medido ninguna
+> **Estado: alpha (v0.3.0-alpha).** Validado solo en simulación: todavía no se ha medido ninguna
 > placa fabricada. **Se buscan medidas reales**: si fabricas una antena y la mides, compártela con
 > la plantilla [«Medida real»](../../issues/new/choose). Cómo colaborar: [CONTRIBUTING.md](CONTRIBUTING.md).
 > Cambios de cada versión: [CHANGELOG.md](CHANGELOG.md).
@@ -83,24 +83,26 @@ La placa resultante (render de KiCad): cara superior y cara inferior con el logo
 | Monopolo recto, meandro, Koch | monopolo | ✅ validados (de 868 MHz a 5,8 GHz, incluidas 915 ISM, 1,2 GHz, GPS L1 e Iridium) |
 | Monopolo de Sierpinski (con «Dos bandas»: 869 MHz y 2,4 GHz a la vez, solo en simulación) | monopolo | ✅ validado (de 868 MHz a 5,8 GHz) |
 | Monopolo de Hilbert | monopolo | ⚠️ resuena, pero sin red en π no adapta |
-| Parche rectangular | parche | ✅ validado (banda estrecha) |
-| Monopolo de punta de flecha de Sierpinski (curiosidad) | monopolo | ⚠️ sin testear ni validar |
+| Parche rectangular | parche | ✅ validado (banda estrecha; a 5,8 GHz con ranura: −10,6 dB, η 60 %) |
+| Monopolo de punta de flecha de Sierpinski (curiosidad) | monopolo | ✅ validado a 2,4 GHz con la iteración 1 (−15,9 dB, η 93 %); las iteraciones 2 y 3 no adaptan |
 | Parche de Minkowski | parche | ⚠️ iteración 1 bien; la 3 tiene poca eficiencia en FR4 |
-| Parche de polarización circular (esquinas cortadas, una sola entrada; GPS, Iridium) | parche | ⚠️ sin testear ni validar |
+| Parche de polarización circular (esquinas cortadas, una sola entrada; GPS, Iridium) | parche | ❌ no adapta ni da polarización circular en simulación (−4 a −6 dB, razón axial ≥ 6 dB) |
 | Parche con ranura en U | parche | ⚠️ sin testear ni validar |
-| Parche con parásito acoplado (alternativa plana al apilado) | parche | ⚠️ sin testear ni validar |
-| Antena F invertida (J-pole en F) y PIFA | monopolo | ✅ validadas en simulación (868 MHz, 2,4 y 5,8 GHz); a 1,2 GHz no adaptan |
+| Parche con parásito acoplado (alternativa plana al apilado) | parche | ❌ no adapta en simulación (−0,6 dB, η 7 %) |
+| Antena F invertida (J-pole en F) y PIFA | monopolo | ✅ validadas en simulación (868 MHz, 1,2 GHz, 2,4 y 5,8 GHz) |
 | Dipolo con manga (sleeve) | monopolo | ✅ validado en simulación (de 868 MHz a 5,8 GHz) |
-| Vivaldi antipodal | vivaldi | ✅ validado en simulación (2,4 y 5,8 GHz, −18 dB, banda muy ancha) |
-| Colineal de dipolos en serie (línea microstrip) | colineal | ✅ validada en simulación a 2,4 GHz (−16 dB, 4,4 dBi); con FR4 la ganancia queda corta |
-| Dipolo impreso (recto o de Koch; balun impreso o coaxial al centro) | dipolo | ✅ validado (de 868 MHz a 5,8 GHz) |
-| Dipolo bowtie (pajarita) o bowtie de Sierpinski | dipolo_bowtie | ✅ validado (de 868 MHz a 5,8 GHz; a 5,8 GHz justo); da el doble de banda que el recto |
-| J-pole y J-pole de Koch | jpole | ✅ Koch validada (2,4 GHz y 868 MHz); la recta no adapta (−2 a −3 dB en la campaña de GPU) |
-| Yagi con boom (doble cara) | yagi | ✅ elementos rectos (6–9 dBi; 2,4 GHz y 868 MHz); con Koch, sin arreglar (la que adapta radia hacia atrás) |
+| Vivaldi antipodal | vivaldi | ✅ validado en simulación (2,4 GHz −18 dB y 5,8 GHz −12,3 dB; banda muy ancha) |
+| Colineal de dipolos en serie (línea microstrip) | colineal | ✅ validada en simulación a 2,4 GHz (−12,7 dB, 4,1 dBi, η 59 %) y a 5,8 GHz (−13,8 dB, 3,5 dBi, η 50 %); con FR4 la ganancia queda corta |
+| Dipolo impreso (recto o de Koch; balun impreso o coaxial al centro) | dipolo | ✅ validado (de 868 MHz a 5,8 GHz; a 1,2 GHz −14,4 dB con la pista de 2,9 mm) |
+| Dipolo bowtie (pajarita) o bowtie de Sierpinski | dipolo_bowtie | ✅ validado (de 868 MHz a 5,8 GHz; con apertura 55°, −13,0 dB a 2,4 GHz y −11,6 dB a 5,8 GHz); da el doble de banda que el recto |
+| J-pole y J-pole de Koch | jpole | ✅ Koch validada (868 MHz y 1,2 GHz; 2,4 GHz casi, −9 dB); la recta a 868 MHz (−12,9 dB con el hueco entre brazos ×5) y a 2,4 GHz (−10,9 dB con el hueco ×6) |
+| J-pole bibanda (dos J-pole unidas) e IFA bibanda (868 MHz + 2,4 GHz) | herramientas | 🧪 solo simulación (−11 dB en las dos bandas), estrechas; aún no están en la interfaz (`herramientas/jpole_dual.py`, `rama_dual.py`) |
+| Banco de pruebas de topologías nuevas (torniquete de dipolos para polarización circular, antena de ranura, IFA de tres bandas) | herramientas | 🧪 en simulación (`herramientas/topologias.py`); aún sin resultados |
+| Yagi con boom (doble cara) | yagi | ✅ elementos rectos (6–9 dBi; 868 MHz, 2,4 y 5,8 GHz); con Koch de iteración 2 a 2,4 GHz también (−14,4 dB, haz hacia delante, pero 2,6 dBi) |
 | Quasi-Yagi con dipolo de Koch | yagi | ⚠️ experimental |
-| Panel de dipolos, bowtie o bowtie de Sierpinski, 2×2 / 4×4, sobre reflector | panel | ✅ 2×2 ≈ 12,1 dBi (dipolos) y 12,6 dBi (Sierpinski), 4×4 ≈ 14,6–16,6 dBi; un solo elemento, sin afinar |
+| Panel de dipolos, bowtie o bowtie de Sierpinski, 2×2 / 4×4, sobre reflector | panel | ✅ 2×2 ≈ 12,1 dBi (dipolos) y 12,6 dBi (Sierpinski), 4×4 ≈ 14,6–16,6 dBi; un solo elemento, sin afinar; a 2,4 GHz −10,1 dB con el reflector a 0,13–0,16 λ y a 5,8 GHz −9,8 dB |
 | Array de parches 2×2 / 4×4 | array | ⚠️ sin terminar de validar |
-| Colineal coaxial impresa (COCO) | colineal | ⚠️ radia, pero las pérdidas del FR4 se comen la ganancia (a 868 MHz no sirve) |
+| Colineal coaxial impresa (COCO) | colineal | ❌ no adapta bien (−4 dB) y η 24–35 % en FR4; a 868 MHz tampoco |
 | Colineal Franklin | colineal | ⚠️ adapta, pero con poca banda y ~2,5 dBi |
 
 ## ⚠️ Problemas conocidos
@@ -114,19 +116,21 @@ antes de darla por buena. La interfaz muestra estos avisos al elegir el tipo y a
 | Monopolo de Hilbert | Resuena, pero sin red en π adapta muy mal (−2,7 dB a 2,4 GHz, −4,6 dB a 868 MHz). A 868 MHz cada simulación tarda más de 3 h. |
 | Monopolo en meandro | La frecuencia salta varios % con cambios pequeños del alto; con masa pequeña puede no llegar a −10 dB. |
 | Monopolos con IPEX | El monopolo recto con IPEX adaptó mal (−7 dB): la transición del pad central está en revisión. Con SMA va bien. |
-| Parche rectangular | Banda estrecha en FR4 de 1,6 mm (~36 MHz): no cubre toda la ISM de 2,4 GHz. η ~47 %. |
+| Parche rectangular | Banda estrecha en FR4 de 1,6 mm (~36 MHz): no cubre toda la ISM de 2,4 GHz. η ~47 %. A 5,8 GHz con alimentación por ranura sí adapta en toda la banda (−10,6 dB, η 60 %). |
+| Parche circular | No llega a −10 dB (mejor −4,4 dB en RO4350B en GPS L1 y −5,9 dB a 2,4 GHz) y la razón axial no baja de 6 dB; en FR4 η 4–44 %. La diagonal elige el sentido de giro. No usarlo para GPS. |
 | Parche de Minkowski | Iteración 1: η ~33 % y ~1 dBi. Iteración 3: adapta (−17,5 dB) pero η ~30 % y < 1 dBi. |
-| J-pole recta | Resuena pero no adapta (−2 a −3 dB a 2,4 GHz en la campaña de GPU). La J-pole de Koch adapta mejor (−20 dB a 868 MHz, −9 dB a 2,4 GHz) y a 5,8 GHz y 1,2 GHz tampoco. |
-| Yagi con boom de Koch | Iteración 1 a 2,4 GHz: la configuración que adapta (−21 dB) radia hacia atrás; las que radian hacia los directores adaptan a −7…−9 dB. Usar elementos rectos. |
+| J-pole recta | A 868 MHz adapta (−12,9 dB, η 92 %) con el hueco entre brazos ×5; a 2,4 GHz −10,9 dB (hueco ×6), a 1,2 GHz como mucho −9,8 dB y a 5,8 GHz −6,5 dB (la parte real se queda en ~20 Ω). La J-pole de Koch adapta a 868 MHz (−17 a −20 dB), 1,2 GHz (−10,6 dB) y casi a 2,4 GHz (−9 dB). |
+| Yagi con boom de Koch | Iteración 1 a 2,4 GHz: la configuración que adapta (−21 dB) radia hacia atrás. La iteración 2 funciona (−14,4 dB, haz hacia delante, η 81 %) pero con solo 2,6 dBi: los elementos rectos dan más ganancia. |
 | Yagi con boom, dipolo plegado | Radia hacia atrás (F/B −3,6 dB). Usar alimentación directa (el reflector queda a ~0,39 λ0 y la placa es más larga). |
 | Yagi con boom, transformador λ/4 | Banda estrecha (~50 MHz) y η ~55 %. |
 | Quasi-Yagi de Koch | Radia hacia atrás y adapta mal (−3,5 dB). Experimental. |
 | Panel de dipolos | El ajuste no itera la frecuencia (S11 ondulado): el tamaño inicial está calibrado con el 2×2 a 2,4 GHz. Con malla fina el haz sale de frente (0–3°). El panel de un solo elemento resuena lejos del objetivo. La disposición «simétrica» empeora la adaptación. |
 | Array de parches | Sin terminar de validar: el 2×2 resuena un 16 % por debajo con el tamaño por defecto, η ~22 % y cada simulación tarda horas. |
+| Colineal de dipolos | A 2,4 GHz −12,7 dB (η 59 %); a 5,8 GHz −13,8 dB con 4 elementos, factor de línea 1,1 y ancho de brazo ×1,05 (η 50 %). Acortar las líneas un 10 % ya no hace falta. |
 | Colineal COCO | Radia, pero las pérdidas del FR4 dejan η ~53 % y ~1,9 dBi a 2,4 GHz; a 868 MHz, η 26 %, −2 dBi y S11 −7,8 dB. |
 | Colineal Franklin | Adapta (−19 dB a 2,4 GHz, −35 dB a 868 MHz) pero con 62 y 23 MHz de banda y 2,2–2,8 dBi. Experimental. |
-| Recortes de aligerado | Yagi aligerada simulada: −1,3 dBi y hay que reajustar el reflector; en el resto, sin simular. |
-| Otras bandas | Campaña de GPU del 06–07-11 (`docs/desarrollo/barridos_gpu.md`): monopolos, dipolos, bowtie y sleeve van de 868 MHz a 5,8 GHz (la mayoría también en 915 ISM, 1,2 GHz, GPS L1 e Iridium); IFA y PIFA a 868 MHz, 2,4 y 5,8 GHz; Vivaldi a 2,4 y 5,8 GHz. Panel, colineales, J-pole de Koch, parches y array no adaptan fuera de las bandas probadas. |
+| Recortes de aligerado | Yagi con boom: a 868 MHz y 5,8 GHz casi no cambian (−8,6 y −12,0 dB); a 2,4 GHz con el margen por defecto la adaptación cae a −2,3 dB y el haz se invierte (con 6 mm de margen, −6,0 dB y haz hacia delante). Panel a 2,4 GHz: −7,8 dB. Simular antes de fabricar. |
+| Otras bandas | Campaña de GPU del 06–07-11 (`docs/desarrollo/barridos_gpu.md`): monopolos, dipolos, bowtie y sleeve van de 868 MHz a 5,8 GHz (la mayoría también en 915 ISM, 1,2 GHz, GPS L1 e Iridium); IFA y PIFA a 868 MHz, 2,4 y 5,8 GHz; Vivaldi a 2,4 y 5,8 GHz. Panel, colineales, parches y array no adaptan fuera de las bandas probadas. Tanda del 07–08-11 (`docs/desarrollo/resultados_07-11.md`): la J-pole recta a 868 MHz, la J-pole de Koch a 1,2 GHz, el parche con ranura a 5,8 GHz y la colineal de dipolos a 2,4 y 5,8 GHz llegan a −10 dB, y también la IFA, la PIFA y el dipolo a 1,2 GHz (−14 dB), el bowtie a 2,4 y 5,8 GHz, el sleeve y el Vivaldi a 5,8 GHz, el monopolo con IPEX a 2,4 GHz (masa manual) y la flecha de Sierpinski de iteración 1; bibanda 868 MHz + 2,4 GHz: dos J-pole unidas (−11,2 y −10,6 dB) e IFA con segunda rama (−11,7 y −10,8 dB), solo en simulación. |
 
 Los detalles de cada simulación y los errores encontrados por el camino están en
 [`CLAUDE.md`](CLAUDE.md) (lecciones aprendidas), [`RETOMAR.md`](RETOMAR.md) (estado) y
