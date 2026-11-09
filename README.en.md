@@ -28,7 +28,7 @@ manufactured boards.
 
 ## What it does
 
-1. You pick the antenna type, the band (433, 868, 915 ISM, 1.2 GHz amateur, GPS L1, Iridium, 2.4 GHz, 5.8 GHz or custom; those other than 868 and 2.4 GHz are not simulated, and FR4 is very lossy at 5.8 GHz) and the substrate.
+1. You pick the antenna type, the band (433, 868, 915 ISM, 1.2 GHz amateur, GPS L1, Iridium, 2.4 GHz, 5.8 GHz or custom; 433 MHz and custom bands are not simulated, and FR4 is very lossy at 5.8 GHz) and the substrate.
 2. The program sizes the antenna with formulas **calibrated against earlier simulations** and
    checks JLC's manufacturing rules.
 3. Optionally it **simulates it with openEMS** and adjusts its size until it resonates at the
@@ -44,7 +44,7 @@ manufactured boards.
    antenna's range, checking, measuring (also live while you trim) and what to cut or fit in the
    π network, with the measured curve overlaid on the simulated one.
 7. Yagis and the panel can have **lightening cutouts**: FR4-free windows between the copper and the
-   edge (not simulated yet: the frequency may rise slightly).
+   edge. Simulate them before manufacturing: the frequency rises a little and the lightened 2.4 GHz Yagi stops matching.
 8. **Interface in Spanish, English, French and German** (selector in the header; also in the web lite version).
    Languages are `antenas/idiomas/<code>.json` files: adding one means translating a file.
 9. **GPU acceleration** (experimental, NVIDIA cards): with an openEMS build that has the GPU engine, simulations
@@ -83,7 +83,7 @@ The resulting board (KiCad render): top side and bottom side with the logo and l
 | Type | Family | Simulation status |
 |---|---|---|
 | Straight, meander and Koch monopoles | monopole | ✅ validated (868 MHz to 5.8 GHz, including 915 ISM, 1.2 GHz, GPS L1 and Iridium) |
-| Sierpinski monopole (with «Two bands»: 869 MHz and 2.4 GHz at once, simulation only) | monopole | ✅ validated (868 MHz to 5.8 GHz) |
+| Sierpinski monopole (with «Two bands»: 868/915 MHz and 2.4 GHz at once, simulation only) | monopole | ✅ validated (868 MHz to 5.8 GHz) |
 | Hilbert monopole | monopole | ⚠️ resonates, but does not match without a π network |
 | Rectangular patch | patch | ✅ validated (narrowband; at 5.8 GHz with a slot feed: −10.6 dB, η 60 %) |
 | Sierpinski arrowhead monopole (a curiosity) | monopole | ✅ validated at 2.4 GHz with iteration 1 (−15.9 dB, η 93 %); iterations 2 and 3 do not match |
@@ -99,7 +99,7 @@ The resulting board (KiCad render): top side and bottom side with the logo and l
 | Bowtie dipole or Sierpinski bowtie | dipole_bowtie | ✅ validated (868 MHz to 5.8 GHz; marginal at 5.8 GHz); twice the bandwidth of the straight one |
 | J-pole and Koch J-pole | jpole | ✅ Koch validated (868 MHz and 1.2 GHz; 2.4 GHz almost, −9 dB); the straight one from 868 MHz to 2.4 GHz (−15 dB at 868 MHz and −12 dB at 2.4 GHz; now the default) |
 | Dual-band J-pole (two joined J-poles) and dual-band IFA (868 MHz + 2.4 GHz) | J-pole and IFA, “Bands” option | 🧪 in the interface since 0.3.0; simulation −11 dB in both bands with a 1 mm mesh, but with another mesh the high band drops (−3 to −7 dB): fragile, unmeasured (`antenas/bibanda.py`) |
-| Test bench for new topologies (crossed-dipole turnstile for circular polarisation, slot antenna, tri-band IFA) | tools | 🧪 in simulation (`herramientas/topologias.py`); no results yet |
+| Test bench for new topologies (crossed-dipole turnstile for circular polarisation, slot antenna, tri-band IFA) | tools | 🧪 first simulations, outside the interface (`herramientas/topologias.py`): the slot matches at 2.4 GHz (−11.9 dB, η 79 %); the turnstile matches but without circular polarisation (axial ratio ≥ 5 dB); the tri-band IFA comes close (−9.5 dB) |
 | Double-sided Yagi with boom | yagi | ✅ straight elements (6–9 dBi; 868 MHz, 2.4 and 5.8 GHz); Koch iteration 2 also works at 2.4 GHz (−14.4 dB, beam forward, but 2.6 dBi) |
 | Quasi-Yagi with Koch dipole | yagi | ⚠️ experimental |
 | 2×2 / 4×4 panel of dipoles, bowties or Sierpinski bowties over a reflector | panel | ✅ 2×2 ≈ 12.1 dBi (dipoles) and 12.6 dBi (Sierpinski), 4×4 ≈ 14.6–16.6 dBi; single element, untuned; at 2.4 GHz −10.1 dB with the reflector at 0.13–0.16 λ and at 5.8 GHz −9.8 dB |
@@ -131,8 +131,9 @@ before trusting it. The GUI shows these warnings when you pick the type and when
 | Dipole collinear | At 2.4 GHz −12.7 dB (η 59 %); at 5.8 GHz −13.8 dB with 4 elements, line factor 1.1 and arm width ×1.05 (η 50 %). Shortening the lines by 10 % is no longer needed. |
 | COCO collinear | Radiates, but FR4 losses leave η ~53 % and ~1.9 dBi at 2.4 GHz; at 868 MHz, η 26 %, −2 dBi and S11 −7.8 dB. |
 | Franklin collinear | Matches (−19 dB at 2.4 GHz, −35 dB at 868 MHz) but with 62 and 23 MHz of bandwidth and 2.2–2.8 dBi. Experimental. |
+| Two bands (J-pole and IFA) | With a 1 mm mesh they give −11 dB in both bands, but with other meshes the high band drops to −3…−7 dB: the result is fragile and a few millimetres of difference in manufacturing can take it out of −10 dB. Choose the **low** band (868 or 915 MHz) in the design bar. The two-band Sierpinski is more reliable. |
 | Lightening cutouts | Yagi with boom: at 868 MHz and 5.8 GHz they hardly change anything (−8.6 and −12.0 dB); at 2.4 GHz with the default margin the match drops to −2.3 dB and the beam flips (with a 6 mm margin, −6.0 dB and beam forward). Panel at 2.4 GHz: −7.8 dB. Simulate before manufacturing. |
-| Other bands | GPU campaign of 6–7 Nov (`docs/desarrollo/barridos_gpu.md`): monopoles, dipoles, bowtie and sleeve work from 868 MHz to 5.8 GHz (most also at 915 ISM, 1.2 GHz, GPS L1 and Iridium); IFA and PIFA at 868 MHz, 2.4 and 5.8 GHz; Vivaldi at 2.4 and 5.8 GHz. Panel, collinears, patches and array do not match outside the bands tested. 7–8 Nov batch (`docs/desarrollo/resultados_07-11.md`): the straight J-pole at 868 MHz, the Koch J-pole at 1.2 GHz, the slot-fed patch at 5.8 GHz and the dipole collinear at 2.4 and 5.8 GHz reach −10 dB, and so do the IFA, PIFA and dipole at 1.2 GHz (−14 dB), the bowtie at 2.4 and 5.8 GHz, the sleeve and Vivaldi at 5.8 GHz, the IPEX monopole at 2.4 GHz (manual ground) and the iteration-1 Sierpinski arrowhead; dual-band 868 MHz + 2.4 GHz: two joined J-poles (−11.2 and −10.6 dB) and an IFA with a second branch (−11.7 and −10.8 dB), simulation only. |
+| Other bands | GPU campaign of 6–7 Nov (`docs/desarrollo/barridos_gpu.md`): monopoles, dipoles, bowtie and sleeve work from 868 MHz to 5.8 GHz (most also at 915 ISM, 1.2 GHz, GPS L1 and Iridium); IFA and PIFA at 868 MHz, 2.4 and 5.8 GHz; Vivaldi at 2.4 and 5.8 GHz. Panel, collinears, patches and array do not match outside the bands tested. 7–8 Nov batch (`docs/desarrollo/resultados_07-11.md`): the straight J-pole at 868 MHz, the Koch J-pole at 1.2 GHz, the slot-fed patch at 5.8 GHz and the dipole collinear at 2.4 and 5.8 GHz reach −10 dB, and so do the IFA, PIFA and dipole at 1.2 GHz (−14 dB), the bowtie at 2.4 and 5.8 GHz, the sleeve and Vivaldi at 5.8 GHz, the IPEX monopole at 2.4 GHz (manual ground) and the iteration-1 Sierpinski arrowhead; dual-band 868 MHz + 2.4 GHz: two joined J-poles (−11.2 and −10.6 dB) and an IFA with a second branch (−11.7 and −10.8 dB), simulation only and with one particular mesh (see «Two bands»). |
 
 ## Requirements
 

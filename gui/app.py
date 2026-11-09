@@ -598,8 +598,8 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
         if nombre == 'escalado' and int(valor) == 1:
             ajustar()                   # vuelve a escalar las medidas con la frecuencia actual
             return
-        if nombre == 'masa':
-            # cambia qué medidas se muestran y la masa cambia la resonancia: se reajusta
+        if nombre in ('masa', 'multibanda'):
+            # cambia qué medidas se muestran y la masa (o las dos bandas) cambian el tamaño: se reajusta
             construir_params()
             ajustar()
             return

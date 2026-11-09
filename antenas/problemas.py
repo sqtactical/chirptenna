@@ -25,7 +25,7 @@ ESTADO = {
     'parche_circular': ('no_funciona', 'No adapta ni da polarización circular en simulación (−4 a −6 dB, razón axial ≥ 6 dB)'),
     'parche_ranura': ('pendiente', 'Sin testear ni validar'),
     'parche_apilado': ('no_funciona', 'No adapta en simulación (−0,6 dB, η 7 %)'),
-    'ifa': ('validada', 'Validada en simulación (868 MHz, 2,4 y 5,8 GHz)'),
+    'ifa': ('validada', 'Validada en simulación (de 868 MHz a 5,8 GHz)'),
     'pifa': ('validada', 'Validada en simulación (868 MHz, 2,4 y 5,8 GHz)'),
     'dipolo_sleeve': ('validada', 'Validada en simulación (de 868 MHz a 5,8 GHz)'),
     'vivaldi': ('validada', 'Validada en simulación (2,4 y 5,8 GHz)'),
@@ -84,8 +84,8 @@ FIJOS = {
     'ifa': [
         ('info', 'Simulada a 868 MHz, 1,2 GHz, 2,4 y 5,8 GHz (−11 a −17 dB; −14 dB a 1,2 GHz con la altura y la toma ajustadas) con la toma y la altura centradas por simulación. '
                  'La toma fija la impedancia: afínala simulando. Sin medir.'),
-        ('info', 'Con «Bandas» = dos bandas lleva una segunda rama corta para la banda alta y cubre 868 MHz y 2,4 GHz a la vez en '
-                 'simulación (−11,7 y −10,8 dB, η 79–82 %). Es estrecha: ajústala simulando.'),
+        ('info', 'Con «Bandas» = dos bandas lleva una segunda rama corta para la banda alta (868 MHz y 2,4 GHz). Experimental: '
+                 'en simulación el resultado depende mucho de la malla (de −11 dB en las dos bandas a −4 dB en la alta).'),
     ],
     'pifa': [
         ('info', 'Simulada a 868 MHz, 1,2 GHz (−13,7 dB), 2,4 y 5,8 GHz (−12 a −22 dB, con más banda que la IFA fina) con la toma, la altura y '
@@ -129,8 +129,9 @@ FIJOS = {
                   'adapta a 868 MHz (−15 dB), 915 MHz (−10 dB), 1,2 GHz (−9,7 dB), GPS L1 (−11,8 dB) y 2,4 GHz (−12 dB), con η del 86 al 92 %; '
                   'simulada sin centrar y sin medir. A 5,8 GHz no adapta (la parte real se queda en ~20 Ω). Si cambias el hueco o la toma, '
                   'vuelve a simular: el largo del radiador está calibrado para esos valores.'),
-        ('info', 'Con «Bandas» = dos bandas son dos J-pole unidas por un puente en la cara inferior y cubre 868 MHz y 2,4 GHz en '
-                 'simulación (−11,2 y −10,6 dB, η 63 % y 87 %), pero es estrecha. Con radiadores de Koch no funciona (−5 dB como mucho).'),
+        ('info', 'Con «Bandas» = dos bandas son dos J-pole unidas por un puente en la cara inferior (868 MHz y 2,4 GHz). Experimental: '
+                 'en simulación el resultado depende mucho de la malla (de −11 dB en las dos bandas a −3 dB en la alta). Con radiadores '
+                 'de Koch no funciona (−5 dB como mucho).'),
     ],
     'jpole_koch': [
         ('info', 'Simulada a 868 MHz (−17,5 a −19,8 dB), 1,2 GHz (−10,6 dB con la toma 0,37 y el adaptador ×1,13) y 2,4 GHz '
@@ -217,11 +218,17 @@ def problemas(clave, p=None, f_MHz=None):
                              'central está en revisión. Con SMA va bien.')))
     if int(p.get('aligerado', 0) or 0) == 1:
         if clave == 'yagi_boom':
-            out.append(('info', tr('Yagi aligerada simulada a 2,4 GHz: la ganancia baja ~1,3 dBi (de 7,2 a 5,9) y hay '
-                                   'que reajustar el reflector. Simúlala antes de fabricar.')))
+            out.append(('aviso', tr('Yagi aligerada: a 2,4 GHz, con el margen por defecto, deja de adaptar (−2,3 dB) y el haz se invierte; '
+                                    'con el margen a 6 mm da −6,0 dB. A 868 MHz y 5,8 GHz casi no cambia. Simúlala antes de fabricar.')))
+        elif clave == 'panel_dipolos':
+            out.append(('aviso', tr('Panel aligerado simulado a 2,4 GHz: la adaptación baja de −10,1 a −7,8 dB y la frecuencia '
+                                    'sube un 3 %. Simúlalo antes de fabricar.')))
         else:
             out.append(('info', tr('Los recortes de aligerado no se han simulado todavía: quitar FR4 sube algo la '
                                    'frecuencia. Simúlala antes de fabricar.')))
+    if clave in ('jpole', 'ifa', 'monopolo_sierpinski') and int(p.get('multibanda', 0) or 0) == 1 and f_MHz and f_MHz > 1000:
+        out.append(('grave', tr('Dos bandas: la banda de uso es la BAJA (868 o 915 MHz); la alta sale sola a ~2,4 GHz. '
+                                'Elige 868 o 915 MHz arriba.')))
     if clave in ('jpole', 'ifa') and int(p.get('multibanda', 0) or 0) == 1:
         out.append(('aviso', tr('Dos bandas, experimental: con una malla de 1 mm la simulación da −10 a −12 dB en 868 MHz y 2,4 GHz, pero con '
                                 'otra malla la banda alta se cae (−3 a −7 dB): el resultado es frágil y una diferencia de pocos milímetros al fabricar puede '

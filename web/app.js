@@ -386,7 +386,7 @@ function cambiarParametro(p, valor) {
     estado.parametros.escalado = 0;
     avisar(T('Medidas secundarias pasadas a «Manuales» para respetar el valor que has puesto.'));
   }
-  if ((p.nombre === 'escalado' && valor === 1) || p.nombre === 'masa' || (p.nombre === 'conector' && t.familia === 'monopolo')) {
+  if ((p.nombre === 'escalado' && valor === 1) || p.nombre === 'masa' || p.nombre === 'multibanda' || (p.nombre === 'conector' && t.familia === 'monopolo')) {
     dimensionar();
     return;
   }

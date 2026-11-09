@@ -1086,6 +1086,12 @@ def estimar_f(clave, parametros, nombre_sustrato=None, calibrada=True):
     p = tipo.defectos()
     p.update(parametros or {})
     s = sustrato(nombre_sustrato)
+    if clave in ('jpole', 'ifa') and int(p.get('multibanda', 0) or 0) == 1:
+        # dos bandas: la banda baja sale de las simulaciones de antenas/bibanda.py (con la calibración de una banda saldría
+        # un 10 % alta en la J-pole y un 11 % baja en la IFA, que lleva el brazo alargado)
+        if clave == 'jpole':
+            return bibanda.F_BAJA_REF*1e6*bibanda.JPOLE_RADIADOR_REF/p['largo_radiador']
+        return estimar_f(clave, dict(p, multibanda=0, largo_brazo=p['largo_brazo']/bibanda.IFA_X_BRAZO), nombre_sustrato, calibrada)
     if tipo.familia == 'monopolo':
         f = _f_monopolo(tipo, p, s)
     elif clave == 'yagi_boom':
@@ -1199,8 +1205,12 @@ def dimensionar(clave, f_obj, parametros=None, nombre_sustrato=None, fijos=()):
         if aviso is not None:
             p['_aviso'] = aviso
         return p
-    p = _dimensionar_una_banda(clave, f_obj, parametros, nombre_sustrato, fijos=fijos)
-    if clave in ('jpole', 'ifa') and int((parametros or {}).get('multibanda', 0) or 0) == 1 and int(p.get('escalado', 0)) == 1:
+    dos = clave in ('jpole', 'ifa') and int((parametros or {}).get('multibanda', 0) or 0) == 1
+    # el tamaño de partida, el de una banda (la estimación de dos bandas ya incluye el alargado de la IFA)
+    p = _dimensionar_una_banda(clave, f_obj, dict(parametros, multibanda=0) if dos else parametros, nombre_sustrato, fijos=fijos)
+    if dos:
+        p['multibanda'] = 1
+    if dos and int(p.get('escalado', 0)) == 1:
         # dos bandas: medidas de las pruebas bibanda (antenas/bibanda.py), escaladas con λ desde 868 MHz
         if clave == 'jpole':
             esc = p['ancho_pista']/bibanda.ANCHO_REF

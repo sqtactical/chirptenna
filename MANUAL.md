@@ -132,8 +132,12 @@ botón **?**: púlsalo para ver qué hace. Los más habituales:
   primera tirada: añade las [opciones de ajuste](#9-ajustar-la-antena-fabricada) (sobrelargo con marcas,
   tramos con puentes y red en π). Cuando tengas una versión ya ajustada y medida, puedes fabricar la
   definitiva sin ellas.
-- **Aligerado** (Yagi y panel): ventanas sin FR4 para que pese menos. **Sin simular**: quitar FR4 sube un
-  poco la frecuencia.
+- **Aligerado** (Yagi y panel): ventanas sin FR4 para que pese menos. Quitar FR4 sube un poco la frecuencia y
+  puede estropear la adaptación (la Yagi aligerada de 2,4 GHz deja de adaptar con el margen por defecto): simúlala
+  antes de fabricar.
+- **Bandas** (Sierpinski, J-pole recta e IFA): con **Dos bandas** la antena cubre la banda que elijas arriba
+  (**868 o 915 MHz**) y además 2,4 GHz. Elige siempre la banda **baja** en la barra del diseño. El Sierpinski es el
+  más fiable; la J-pole y la IFA de dos bandas son experimentales.
 
 ### Resultado y consejos
 
@@ -486,6 +490,7 @@ Para compartir un diseño, comprime su carpeta. Otra persona puede copiarla en s
 | Un nodo Meshtastic portátil (868/915 MHz) | **Monopolo de Koch** o **meandro**, con ajuste y red en π | Compactos, omnidireccionales, validados a 868 MHz |
 | La antena de referencia para comparar | **Monopolo recto** | El más predecible: si este no sale, el problema es la medida o el material |
 | 2,4 GHz compacto | **Monopolo de Koch** o **Sierpinski** | Validados a 2,4 GHz; el Sierpinski tiene más ancho de banda |
+| LoRa y 2,4 GHz con una sola antena | **Monopolo de Sierpinski** con **Bandas = Dos bandas** | Cubre 868/915 MHz y 2,4 GHz en simulación; placa de ~96 × 115 mm |
 | Un enlace punto a punto | **Yagi con boom** (elementos rectos) o **panel 2×2/4×4** | 6–7 dBi la Yagi, 12–17 dBi el panel, en simulación |
 | Una antena sin plano de masa | **J-pole de Koch** o **dipolo** | No dependen de la placa a la que se conectan |
 | Experimentar | Hilbert, Minkowski, quasi-Yagi, COCO, Franklin | Tienen problemas conocidos: léelos antes |

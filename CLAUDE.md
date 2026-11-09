@@ -459,3 +459,7 @@ archivos modificados después de la última revisión. La marca de esa revisión
     el hueco ampliado de la lección 69 y `ajustar` hace una sola simulación (sin `_ajustar_toma`). **El resultado depende de la malla**: paso
     1,012 mm −11,2/−10,4 dB (J-pole) y −11,7/−10,8 (IFA); 1,124 mm −9,0/−10,7 y −14,6/−3,9; 0,7 mm −9,9/−2,6 y −10,4/−6,9. Los «−11 dB en
     las dos bandas» de las pruebas del 07-11 eran un punto afortunado de la malla: antes de dar una bibanda por buena, simularla con 2–3 pasos.
+    Revisión previa a la 0.3.0 (09-11): (a) al añadir un módulo que importe el núcleo (`tipos`), meterlo en `construir_web.NUCLEO` o la web
+    no se construye; (b) cambiar `multibanda` debe redimensionar (`gui/app.py` `cambiar_param` y `web/app.js`, como `masa`); (c) con dos
+    bandas `estimar_f` de la J-pole y la IFA va anclada a `bibanda` (la calibración de una banda daba un 10 % de error) y `dimensionar`
+    parte del tamaño de una banda (`multibanda=0`) para no alargar la IFA dos veces. El bowtie de Sierpinski no tiene dos bandas (−8,5/−9,5 dB).

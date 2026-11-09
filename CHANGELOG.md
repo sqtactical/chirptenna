@@ -18,10 +18,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
   `herramientas/campana.py` (todos los tipos en todas las bandas), `doble_banda.py`, `cola_extra.py` y la tabla de
   resultados `docs/desarrollo/barridos_gpu.md`. Guía y flujo de GitHub Actions para compilar openEMS con GPU
   (`docs/GPU.md`, `compilar-gpu.yml`).
-- Monopolo de punta de flecha de Sierpinski (curiosidad; no adapta), Sierpinski de dos bandas (868/915 + 2,4 GHz,
+- Monopolo de punta de flecha de Sierpinski (curiosidad; adapta con la iteración 1), Sierpinski de dos bandas (868/915 + 2,4 GHz,
   `multibanda`) y bandas «LoRa 863–928 MHz».
 - Panel de dipolos con o sin reflector; calibraciones de las estimaciones de tamaño con los diseños centrados.
-- **Bibanda 868 MHz + 2,4 GHz** (tanda del 07–08-11, solo simulación y fuera de la interfaz): `herramientas/jpole_dual.py`
+- **Bibanda 868 MHz + 2,4 GHz** (tanda del 07–08-11, solo simulación; la J-pole y la IFA ya están en la interfaz, ver arriba): `herramientas/jpole_dual.py`
   (dos J-pole unidas por un puente en B.Cu, −11,2 y −10,6 dB; el abanico de radiadores no va y con radiadores de Koch
   tampoco), `rama_dual.py` (IFA y monopolo con una segunda rama; IFA −11,7 y −10,8 dB), `radiacion_bibanda.py` y
   `diagrama_bibanda.py` (η, ganancia y diagramas de radiación en cada banda). Informe: `docs/desarrollo/resultados_07-11.md`. Banco de pruebas
@@ -45,12 +45,22 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
   con boom de Koch de iteración 2 funciona a 2,4 GHz con el haz hacia delante (2,6 dBi). El parche con parásito y la COCO pasan a «No funciona». Los recortes de
   aligerado de la Yagi casi no cambian nada a 868 MHz y 5,8 GHz, pero con el margen por defecto rompen la de 2,4 GHz.
 
+### Corregido
+
+- Cambiar «Bandas» en la interfaz (o en la web lite) no redimensionaba la antena: el Sierpinski de dos bandas salía con el
+  tamaño de una banda hasta pulsar «Ajustar tamaño a la frecuencia». Ahora se redimensiona al cambiarlo.
+- Con «Dos bandas», la estimación de la J-pole y de la IFA salía un 10 % fuera de la banda baja (usaba la calibración de una banda).
+- Avisos de la Yagi aligerada y del panel aligerado al día con las simulaciones; aviso grave si se elige «Dos bandas» con la
+  banda de uso por encima de 1 GHz (la banda de uso es la baja).
+
 *English: GPU simulation campaign over 7 bands (868 MHz to 5.8 GHz); most antenna types are now validated in
 simulation (J-pole at 868 MHz and 2.4 GHz, Koch J-pole at 868 MHz and 1.2 GHz, IFA and PIFA from 868 MHz to 5.8 GHz,
 Vivaldi, bowtie, sleeve, dipole collinear, Yagi with boom at 868 MHz, 2.4 and 5.8 GHz, slot-fed patch at 5.8 GHz);
 the circular patch, the patch with a parasitic, the COCO and the Hilbert monopole are marked as not working. New
-experimental tools, outside the interface: dual-band 868 MHz + 2.4 GHz antennas (two joined J-poles, IFA with a second
-branch; −11 dB in both bands in simulation), radiation and sensitivity-to-εr tools, and a test bench for new topologies
+experimental tools: dual-band 868 MHz + 2.4 GHz antennas (two joined J-poles, IFA with a second branch), now also in the
+interface as the «Bands» option of the J-pole and the IFA, but fragile: −11 dB in both bands with a 1 mm mesh, the high
+band drops with other meshes. The straight J-pole now matches by default from 868 MHz to 2.4 GHz (wider gap, tap at 26 %).
+Fixed: changing «Bands» did not resize the antenna. Also: radiation and sensitivity-to-εr tools, and a test bench for new topologies
 (crossed-dipole turnstile, slot antenna, tri-band IFA). Everything is simulation only: no board has been measured yet; the
 first measurements (εr coupons and 2.4 GHz antennas ordered from JLC) are expected soon.*
 

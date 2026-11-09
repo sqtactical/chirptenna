@@ -133,8 +133,12 @@ gaps, track widths, fine tuning options…), and you normally do not need to tou
   first batch: it adds the [tuning options](#9-tuning-the-manufactured-antenna) (extra length with marks,
   sections with bridges and π network). Once you have a tuned and measured version, you can manufacture
   the final one without them.
-- **Lightening windows** (Yagi and panel): windows without FR4 to reduce weight. **Not simulated**: removing FR4 raises the
-  frequency a little.
+- **Lightening windows** (Yagi and panel): windows without FR4 to reduce weight. Removing FR4 raises the frequency a little
+  and can spoil the match (the lightened 2.4 GHz Yagi stops matching with the default margin): simulate it before
+  manufacturing.
+- **Bands** (Sierpinski, straight J-pole and IFA): with **Two bands** the antenna covers the band you choose above
+  (**868 or 915 MHz**) and also 2.4 GHz. Always choose the **low** band in the design bar. The Sierpinski is the most
+  reliable; the two-band J-pole and IFA are experimental.
 
 ### Result and tips
 
@@ -493,6 +497,7 @@ To share a design, compress its folder. Another person can copy it into their li
 | A portable Meshtastic node (868/915 MHz) | **Koch monopole** or **meander**, with tuning and π network | Compact, omnidirectional, validated at 868 MHz |
 | The reference antenna for comparison | **Straight monopole** | The most predictable: if this one does not work out, the problem is the measurement or the material |
 | Compact 2.4 GHz | **Koch monopole** or **Sierpinski** | Validated at 2.4 GHz; the Sierpinski has more bandwidth |
+| LoRa and 2.4 GHz with a single antenna | **Sierpinski monopole** with **Bands = Two bands** | Covers 868/915 MHz and 2.4 GHz in simulation; ~96 × 115 mm board |
 | A point-to-point link | **Yagi with boom** (straight elements) or **2×2/4×4 panel** | 6–7 dBi the Yagi, 12–17 dBi the panel, in simulation |
 | An antenna without a ground plane | **Koch J-pole** or **dipole** | They do not depend on the board they are connected to |
 | Experimenting | Hilbert, Minkowski, quasi-Yagi, COCO, Franklin | They have known problems: read them first |
