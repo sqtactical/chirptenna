@@ -636,7 +636,7 @@ def ajustar(clave, parametros, nombre_sustrato, f_obj, precision='normal', max_s
     mejor = min(range(len(historial)), key=lambda i: (not historial[i]['valido'], abs(historial[i]['error_%'])))
     q = con_escala(historial[mejor]['escala_mm'])
     a = tipos.generar(clave, q, nombre_sustrato)
-    if tipo.familia == 'jpole':
+    if tipo.familia == 'jpole' and not multi:
         q, a = _ajustar_toma(clave, q, nombre_sustrato, s, f_obj, precision, paso, progreso, historial,
                              malla=malla)
     elif (clave in PARAM_ADAPTACION or _con_muesca(clave, q)) and historial[mejor]['S11_obj_dB'] > -10:

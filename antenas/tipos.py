@@ -27,6 +27,7 @@ from . import geometria as g
 from . import directivas
 from . import ancho_banda
 from . import jpole
+from . import bibanda
 from . import dipolos
 from . import ajuste
 from . import conector
@@ -491,7 +492,11 @@ CATALOGO = {t.clave: t for t in [
                 Parametro('separacion_toma', 'Distancia entre el cortocircuito y la toma [mm]', 3.5, 1, 30, 0.1,
                           ayuda='Fija la impedancia: más separada, más impedancia'),
                 Parametro('ancho_pista', 'Ancho del brazo [mm]', 1.0, 0.3, 10, 0.05),
-                Parametro('ancho_corto', 'Ancho del cortocircuito [mm]', 1.0, 0.5, 10, 0.05)] + PARAMS_MASA, 'largo_brazo',
+                Parametro('ancho_corto', 'Ancho del cortocircuito [mm]', 1.0, 0.5, 10, 0.05),
+                Parametro('multibanda', 'Bandas', 0, 0, 1, 1, True,
+                          opciones={0: 'Una banda', 1: 'Dos bandas (la baja del diseño y 2,4 GHz)'},
+                          ayuda='Dos bandas: añade el brazo de 2,4 GHz. Simulada con la baja en 868 MHz (J-pole: dos J-pole unidas; IFA: segunda rama); '
+                                'la banda alta es siempre 2,4 GHz')] + PARAMS_MASA, 'largo_brazo',
                precision='±15 % (sin calibrar)'),
     TipoAntena('pifa', 'Antena PIFA (F invertida plana)',
                'Como la F invertida pero con el brazo y el cortocircuito anchos (placas): más banda y menos '
@@ -780,7 +785,11 @@ for _tj in [
     TipoAntena('jpole', 'J-pole impresa',
                'Radiador λ/2 con adaptador λ/4 de tiras paralelas; sin plano de masa. Se alimenta con '
                'coaxial soldado en el punto de toma.', 'jpole',
-               [Parametro('largo_radiador', 'Largo del radiador [mm]', 40, 5, 400, 0.1)] + _PARAMS_JPOLE,
+               [Parametro('largo_radiador', 'Largo del radiador [mm]', 40, 5, 400, 0.1)] + _PARAMS_JPOLE +
+               [Parametro('multibanda', 'Bandas', 0, 0, 1, 1, True,
+                          opciones={0: 'Una banda', 1: 'Dos bandas (la baja del diseño y 2,4 GHz)'},
+                          ayuda='Dos bandas: añade el brazo de 2,4 GHz. Simulada con la baja en 868 MHz (J-pole: dos J-pole unidas; IFA: segunda rama); '
+                                'la banda alta es siempre 2,4 GHz')],
                'largo_radiador'),
     TipoAntena('jpole_koch', 'J-pole de Koch (fractal)',
                'J-pole con el radiador en curva de Koch: más corta para la misma frecuencia.', 'jpole',
@@ -900,6 +909,8 @@ def generar(clave, parametros=None, nombre_sustrato=None):
         if clave in ('ifa', 'pifa'):
             lg = largo_masa_monopolo(p, _longitud_equivalente(clave, p))
             a.vias = [(-p['separacion_toma'], lg - PROFUNDIDAD_CORTO/2)]
+            if clave == 'ifa' and int(p.get('multibanda', 0) or 0) == 1:
+                bibanda.ifa_dos_ramas(a, p, a.puerto['alimentacion'][1])
     elif clave == 'yagi_boom':
         a = directivas.generar_yagi_boom(p, s, eps_eff_monopolo(s.er))
     elif clave == 'panel_dipolos':
@@ -908,6 +919,8 @@ def generar(clave, parametros=None, nombre_sustrato=None):
         a = directivas.generar_yagi(p, s, eps_eff_monopolo(s.er))
     elif tipo.familia == 'jpole':
         a = jpole.generar(dict(p, _clave=clave), s, eps_eff_monopolo(s.er))
+        if clave == 'jpole' and int(p.get('multibanda', 0) or 0) == 1:
+            bibanda.jpole_unida(a, p)
     elif clave in ('dipolo', 'dipolo_bowtie'):
         a = dipolos.generar_dipolo(p, s, eps_eff_monopolo(s.er))
     elif clave == 'vivaldi':
@@ -1187,6 +1200,17 @@ def dimensionar(clave, f_obj, parametros=None, nombre_sustrato=None, fijos=()):
             p['_aviso'] = aviso
         return p
     p = _dimensionar_una_banda(clave, f_obj, parametros, nombre_sustrato, fijos=fijos)
+    if clave in ('jpole', 'ifa') and int((parametros or {}).get('multibanda', 0) or 0) == 1 and int(p.get('escalado', 0)) == 1:
+        # dos bandas: medidas de las pruebas bibanda (antenas/bibanda.py), escaladas con λ desde 868 MHz
+        if clave == 'jpole':
+            esc = p['ancho_pista']/bibanda.ANCHO_REF
+            for k, v in (('largo_radiador', round(bibanda.JPOLE_RADIADOR_REF*esc, 2)), ('hueco', p['ancho_pista']),
+                         ('toma', bibanda.JPOLE_TOMA), ('factor_adaptador', bibanda.JPOLE_FACTOR_ADAPTADOR)):
+                if k not in fijos:
+                    p[k] = v
+        elif 'largo_brazo' not in fijos:
+            p['largo_brazo'] = round(p['largo_brazo']*bibanda.IFA_X_BRAZO, 2)
+        return p
     if clave == 'jpole' and int(p.get('escalado', 0)) == 1:
         # hueco y toma de la J-pole recta calibrados por simulación; lo que el usuario fija (`fijos`) no se toca
         par = next(q for q in CATALOGO['jpole'].parametros if q.nombre == 'hueco')

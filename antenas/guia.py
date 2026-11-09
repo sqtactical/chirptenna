@@ -48,7 +48,7 @@ TIPOS = {
     'monopolo_hilbert': ('experimental', 'Curva de Hilbert: muy compacta, pero adapta mal sin red en π.',
                          ['lado', 'orden', 'masa', 'conector', 'ajuste']),
     'ifa': ('experimental', 'Antena F invertida (J-pole en F): monopolo plegado con cortocircuito a masa.',
-            ['largo_brazo', 'altura', 'separacion_toma', 'masa', 'conector']),
+            ['largo_brazo', 'altura', 'separacion_toma', 'multibanda', 'masa', 'conector']),
     'pifa': ('experimental', 'PIFA: F invertida con brazo ancho, más banda.',
              ['largo_brazo', 'altura', 'separacion_toma', 'masa', 'conector']),
     'dipolo_sleeve': ('experimental', 'Dipolo con manga: tira λ/4 y manga de masa λ/4 debajo.',
@@ -72,7 +72,7 @@ TIPOS = {
     'colineal_franklin': ('experimental', 'Colineal Franklin con horquillas: adapta, pero con poca banda y poca ganancia.',
                           ['largo_elemento', 'elementos', 'masa', 'conector']),
     'jpole': ('experimental', 'J-pole recta: adapta de 868 MHz a 2,4 GHz (ya viene con el hueco ampliado); la J-pole de Koch es más compacta.',
-              ['largo_radiador', 'ajuste']),
+              ['largo_radiador', 'multibanda', 'ajuste']),
     'yagi_koch': ('experimental', 'Quasi-Yagi con dipolo de Koch: radia hacia atrás en simulación.',
                   ['largo_brazo', 'iteracion', 'directores', 'conector', 'ajuste', 'aligerado']),
 }

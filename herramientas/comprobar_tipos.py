@@ -19,7 +19,7 @@ sys.path.insert(0, RAIZ)
 from antenas import tipos, exportar, fabricacion, __version__   # noqa: E402
 
 # Opciones que cambian la geometría de forma notable: se generan y exportan además de los valores por defecto
-VARIANTES = [('dipolo_bowtie', {'forma': 3}), ('dipolo_bowtie', {'forma': 3, 'alimentacion': 1}), ('monopolo_sierpinski', {'multibanda': 1}), ('dipolo_bowtie', {'forma': 2}), ('dipolo_bowtie', {'forma': 2, 'alimentacion': 1}),
+VARIANTES = [('dipolo_bowtie', {'forma': 3}), ('dipolo_bowtie', {'forma': 3, 'alimentacion': 1}), ('monopolo_sierpinski', {'multibanda': 1}), ('jpole', {'multibanda': 1}), ('ifa', {'multibanda': 1}), ('dipolo_bowtie', {'forma': 2}), ('dipolo_bowtie', {'forma': 2, 'alimentacion': 1}),
              ('panel_dipolos', {'tamano': 1, 'elemento': 1}), ('panel_dipolos', {'tamano': 1, 'elemento': 2}),
              ('panel_dipolos', {'tamano': 2, 'elemento': 2}), ('panel_dipolos', {'tamano': 4, 'elemento': 2})]
 

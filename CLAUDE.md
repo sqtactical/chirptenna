@@ -454,3 +454,8 @@ archivos modificados después de la última revisión. La marca de esa revisión
     Dos fallos de método: (a) `factor_calibracion` se consulta con la frecuencia de la FÓRMULA, no con la simulada: con factores de ~1,25 la
     abscisa de los puntos de la calibración tiene que ser la de la fórmula (`f_x_MHz`); (b) cortar la salida de `barrido.py` con
     `Select-Object -First 1` mata el proceso antes de su `finally` y deja `gpu.lock` colgado: el siguiente barrido espera para siempre.
+70. **Bibanda en la interfaz (09-11)**: `multibanda` = 1 en `jpole` (dos J-pole unidas) e `ifa` (segunda rama); código en `antenas/bibanda.py`,
+    constantes de `jpole_dual.py`/`rama_dual.py` escaladas con `ancho_pista`/2,81 (banda alta fija en 2,4 GHz); `dimensionar` las aplica sin
+    el hueco ampliado de la lección 69 y `ajustar` hace una sola simulación (sin `_ajustar_toma`). **El resultado depende de la malla**: paso
+    1,012 mm −11,2/−10,4 dB (J-pole) y −11,7/−10,8 (IFA); 1,124 mm −9,0/−10,7 y −14,6/−3,9; 0,7 mm −9,9/−2,6 y −10,4/−6,9. Los «−11 dB en
+    las dos bandas» de las pruebas del 07-11 eran un punto afortunado de la malla: antes de dar una bibanda por buena, simularla con 2–3 pasos.

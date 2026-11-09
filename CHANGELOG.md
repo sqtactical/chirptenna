@@ -9,6 +9,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ### Añadido
 
+- **J-pole e IFA de dos bandas en la interfaz**: parámetro básico «Bandas» (como el Sierpinski) en `jpole` e `ifa`; con «Dos bandas»
+  la J-pole son dos J-pole unidas con un puente en B.Cu y la IFA lleva una segunda rama (`antenas/bibanda.py`, medidas de
+  `jpole_dual.py` y `rama_dual.py`). Banda alta siempre 2,4 GHz. **Frágil**: con malla de 1,012 mm −11,2/−10,4 dB (J-pole) y
+  −11,7/−10,8 dB (IFA), pero con 0,7 mm la banda alta cae a −2,6 y −6,9 dB. Experimental, sin medir.
 - **Campaña de simulaciones en GPU** (06–07-11, 146 barridos en 7 bandas: 868 MHz, 915 ISM, 1,2 GHz, GPS L1, Iridium,
   2,4 y 5,8 GHz): `herramientas/barrido.py` (barrido genérico, centrado por simulación y modo `cruz`),
   `herramientas/campana.py` (todos los tipos en todas las bandas), `doble_banda.py`, `cola_extra.py` y la tabla de

@@ -98,7 +98,7 @@ The resulting board (KiCad render): top side and bottom side with the logo and l
 | Printed dipole (straight or Koch; printed balun or centre-fed coax) | dipole | ✅ validated (868 MHz to 5.8 GHz) |
 | Bowtie dipole or Sierpinski bowtie | dipole_bowtie | ✅ validated (868 MHz to 5.8 GHz; marginal at 5.8 GHz); twice the bandwidth of the straight one |
 | J-pole and Koch J-pole | jpole | ✅ Koch validated (868 MHz and 1.2 GHz; 2.4 GHz almost, −9 dB); the straight one from 868 MHz to 2.4 GHz (−15 dB at 868 MHz and −12 dB at 2.4 GHz; now the default) |
-| Dual-band J-pole (two joined J-poles) and dual-band IFA (868 MHz + 2.4 GHz) | tools | 🧪 simulation only (−11 dB in both bands), narrow; not in the interface yet (`herramientas/jpole_dual.py`, `rama_dual.py`) |
+| Dual-band J-pole (two joined J-poles) and dual-band IFA (868 MHz + 2.4 GHz) | J-pole and IFA, “Bands” option | 🧪 in the interface since 0.3.0; simulation −11 dB in both bands with a 1 mm mesh, but with another mesh the high band drops (−3 to −7 dB): fragile, unmeasured (`antenas/bibanda.py`) |
 | Test bench for new topologies (crossed-dipole turnstile for circular polarisation, slot antenna, tri-band IFA) | tools | 🧪 in simulation (`herramientas/topologias.py`); no results yet |
 | Double-sided Yagi with boom | yagi | ✅ straight elements (6–9 dBi; 868 MHz, 2.4 and 5.8 GHz); Koch iteration 2 also works at 2.4 GHz (−14.4 dB, beam forward, but 2.6 dBi) |
 | Quasi-Yagi with Koch dipole | yagi | ⚠️ experimental |

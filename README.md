@@ -96,7 +96,7 @@ La placa resultante (render de KiCad): cara superior y cara inferior con el logo
 | Dipolo impreso (recto o de Koch; balun impreso o coaxial al centro) | dipolo | ✅ validado (de 868 MHz a 5,8 GHz; a 1,2 GHz −14,4 dB con la pista de 2,9 mm) |
 | Dipolo bowtie (pajarita) o bowtie de Sierpinski | dipolo_bowtie | ✅ validado (de 868 MHz a 5,8 GHz; con apertura 55°, −13,0 dB a 2,4 GHz y −11,6 dB a 5,8 GHz); da el doble de banda que el recto |
 | J-pole y J-pole de Koch | jpole | ✅ Koch validada (868 MHz y 1,2 GHz; 2,4 GHz casi, −9 dB); la recta de 868 MHz a 2,4 GHz (−15 dB a 868 MHz y −12 dB a 2,4 GHz; ya sale así por defecto) |
-| J-pole bibanda (dos J-pole unidas) e IFA bibanda (868 MHz + 2,4 GHz) | herramientas | 🧪 solo simulación (−11 dB en las dos bandas), estrechas; aún no están en la interfaz (`herramientas/jpole_dual.py`, `rama_dual.py`) |
+| J-pole bibanda (dos J-pole unidas) e IFA bibanda (868 MHz + 2,4 GHz) | J-pole e IFA, opción «Bandas» | 🧪 en la interfaz desde la 0.3.0; simulación −11 dB en las dos bandas con una malla de 1 mm, pero con otra malla la banda alta cae (−3 a −7 dB): frágil, sin medir (`antenas/bibanda.py`) |
 | Banco de pruebas de topologías nuevas (torniquete de dipolos para polarización circular, antena de ranura, IFA de tres bandas) | herramientas | 🧪 en simulación (`herramientas/topologias.py`); aún sin resultados |
 | Yagi con boom (doble cara) | yagi | ✅ elementos rectos (6–9 dBi; 868 MHz, 2,4 y 5,8 GHz); con Koch de iteración 2 a 2,4 GHz también (−14,4 dB, haz hacia delante, pero 2,6 dBi) |
 | Quasi-Yagi con dipolo de Koch | yagi | ⚠️ experimental |
