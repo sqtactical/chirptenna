@@ -5,7 +5,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ## [Sin publicar]
 
-## [0.3.0-alpha] · 2026-11-08
+## [0.3.0-alpha] · 2026-11-09
 
 ### Añadido
 
