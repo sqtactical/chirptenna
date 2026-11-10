@@ -10,6 +10,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 - **Sustratos**: cuatro PTFE de JLC (ZYF255DA, ZYF265D, ZYF300CA-C y ZYF300CA-P, de 0,65 / 0,9 / 1,65 mm) y poliimida flex de 25 y 50 µm, con
   las reglas de fabricación «JLC alta frecuencia y flex (0,1 mm)» y consejos por sustrato. La simulación usa 2 celdas en z con sustratos de
   menos de 0,4 mm. Parche en PTFE: η ~90 % pero banda de 33 MHz; dipolo, bowtie y J-pole simulados en flex de 50 µm.
+- **Bucle impreso** (`bucle`, experimental): anillo cuadrado o redondo con un condensador de sintonía (elemento concentrado en la simulación, con su Q), la línea
+  a un extremo y el otro a masa por una vía; sale con la red en π activada. Simulado: 868 MHz −25,6 dB (9 MHz, η 43 %) y 2,4 GHz −29,9 dB (52 MHz, η 53 %) con
+  la red en L calculada; sin ella, S11 ~ 0 dB. La simulación admite condensadores concentrados (`Antena.ajuste['condensadores']`).
 - `herramientas/helice_flex.py`: hélice cuadrifilar para GPS L1 que se imprime plana en flex y se enrolla (banco de pruebas).
 - `referencias/yagi_comercial_b.py`: segunda Yagi comercial de 2,4 GHz del usuario (placa trapezoidal, dipolo plegado, 3 directores), para estudiarla.
 

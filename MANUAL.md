@@ -459,7 +459,8 @@ más predecible.
 
 ### Qué tipos la llevan
 
-Monopolos (recto, meandro, Koch, Hilbert y Sierpinski), parches, array de parches y quasi-Yagi. La J-pole
+Monopolos (recto, meandro, Koch, Hilbert y Sierpinski), parches, array de parches, quasi-Yagi y el **bucle**, que sale
+con la red activada porque sin ella no adapta (su resistencia de entrada es de pocos ohmios). La J-pole
 se ajusta solo con marcas y puentes. La Yagi con boom, el panel, el dipolo y las colineales todavía no
 tienen opciones de ajuste.
 

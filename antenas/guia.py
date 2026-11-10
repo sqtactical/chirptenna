@@ -73,6 +73,8 @@ TIPOS = {
                           ['largo_elemento', 'elementos', 'masa', 'conector']),
     'jpole': ('sin_masa', 'J-pole recta: adapta de 868 MHz a 2,4 GHz (ya viene con el hueco ampliado); la J-pole de Koch es más compacta.',
               ['largo_radiador', 'multibanda', 'ajuste']),
+    'bucle': ('experimental', 'Bucle pequeño con condensador de sintonía: poco sensible a la mano o al cuerpo, pero estrecho y con eficiencia baja. Necesita la red en π.',
+              ['lado', 'capacidad_pF', 'forma', 'ancho_placa', 'largo_masa', 'conector', 'ajuste']),
     'yagi_koch': ('experimental', 'Quasi-Yagi con dipolo de Koch: radia hacia atrás en simulación.',
                   ['largo_brazo', 'iteracion', 'directores', 'conector', 'ajuste', 'aligerado']),
 }

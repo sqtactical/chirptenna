@@ -21,6 +21,7 @@ import hashlib
 import tempfile
 
 import numpy as np
+from shapely.geometry import box
 from shapely.ops import unary_union
 
 from . import gpu
@@ -183,11 +184,14 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
     if antena.ajuste and antena.ajuste.get('puentes_sim'):
         # el componente en serie de la red en π se da por montado (0 Ω): se rellena su hueco
         sup = unary_union([sup] + antena.ajuste['puentes_sim'])
+    # condensadores concentrados (bucle): su hueco no cuenta para la malla, un elemento de openEMS lo llena en una celda
+    caps = list(antena.ajuste.get('condensadores', [])) if antena.ajuste else []
+    sup_malla = unary_union([sup] + [box(*c['caja']) for c in caps]) if caps else sup
     # Paso de malla en la placa: λ en el sustrato y detalles más finos del cobre
     lam_min = C0/fmax*1e3
     res_lam = lam_min/math.sqrt(er)/cfg['lam_div']
-    w_min = min(ancho_minimo(sup, 3.0), antena.info.get('pista_minima_mm') or 99)
-    s_min = min(hueco_minimo(sup, 3.0), antena.info.get('hueco_minimo_mm') or 99)
+    w_min = min(ancho_minimo(sup_malla, 3.0), antena.info.get('pista_minima_mm') or 99)
+    s_min = min(hueco_minimo(sup_malla, 3.0), antena.info.get('hueco_minimo_mm') or 99)
     res = min(res_lam, cfg['factor_detalle']*w_min/2, cfg['factor_detalle']*s_min/2)
     res = max(res, 0.08)
     if paso is not None:
@@ -222,6 +226,13 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
             for t in sin_agujeros(pol):
                 xs, ys = np.array(t.exterior.coords[:-1]).T
                 cobre.AddPolygon([xs, ys], norm_dir='z', elevation=z, priority=10)
+    for k, c in enumerate(caps):
+        # condensador en serie: C con su resistencia serie por la Q (a la frecuencia central de la simulación)
+        c_f = c['C_pF']*1e-12
+        r_esr = 1/(2*math.pi*f0*c_f*c.get('Q', 250.0))
+        el = CSX.AddLumpedElement(f'condensador{k + 1}', ny=0 if c.get('dir', 'x') == 'x' else 1, caps=True, R=r_esr, C=c_f, LEtype=1)
+        x0c, y0c, x1c, y1c = c['caja']
+        el.AddBox([x0c, y0c, h], [x1c, y1c, h], priority=20)
     # Reflector (panel): lámina PEC bajo la cara inferior, separada por aire
     refl = antena.reflector
     z_ref = -refl['separacion_mm'] if refl else 0.0
@@ -268,8 +279,10 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
     # el dominio abarca también el reflector (más grande que la placa); sus bordes, con líneas propias
     ex0, ey0, ex1, ey1 = refl['contorno'].bounds if refl else (x0, y0, x1, y1)
     ex0, ey0, ex1, ey1 = min(ex0, x0), min(ey0, y0), max(ex1, x1), max(ey1, y1)
-    mesh.AddLine('x', [ex0 - margen, ex1 + margen, ini[0], fin[0], ex0, ex1])
-    mesh.AddLine('y', [ey0 - margen, ey1 + margen, ini[1], fin[1], ey0, ey1])
+    xs_caps = [v for c in caps for v in (c['caja'][0], c['caja'][2])]
+    ys_caps = [v for c in caps for v in (c['caja'][1], c['caja'][3])]
+    mesh.AddLine('x', [ex0 - margen, ex1 + margen, ini[0], fin[0], ex0, ex1] + xs_caps)
+    mesh.AddLine('y', [ey0 - margen, ey1 + margen, ini[1], fin[1], ey0, ey1] + ys_caps)
     # sustratos muy finos (flex de 25–50 µm): 2 celdas en z; con 4, el paso de tiempo se hundiría (la celda más pequeña lo fija)
     mesh.AddLine('z', np.linspace(0, h, 5 if h >= 0.4 else 3))
     mesh.AddLine('z', [z_ref - margen, h + margen, z_ref])
@@ -278,7 +291,7 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
     # diminuta hunde el paso de tiempo (1e-19 s: la simulación no acaba y el resultado es basura).
     # De dos líneas pegadas se queda la de la rejilla de la placa o la de una cara (el puerto se ajusta
     # solo a la malla). Las cachés de esas mallas tienen resultados sin terminar: van a otra carpeta.
-    fijas = {'x': set(np.round(np.r_[rejilla['x'], ex0, ex1], 6)), 'y': set(np.round(np.r_[rejilla['y'], ey0, ey1], 6)),
+    fijas = {'x': set(np.round(np.r_[rejilla['x'], ex0, ex1, xs_caps], 6)), 'y': set(np.round(np.r_[rejilla['y'], ey0, ey1, ys_caps], 6)),
              'z': set(np.round([0.0, h, z_ref], 6))}
     # Las del puerto van por encima de todo: un puerto (caja plana) que no cae en una línea de malla
     # desaparece sin avisar y la simulación corre sin excitación (le pasó al Hilbert de 2,4 GHz).
@@ -590,7 +603,7 @@ def ajustar(clave, parametros, nombre_sustrato, f_obj, precision='normal', max_s
     multi = int(p.get('multibanda', 0) or 0) == 1               # dos bandas: la segunda cae a ~3× (rango ancho, sin iterar)
     rango = (0.45, 3.8) if multi else (0.6, 1.4)
     historial = []
-    x = p[esc]
+    x = max(p[esc], 0.05) if esc == 'capacidad_pF' else p[esc]       # el bucle sin condensador (0 pF) parte de 0,05 pF
     ultimo = None
     paso = None                                   # malla fija durante todo el ajuste
     par = next(pp for pp in tipo.parametros if pp.nombre == esc)

@@ -59,6 +59,7 @@ POR_FAMILIA = {
     'parche_rect': ['ajuste', 'red_pi', 'componentes', 'sobrelargo', 'marcas'],
     'parche': ['ajuste', 'red_pi', 'componentes'],
     'array': ['ajuste', 'red_pi', 'componentes'],
+    'bucle': ['ajuste', 'red_pi', 'componentes'],
     'sin_ajuste': [],                      # tipos sin opciones de ajuste todavía (Yagi con boom)
 }
 
@@ -73,11 +74,11 @@ def activo(p):
 
 def vacio():
     return {'componentes': [], 'cortes': [], 'puentes_sim': [], 'islas_masa': [], 'vias_masa': [],
-            'marcas': [], 'tramos': 0, 'notas': []}
+            'marcas': [], 'tramos': 0, 'notas': [], 'condensadores': []}
 
 
 def unir(a, b):
-    for k in ('componentes', 'cortes', 'puentes_sim', 'islas_masa', 'vias_masa', 'marcas', 'notas'):
+    for k in ('componentes', 'cortes', 'puentes_sim', 'islas_masa', 'vias_masa', 'marcas', 'notas', 'condensadores'):
         a[k] = a[k] + b[k]
     a['tramos'] = a['tramos'] + b['tramos']
     return a
@@ -93,6 +94,8 @@ def mover(aj, dx, dy):
     aj['puentes_sim'] = [t(x) for x in aj['puentes_sim']]
     aj['islas_masa'] = [t(x) for x in aj['islas_masa']]
     aj['vias_masa'] = [(x + dx, y + dy) for x, y in aj['vias_masa']]
+    aj['condensadores'] = [dict(c, caja=(c['caja'][0] + dx, c['caja'][1] + dy, c['caja'][2] + dx, c['caja'][3] + dy))
+                           for c in aj['condensadores']]
     for m in aj['marcas']:
         m['linea'] = [(x + dx, y + dy) for x, y in m['linea']]
         m['pos'] = (m['pos'][0] + dx, m['pos'][1] + dy)

@@ -19,7 +19,9 @@ FACTOR_Q = {'monopolo_recto': 2.8, 'monopolo_meandro': 3.5, 'monopolo_koch': 3.0
             # panel: el reflector a ~λ/4 y los λ/4 de la red estrechan la banda (~10–15 %)
             'panel_dipolos': 4.0,
             # J-pole: el adaptador λ/4 almacena energía y estrecha la banda (~5–10 %)
-            'jpole': 8.0, 'jpole_koch': 10.0}
+            'jpole': 8.0, 'jpole_koch': 10.0,
+            # bucle pequeño: Q alto (R de radiación de pocos ohmios frente a X de decenas)
+            'bucle': 15.0}
 
 
 def q_chu(ka):

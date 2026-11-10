@@ -39,6 +39,7 @@ ESTADO = {
     'colineal_coco': ('no_funciona', 'No adapta bien ni radia con eficiencia en FR4 (−4 dB, η 24–35 %)'),
     'colineal_franklin': ('pendiente', 'Adapta, pero con poca banda y poca ganancia'),
     'jpole': ('validada', 'Validada en simulación (de 868 MHz a 2,4 GHz)'),
+    'bucle': ('pendiente', 'Simulado (868 MHz y 2,4 GHz): adapta solo con la red en π; η ~40–55 %, banda estrecha'),
     'jpole_koch': ('validada', 'Validada en simulación (868 MHz y 1,2 GHz; 2,4 GHz casi)'),
 }
 ESTADO_TEXTO = {'validada': 'Validada', 'pendiente': 'Pendiente de validación', 'no_funciona': 'No funciona'}
@@ -137,6 +138,16 @@ FIJOS = {
         ('info', 'Simulada a 868 MHz (−17,5 a −19,8 dB), 1,2 GHz (−10,6 dB con la toma 0,37 y el adaptador ×1,13) y 2,4 GHz '
                  '(−9,2 dB); a 5,8 GHz no adapta (−3 dB). Eficiencia del 89 al 94 %. Sin medir. A 868 MHz el Koch no acorta el '
                  'radiador: sale más grande que el recto.'),
+    ],
+    'bucle': [
+        ('aviso', 'La resistencia de entrada del anillo es de 3–15 Ω (la de radiación, ~1,5 Ω): sin la red en π la S11 sale casi 0 dB. '
+                  'La red en π (Z1, Z2 y Z3) viene activada: usa el asistente con tu medida para elegir sus valores (L en derivación y C en serie, o al revés).'),
+        ('info', 'Simulado con FR4 de 1,6 mm y con una red en L calculada con la Z simulada: a 868 MHz (anillo de 25 mm, 0,26 pF) adapta a −25,6 dB con '
+                 '9 MHz de banda, η 43 % y −1,8 dBi; a 2,4 GHz (10,7 mm, sin condensador), −29,9 dB con 52 MHz, η 53 % y −0,9 dBi. '
+                 'Más de la mitad de la potencia se pierde en el cobre y en el condensador (Q de 250): sube la Q y el ancho de la pista.'),
+        ('info', 'A 2,4 GHz el anillo no lleva condensador (menos de 0,1 pF no existe): se afina con el lado y el hueco queda abierto. '
+                 'La frecuencia depende mucho del lado, de la masa y de lo que haya cerca: simula y mide. «Ajustar tamaño» da el lado '
+                 'con la fórmula (±5 %).'),
     ],
     'yagi_koch': [
         ('grave', 'Radia hacia atrás (hacia el reflector) y adapta mal (−3,5 dB) en simulación. Experimental: '

@@ -32,6 +32,8 @@ SERIGRAFIA_DEFECTO = {'logo': 'grande', 'tipo': True, 'nombre': False, 'sim': Tr
 ETIQUETAS_INFO = {
     'f_estimada_MHz': 'Frecuencia estimada [MHz]', 'precision_estimacion': 'Precisión de la estimación',
     'placa_mm': 'Placa de prueba [mm]', 'radiador_mm': 'Radiador [mm]', 'longitud_traza_mm': 'Longitud de pista [mm]',
+    'inductancia_nH': 'Inductancia del anillo [nH]', 'capacidad_total_pF': 'Capacidad total (condensador + parásita) [pF]',
+    'R_radiacion_ohm': 'Resistencia de radiación [Ω]',
     'ancho_linea_50ohm_mm': 'Línea de 50 Ω [mm]', 'perdida_red_estimada_dB': 'Pérdida de la red (estimada) [dB]',
     'ganancia_estimada_dBi': 'Ganancia estimada [dBi]', 'directividad_ideal_dBi': 'Directividad ideal [dBi]',
     'ganancia_tipica_dBi': 'Ganancia típica [dBi]', 'separacion_mm': 'Separación entre elementos [mm]',

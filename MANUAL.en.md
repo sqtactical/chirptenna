@@ -466,7 +466,8 @@ more predictable.
 
 ### Which types have it
 
-Monopoles (straight, meander, Koch, Hilbert and Sierpinski), patches, patch array and quasi-Yagi. The J-pole
+Monopoles (straight, meander, Koch, Hilbert and Sierpinski), patches, patch array, quasi-Yagi and the **loop**, which comes
+with the network enabled because it does not match without it (its input resistance is a few ohms). The J-pole
 is tuned only with marks and bridges. The Yagi with boom, the panel, the dipole and the collinears do not yet
 have tuning options.
 

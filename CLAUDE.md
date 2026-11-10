@@ -474,7 +474,14 @@ archivos modificados después de la última revisión. La marca de esa revisión
     con ±90°): la razón axial es 0 dB en el cénit (simetría), 3–5 dBi circulares, pero R de entrada 2–15 Ω (D = 14 mm: 2 Ω; D = 32 mm, ¼ de vuelta,
     k 0,6: 1545 MHz, 14,6 Ω, tira de 100 × 13,5 mm). Con la malla de 1 mm es orientativo. La E de NF2FF es ~1e-10: los suelos de `np.maximum` deben ser relativos.
     Al matar un barrido a mano hay que borrar `%LOCALAPPDATA%\antenas\gpu.lock` y el siguiente toma el turno (lección 65 b).
-72. **Segunda Yagi comercial de 2,4 GHz (`referencias/yagi_comercial_b.py`, 10-11)**: modelo leído de dos fotos (placa trapezoidal de 100 mm, de 49 a 35 mm; dipolo
+72. **Bucle (`bucle`, 10-11)**: `antenas/bucle.py`; anillo (cuadrado o redondo) con la línea de 50 Ω a un extremo y el otro a masa por una vía, y un condensador en serie
+    en el lado opuesto: elemento concentrado de openEMS (`CSX.AddLumpedElement(..., LEtype=1)` con R = 1/(ωCQ); `Antena.ajuste['condensadores']`, el hueco del
+    condensador no cuenta para la malla). Funciona en GPU. **Trampa**: la impedancia en el conector incluye la línea de 50 Ω hasta el anillo (λ/4 a 2,4 GHz), que
+    invierte Z: la «resonancia» que medí así (2341 MHz) era un artefacto; hay que quitar la línea (`puerto['largo_linea_mm']`) antes de buscar el cruce de X.
+    f = 1/(2π√(L(C + 0,016·lado))) con L de Grover, ×1,04 a 868 MHz (5 simulaciones, ±4 %). Con C < 0,1 pF no hay condensador (`C_MINIMA_MONTADO_PF`) y
+    `dimensionar` afina el lado. R de entrada 3–15 Ω (Rrad ~1,5 Ω) y η 40–55 % (domina el ESR del condensador): adapta solo con una red en L (`ajuste.redes_l` con la Z
+    sin la línea): 868 MHz −25,6 dB y 9 MHz, 2,4 GHz −29,9 dB y 52 MHz. Sale con `ajuste` = 1 (red en π) por defecto.
+73. **Segunda Yagi comercial de 2,4 GHz (`referencias/yagi_comercial_b.py`, 10-11)**: modelo leído de dos fotos (placa trapezoidal de 100 mm, de 49 a 35 mm; dipolo
     plegado de 7 × 40 mm: anillo cerrado abajo unido al reflector por una tira, y arriba una «]» unida por el lado de los directores —dato del usuario— con la
     barra de la línea suelta en la abertura; 3 directores de 6,8 mm en las dos caras con vías en el perímetro; reflector de 9 × 48 mm). **Ninguna de las cuatro
     lecturas resuena a 2,4 GHz con haz hacia delante** (resuenan a ~2,9–3,2 GHz con 0,8 mm y la «acopla» a 1,9 GHz con 1,6 mm; ganancia ~2 dBi): faltan datos

@@ -17,7 +17,7 @@ en frecuencia entre las bandas con datos. Sirve para que el ajuste por simulaci�
 import os
 import json
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 import numpy as np
 from shapely.geometry import Polygon, LineString
@@ -28,6 +28,7 @@ from . import directivas
 from . import ancho_banda
 from . import jpole
 from . import bibanda
+from . import bucle
 from . import dipolos
 from . import ajuste
 from . import conector
@@ -781,6 +782,26 @@ for _td in [
 ]:
     CATALOGO[_td.clave] = _td
 
+CATALOGO['bucle'] = TipoAntena(
+    'bucle', 'Bucle impreso (pequeño, con condensador y red en π)',
+    'Anillo de cobre alimentado por una línea microstrip, con un condensador de sintonía en el lado opuesto y el otro extremo '
+    'a masa. Pequeño y poco sensible a lo que hay cerca, pero de banda estrecha y con una resistencia de entrada de pocos ohmios: '
+    'necesita la red en π para adaptarse.', 'bucle',
+    [Parametro('lado', 'Lado (o diámetro) del anillo [mm]', 9.0, 3, 80, 0.1,
+               ayuda='Perímetro pequeño frente a λ (~λ/4): más pequeño, menos eficiencia y más estrecho'),
+     Parametro('capacidad_pF', 'Condensador de sintonía [pF]', 0.2, 0.0, 100, 0.05,
+               ayuda='En serie en el anillo (C0G/NP0 de Q alta). Con más capacidad el anillo resuena a menos frecuencia; la capacidad '
+                     'parásita del hueco y los pads suma ~0,15 pF. «Ajustar tamaño a la frecuencia» elige este valor'),
+     Parametro('forma', 'Forma del anillo', 0, 0, 1, 1, True, opciones={0: 'Cuadrada', 1: 'Redonda'},
+               ayuda='El anillo redondo (diámetro = lado) tiene menos perímetro que el cuadrado: resuena más alto. Sin calibrar'),
+     Parametro('ancho_pista', 'Ancho de la pista del anillo [mm]', 0.8, 0.2, 10, 0.05,
+               ayuda='Más ancha: menos pérdida del cobre y menos inductancia'),
+     Parametro('q_condensador', 'Q del condensador (pérdidas)', 250, 20, 2000, 10,
+               ayuda='C0G/NP0 de 0402 a 1 GHz: 150–400. Solo afecta a la eficiencia de la simulación'),
+     Parametro('ancho_placa', 'Ancho de la placa / plano de masa [mm]', 25, 10, 400, 1),
+     Parametro('largo_masa', 'Largo del plano de masa [mm]', 16, 8, 400, 1)],
+    'capacidad_pF', precision='±25 % (sin calibrar)')
+
 for _tj in [
     TipoAntena('jpole', 'J-pole impresa',
                'Radiador λ/2 con adaptador λ/4 de tiras paralelas; sin plano de masa. Se alimenta con '
@@ -807,7 +828,7 @@ GRUPO_AJUSTE = {'monopolo_recto': 'monopolo_pista', 'monopolo_meandro': 'monopol
                 'yagi_boom': 'sin_ajuste',
                 'parche_rectangular': 'parche_rect', 'parche_minkowski': 'parche', 'parche_circular': 'sin_ajuste', 'parche_ranura': 'sin_ajuste', 'parche_apilado': 'sin_ajuste', 'ifa': 'sin_ajuste', 'pifa': 'sin_ajuste', 'dipolo_sleeve': 'sin_ajuste', 'vivaldi': 'sin_ajuste', 'colineal_dipolos': 'sin_ajuste', 'array_parches': 'array',
                 'panel_dipolos': 'sin_ajuste', 'dipolo': 'sin_ajuste', 'dipolo_bowtie': 'sin_ajuste', 'colineal_coco': 'sin_ajuste',
-                'colineal_franklin': 'sin_ajuste'}
+                'colineal_franklin': 'sin_ajuste', 'bucle': 'bucle'}
 
 # Medidas secundarias que escalan con λ0. Sus valores por defecto están pensados para F_REFERENCIA;
 # con 'escalado' = 1, dimensionar las pone a defecto·λ0(f)/λ0(F_REFERENCIA). No se escalan: los
@@ -846,6 +867,7 @@ ESCALABLES = {
     'dipolo': ('ancho_pista', 'hueco', 'largo_alimentacion'),
     'dipolo_bowtie': ('ancho_pista', 'hueco', 'largo_alimentacion', 'ancho_flecha'),
     'colineal_franklin': ('ancho_pista', 'hueco_horquilla') + _MASA,
+    'bucle': ('lado', 'ancho_pista') + _MASA,
 }
 PARAM_ESCALADO = Parametro('escalado', 'Medidas secundarias (pistas, huecos, masa…)', 1, 0, 1, 1, True,
                            opciones={0: 'Manuales', 1: 'Proporcionales a λ (referencia 2,4 GHz)'},
@@ -865,7 +887,7 @@ def escalar_secundarios(clave, p, f_obj):
 for _t in CATALOGO.values():
     # Forma de la placa: los monopolos y la Yagi usan además el margen al borde; en parches y
     # arrays el borde lo fija el margen de masa
-    _t.parametros = _t.parametros + (PARAMS_CONTORNO if _t.familia in ('monopolo', 'yagi', 'jpole', 'dipolo', 'colineal', 'vivaldi')
+    _t.parametros = _t.parametros + (PARAMS_CONTORNO if _t.familia in ('monopolo', 'yagi', 'jpole', 'dipolo', 'colineal', 'vivaldi', 'bucle')
                                      else [] if _t.familia == 'panel'      # rectangular, con los taladros
                                      else PARAMS_CONTORNO[:1]) + [PARAM_ESCALADO]
     # J-pole y panel van con coaxial soldado; la COCO, con SMA (el IPEX no encaja con sus dos tiras)
@@ -874,6 +896,8 @@ for _t in CATALOGO.values():
     _t.parametros = _t.parametros + ajuste.parametros_para(GRUPO_AJUSTE[_t.clave])
     if _t.familia in ('yagi', 'panel'):
         _t.parametros = _t.parametros + PARAMS_ALIGERADO
+# el bucle sin red en π casi no adapta (R de entrada de pocos ohmios): sale con el ajuste y la red activados
+CATALOGO['bucle'].parametros = [replace(q, defecto=1) if q.nombre == 'ajuste' else q for q in CATALOGO['bucle'].parametros]
 
 
 def _aligerar(a, p):
@@ -917,6 +941,8 @@ def generar(clave, parametros=None, nombre_sustrato=None):
         a = directivas.generar_panel_dipolos(p, s, eps_eff_monopolo(s.er))
     elif tipo.familia == 'yagi':
         a = directivas.generar_yagi(p, s, eps_eff_monopolo(s.er))
+    elif tipo.familia == 'bucle':
+        a = bucle.generar(p, s, clave)
     elif tipo.familia == 'jpole':
         a = jpole.generar(dict(p, _clave=clave), s, eps_eff_monopolo(s.er))
         if clave == 'jpole' and int(p.get('multibanda', 0) or 0) == 1:
@@ -1100,6 +1126,8 @@ def estimar_f(clave, parametros, nombre_sustrato=None, calibrada=True):
         f = directivas.estimar_f_panel(p, eps_eff_monopolo(s.er))
     elif tipo.familia == 'yagi':
         f = directivas.estimar_f_yagi(p, eps_eff_monopolo(s.er))
+    elif tipo.familia == 'bucle':
+        f = bucle.estimar_f(p)
     elif tipo.familia == 'jpole':
         f = jpole.estimar_f(p, eps_eff_monopolo(s.er))
     elif clave in ('dipolo', 'dipolo_bowtie'):
@@ -1208,6 +1236,18 @@ def dimensionar(clave, f_obj, parametros=None, nombre_sustrato=None, fijos=()):
     dos = clave in ('jpole', 'ifa') and int((parametros or {}).get('multibanda', 0) or 0) == 1
     # el tamaño de partida, el de una banda (la estimación de dos bandas ya incluye el alargado de la IFA)
     p = _dimensionar_una_banda(clave, f_obj, dict(parametros, multibanda=0) if dos else parametros, nombre_sustrato, fijos=fijos)
+    if clave == 'bucle' and 'capacidad_pF' not in fijos and p['capacidad_pF'] < bucle.C_MINIMA_MONTADO_PF:
+        # un anillo tan pequeño no lleva condensador (menos de 0,1 pF no existe): basta el hueco y se afina con el lado
+        p['capacidad_pF'] = 0.0
+        par_lado = next(q for q in CATALOGO['bucle'].parametros if q.nombre == 'lado')
+        lo, hi = par_lado.minimo, par_lado.maximo
+        for _ in range(60):                                 # la frecuencia baja al crecer el lado
+            mid = (lo + hi)/2
+            if estimar_f('bucle', dict(p, lado=mid), nombre_sustrato) > f_obj:
+                lo = mid
+            else:
+                hi = mid
+        p['lado'] = round((lo + hi)/2, 2)
     if dos:
         p['multibanda'] = 1
     if dos and int(p.get('escalado', 0)) == 1:
