@@ -13,6 +13,7 @@ REGLAS = {
     'JLC estándar': {'pista_min': 0.127, 'hueco_min': 0.127, 'borde_min': 0.3},
     'JLC mínimo (0,09 mm)': {'pista_min': 0.09, 'hueco_min': 0.09, 'borde_min': 0.2},
     'Holgado (0,2 mm)': {'pista_min': 0.2, 'hueco_min': 0.2, 'borde_min': 0.5},
+    'JLC alta frecuencia y flex (0,1 mm)': {'pista_min': 0.102, 'hueco_min': 0.102, 'borde_min': 0.3},
 }
 REGLAS_POR_DEFECTO = 'JLC estándar'
 

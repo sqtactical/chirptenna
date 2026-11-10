@@ -270,7 +270,8 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
     ex0, ey0, ex1, ey1 = min(ex0, x0), min(ey0, y0), max(ex1, x1), max(ey1, y1)
     mesh.AddLine('x', [ex0 - margen, ex1 + margen, ini[0], fin[0], ex0, ex1])
     mesh.AddLine('y', [ey0 - margen, ey1 + margen, ini[1], fin[1], ey0, ey1])
-    mesh.AddLine('z', np.linspace(0, h, 5))
+    # sustratos muy finos (flex de 25–50 µm): 2 celdas en z; con 4, el paso de tiempo se hundiría (la celda más pequeña lo fija)
+    mesh.AddLine('z', np.linspace(0, h, 5 if h >= 0.4 else 3))
     mesh.AddLine('z', [z_ref - margen, h + margen, z_ref])
     mesh.SmoothMeshLines('all', res_aire, 1.3)
     # Las líneas del puerto y de los bordes no caen en la rejilla: si quedan a micras de otra, la celda

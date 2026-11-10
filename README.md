@@ -97,6 +97,7 @@ La placa resultante (render de KiCad): cara superior y cara inferior con el logo
 | Dipolo bowtie (pajarita) o bowtie de Sierpinski | dipolo_bowtie | ✅ validado (de 868 MHz a 5,8 GHz; con apertura 55°, −13,0 dB a 2,4 GHz y −11,6 dB a 5,8 GHz); da el doble de banda que el recto |
 | J-pole y J-pole de Koch | jpole | ✅ Koch validada (868 MHz y 1,2 GHz; 2,4 GHz casi, −9 dB); la recta de 868 MHz a 2,4 GHz (−15 dB a 868 MHz y −12 dB a 2,4 GHz; ya sale así por defecto) |
 | J-pole bibanda (dos J-pole unidas) e IFA bibanda (868 MHz + 2,4 GHz) | J-pole e IFA, opción «Bandas» | 🧪 en la interfaz desde la 0.3.0; simulación −11 dB en las dos bandas con una malla de 1 mm, pero con otra malla la banda alta cae (−3 a −7 dB): frágil, sin medir (`antenas/bibanda.py`) |
+| Hélice cuadrifilar impresa en flex y enrollada (GPS L1) | herramientas | 🧪 en simulación (`herramientas/helice_flex.py`): CP pura, pero R de entrada 2–15 Ω; sin medir |
 | Banco de pruebas de topologías nuevas (torniquete de dipolos para polarización circular, antena de ranura, IFA de tres bandas) | herramientas | 🧪 primeras simulaciones, fuera de la interfaz (`herramientas/topologias.py`): la ranura adapta a 2,4 GHz (−11,9 dB, η 79 %); el torniquete adapta pero sin polarización circular (razón axial ≥ 5 dB); la IFA de tres bandas se queda cerca (−9,5 dB) |
 | Yagi con boom (doble cara) | yagi | ✅ elementos rectos (6–9 dBi; 868 MHz, 2,4 y 5,8 GHz); con Koch de iteración 2 a 2,4 GHz también (−14,4 dB, haz hacia delante, pero 2,6 dBi) |
 | Quasi-Yagi con dipolo de Koch | yagi | ⚠️ experimental |
@@ -104,6 +105,17 @@ La placa resultante (render de KiCad): cara superior y cara inferior con el logo
 | Array de parches 2×2 / 4×4 | array | ⚠️ sin terminar de validar |
 | Colineal coaxial impresa (COCO) | colineal | ❌ no adapta bien (−4 dB) y η 24–35 % en FR4; a 868 MHz tampoco |
 | Colineal Franklin | colineal | ⚠️ adapta, pero con poca banda y ~2,5 dBi |
+
+## Sustratos
+
+| Sustrato | εr | tanδ | Grosores | Estado |
+|---|---|---|---|---|
+| FR4 de JLC | 4,5 | 0,02 | 0,8 / 1,0 / 1,2 / 1,6 mm | el de todas las validaciones; εr pendiente de medir con el cupón |
+| Rogers RO4350B | 3,66 | 0,0037 | 0,76 / 1,52 mm | grosores sin confirmar en JLC |
+| PTFE («teflón») ZYF255DA, ZYF265D, ZYF300CA-C, ZYF300CA-P | 2,55 / 2,65 / 2,94 / 3,0 | 0,0016–0,0019 | 0,65 / 0,9 / 1,65 mm | [página de alta frecuencia de JLC](https://jlcpcb.com/pcb-fabrication/high-frequency-pcb): 2 capas, 1 oz, ENIG, pista y hueco ≥ 0,1 mm; εr y tanδ del laminador, sin medir ni tolerancias publicadas |
+| Flex de poliimida (JLC) | 3,3 | ~0,004 | 25 / 50 µm | [capacidades de flex](https://jlcpcb.com/capabilities/flex-pcb-capabilities): sin impedancia controlada (una microstrip de 50 Ω saldría de 0,06–0,12 mm), así que solo sirven los tipos con el coaxial soldado en la antena; se simula plano y sin coverlay |
+
+Con un sustrato nuevo, pulsa «Ajustar tamaño a la frecuencia» y elige las reglas «JLC alta frecuencia y flex (0,1 mm)». Las estimaciones calibradas son de FR4.
 
 ## ⚠️ Problemas conocidos
 
@@ -130,6 +142,9 @@ antes de darla por buena. La interfaz muestra estos avisos al elegir el tipo y a
 | Colineal COCO | Radia, pero las pérdidas del FR4 dejan η ~53 % y ~1,9 dBi a 2,4 GHz; a 868 MHz, η 26 %, −2 dBi y S11 −7,8 dB. |
 | Colineal Franklin | Adapta (−19 dB a 2,4 GHz, −35 dB a 868 MHz) pero con 62 y 23 MHz de banda y 2,2–2,8 dBi. Experimental. |
 | Dos bandas (J-pole e IFA) | Con una malla de 1 mm dan −11 dB en las dos bandas, pero con otras mallas la banda alta cae a −3…−7 dB: el resultado es frágil y pocos milímetros de diferencia al fabricar pueden sacarla de −10 dB. Elige la banda **baja** (868 o 915 MHz) en la barra del diseño. El Sierpinski de dos bandas es más fiable. |
+| Sustrato PTFE | Parche rectangular a 2,4 GHz en ZYF265D de 1,65 mm y en ZYF300CA-C: η ~90 % (FR4: ~47 %), ~6,5 dBi, pero la banda a −10 dB sigue en ~33 MHz: el PTFE sube la eficiencia, no el ancho de banda (eso pide más grosor). Sin medir. |
+| Flex (poliimida de 50 µm) | Simulado plano y sin coverlay, a 2,4 GHz: dipolo −14,8 dB (banda 2329–2567 MHz), bowtie −17,3 dB (2261–2681 MHz), J-pole −10,3 dB (2386–2486 MHz); a 868 MHz, dipolo −17,1 dB (828–912 MHz). La eficiencia es como en FR4 (los campos ya iban por el aire). Doblado o pegado a una superficie, la frecuencia cambia. Sin medir. |
+| Hélice cuadrifilar en flex (GPS L1) | Banco de pruebas (`herramientas/helice_flex.py`), fuera de la interfaz: polarización circular pura en el cénit (razón axial 0 dB con la alimentación ideal en cuadratura) y 3–5 dBi circulares, pero la resistencia de entrada sale de 2 a 15 Ω y hace falta red de adaptación y de 90°. Modelo de hilo: orientativo. |
 | Recortes de aligerado | Yagi con boom: a 868 MHz y 5,8 GHz casi no cambian (−8,6 y −12,0 dB); a 2,4 GHz con el margen por defecto la adaptación cae a −2,3 dB y el haz se invierte (con 6 mm de margen, −6,0 dB y haz hacia delante). Panel a 2,4 GHz: −7,8 dB. Simular antes de fabricar. |
 | Otras bandas | Campaña de GPU del 06–07-11 (`docs/desarrollo/barridos_gpu.md`): monopolos, dipolos, bowtie y sleeve van de 868 MHz a 5,8 GHz (la mayoría también en 915 ISM, 1,2 GHz, GPS L1 e Iridium); IFA y PIFA a 868 MHz, 2,4 y 5,8 GHz; Vivaldi a 2,4 y 5,8 GHz. Panel, colineales, parches y array no adaptan fuera de las bandas probadas. Tanda del 07–08-11 (`docs/desarrollo/resultados_07-11.md`): la J-pole recta a 868 MHz, la J-pole de Koch a 1,2 GHz, el parche con ranura a 5,8 GHz y la colineal de dipolos a 2,4 y 5,8 GHz llegan a −10 dB, y también la IFA, la PIFA y el dipolo a 1,2 GHz (−14 dB), el bowtie a 2,4 y 5,8 GHz, el sleeve y el Vivaldi a 5,8 GHz, el monopolo con IPEX a 2,4 GHz (masa manual) y la flecha de Sierpinski de iteración 1; bibanda 868 MHz + 2,4 GHz: dos J-pole unidas (−11,2 y −10,6 dB) e IFA con segunda rama (−11,7 y −10,8 dB), solo en simulación y con una malla concreta (ver «Dos bandas»). |
 

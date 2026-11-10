@@ -107,9 +107,12 @@ La barra está siempre arriba:
 
 ### Tamaño y material
 
-- **Sustrato.** El material y el grosor de la placa: FR4 de JLC de 1,6 / 1,2 / 1,0 / 0,8 mm o Rogers
-  RO4350B. El FR4 de 1,6 mm es el más barato y el que se ha usado para validar. El RO4350B pierde mucho
-  menos (más eficiencia, sobre todo en parches y arrays), pero es bastante más caro.
+- **Sustrato.** El material y el grosor de la placa: FR4 de JLC de 1,6 / 1,2 / 1,0 / 0,8 mm, Rogers
+  RO4350B, cuatro PTFE («teflón») de 0,65 / 0,9 / 1,65 mm o poliimida flex de 25 / 50 µm. El FR4 de 1,6 mm es el más
+  barato y el que se ha usado para validar. El RO4350B y el PTFE pierden mucho menos (más eficiencia, sobre todo en parches y
+  arrays), pero son más caros y no ensanchan la banda por sí solos. El **flex** no tiene impedancia controlada y una línea de
+  50 Ω saldría de ~0,1 mm: úsalo con los tipos que llevan el coaxial soldado en la antena (dipolo, bowtie, J-pole). Con PTFE o flex
+  elige las reglas «JLC alta frecuencia y flex (0,1 mm)» en Fabricar; se piden en los servicios de alta frecuencia y de flex de JLC.
 - **Ajustar tamaño a la frecuencia.** Recalcula las medidas para que la antena resuene en el centro
   elegido. **Púlsalo siempre que cambies de banda, de tipo o de sustrato.** Respeta las medidas que hayas
   fijado a mano.

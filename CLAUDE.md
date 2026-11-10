@@ -463,3 +463,19 @@ archivos modificados después de la última revisión. La marca de esa revisión
     no se construye; (b) cambiar `multibanda` debe redimensionar (`gui/app.py` `cambiar_param` y `web/app.js`, como `masa`); (c) con dos
     bandas `estimar_f` de la J-pole y la IFA va anclada a `bibanda` (la calibración de una banda daba un 10 % de error) y `dimensionar`
     parte del tamaño de una banda (`multibanda=0`) para no alargar la IFA dos veces. El bowtie de Sierpinski no tiene dos bandas (−8,5/−9,5 dB).
+71. **PTFE, flex y hélice en flex (10-11)**: `materiales.SUSTRATOS` lleva los cuatro PTFE de JLC (`PTFE_JLC`: ZYF255DA 2,55, ZYF265D 2,65, ZYF300CA-C 2,94,
+    ZYF300CA-P 3,0; tanδ 0,0016–0,0019; 0,65 / 0,9 / 1,65 mm; los nombres se generan, así que **no están en los catálogos de idioma** y salen en
+    castellano: `i18n limpiar` no los toca porque no son claves) y «Flex PI 25/50 µm» (εr 3,3, tanδ 0,004, sin coverlay). Regla nueva `fabricacion.REGLAS`
+    «JLC alta frecuencia y flex (0,1 mm)»; `consejos` avisa por sustrato. `simulacion.simular` usa 2 celdas en z si h < 0,4 mm (con 4, la celda de 12 µm
+    hunde el paso de tiempo). Resultados: el parche en PTFE da η ~90 % (FR4 ~47 %) pero la banda sigue en ~33 MHz (S_parche_ZYF265D_165_24GHz y
+    S_parche_ZYF300C_165_24GHz): el PTFE no ensancha. En flex de 50 µm, a 2,4 GHz: dipolo −14,8 dB, bowtie −17,3 dB, J-pole −10,3 dB (F_*_flex50_24GHz);
+    a 868 MHz el dipolo −17,1 dB; una microstrip de 50 Ω no sirve en flex (0,06–0,12 mm). La J-pole de Koch en flex y la J-pole a 868 MHz tardan > 1 h:
+    se pararon. **`herramientas/helice_flex.py`** (hélice cuadrifilar para GPS L1, hilos PEC en un cilindro, dos puertos por separado y campos combinados
+    con ±90°): la razón axial es 0 dB en el cénit (simetría), 3–5 dBi circulares, pero R de entrada 2–15 Ω (D = 14 mm: 2 Ω; D = 32 mm, ¼ de vuelta,
+    k 0,6: 1545 MHz, 14,6 Ω, tira de 100 × 13,5 mm). Con la malla de 1 mm es orientativo. La E de NF2FF es ~1e-10: los suelos de `np.maximum` deben ser relativos.
+    Al matar un barrido a mano hay que borrar `%LOCALAPPDATA%\antenas\gpu.lock` y el siguiente toma el turno (lección 65 b).
+72. **Segunda Yagi comercial de 2,4 GHz (`referencias/yagi_comercial_b.py`, 10-11)**: modelo leído de dos fotos (placa trapezoidal de 100 mm, de 49 a 35 mm; dipolo
+    plegado de 7 × 40 mm: anillo cerrado abajo unido al reflector por una tira, y arriba una «]» unida por el lado de los directores —dato del usuario— con la
+    barra de la línea suelta en la abertura; 3 directores de 6,8 mm en las dos caras con vías en el perímetro; reflector de 9 × 48 mm). **Ninguna de las cuatro
+    lecturas resuena a 2,4 GHz con haz hacia delante** (resuenan a ~2,9–3,2 GHz con 0,8 mm y la «acopla» a 1,9 GHz con 1,6 mm; ganancia ~2 dBi): faltan datos
+    (grosor del FR4, dónde está la vía o el acoplo de la alimentación y qué hace la tira al reflector). Pedir al usuario cotas con calibre y una foto macro.

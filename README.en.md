@@ -99,6 +99,7 @@ The resulting board (KiCad render): top side and bottom side with the logo and l
 | Bowtie dipole or Sierpinski bowtie | dipole_bowtie | ✅ validated (868 MHz to 5.8 GHz; marginal at 5.8 GHz); twice the bandwidth of the straight one |
 | J-pole and Koch J-pole | jpole | ✅ Koch validated (868 MHz and 1.2 GHz; 2.4 GHz almost, −9 dB); the straight one from 868 MHz to 2.4 GHz (−15 dB at 868 MHz and −12 dB at 2.4 GHz; now the default) |
 | Dual-band J-pole (two joined J-poles) and dual-band IFA (868 MHz + 2.4 GHz) | J-pole and IFA, “Bands” option | 🧪 in the interface since 0.3.0; simulation −11 dB in both bands with a 1 mm mesh, but with another mesh the high band drops (−3 to −7 dB): fragile, unmeasured (`antenas/bibanda.py`) |
+| Quadrifilar helix printed on flex and rolled (GPS L1) | tools | 🧪 in simulation (`herramientas/helice_flex.py`): pure CP, but input R of 2–15 Ω; unmeasured |
 | Test bench for new topologies (crossed-dipole turnstile for circular polarisation, slot antenna, tri-band IFA) | tools | 🧪 first simulations, outside the interface (`herramientas/topologias.py`): the slot matches at 2.4 GHz (−11.9 dB, η 79 %); the turnstile matches but without circular polarisation (axial ratio ≥ 5 dB); the tri-band IFA comes close (−9.5 dB) |
 | Double-sided Yagi with boom | yagi | ✅ straight elements (6–9 dBi; 868 MHz, 2.4 and 5.8 GHz); Koch iteration 2 also works at 2.4 GHz (−14.4 dB, beam forward, but 2.6 dBi) |
 | Quasi-Yagi with Koch dipole | yagi | ⚠️ experimental |
@@ -106,6 +107,17 @@ The resulting board (KiCad render): top side and bottom side with the logo and l
 | 2×2 / 4×4 patch array | array | ⚠️ validation not finished |
 | Printed coaxial collinear (COCO) | collinear | ❌ does not match well (−4 dB) and η 24–35 % on FR4; not at 868 MHz either |
 | Franklin collinear | collinear | ⚠️ matches, but with little bandwidth and ~2.5 dBi |
+
+## Substrates
+
+| Substrate | εr | tanδ | Thicknesses | Status |
+|---|---|---|---|---|
+| JLC FR4 | 4.5 | 0.02 | 0.8 / 1.0 / 1.2 / 1.6 mm | the one behind all validations; εr still to be measured with the coupon |
+| Rogers RO4350B | 3.66 | 0.0037 | 0.76 / 1.52 mm | thicknesses not confirmed at JLC |
+| PTFE (“Teflon”) ZYF255DA, ZYF265D, ZYF300CA-C, ZYF300CA-P | 2.55 / 2.65 / 2.94 / 3.0 | 0.0016–0.0019 | 0.65 / 0.9 / 1.65 mm | [JLC high-frequency page](https://jlcpcb.com/pcb-fabrication/high-frequency-pcb): 2 layers, 1 oz, ENIG, trace and gap ≥ 0.1 mm; εr and tanδ from the laminate maker, unmeasured, no published tolerances |
+| Polyimide flex (JLC) | 3.3 | ~0.004 | 25 / 50 µm | [flex capabilities](https://jlcpcb.com/capabilities/flex-pcb-capabilities): no controlled impedance (a 50 Ω microstrip would be 0.06–0.12 mm), so only types with the coax soldered to the antenna work; simulated flat and without coverlay |
+
+With a new substrate, press “Resize to the frequency” and choose the rules “JLC high frequency and flex (0.1 mm)”. The calibrated estimates come from FR4.
 
 ## ⚠️ Known issues
 
@@ -132,6 +144,9 @@ before trusting it. The GUI shows these warnings when you pick the type and when
 | COCO collinear | Radiates, but FR4 losses leave η ~53 % and ~1.9 dBi at 2.4 GHz; at 868 MHz, η 26 %, −2 dBi and S11 −7.8 dB. |
 | Franklin collinear | Matches (−19 dB at 2.4 GHz, −35 dB at 868 MHz) but with 62 and 23 MHz of bandwidth and 2.2–2.8 dBi. Experimental. |
 | Two bands (J-pole and IFA) | With a 1 mm mesh they give −11 dB in both bands, but with other meshes the high band drops to −3…−7 dB: the result is fragile and a few millimetres of difference in manufacturing can take it out of −10 dB. Choose the **low** band (868 or 915 MHz) in the design bar. The two-band Sierpinski is more reliable. |
+| PTFE substrate | Rectangular patch at 2.4 GHz on 1.65 mm ZYF265D and ZYF300CA-C: η ~90 % (FR4: ~47 %), ~6.5 dBi, but the −10 dB band stays at ~33 MHz: PTFE raises efficiency, not bandwidth (that needs more thickness). Unmeasured. |
+| Flex (50 µm polyimide) | Simulated flat and without coverlay, at 2.4 GHz: dipole −14.8 dB (2329–2567 MHz band), bowtie −17.3 dB (2261–2681 MHz), J-pole −10.3 dB (2386–2486 MHz); at 868 MHz, dipole −17.1 dB (828–912 MHz). Efficiency is as on FR4 (their fields were already in air). Bent or stuck to a surface the frequency changes. Unmeasured. |
+| Quadrifilar helix on flex (GPS L1) | Test bench (`herramientas/helice_flex.py`), outside the interface: pure circular polarisation at zenith (0 dB axial ratio with an ideal quadrature feed) and 3–5 dBi circular, but the input resistance comes out at 2–15 Ω and needs a matching and 90° network. Wire model: indicative. |
 | Lightening cutouts | Yagi with boom: at 868 MHz and 5.8 GHz they hardly change anything (−8.6 and −12.0 dB); at 2.4 GHz with the default margin the match drops to −2.3 dB and the beam flips (with a 6 mm margin, −6.0 dB and beam forward). Panel at 2.4 GHz: −7.8 dB. Simulate before manufacturing. |
 | Other bands | GPU campaign of 6–7 Nov (`docs/desarrollo/barridos_gpu.md`): monopoles, dipoles, bowtie and sleeve work from 868 MHz to 5.8 GHz (most also at 915 ISM, 1.2 GHz, GPS L1 and Iridium); IFA and PIFA at 868 MHz, 2.4 and 5.8 GHz; Vivaldi at 2.4 and 5.8 GHz. Panel, collinears, patches and array do not match outside the bands tested. 7–8 Nov batch (`docs/desarrollo/resultados_07-11.md`): the straight J-pole at 868 MHz, the Koch J-pole at 1.2 GHz, the slot-fed patch at 5.8 GHz and the dipole collinear at 2.4 and 5.8 GHz reach −10 dB, and so do the IFA, PIFA and dipole at 1.2 GHz (−14 dB), the bowtie at 2.4 and 5.8 GHz, the sleeve and Vivaldi at 5.8 GHz, the IPEX monopole at 2.4 GHz (manual ground) and the iteration-1 Sierpinski arrowhead; dual-band 868 MHz + 2.4 GHz: two joined J-poles (−11.2 and −10.6 dB) and an IFA with a second branch (−11.7 and −10.8 dB), simulation only and with one particular mesh (see «Two bands»). |
 

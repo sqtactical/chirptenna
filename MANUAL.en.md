@@ -108,9 +108,12 @@ The bar is always at the top:
 
 ### Size and material
 
-- **Substrate.** The material and thickness of the board: JLC FR4 of 1.6 / 1.2 / 1.0 / 0.8 mm or Rogers
-  RO4350B. 1.6 mm FR4 is the cheapest and the one used for validation. RO4350B loses far
-  less (more efficiency, especially in patches and arrays), but is considerably more expensive.
+- **Substrate.** The material and thickness of the board: JLC FR4 of 1.6 / 1.2 / 1.0 / 0.8 mm, Rogers
+  RO4350B, four PTFE (“Teflon”) at 0.65 / 0.9 / 1.65 mm or 25 / 50 µm polyimide flex. 1.6 mm FR4 is the cheapest and the one used
+  for validation. RO4350B and PTFE lose far less (more efficiency, especially in patches and arrays), but are more expensive and do
+  not widen the band on their own. **Flex** has no controlled impedance and a 50 Ω line would be ~0.1 mm: use it with the types that
+  have the coax soldered to the antenna (dipole, bowtie, J-pole). With PTFE or flex choose the rules “JLC high frequency and flex
+  (0.1 mm)” in Manufacture; they are ordered through JLC's high-frequency and flex services.
 - **Resize to the frequency.** Recomputes the dimensions so that the antenna resonates at the chosen
   centre. **Press it whenever you change band, type or substrate.** It respects the dimensions you have
   set by hand.

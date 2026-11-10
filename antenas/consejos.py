@@ -141,6 +141,17 @@ def consejos(antena, f_obj=None, banda=None):
     if 'FR4' in sustrato:
         out.append(('medida', tr('La εr del FR4 de JLC está pendiente de medir con el cupón: la frecuencia real '
                               'puede moverse un ±2–3 %.')))
+    if 'PTFE' in sustrato:
+        out.append(('medida', tr('La εr y la tanδ del PTFE son las del laminador (sin medir) y JLC no publica tolerancias: '
+                              'mide la frecuencia real con el cupón. Pide la placa en su servicio de alta frecuencia (2 capas, ENIG).')))
+        if antena.tipo.startswith('parche') or antena.tipo == 'array_parches':
+            out.append(('diseño', tr('El PTFE sube la eficiencia del parche (~90 % frente a ~47 % en FR4) pero no ensancha la banda: '
+                                  'con 1,65 mm sigue en ~35 MHz a 2,4 GHz. Para más banda hace falta más grosor o más εr baja.')))
+    if 'Flex' in sustrato:
+        out.append(('diseño', tr('Flex de JLC: sin impedancia controlada, y una microstrip de 50 Ω saldría de ~0,06–0,12 mm. '
+                              'Usa tipos con el coaxial soldado en la antena (dipolo, bowtie, J-pole) y las reglas «JLC alta frecuencia y flex (0,1 mm)».')))
+        out.append(('montaje', tr('Se simula plana y sin coverlay: doblada o pegada a una superficie, la frecuencia cambia. '
+                               'Ajusta la antena ya montada y respeta el radio de curvatura (≥ 6 veces el grosor).')))
     # Conector IPEX
     if antena.puerto.get('conector') == 1:
         out.append(('montaje', tr('IPEX / U.FL (MHF1, no MHF4): aguanta ~30 conexiones. El latiguillo de 1,13 mm pierde '
