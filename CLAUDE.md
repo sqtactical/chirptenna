@@ -503,3 +503,6 @@ archivos modificados después de la última revisión. La marca de esa revisión
     disposición cambian juntos). A 5,8 GHz el S11 es caótico con el largo del brazo (−1,4 a −10,5 dB entre 5,4 y 7,2 mm) y depende de la malla: brazo 6,6 mm da
     −10,5 dB y `verificar_malla` lo marca «sensible». Con `ajustar = False` la simulación usa la malla automática y el panel resuena un 20 % alto (2,4 GHz) o da
     −9 dB (5,8 GHz): la calibración vale para el paso al 90 % que fija `ajustar` (lección 52). A 868 MHz la placa de 383 × 283 mm sale de lo razonable (~30 min por punto).
+76. **Bibanda no robusta (11-11)**: `herramientas/robustez_bibanda.py <ifa|jpole> CONSTANTE=v,…` (cambia en memoria las constantes de `bibanda.py`, simula con 3 pasos de
+    malla y pide ≤ −8 dB en las dos bandas con todos). IFA de dos ramas (12 puntos) y J-pole unida (6 puntos): **ninguno cumple** (mejores −6,8 y −1,2 dB); informe en
+    `docs/desarrollo/bibanda_robustez.md`. Mover las constantes no arregla la dependencia de la malla. Decisión pendiente del usuario: quitar `multibanda` de la interfaz.

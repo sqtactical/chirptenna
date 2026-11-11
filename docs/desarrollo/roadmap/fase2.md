@@ -104,6 +104,12 @@ F2.1–F2.6 no necesitan hardware y se pueden adelantar mientras llegan las plac
      interfaz (las herramientas se quedan).
 - **Hecho cuando**: hay constantes robustas con su tabla en `docs/desarrollo/`, o la decisión del usuario apuntada.
 
+- **DATOS LISTOS el 11-11-2026, decisión pendiente**: `herramientas/robustez_bibanda.py` y el informe
+  `docs/desarrollo/bibanda_robustez.md`. IFA: 12 puntos (`IFA_H2` 0,5–0,7 × `IFA_X_BRAZO` 1,10–1,25) × 3 pasos: **ninguno cumple**
+  (mejor −6,8 dB; el actual, −5,3 dB). J-pole unida: 6 puntos (`JPOLE_SEP2` 3/4,5 × `JPOLE_TOMA2` 0,2–0,3) × 3 pasos: **ninguno cumple**
+  (mejor −1,2 dB; el actual −9,2/−10,1 con el paso de la aplicación y −2,4/−0,5 con otro). No se tocó `bibanda.py`. Falta que el
+  usuario decida: quitar `multibanda` de `jpole` e `ifa` en la interfaz, dejarlas con el aviso, o pasar al diplexor (I3).
+
 ## F2.6 · Bucle: red en L automática y anillo redondo
 
 - **Quién**: Agente.
