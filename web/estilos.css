@@ -108,6 +108,8 @@ table.info td:last-child { text-align: right; font-weight: 500; }
 .galeria-cabecera p { margin: 0 0 .4rem; max-width: 760px; }
 .grupo-galeria h2 { font-size: 1.05rem; margin: 1.2rem 0 .1rem; }
 .grupo-galeria > p { margin: 0 0 .6rem; }
+.grupo-galeria > summary { font-size: 1.05rem; font-weight: 700; margin: 1.2rem 0 .1rem; cursor: pointer; }
+.grupo-galeria > summary::before { content: '🧪 '; }
 .rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .8rem; }
 .ficha { display: flex; flex-direction: column; gap: .35rem; text-align: left; background: var(--tarjeta); color: var(--texto);
   border: 1px solid var(--borde); border-radius: 8px; padding: .7rem .8rem; cursor: pointer; box-shadow: var(--sombra);

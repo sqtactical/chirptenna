@@ -31,6 +31,10 @@ F2.1–F2.6 no necesitan hardware y se pueden adelantar mientras llegan las plac
   5. Traducciones; captura nueva de la galería si la del README cambia (`docs/capturas`, ver `CLAUDE.md`).
 - **Prueba**: `comprobar_tipos.py`, `prueba_interfaz.py`, `construir_web.py`; abrir la galería en claro y oscuro.
 - **Hecho cuando**: un usuario nuevo solo ve arriba tipos «Validada» o «Pendiente»; nada desaparece.
+- **HECHA el 11-11-2026**: el grupo `experimental` ya existía en `guia.GRUPOS` con todos los candidatos (los 5 «No funciona»,
+  los «Pendiente» sin validar, la flecha y el bucle); solo faltaba plegarlo: `ui.expansion` en `gui/app.py` y `<details>` en
+  `web/app.js`. 16 tarjetas visibles plegado, 27 desplegado. `i18n faltan` 0, `construir_web` y `prueba_interfaz` bien.
+  Pendiente de la CI: `prueba_web.py`.
 
 ## F2.3 · Verificación con otra malla
 

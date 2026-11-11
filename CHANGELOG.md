@@ -43,6 +43,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 - Galería: los tipos validados en simulación salen de «Experimentales» a su grupo de uso: IFA y PIFA en «Nodo portátil»,
   Vivaldi en «Enlace fijo o directiva», dipolo con manga, colineal de dipolos y J-pole recta en «Sin plano de masa». En
   «Experimentales» quedan los que no funcionan o están sin validar, y la flecha de Sierpinski (curiosidad).
+- El grupo «Experimentales» de la galería sale **plegado** (escritorio y web): lo primero que ve un usuario nuevo son los tipos
+  validados; al pinchar en el título se despliega. El selector de tipo de la barra los sigue listando.
 - **J-pole recta arreglada**: `dimensionar` ahora da el hueco entre brazos ampliado (×5 a 868 MHz, ×6 a 2,4 GHz, interpolado entre
   las dos) y la toma al 26 %, con el largo del radiador recalibrado. Simulada sin centrar: −15 dB a 868 MHz, −10 dB a 915 MHz,
   −9,7 dB a 1,2 GHz, −11,8 dB en GPS L1 y −12 dB a 2,4 GHz (antes −7 dB). A 5,8 GHz sigue sin adaptar. El hueco puede llegar a

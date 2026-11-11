@@ -10,6 +10,7 @@ Documentos\\Chirptenna\\disenos (módulo `antenas.biblioteca`).
 """
 import os
 import sys
+import contextlib
 import json
 import asyncio
 import time
@@ -292,9 +293,14 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                 claves = [k for k in _orden_galeria() if guia.info_tipo(k)[0] == g_clave]
                 if not claves:
                     continue
-                ui.label(tr(g_titulo)).classes('text-subtitle1 text-weight-medium q-mt-md')
-                ui.label(tr(g_desc)).classes('text-caption texto-sec')
-                with ui.row().classes('w-full wrap gap-3 items-stretch'):
+                if g_clave == 'experimental':
+                    # plegado: un usuario nuevo no debe ver primero lo que no funciona o está sin validar
+                    marco = ui.expansion(tr(g_titulo), caption=tr(g_desc), icon='science').classes('w-full q-mt-md')
+                else:
+                    marco = contextlib.nullcontext()
+                    ui.label(tr(g_titulo)).classes('text-subtitle1 text-weight-medium q-mt-md')
+                    ui.label(tr(g_desc)).classes('text-caption texto-sec')
+                with marco, ui.row().classes('w-full wrap gap-3 items-stretch'):
                     for k in claves:
                         est, comentario = problemas.estado(k)
                         with ui.card().classes('w-60 cursor-pointer tarjeta-tipo q-pa-sm') \

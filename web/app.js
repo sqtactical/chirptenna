@@ -153,8 +153,12 @@ function construirGaleria() {
   for (const [g, titulo, desc] of cat.grupos) {
     const tipos = cat.tipos.filter((t) => t.grupo === g);
     if (!tipos.length) continue;
-    const sec = el('section', 'grupo-galeria');
-    sec.append(el('h2', '', T(titulo)), el('p', 'sec pequeno', T(desc)));
+    // el grupo experimental va plegado: un usuario nuevo no debe ver primero lo que no funciona
+    const plegado = g === 'experimental';
+    const sec = el(plegado ? 'details' : 'section', 'grupo-galeria');
+    if (plegado) sec.append(el('summary', '', T(titulo)));
+    else sec.append(el('h2', '', T(titulo)));
+    sec.append(el('p', 'sec pequeno', T(desc)));
     const rejilla = el('div', 'rejilla');
     for (const t of tipos) {
       const f = el('button', 'ficha');

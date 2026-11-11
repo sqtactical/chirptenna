@@ -70,7 +70,7 @@ diferencia identificada.
 ## Fase 2 · v0.4: consolidar
 
 - [ ] **Subir lo pendiente**: commits locales de PTFE/flex/hélice y del bucle.
-- [ ] **Podar la galería**: grupo «Experimental» plegado por defecto con lo que no funciona o es frágil (parches en
+- [x] (11-11, F2.2) **Podar la galería**: grupo «Experimental» plegado por defecto con lo que no funciona o es frágil (parches en
   FR4 fuera de 5,8 GHz, Minkowski, circular, ranura en U, apilado, array, COCO, Franklin, Hilbert, flecha it. 3).
   Sigue disponible, pero no es lo primero que ve un usuario nuevo.
 - [ ] **Comprobación de malla automática**: opción «Verificar con otra malla» en Simulación (y obligatoria en
