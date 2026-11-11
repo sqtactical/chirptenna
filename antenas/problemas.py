@@ -245,7 +245,8 @@ def problemas(clave, p=None, f_MHz=None):
     if clave in ('jpole', 'ifa') and int(p.get('multibanda', 0) or 0) == 1:
         out.append(('aviso', tr('Dos bandas, experimental: con una malla de 1 mm la simulación da −10 a −12 dB en 868 MHz y 2,4 GHz, pero con '
                                 'otra malla la banda alta se cae (−3 a −7 dB): el resultado es frágil y una diferencia de pocos milímetros al fabricar puede '
-                                'sacarla de −10 dB. Solo probada con la banda baja en 868 MHz. Simúlala y mídela antes de fiarte. '
+                                'sacarla de −10 dB. Probadas 18 variantes de las medidas de la segunda rama con tres pasos de malla: ninguna da −8 dB '
+                                'en las dos bandas con todos. Solo probada con la banda baja en 868 MHz. Simúlala (con la verificación de malla) y mídela antes de fiarte. '
                                 'No se ajusta como las de una banda: la simulación mide las dos a la vez.')))
     if clave == 'monopolo_sierpinski' and int(p.get('multibanda', 0) or 0) == 1:
         out.append(('info', tr('Dos bandas: simulado con la banda baja en 868–870, 902–928 o 863–928 MHz y la alta en 2400–2483,5 MHz '
