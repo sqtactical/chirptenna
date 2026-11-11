@@ -49,7 +49,9 @@ parche, dipolo con coaxial y Yagi recta de 2 directores.
 - [ ] **εr real del FR4.** Medir los anillos y líneas de los cupones A y B con el NanoVNA; ajustar εr y tanδ en la
   simulación del cupón (`cupon/simular_anillo.py`) hasta casar las resonancias. Resultado: εr y tanδ por frecuencia
   (868 MHz, 2,4 GHz; 5,8 GHz necesita otro analizador) en `materiales.SUSTRATOS`.
-- [ ] **Medir las siete antenas** (S11, banda a −10 dB, R/X) con `vna/medir_antena_pc.py` y guardar los `.s1p`.
+- [x] (11-11, tareas F1.1 y F1.2) **Predicciones escritas** (`docs/desarrollo/medidas/predicciones_2G4.md`) y **herramienta
+  `herramientas/comparar_medida.py`** probada con una medida sintética (desviación de 3 % medida como 3,0 %).
+- [ ] **Medir las seis antenas** (Y54–Y59; el meandro y el panel no se pidieron) (S11, banda a −10 dB, R/X) con `vna/medir_antena_pc.py` y guardar los `.s1p`.
 - [ ] **Comparar simulación y medida** tipo por tipo: desviación de frecuencia, de banda y de profundidad de S11.
   Herramienta nueva `herramientas/comparar_medida.py <diseño> <s1p>`: superpone las curvas y da los tres números.
 - [ ] **Fijar la malla de referencia**: repetir cada simulación con 2–3 pasos y quedarse con el criterio que más se

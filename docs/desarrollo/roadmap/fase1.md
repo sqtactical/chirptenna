@@ -24,7 +24,10 @@ Las tareas F1.1 y F1.2 se pueden hacer **antes** de que lleguen las placas.
      la εr; mira cómo lo hace `herramientas/sensibilidad_er.py`).
   4. Escribe `docs/desarrollo/medidas/predicciones_2G4.md` con una tabla: antena, f de resonancia (MHz) con εr
      4,2 / 4,5 / 4,8, banda a −10 dB, S11 mínimo, ganancia, η.
-- **Hecho cuando**: la tabla tiene las 7 antenas y las 3 columnas de εr, y la pendiente Δf/Δεr de cada una.
+- **Hecho cuando**: la tabla tiene las antenas pedidas y las 3 columnas de εr, y la pendiente Δf/Δεr de cada una.
+- **HECHA el 11-11-2026**: `docs/desarrollo/medidas/predicciones_2G4.md`. Se pidieron **6** antenas (no 7: el meandro no
+  se pidió). Las simulaciones con las 3 εr ya existían (`herramientas/sensibilidad_er.py`, 08-11,
+  `salidas/_barridos/SENS_er_pedido/`), así que no se repitieron.
 
 ## F1.2 · Herramienta de comparación
 
@@ -42,6 +45,10 @@ Las tareas F1.1 y F1.2 se pueden hacer **antes** de que lleguen las placas.
   5. Pruébala con un `.s1p` falso: exporta la propia simulación a `.s1p` desplazada un 3 % en frecuencia y
      comprueba que `desviacion_f_pct` da 3,0 ± 0,1.
 - **Hecho cuando**: la prueba del paso 5 pasa y el PNG se lee bien.
+- **HECHA el 11-11-2026**: `herramientas/comparar_medida.py <simulado> <medida.s1p> [--banda a b] [--ventana a b]
+  [--salida carpeta]`. El simulado puede ser la carpeta de una simulación, un `datos.npz` o un `.s1p`. Probada con
+  +3 %, −3 % y 0 % de desplazamiento: da 3,0, −3,0 y 0,0 %. Usa `--ventana 2000 3000` con las medidas reales (el
+  barrido de 50 kHz–2,7 GHz tiene otros mínimos).
 
 ## F1.3 · Comprobar la calibración del NanoVNA
 
@@ -92,7 +99,7 @@ Las tareas F1.1 y F1.2 se pueden hacer **antes** de que lleguen las placas.
      anótalo (los monopolos pequeños y la J-pole son sensibles) y pide una ferrita si el usuario tiene.
   4. Guarda la medida también en la biblioteca del diseño (`biblioteca.guardar_medida`) si el diseño está en
      «Mis diseños».
-- **Hecho cuando**: hay `.s1p` + `.json` + `.png` de las 7 antenas en `vna/medidas/`.
+- **Hecho cuando**: hay `.s1p` + `.json` + `.png` de las 6 antenas pedidas en `vna/medidas/`.
 
 ## F1.6 · Comparar simulación y medida
 

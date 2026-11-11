@@ -5,7 +5,7 @@ se ejecuta, reglas y lecciones aprendidas) está en [`CLAUDE.md`](CLAUDE.md). El
 hecho hasta ahora (validaciones, simulaciones, fallos y decisiones) está en
 [`docs/desarrollo/historial.md`](docs/desarrollo/historial.md). **Hacia dónde va el proyecto y en qué orden:
 [`ROADMAP.md`](ROADMAP.md)** (11-11): fase 1 = medir cupones y antenas del pedido de JLC; después, consolidar (v0.4) e
-integrar antenas en la PCB de un producto (v0.5). Las ideas pendientes de abajo (arrays, colineales) están recogidas allí.
+integrar antenas en la PCB de un producto (v0.5). Las ideas pendientes de abajo (arrays, colineales) están recogidas allí. **Hechas el 11-11:** F1.1 (`docs/desarrollo/medidas/predicciones_2G4.md`: lo que predice la simulación para las 6 antenas pedidas con εr 4,2/4,5/4,8) y F1.2 (`herramientas/comparar_medida.py`). Siguiente: F1.3 (verificar la calibración del NanoVNA, con el usuario delante) en cuanto lleguen las placas; mientras, F2.2–F2.6.
 
 ## Estado
 
