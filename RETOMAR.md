@@ -3,7 +3,9 @@
 Nota de traspaso entre sesiones: qué hay hecho, qué falta y en qué orden. Lo estable (estructura, cómo
 se ejecuta, reglas y lecciones aprendidas) está en [`CLAUDE.md`](CLAUDE.md). El diario completo de lo
 hecho hasta ahora (validaciones, simulaciones, fallos y decisiones) está en
-[`docs/desarrollo/historial.md`](docs/desarrollo/historial.md).
+[`docs/desarrollo/historial.md`](docs/desarrollo/historial.md). **Hacia dónde va el proyecto y en qué orden:
+[`ROADMAP.md`](ROADMAP.md)** (11-11): fase 1 = medir cupones y antenas del pedido de JLC; después, consolidar (v0.4) e
+integrar antenas en la PCB de un producto (v0.5). Las ideas pendientes de abajo (arrays, colineales) están recogidas allí.
 
 ## Estado
 

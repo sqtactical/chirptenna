@@ -7,7 +7,10 @@ NanoVNA, para que las simulaciones coincidan con las placas fabricadas.
 
 **Estado actual y siguientes pasos: leer `RETOMAR.md` al empezar.** Es la nota de traspaso
 entre sesiones: mantenla al día cuando se avance o cambie el plan. Este archivo recoge lo
-estable: cómo está montado, cómo se ejecuta y las reglas.
+estable: cómo está montado, cómo se ejecuta y las reglas. **El plan a medio plazo está en
+`ROADMAP.md`** (fases, con casillas): el rumbo es integrar antenas en la PCB de un producto real
+y no se añaden tipos nuevos hasta medir las placas (fase 1). Al terminar una tarea de ahí,
+márcala; si el usuario no pide otra cosa, lo siguiente sale de la primera fase sin cerrar.
 
 **Mantenimiento**: al terminar una tarea, actualiza este archivo con lo que haya cambiado o
 se haya aprendido, y `RETOMAR.md` con el estado. Hazlo de forma concisa y sin duplicar
