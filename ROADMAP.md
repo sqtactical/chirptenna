@@ -25,6 +25,22 @@ sensor), no solo para generar antenas sueltas con su conector. Eso exige tres co
   panel, arrays).
 - **Honestidad en los estados.** «Validada» significa simulada; «Medida» será un estado aparte con su gráfica.
 
+## Guías paso a paso
+
+Este archivo es el índice. Cada tarea está desarrollada (quién la hace, archivos, pasos, cómo probarla y cuándo
+está hecha) en `docs/desarrollo/roadmap/`:
+
+| Guía | Contenido |
+|---|---|
+| [`00_como_trabajar.md`](docs/desarrollo/roadmap/00_como_trabajar.md) | **Leer primero**: comandos, reglas, definición de «hecho», informe y cuándo preguntar |
+| [`fase1.md`](docs/desarrollo/roadmap/fase1.md) | F1.1–F1.11: predicciones, cupones y εr, medir antenas, comparar, malla, recalibrar, estado «Medida» |
+| [`fase2.md`](docs/desarrollo/roadmap/fase2.md) | F2.1–F2.10: galería, verificación de malla, panel, bibanda, bucle, segundo pedido, GPU, pruebas |
+| [`fase3.md`](docs/desarrollo/roadmap/fase3.md) | F3.1–F3.10: antena integrada, huella con zona de exclusión, pad de RF, 4 capas, importar KiCad, entorno, tolerancias |
+| [`fase4.md`](docs/desarrollo/roadmap/fase4.md) | F4.1–F4.6: componentes concentrados, adaptación automática, analizadores, informe; lista de la v1.0 |
+| [`ideas.md`](docs/desarrollo/roadmap/ideas.md) | I1–I15: primer experimento barato de cada idea y criterio para seguir o abandonar |
+
+Sin hardware se pueden adelantar ya: F1.1, F1.2 y F2.2–F2.6.
+
 ## Fase 1 · Validación en hardware (al llegar el pedido de JLC)
 
 Pedido en camino (2,4 GHz, FR4 1,6 mm): cupones A y B, meandro, Sierpinski, Koch ajustable, J-pole de Koch,
