@@ -492,3 +492,8 @@ archivos modificados después de la última revisión. La marca de esa revisión
     barra de la línea suelta en la abertura; 3 directores de 6,8 mm en las dos caras con vías en el perímetro; reflector de 9 × 48 mm). **Ninguna de las cuatro
     lecturas resuena a 2,4 GHz con haz hacia delante** (resuenan a ~2,9–3,2 GHz con 0,8 mm y la «acopla» a 1,9 GHz con 1,6 mm; ganancia ~2 dBi): faltan datos
     (grosor del FR4, dónde está la vía o el acoplo de la alimentación y qué hace la tira al reflector). Pedir al usuario cotas con calibre y una foto macro.
+74. **Verificar la malla (11-11)**: `simulacion.verificar_malla` (casilla en Simulación; siempre con `multibanda` = 1, paneles y arrays) repite con el paso ×0,85 y
+    ×1,15. **Una antena normal también se mueve**: el monopolo recto de 2,4 GHz da −1,8 y −4,0 % (no es monótono con el paso: depende de cómo caen las
+    líneas sobre los bordes), así que el 2 % de la guía no servía; umbrales 5 % de f y 5 dB de S11 solo si alguno queda por encima de −10 dB (de −25 a −15 dB no
+    importa). Con dos bandas no se compara la f (es la del mínimo global). Una simulación sin ajuste con `multibanda` = 1 usaba el rango 0,6–1,4 × y no veía la
+    banda alta: `simular_cli` ya usa 0,45–3,8 ×.

@@ -162,7 +162,11 @@ Simulates the antenna with **openEMS** (a full-wave electromagnetic simulator, F
    - **fine** for the final check, slower.
 2. **Tune to the frequency by simulating:** if checked, it simulates, corrects the size and repeats (2–5
    simulations) until the centre of the −10 dB band falls on the target. If not, it runs just one.
-3. **Simulate.** The log shows the progress. You can keep using the rest of the interface.
+3. **Check with another mesh:** repeats the final simulation with the mesh step 15 % smaller and 15 % larger
+   (it takes three times as long) and warns if the result changes: more than 5 % in frequency, or more than 5 dB in
+   S11 when either value is above −10 dB. A warning means **a single point cannot be trusted** and the antenna
+   should be measured. It is always done with two bands, panels and arrays, which depend most on the mesh.
+4. **Simulate.** The log shows the progress. You can keep using the rest of the interface.
 
 **GPU acceleration (experimental).** If you have an NVIDIA card and an openEMS build with a GPU engine (see
 `RETOMAR.md`), the checkbox appears enabled and simulations are about 10 times faster. In tests, frequency,

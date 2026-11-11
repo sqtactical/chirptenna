@@ -572,6 +572,55 @@ def _ajustar_adaptacion(clave, q, nombre_sustrato, s, f_obj, precision, paso, pr
     return mejor_q, tipos.generar(clave, mejor_q, nombre_sustrato)
 
 
+# Umbrales de verificar_malla, sacados de simulaciones reales (11-11-2026) con el paso ×0,85 y ×1,15:
+# monopolo recto a 2,4 GHz (normal): Δf −1,8 y −4,0 %, ΔS11 0,2 y 3,3 dB; J-pole bibanda a 868 MHz + 2,4 GHz
+# (sensible, lección 70): ΔS11 de 1,2 a 15 dB en la banda alta. Un cambio del paso de ±15 % mueve una antena
+# normal hasta ~4 % (la resonancia no es monótona con el paso: depende de cómo caen las líneas sobre los bordes).
+# El S11 solo cuenta si el cambio importa: de −25 a −15 dB no cambia nada, de −9 a −4 dB sí. Se marca cuando varía
+# más de UMBRAL_MALLA_S11_DB y alguno de los dos queda por encima de −10 dB (el monopolo de Koch dio +5,3 dB entre
+# −17 y −12 dB: sin esa condición saltaba un aviso sin sentido).
+UMBRAL_MALLA_F_PCT = 5.0     # desplazamiento máximo de la resonancia al cambiar el paso
+UMBRAL_MALLA_S11_DB = 5.0    # y del S11 en las frecuencias de interés
+LIMITE_S11_DB = -10.0
+
+
+def verificar_malla(antena, sustrato, base, frecuencias_Hz, precision='normal', factores=(0.85, 1.15),
+                    rango=(0.6, 1.4), malla='uniforme', progreso=print, usar_f=True):
+    """Repite la simulación `base` con el paso de malla multiplicado por cada factor y dice si el resultado
+    depende de la malla (lecciones 52 y 70: el panel y la bibanda cambian hasta un 10 % de frecuencia o 8 dB de S11).
+
+    base: resultado de `simular` (se usa su paso, su resonancia y su S11); rango: el mismo que se usó en `base`.
+    frecuencias_Hz: donde se compara el S11 (la de diseño; con dos bandas, las dos).
+    usar_f: compara también la frecuencia de resonancia (con dos bandas no vale: es la del mínimo global, que salta
+    de una banda a otra; se pasa False y solo cuenta el S11).
+    Veredicto «estable» si en todos los factores |Δf| ≤ UMBRAL_MALLA_F_PCT y el S11 no varía más de
+    UMBRAL_MALLA_S11_DB en ninguna frecuencia con alguno de los dos valores por encima de −10 dB; si no, «sensible». Sin diagrama de radiación (nf2ff=False): ~2× el tiempo de `base` con 0,85.
+    """
+    f_centro = base['rango_Hz'][0]/rango[0]
+    s11_base = [_s11_en(base, f)[0] for f in frecuencias_Hz]
+    filas = []
+    for fac in factores:
+        paso = round(base['paso_malla_mm']*fac, 3)
+        progreso(tr('Verificación de la malla: paso {0:.3f} mm (×{1:g})', paso, fac))
+        r = simular(antena, sustrato, f_centro, precision, nf2ff=False, progreso=lambda m: None, paso=paso, malla=malla,
+                    rango=rango)
+        s11 = [_s11_en(r, f)[0] for f in frecuencias_Hz]
+        d_f = 100*(r['f_resonancia_Hz'] - base['f_resonancia_Hz'])/base['f_resonancia_Hz']
+        d_s = [b - a for a, b in zip(s11_base, s11)]
+        filas.append({'factor': fac, 'paso_mm': paso, 'f_resonancia_MHz': round(r['f_resonancia_Hz']/1e6, 2),
+                      'dif_f_pct': round(d_f, 2), 's11_dB': [round(x, 1) for x in s11], 'dif_s11_dB': [round(x, 1) for x in d_s],
+                      'tiempo_s': r['tiempo_s']})
+        progreso(tr('  → resonancia {0:.1f} MHz ({1:+.2f} %), S11 {2}', r['f_resonancia_Hz']/1e6, d_f,
+                    ' / '.join(f'{x:.1f} dB' for x in s11)))
+    def s11_importa(x):
+        return any(abs(d) > UMBRAL_MALLA_S11_DB and max(b, v) > LIMITE_S11_DB
+                   for d, b, v in zip(x['dif_s11_dB'], s11_base, x['s11_dB']))
+    sensible = any((usar_f and abs(x['dif_f_pct']) > UMBRAL_MALLA_F_PCT) or s11_importa(x) for x in filas)
+    return {'veredicto': 'sensible' if sensible else 'estable', 'filas': filas, 'compara_f': usar_f,
+            'frecuencias_MHz': [round(f/1e6, 2) for f in frecuencias_Hz], 's11_base_dB': [round(x, 1) for x in s11_base],
+            'paso_base_mm': base['paso_malla_mm'], 'umbral_f_pct': UMBRAL_MALLA_F_PCT, 'umbral_s11_dB': UMBRAL_MALLA_S11_DB}
+
+
 def ajustar(clave, parametros, nombre_sustrato, f_obj, precision='normal', max_sim=5, tolerancia=0.01,
             progreso=print, malla='uniforme'):
     """Ajusta el parámetro de escala del tipo simulando (secante) hasta resonar en f_obj.

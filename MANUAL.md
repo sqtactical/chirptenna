@@ -161,7 +161,11 @@ Simula la antena con **openEMS** (un simulador electromagnético de onda complet
    - **fina** para la comprobación final, más lenta.
 2. **Ajustar a la frecuencia simulando:** si está marcado, simula, corrige el tamaño y repite (2–5
    simulaciones) hasta que el centro de la banda a −10 dB cae en el objetivo. Si no, hace una sola.
-3. **Simular.** El registro muestra el progreso. Puedes seguir usando el resto de la interfaz.
+3. **Verificar con otra malla:** repite la simulación final con el paso de malla un 15 % menor y un 15 % mayor
+   (tarda el triple) y avisa si el resultado cambia: más de un 5 % de frecuencia, o más de 5 dB de S11 cuando
+   alguno de los dos queda por encima de −10 dB. Un aviso significa que **un solo punto no es de fiar** y hay que
+   medir la antena. Se hace siempre con dos bandas, paneles y arrays, que son los que más dependen de la malla.
+4. **Simular.** El registro muestra el progreso. Puedes seguir usando el resto de la interfaz.
 
 **Cuánto tarda:** de 1 a 15 minutos cada simulación en un monopolo de 2,4 GHz. A 868 MHz, con pistas finas,
 o en arrays y paneles, puede llegar a horas. Los resultados quedan en caché: repetir la misma geometría es

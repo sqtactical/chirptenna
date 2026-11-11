@@ -73,7 +73,7 @@ diferencia identificada.
 - [x] (11-11, F2.2) **Podar la galería**: grupo «Experimental» plegado por defecto con lo que no funciona o es frágil (parches en
   FR4 fuera de 5,8 GHz, Minkowski, circular, ranura en U, apilado, array, COCO, Franklin, Hilbert, flecha it. 3).
   Sigue disponible, pero no es lo primero que ve un usuario nuevo.
-- [ ] **Comprobación de malla automática**: opción «Verificar con otra malla» en Simulación (y obligatoria en
+- [x] (11-11, F2.3) **Comprobación de malla automática**: opción «Verificar con otra malla» en Simulación (y obligatoria en
   bibanda): repite con el paso ±15 % y avisa si la frecuencia cambia > 2 % o S11 > 3 dB.
 - [ ] **Panel calibrado por banda** (`K_MALLA_FINA_PANEL` solo vale a 2,4 GHz; a 5,8 GHz resuena un 17 % baja).
 - [ ] **Bibanda robusta**: J-pole unida e IFA de dos ramas rediseñadas para que aguanten el cambio de malla, o

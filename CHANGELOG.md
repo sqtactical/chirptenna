@@ -40,6 +40,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ### Cambiado
 
+- **Verificación con otra malla** (`simulacion.verificar_malla`, casilla «Verificar con otra malla» en Simulación): repite la
+  simulación final con el paso ×0,85 y ×1,15 y avisa si la frecuencia se mueve más de un 5 % o el S11 más de 5 dB cruzando
+  −10 dB. Siempre con dos bandas, paneles y arrays. Medido: monopolo recto y de Koch estables; J-pole bibanda sensible (ΔS11 hasta
+  15 dB). Arreglado de paso: una simulación sin ajuste con «Dos bandas» ahora usa el rango ancho (antes solo 0,6–1,4 ×).
 - Galería: los tipos validados en simulación salen de «Experimentales» a su grupo de uso: IFA y PIFA en «Nodo portátil»,
   Vivaldi en «Enlace fijo o directiva», dipolo con manga, colineal de dipolos y J-pole recta en «Sin plano de masa». En
   «Experimentales» quedan los que no funcionan o están sin validar, y la flecha de Sierpinski (curiosidad).

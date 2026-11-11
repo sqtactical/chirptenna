@@ -345,6 +345,9 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                     sel_prec = ui.select(list(PRECISIONES), value='normal', label=tr('Precisión')).classes('w-32')
                     chk_ajustar = ui.checkbox(tr('Ajustar a la frecuencia simulando'), value=True)
                     gpu_ok, gpu_motivo = gpu.disponible()
+                    chk_malla = ui.checkbox(tr('Verificar con otra malla'), value=False).tooltip(
+                        tr('Repite la simulación con el paso de malla un 15 % menor y un 15 % mayor y avisa si el resultado '
+                           'cambia mucho (tarda el triple). Se hace siempre con dos bandas, paneles y arrays.'))
                     chk_gpu = ui.checkbox(tr('Aceleración por GPU (experimental)'), value=gpu_ok)
                     if gpu_ok:
                         chk_gpu.tooltip(tr('Usa el openEMS compilado con motor GPU: en las pruebas, ~10× más rápido. '
@@ -933,9 +936,12 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
             return
         carpeta = os.path.join(DIR_SALIDAS, '_simulaciones', time.strftime('%Y%m%d_%H%M%S'))
         os.makedirs(carpeta, exist_ok=True)
+        # los resultados que se sabe que dependen de la malla (dos bandas, paneles, arrays) se verifican siempre
+        sensible = (int(estado['params'].get('multibanda', 0) or 0) == 1
+                    or tipos.CATALOGO[estado['clave']].familia in ('panel', 'array'))
         trabajo = {'clave': estado['clave'], 'parametros': estado['params'], 'sustrato': estado['sustrato'],
                    'f_obj_Hz': estado['f_MHz']*1e6, 'precision': sel_prec.value, 'ajustar': chk_ajustar.value,
-                   'salida': carpeta}
+                   'verificar_malla': bool(chk_malla.value or sensible), 'salida': carpeta}
         ruta = os.path.join(carpeta, 'trabajo.json')
         with open(ruta, 'w', encoding='utf-8') as fh:
             json.dump(trabajo, fh, ensure_ascii=False, default=float)
@@ -1018,6 +1024,24 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                          (tr('Eficiencia de radiación / total'),
                           f"{r['eficiencia_radiacion_%']:g} % / {r['eficiencia_total_%']:g} %"),
                          (tr('Malla / tiempo'), tr('{0:.2f} M celdas, paso {1} mm, {2:g} s', r['celdas']/1e6, r['paso_malla_mm'], r['tiempo_s']))]
+                v = r.get('verificacion_malla')
+                if v and v.get('error'):
+                    with ui.row().classes('items-start no-wrap'):
+                        ui.icon('warning', color='warning')
+                        ui.label(tr('No se pudo verificar la malla: {0}', v['error'])).classes('text-caption')
+                elif v:
+                    detalle = '; '.join(
+                        (tr('paso ×{0:g}: Δf {1:+.1f} %, ΔS11 {2} dB', x['factor'], x['dif_f_pct'],
+                            ' / '.join(f'{d:+.1f}' for d in x['dif_s11_dB']))
+                         if v.get('compara_f', True) else
+                         tr('paso ×{0:g}: ΔS11 {1} dB', x['factor'], ' / '.join(f'{d:+.1f}' for d in x['dif_s11_dB'])))
+                        for x in v['filas'])
+                    sens = v['veredicto'] == 'sensible'
+                    with ui.row().classes('items-start no-wrap'):
+                        ui.icon('warning' if sens else 'check_circle', color='warning' if sens else 'positive')
+                        ui.label((tr('El resultado depende de la malla: no te fíes de un solo punto, mide la antena. ')
+                                  if sens else tr('El resultado no depende de la malla. ')) + '(' + detalle + ')'
+                                 ).classes('text-caption' + (' texto-aviso' if sens else ''))
                 cubre = bool(r['banda_MHz']) and r['banda_MHz'][0] <= lo and r['banda_MHz'][1] >= hi
                 with ui.row().classes('items-center no-wrap'):
                     ui.icon('check_circle' if cubre else 'cancel', color='positive' if cubre else 'negative')

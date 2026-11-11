@@ -56,6 +56,13 @@ F2.1–F2.6 no necesitan hardware y se pueden adelantar mientras llegan las plac
 - **Prueba**: monopolo recto a 2441,75 MHz debe dar «estable»; J-pole con `multibanda` = 1 a 868 MHz debe dar
   «sensible» (lección 70). Si el monopolo sale «sensible», hay un fallo en la herramienta.
 - **Hecho cuando**: las dos pruebas dan lo esperado y `prueba_interfaz.py` pasa.
+- **HECHA el 11-11-2026**: `simulacion.verificar_malla`, opción `verificar_malla` de `simular_cli` (`verificacion_malla` en
+  `resultado.json`) y casilla en Simulación (automática con `multibanda` = 1, paneles y arrays). **Los umbrales de este
+  texto (2 % y 3 dB) eran demasiado estrictos**: el monopolo recto a 2,4 GHz se mueve −1,8 y −4,0 % con el paso ×0,85 y ×1,15
+  (la resonancia ni siquiera es monótona con el paso). Quedaron en 5 % de frecuencia y 5 dB de S11 **solo si alguno de los dos
+  valores queda por encima de −10 dB**; con dos bandas la frecuencia no se compara (es la del mínimo global). Resultados:
+  monopolo recto y monopolo de Koch «estable»; J-pole bibanda a 868 MHz + 2,4 GHz «sensible» (ΔS11 de 9,6 y 15,4 dB en la banda alta).
+  `prueba_interfaz` bien; `i18n faltan` 0 (9 textos nuevos).
 
 ## F2.4 · Panel calibrado por banda
 
