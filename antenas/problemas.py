@@ -168,7 +168,9 @@ FIJOS = {
     ],
     'panel_dipolos': [
         ('info', 'El ajuste no itera la frecuencia (el S11 de la red corporativa es ondulado): el tamaño inicial está '
-                 'calibrado con simulaciones 2×2 a 2,4 GHz; en otras bandas y en el 4×4, simúlala. Con la malla fina el '
+                 'calibrado con simulaciones 2×2 a 2,4 GHz y a 5,8 GHz (brazo de 6,6 mm: −10,5 dB en toda la banda, pero el S11 '
+                 'cambia mucho con el largo y con la malla: un +15 % de paso lo deja en −4,7 dB); a 868 MHz no se ha '
+                 'simulado (placa de 383 × 283 mm) y en el 4×4, simúlala. Con la malla fina el '
                  'haz sale casi de frente (0–3°): la inclinación de 9° de antes era un artefacto de la malla. En el 2×2 de '
                  'Sierpinski las iteraciones 1, 2 y 3 dan lo mismo (≈12,6 dBi, mismo largo de brazo). A 2,4 GHz −10,1 dB con el reflector '
                  'a 0,125–0,163 λ y el brazo ×1,04; a 5,8 GHz −9,8 dB con el reflector a 0,175 λ y el brazo ×0,82. Con recortes de aligerado a 2,4 GHz, −7,8 dB '

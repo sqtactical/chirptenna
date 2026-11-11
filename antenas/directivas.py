@@ -297,18 +297,59 @@ HUECO_CRUCE = 3.0               # hueco entre las dos tiras de una misma cara en
 # Calibrados con simulaciones en GPU (06-11, 2×2 con malla fija y fina): el bowtie liso y el de Sierpinski (iteración 2)
 # resuenan con ~96 % y ~95 % del largo del dipolo recto
 K_BOWTIE_PANEL = {1: 0.961, 2: 0.951}
-K_MALLA_FINA_PANEL = 0.85         # con malla fina, el panel resuena ~15 % más abajo que lo calibrado con mallas gruesas
+# Con malla fina, el panel resuena ~15 % más abajo que lo calibrado con mallas gruesas. No vale igual en todas las
+# bandas (lección 63): por frecuencia (Hz), interpolado en log f. 2,4 GHz: barrido del 06-11 (lecciones 52); 5,8 GHz:
+# barrido del 11-11 (`herramientas/barrido_panel.py 2 0 … --f 5800 --banda 5725 5875`, brazo 6,6 mm: −10,5 dB en toda la
+# banda; con 8,06 mm, el valor de 2,4 GHz, resonaba a 4800 MHz); 868 MHz sin simular (placa de 383 × 283 mm: unos 30 min
+# por punto), se deja el de 2,4 GHz.
+K_MALLA_FINA_PANEL = {868e6: 0.85, 2441.75e6: 0.85, 5800e6: 0.696}
+
+
+def k_malla_panel(f_hz):
+    """K_MALLA_FINA_PANEL a la frecuencia dada (interpolado en log f; constante fuera del rango)."""
+    fs = sorted(K_MALLA_FINA_PANEL)
+    if f_hz <= fs[0]:
+        return K_MALLA_FINA_PANEL[fs[0]]
+    if f_hz >= fs[-1]:
+        return K_MALLA_FINA_PANEL[fs[-1]]
+    for a, b in zip(fs, fs[1:]):
+        if a <= f_hz <= b:
+            t = math.log(f_hz/a)/math.log(b/a)
+            return K_MALLA_FINA_PANEL[a] + t*(K_MALLA_FINA_PANEL[b] - K_MALLA_FINA_PANEL[a])
+
+
+def _f0_panel(p, eps_eff_impreso):
+    """Estimación sin el factor de malla fina: (f0, k_bow)."""
+    if int(p.get('tamano', 2)) >= 2:
+        k_bow = K_BOWTIE_PANEL.get(int(p.get('elemento', 0)), 1.0)
+    else:               # un solo elemento: sin calibrar (el S11 salta mucho con el largo), vale la estimación antigua
+        k_bow = 0.85 if int(p.get('elemento', 0)) else 1.0
+    la = p['largo_brazo']/k_bow
+    return K_DIPOLO_PANEL*C0/(2*2*la*1e-3*math.sqrt(eps_eff_impreso))
+
+
+def f_diseno_panel(p, eps_eff_impreso):
+    """Frecuencia con la que `generar_panel_dipolos` escala la red (separaciones y líneas en λ0): la estimación con el
+    factor de 2,4 GHz en todas las bandas. Es la del barrido que calibró el brazo de 5,8 GHz (11-11): ahí el brazo y la
+    disposición cambian juntos y el S11 es caótico con el largo, así que no se toca sin repetir el barrido."""
+    f0 = _f0_panel(p, eps_eff_impreso)
+    return f0 if int(p.get('tamano', 2)) < 2 else f0*K_MALLA_FINA_PANEL[2441.75e6]
 
 
 def estimar_f_panel(p, eps_eff_impreso):
     """Dipolo impreso con un brazo en cada cara: resuena cuando los brazos suman λ/2 efectiva.
-    Con bowtie (elemento 1 o 2) el brazo triangular es eléctricamente más corto."""
-    if int(p.get('tamano', 2)) >= 2:
-        k_bow, k_malla = K_BOWTIE_PANEL.get(int(p.get('elemento', 0)), 1.0), K_MALLA_FINA_PANEL
-    else:               # un solo elemento: sin calibrar (el S11 salta mucho con el largo), vale la estimación antigua
-        k_bow, k_malla = (0.85 if int(p.get('elemento', 0)) else 1.0), 1.0
-    la = p['largo_brazo']/k_bow
-    return k_malla*K_DIPOLO_PANEL*C0/(2*2*la*1e-3*math.sqrt(eps_eff_impreso))
+    Con bowtie (elemento 1 o 2) el brazo triangular es eléctricamente más corto. Con el factor de malla por banda
+    (K_MALLA_FINA_PANEL): lo usa `dimensionar` para dar el largo del brazo."""
+    f0 = _f0_panel(p, eps_eff_impreso)
+    if int(p.get('tamano', 2)) < 2:
+        return f0
+    f = f0*K_MALLA_FINA_PANEL[2441.75e6]
+    for _ in range(30):             # K depende de la frecuencia y la frecuencia de K: punto fijo (K varía despacio)
+        f_nueva = f0*k_malla_panel(f)
+        if abs(f_nueva - f) < 1e3:
+            break
+        f = 0.5*(f + f_nueva)
+    return f
 
 
 def generar_panel_dipolos(p, s, eps_eff_impreso):
@@ -334,7 +375,7 @@ def generar_panel_dipolos(p, s, eps_eff_impreso):
     h2 = s.h/2
     w100 = float(ancho_microstrip(50, s.er, h2))
     w70 = float(ancho_microstrip(50/math.sqrt(2), s.er, h2))
-    f_est = estimar_f_panel(p, eps_eff_impreso)
+    f_est = f_diseno_panel(p, eps_eff_impreso)
     lam0 = lambda0_mm(f_est)
     l70 = lam0/4/math.sqrt(eps_eff_microstrip(s.er, h2, w70))
     dx = dy = p['separacion']*lam0

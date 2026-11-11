@@ -139,7 +139,7 @@ before trusting it. The GUI shows these warnings when you pick the type and when
 | Yagi with boom, folded dipole | Radiates backwards (F/B −3.6 dB). Use direct feed (reflector at ~0.39 λ0, longer board). |
 | Yagi with boom, λ/4 transformer | Narrow band (~50 MHz) and η ~55 %. |
 | Koch quasi-Yagi | Radiates backwards and matches poorly (−3.5 dB). Experimental. |
-| Dipole panel | The tuning does not iterate the frequency (rippled S11): the initial size is calibrated with the 2×2 at 2.4 GHz. With a fine mesh the beam comes out straight ahead (0–3°). The single-element panel resonates far from the target. The “symmetric” layout worsens the match. |
+| Dipole panel | The tuning does not iterate the frequency (rippled S11): the initial size is calibrated with the 2×2 at 2.4 GHz and at 5.8 GHz (at the latter the S11 depends a lot on the mesh; 868 MHz not simulated). With a fine mesh the beam comes out straight ahead (0–3°). The single-element panel resonates far from the target. The “symmetric” layout worsens the match. |
 | Patch array | Validation not finished: the 2×2 resonates 16 % low with the default size, η ~22 % and each simulation takes hours. |
 | Dipole collinear | At 2.4 GHz −12.7 dB (η 59 %); at 5.8 GHz −13.8 dB with 4 elements, line factor 1.1 and arm width ×1.05 (η 50 %). Shortening the lines by 10 % is no longer needed. |
 | COCO collinear | Radiates, but FR4 losses leave η ~53 % and ~1.9 dBi at 2.4 GHz; at 868 MHz, η 26 %, −2 dBi and S11 −7.8 dB. |

@@ -75,7 +75,7 @@ diferencia identificada.
   Sigue disponible, pero no es lo primero que ve un usuario nuevo.
 - [x] (11-11, F2.3) **Comprobación de malla automática**: opción «Verificar con otra malla» en Simulación (y obligatoria en
   bibanda): repite con el paso ±15 % y avisa si la frecuencia cambia > 2 % o S11 > 3 dB.
-- [ ] **Panel calibrado por banda** (`K_MALLA_FINA_PANEL` solo vale a 2,4 GHz; a 5,8 GHz resuena un 17 % baja).
+- [x] (11-11, F2.4; 5,8 GHz calibrado pero sensible a la malla, 868 MHz sin simular por coste) **Panel calibrado por banda** (`K_MALLA_FINA_PANEL` solo vale a 2,4 GHz; a 5,8 GHz resuena un 17 % baja).
 - [ ] **Bibanda robusta**: J-pole unida e IFA de dos ramas rediseñadas para que aguanten el cambio de malla, o
   retiradas de la interfaz si no se consigue. El Sierpinski de dos bandas es la referencia.
 - [ ] **Bucle**: calibrar el anillo redondo, simular en 0,8 mm y que `ajustar` calcule solo la red en L a partir de

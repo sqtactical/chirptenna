@@ -497,3 +497,9 @@ archivos modificados después de la última revisión. La marca de esa revisión
     líneas sobre los bordes), así que el 2 % de la guía no servía; umbrales 5 % de f y 5 dB de S11 solo si alguno queda por encima de −10 dB (de −25 a −15 dB no
     importa). Con dos bandas no se compara la f (es la del mínimo global). Una simulación sin ajuste con `multibanda` = 1 usaba el rango 0,6–1,4 × y no veía la
     banda alta: `simular_cli` ya usa 0,45–3,8 ×.
+75. **Panel por banda (11-11)**: `directivas.K_MALLA_FINA_PANEL` es una tabla por frecuencia (868 MHz y 2,4 GHz 0,85; 5,8 GHz 0,696). **La misma estimación escalaba la
+    disposición** (separaciones y líneas en λ0), así que cambiar K movía todo: el barrido de 5,8 GHz solo valía con la disposición antigua; `f_diseno_panel` la
+    mantiene con el K de 2,4 GHz y `estimar_f_panel` (K por banda) solo da el brazo. **Antes de tocar K, repetir el barrido con la K nueva ya puesta** (brazo y
+    disposición cambian juntos). A 5,8 GHz el S11 es caótico con el largo del brazo (−1,4 a −10,5 dB entre 5,4 y 7,2 mm) y depende de la malla: brazo 6,6 mm da
+    −10,5 dB y `verificar_malla` lo marca «sensible». Con `ajustar = False` la simulación usa la malla automática y el panel resuena un 20 % alto (2,4 GHz) o da
+    −9 dB (5,8 GHz): la calibración vale para el paso al 90 % que fija `ajustar` (lección 52). A 868 MHz la placa de 383 × 283 mm sale de lo razonable (~30 min por punto).

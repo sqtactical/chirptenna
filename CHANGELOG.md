@@ -40,6 +40,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ### Cambiado
 
+- **Panel de dipolos calibrado por banda**: el factor de malla fina (`directivas.K_MALLA_FINA_PANEL`) pasa de un valor único a una
+  tabla por frecuencia (868 MHz y 2,4 GHz, 0,85; 5,8 GHz, 0,696). A 5,8 GHz el 2×2 por defecto resonaba a 4800–4970 MHz (−14 %) y ahora
+  sale con el brazo de 6,6 mm: −10,5 dB en toda la banda 5725–5875 MHz, 11 dBi. 2,4 GHz no cambia (mismo brazo y placa). **A 5,8 GHz el
+  S11 es caótico con el largo del brazo y depende de la malla** (un +15 % de paso lo deja en −4,7 dB): simularlo y medirlo. 868 MHz sin
+  simular (placa de 383 × 283 mm). `herramientas/barrido_panel.py` admite `--f`, `--banda` y `--solo-lista`.
 - **Verificación con otra malla** (`simulacion.verificar_malla`, casilla «Verificar con otra malla» en Simulación): repite la
   simulación final con el paso ×0,85 y ×1,15 y avisa si la frecuencia se mueve más de un 5 % o el S11 más de 5 dB cruzando
   −10 dB. Siempre con dos bandas, paneles y arrays. Medido: monopolo recto y de Koch estables; J-pole bibanda sensible (ΔS11 hasta

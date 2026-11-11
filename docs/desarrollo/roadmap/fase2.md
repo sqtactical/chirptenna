@@ -79,6 +79,15 @@ F2.1–F2.6 no necesitan hardware y se pueden adelantar mientras llegan las plac
 - **Hecho cuando**: con los valores por defecto, el peor S11 en banda es ≤ −10 dB a 2,4 GHz y a 5,8 GHz, y está
   escrito qué pasa a 868 MHz. Actualiza `problemas.py` y los README.
 
+- **HECHA el 11-11-2026 (parcial)**: `K_MALLA_FINA_PANEL` es ahora una tabla {868 MHz: 0,85; 2,4 GHz: 0,85; 5,8 GHz: 0,696} con
+  `k_malla_panel(f)` (log f). **Trampa descubierta**: `generar_panel_dipolos` escala la red en λ0 con la misma estimación, así que
+  cambiar K cambia también la disposición; el barrido de 5,8 GHz (brazo y disposición juntos) dio el óptimo con la disposición de
+  K = 0,85, que se conserva con `f_diseno_panel` (K de 2,4 GHz) mientras `estimar_f_panel` (K por banda) solo da el brazo. Resultado
+  a 5,8 GHz con el flujo de la aplicación: brazo 6,6 mm, f 5883 MHz, **−10,5 dB en toda la banda** (antes −4,6 dB, resonancia a 4836 MHz).
+  Pero el S11 es caótico con el largo (5,4 mm −8,5 dB; 5,6 −4,3; 5,8 −1,4; 6,6 −10,5; 6,8 −8,6; 7,0 −7,6; 7,1 −3,9; 7,2 −9,8) y
+  `verificar_malla` lo da «sensible» (paso ×1,15: −4,7 dB). **868 MHz sin simular**: placa de 383 × 283 mm, ~30 min por punto y puede
+  no caber en 4 GB de GPU; queda 0,85 sin verificar. 2,4 GHz sin cambios (mismo brazo, 19,14 mm, y placa, 146,37 mm).
+
 ## F2.5 · Bibanda robusta (o retirada)
 
 - **Quién**: Agente; retirar la opción, **decisión del usuario**.

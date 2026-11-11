@@ -137,7 +137,7 @@ antes de darla por buena. La interfaz muestra estos avisos al elegir el tipo y a
 | Yagi con boom, dipolo plegado | Radia hacia atrás (F/B −3,6 dB). Usar alimentación directa (el reflector queda a ~0,39 λ0 y la placa es más larga). |
 | Yagi con boom, transformador λ/4 | Banda estrecha (~50 MHz) y η ~55 %. |
 | Quasi-Yagi de Koch | Radia hacia atrás y adapta mal (−3,5 dB). Experimental. |
-| Panel de dipolos | El ajuste no itera la frecuencia (S11 ondulado): el tamaño inicial está calibrado con el 2×2 a 2,4 GHz. Con malla fina el haz sale de frente (0–3°). El panel de un solo elemento resuena lejos del objetivo. La disposición «simétrica» empeora la adaptación. |
+| Panel de dipolos | El ajuste no itera la frecuencia (S11 ondulado): el tamaño inicial está calibrado con el 2×2 a 2,4 GHz y a 5,8 GHz (en esta, el S11 depende mucho de la malla; a 868 MHz sin simular). Con malla fina el haz sale de frente (0–3°). El panel de un solo elemento resuena lejos del objetivo. La disposición «simétrica» empeora la adaptación. |
 | Array de parches | Sin terminar de validar: el 2×2 resuena un 16 % por debajo con el tamaño por defecto, η ~22 % y cada simulación tarda horas. |
 | Colineal de dipolos | A 2,4 GHz −12,7 dB (η 59 %); a 5,8 GHz −13,8 dB con 4 elementos, factor de línea 1,1 y ancho de brazo ×1,05 (η 50 %). Acortar las líneas un 10 % ya no hace falta. |
 | Colineal COCO | Radia, pero las pérdidas del FR4 dejan η ~53 % y ~1,9 dBi a 2,4 GHz; a 868 MHz, η 26 %, −2 dBi y S11 −7,8 dB. |
