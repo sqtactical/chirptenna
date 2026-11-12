@@ -161,6 +161,30 @@ def _coax_soldado(conv, puerto, n_net):
     return lineas
 
 
+def _pad_rf(conv, puerto, n_net):
+    """Pad de RF (sin conector): un pad sobre el extremo de la línea de 50 Ω, con la máscara abierta, y dos vías de masa a su lado.
+    En un producto, la línea que viene del chip llega a este pad (o la huella se sustituye por la línea)."""
+    loc = conector._local(puerto)
+    dx, dy = puerto['direccion']
+    w = puerto['ancho_linea']
+    girar = abs(dy) > 0.5
+    ox, oy = conv.p(*loc(conector.U_PAD_RF, 0.0))
+    su, sv = conector.PAD_RF_LARGO, w
+    sx, sy = (sv, su) if girar else (su, sv)
+    net = f'(net {n_net} "{"GND" if n_net == 1 else "ANT"}")'
+    lineas = [f'  (footprint "Antenas:pad_RF" (layer "F.Cu") (uuid "{_u()}") (at {ox:.4f} {oy:.4f})\n'
+              f'    (property "Reference" "J1" (at 0 -3 0) (layer "F.Fab") (uuid "{_u()}") (effects (font (size 1 1) (thickness 0.15))))\n'
+              f'    (property "Value" "RF" (at 0 3 0) (layer "F.Fab") (uuid "{_u()}") (effects (font (size 1 1) (thickness 0.15))))\n'
+              f'    (attr smd)\n    (pad "1" smd rect (at 0 0) (size {sx:.3f} {sy:.3f}) (layers "F.Cu" "F.Mask") {net} (uuid "{_u()}"))\n'
+              + '\n'.join(f'    (pad "2" thru_hole circle (at {conv.p(*loc(conector.U_PAD_RF, s*(w/2 + conector.V_VIA_RF)))[0] - ox:.4f} '
+                          f'{conv.p(*loc(conector.U_PAD_RF, s*(w/2 + conector.V_VIA_RF)))[1] - oy:.4f}) (size 1.2 1.2) (drill 0.5) '
+                          f'(layers "*.Cu" "F.Mask") (net 1 "GND") (uuid "{_u()}"))' for s in (-1, 1)) + '\n  )']
+    tx, ty = conv.p(*loc(conector.U_PAD_RF + 2.8, 0.0))
+    lineas.append(f'  (gr_text "RF" (at {tx:.3f} {ty:.3f} 0) (layer "F.SilkS") (uuid "{_u()}")\n'
+                  f'    (effects (font (size 0.8 0.8) (thickness 0.12))))')
+    return lineas
+
+
 def _ipex(conv, puerto, n_net):
     """Huella de IPEX / U.FL encima de la placa + vías de los pads de masa."""
     pads, vias, centro = conector.pads_ipex(puerto)
@@ -360,6 +384,8 @@ def placa_kicad(antena, ruta, titulo='', etiqueta=None, logo=True):
         cuerpo += _ipex(conv, antena.puerto, 1 if corto else 2)
     elif antena.puerto.get('conector') == conector.COAX:
         cuerpo += _coax_soldado(conv, antena.puerto, 1 if corto else 2)
+    elif antena.puerto.get('conector') == conector.PAD_RF:
+        cuerpo += _pad_rf(conv, antena.puerto, 1 if corto else 2)
     else:
         cuerpo += _sma(conv, antena.puerto['borde'], antena.puerto['direccion'], 1 if corto else 2)
     cuerpo += _componentes_ajuste(aj, conv, nets, net_en, antena.contorno.buffer(-0.6))

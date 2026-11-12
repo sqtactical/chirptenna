@@ -130,7 +130,9 @@ botón **?**: púlsalo para ver qué hace. Los más habituales:
 - **Plano de masa** (monopolos): un plano de masa de **λ/4 o más** es lo ideal. Uno más corto encoge la
   placa, pero obliga a alargar el radiador y hace la antena más sensible a lo que se conecte detrás.
 - **Conector:** SMA de canto (para probar y medir) o IPEX/U.FL (para integrarla). Con IPEX la adaptación
-  aún está en revisión: lee los problemas conocidos.
+  aún está en revisión: lee los problemas conocidos. «Pad de RF» no lleva conector: la línea de 50 Ω acaba en un
+  pad con dos vías de masa al lado, para llegar a él con la línea de tu producto (no hay modelo del chip: la
+  simulación es la misma que con SMA; la red en π, si la activas, va junto al pad).
 - **Ajuste tras fabricar** (monopolos, parches, J-pole, quasi-Yagi). Ponlo en **Ajustable** para una
   primera tirada: añade las [opciones de ajuste](#9-ajustar-la-antena-fabricada) (sobrelargo con marcas,
   tramos con puentes y red en π). Cuando tengas una versión ya ajustada y medida, puedes fabricar la

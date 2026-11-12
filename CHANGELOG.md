@@ -11,6 +11,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
   placa de tu producto. Parámetros `integrada`, `placa_x`, `placa_y`, `posicion` (esquina izquierda, derecha o centrada), `zona_x`, `zona_y`
   y `margen_zona`: la masa ocupa toda la placa menos la zona de antena (sin cobre en ninguna capa) y el conector se queda en el borde
   opuesto para medir el prototipo. Si algo no cabe, el error dice cuántos mm faltan. Interfaz de escritorio y web.
+- **Pad de RF** (F3.4): nuevo valor del parámetro «Conector» sin conector: la línea de 50 Ω acaba en un pad con dos vías de masa a los lados, para
+  llegar a él con la línea de tu producto (la red en π, si se activa, va junto al pad). Sin línea CPWG ni punto de prueba U.FL todavía.
 - **Huella para integrar** (F3.3): con una antena integrada, el export añade `Antenas.pretty/<nombre>_integrar.kicad_mod` (zona de exclusión
   en todas las capas de cobre, pad pasante de la vía a masa y marca del borde de placa) y `<nombre>_ejemplo_integrada.kicad_pcb` (placa con
   masa y la huella en su esquina; DRC limpio). También en la web (zip con LÉEME de pasos) y en la interfaz de escritorio.

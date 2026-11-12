@@ -137,6 +137,12 @@ Decisión de diseño ya tomada: **no se crea un generador nuevo por tipo**. Se e
      de malla (lección 37).
 - **Prueba**: monopolo y IFA con «pad de RF» a 2,4 GHz: mismo resultado que con IPEX ±2 % en frecuencia; DRC limpio.
 - **Hecho cuando**: se puede exportar una antena integrada sin ningún conector y simularla.
+- **HECHA en parte (12-11)**: valor `conector` = 3 «Pad de RF» (`conector.PAD_RF`): la línea de 50 Ω acaba en un pad (`exportar._pad_rf`:
+  rect del ancho de la línea, máscara abierta, y dos pads pasantes de masa a cada lado, a 2 mm del borde); masa mínima 6 mm, ancho mínimo 12 mm
+  (las vías de masa del pad lo fijan; con integrada, `tipos` pide a `integracion.geometria` ese semiancho). La red en π va a `y_c = 7 mm`, junto al
+  pad. El cobre es idéntico al del SMA, así que la simulación (puerto en el arranque de la línea) es la misma: no se ha simulado aparte.
+  DRC limpio con monopolo recto, IFA, IFA integrada (30 × 50) y Koch integrado; `comprobar_tipos` 84/84. **Sin hacer**: línea CPWG
+  (`linea` = 1, `largo_linea`) y el punto de prueba U.FL con puente de 0 Ω (pasos 2 y 4); la comparación con IPEX ±2 % no se midió.
 
 ## F3.5 · Apilados de 4 capas
 

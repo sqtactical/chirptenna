@@ -145,7 +145,8 @@ AYUDAS = {
     'margen_borde': 'Distancia mínima del cobre al borde de la placa (el fabricante no deja cobre pegado al canto).',
     'escalado': '«Proporcionales»: al cambiar de frecuencia, pistas, huecos y demás medidas se escalan con la longitud '
                 'de onda. Pasa a «Manuales» en cuanto fijas una a mano, para no pisarla.',
-    'conector': 'SMA de canto (para probar y medir) o IPEX/U.FL encima de la placa (para meterla en un equipo).',
+    'conector': 'SMA de canto (para probar y medir) o IPEX/U.FL encima de la placa (para meterla en un equipo). «Pad de RF»: sin conector, '
+                'solo un pad al final de la línea de 50 Ω con dos vías de masa al lado, para la línea de tu producto.',
     # alimentación
     'alimentacion': 'Cómo llega la señal al radiador. Cada tipo tiene sus opciones; mira los problemas conocidos de cada una.',
     'largo_alimentacion': 'Largo de la línea de 50 Ω desde el conector hasta la antena.',

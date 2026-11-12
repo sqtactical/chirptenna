@@ -296,13 +296,14 @@ function dibujar(v, encajar) {
   }
   const [px, py] = v.puerto; const t = 3 * g + letra / 3;
   const coax = v.tipo_puerto === 'coaxial' || v.tipo_puerto === 'pasante';
-  s += `<path d="M${px - t},${-py - t}L${px + t},${-py}L${px - t},${-py + t}Z" fill="red"><title>${svgEsc(coax ? T('Toma del coaxial') : T('Conector {0}', v.conector))}</title></path>`;
+  const etqPuerto = coax ? T('Toma del coaxial') : v.conector === 'PAD' ? T('Pad de RF') : T('Conector {0}', v.conector);
+  s += `<path d="M${px - t},${-py - t}L${px + t},${-py}L${px - t},${-py + t}Z" fill="red"><title>${svgEsc(etqPuerto)}</title></path>`;
   $('vista').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${caja.x} ${caja.y} ${caja.w} ${caja.h}" preserveAspectRatio="xMidYMid meet">${s}</svg>`;
   const ley = [['var(--cobre)', T('Cobre (cara superior)')], ['var(--masa)', T('Masa (cara inferior)')]];
   if (v.pads.length) ley.push(['var(--pads)', T('Componentes de ajuste')]);
   if (v.marcas.length) ley.push(['var(--texto)', T('Marcas de corte (MHz)')]);
   if (v.reflector) ley.push(['var(--sec)', T('Reflector (a {0} mm por detrás)', v.separacion_reflector_mm.toFixed(1))]);
-  ley.push(['red', coax ? T('Toma del coaxial') : T('Conector ({0})', v.conector)]);
+  ley.push(['red', coax ? T('Toma del coaxial') : v.conector === 'PAD' ? T('Pad de RF') : T('Conector ({0})', v.conector)]);
   $('leyenda').innerHTML = ley.map(([c, t2]) => `<span><i style="background:${c}"></i>${svgEsc(t2)}</span>`).join('');
 }
 function ponerCaja() { const svg = $('vista').querySelector('svg'); if (svg) svg.setAttribute('viewBox', `${caja.x} ${caja.y} ${caja.w} ${caja.h}`); }

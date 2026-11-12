@@ -105,10 +105,11 @@ PARAMS_CONTORNO = [
               ayuda='Ajustado: sigue la forma de la antena (envolvente con esquinas redondeadas)'),
     Parametro('margen_borde', 'Margen del cobre al borde [mm]', 2.0, 1.0, 20, 0.5),
 ]
-PARAM_CONECTOR = Parametro('conector', 'Conector', conector.SMA, 0, 2, 1, True, opciones=conector.NOMBRES,
+PARAM_CONECTOR = Parametro('conector', 'Conector', conector.SMA, 0, 3, 1, True, opciones=conector.NOMBRES,
                            ayuda='IPEX: encima de la placa a 3 mm del borde; la masa mínima de los monopolos '
                                  'baja de 12 a 7 mm y el ancho mínimo de 16 a 8 mm. Coaxial soldado: sin conector, '
-                                 'con un pad para el vivo en la línea y otro para la malla, unido a la masa')
+                                 'con un pad para el vivo en la línea y otro para la malla, unido a la masa. Pad de RF: sin conector, '
+                                 'un pad en el extremo de la línea de 50 Ω con dos vías de masa al lado, para llegar a él con la línea de tu producto')
 
 
 def largo_masa_monopolo(p, le, clave=None):
@@ -240,7 +241,9 @@ def _generar_monopolo(tipo, p, sustrato):
     radiador = g.mover(rad, 0, lg)
     if integrada:
         # el conector solo necesita su propio ancho (la mitad del ancho mínimo de una placa de prueba, que lleva masa de sobra)
-        geo = integracion.geometria(p, radiador, lg, conector.ANCHO_MINIMO[conector.tipo(p)]/4)
+        semi = (w50/2 + conector.V_VIA_RF + 0.6 if conector.tipo(p) == conector.PAD_RF       # las vías de masa junto al pad
+                else conector.ANCHO_MINIMO[conector.tipo(p)]/4)
+        geo = integracion.geometria(p, radiador, lg, semi)
         contorno, masa, gx0, gx1, alto_placa = geo['contorno'], geo['masa'], geo['gx0'], geo['gx1'], geo['alto_placa']
         cx0, ancho = gx0, gx1 - gx0
     else:
@@ -271,7 +274,7 @@ def _generar_monopolo(tipo, p, sustrato):
     sup = unary_union([alim, radiador])
     if ajuste.activo(p) and int(p.get('red_pi', 0)) == 1:
         # red en π en la línea de 50 Ω, lo más cerca posible de la antena pero por encima del SMA
-        y_c = max(8.6, lg - 4.6)
+        y_c = 7.0 if conector.tipo(p) == conector.PAD_RF else max(8.6, lg - 4.6)      # con pad de RF, la red va junto al pad (sin SMA)
         aj = ajuste.unir(aj, ajuste.red_pi(0.0, y_c, w50, p, vertical=True, lado=1))
     if aj['cortes']:
         sup = sup.difference(unary_union(aj['cortes']))
@@ -1002,6 +1005,8 @@ def generar(clave, parametros=None, nombre_sustrato=None):
         conector.aplicar_ipex(a, ancho_microstrip(50, s.er, s.h))
     elif conector.tipo(p) == conector.COAX and a.puerto.get('tipo') not in ('coaxial', 'pasante'):
         a.puerto['conector'] = conector.COAX
+    elif conector.tipo(p) == conector.PAD_RF and a.puerto.get('tipo') not in ('coaxial', 'pasante'):
+        a.puerto['conector'] = conector.PAD_RF       # el cobre es el de la línea de 50 Ω hasta el borde; el pad y las vías se añaden al exportar
     f_est = estimar_f(clave, p, nombre_sustrato)
     a.info['f_estimada_MHz'] = round(f_est/1e6, 1)
     a.info['precision_estimacion'] = precision_estimacion(clave, p)

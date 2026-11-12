@@ -15,10 +15,14 @@ from shapely.ops import unary_union
 from .i18n import tr
 
 BORDE_COBRE = 0.5                  # donde empieza la línea con SMA (retranqueo del cobre) [mm]
-SMA, IPEX, COAX = 0, 1, 2
-NOMBRES = {SMA: 'SMA de canto', IPEX: 'IPEX / U.FL (MHF1)', COAX: 'Coaxial soldado en la línea (sin conector)'}
-MASA_MINIMA = {SMA: 12.0, IPEX: 7.0, COAX: 10.0}       # largo mínimo de la masa de los monopolos [mm]
-ANCHO_MINIMO = {SMA: 16.0, IPEX: 8.0, COAX: 14.0}      # ancho mínimo de la placa de los monopolos [mm]
+SMA, IPEX, COAX, PAD_RF = 0, 1, 2, 3
+NOMBRES = {SMA: 'SMA de canto', IPEX: 'IPEX / U.FL (MHF1)', COAX: 'Coaxial soldado en la línea (sin conector)',
+           PAD_RF: 'Pad de RF (sin conector: la línea del producto llega al pad)'}
+MASA_MINIMA = {SMA: 12.0, IPEX: 7.0, COAX: 10.0, PAD_RF: 6.0}       # largo mínimo de la masa de los monopolos [mm]
+ANCHO_MINIMO = {SMA: 16.0, IPEX: 8.0, COAX: 14.0, PAD_RF: 12.0}      # ancho mínimo de la placa de los monopolos [mm]
+PAD_RF_LARGO = 1.0                 # pad de RF: largo sobre la línea [mm] (su ancho es el de la línea de 50 Ω)
+U_PAD_RF = 2.0                     # ... y su centro, desde el borde de la placa [mm]
+V_VIA_RF = 1.6                     # vías de masa a cada lado del pad, desde el eje de la línea más medio ancho de la línea [mm]
 PAD_COAX = 3.0                     # coaxial soldado: largo del pad del vivo y lado del de la malla [mm]
 U_COAX = 3.0                       # ... y su centro, desde el borde de la placa [mm]
 

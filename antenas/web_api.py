@@ -134,7 +134,7 @@ def _vista(a):
                     'pos': [_r(m['pos'][0]), _r(m['pos'][1])]} for m in aj.get('marcas', [])],
         'puerto': [_r(a.puerto['borde'][0]), _r(a.puerto['borde'][1])],
         'tipo_puerto': a.puerto.get('tipo', ''),
-        'conector': 'IPEX' if a.puerto.get('conector') == 1 else 'SMA',
+        'conector': 'IPEX' if a.puerto.get('conector') == 1 else 'PAD' if a.puerto.get('conector') == 3 else 'SMA',
         'ipex': ipex,
     }
 
