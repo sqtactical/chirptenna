@@ -183,6 +183,8 @@ instant.
 
 ### How to read the results
 
+- **Export pattern (CSV):** saves the simulated pattern (θ, φ, directivity and gain in dBi) in the design's `fabricacion` folder and downloads it.
+
 - **Calculate matching network:** for antennas with the π network (monopoles with **Tuning after manufacture** = «Tunable»), this button appears after
   simulating. It calculates **by circuit** (no further simulation) the E24-valued L network that brings the simulated impedance to 50 Ω, and gives the parts
   (Z1 in series and the shunt to ground), the resulting S11, the worst case with ±5 % components and the band that survives. Fit only those two parts and leave

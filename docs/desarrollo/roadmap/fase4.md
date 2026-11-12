@@ -98,6 +98,10 @@ Antes de nada: [`00_como_trabajar.md`](00_como_trabajar.md).
 - **Pasos**: CSV (θ, φ, ganancia en dBi) desde los datos de NF2FF; y, si el usuario lo pide, el formato de antena
   de la herramienta de cobertura que use (que diga cuál).
 - **Hecho cuando**: el CSV reproduce el máximo de ganancia del resultado (±0,1 dB).
+- **HECHA (12-11), botón sin probar con clic**: `antenas/diagrama.py` (`filas`, `exportar_csv`: `theta_deg,phi_deg,directividad_dBi,ganancia_dBi`; la ganancia es la directividad menos la pérdida
+  de eficiencia del resultado) y botón «Exportar diagrama (CSV)» en los resultados de Simulación (guarda en `fabricacion/` del diseño y descarga). Con la simulación de la IFA de 4 capas
+  el máximo del CSV es 1,464 dBi y el del resultado 1,46 (Δ 0,004 dB). Test `test_exportar_diagrama_csv`. **Sin hacer**: el formato de antena de una herramienta de cobertura concreta
+  (hay que preguntar al usuario cuál usa); la ganancia es la del total en el máximo, no por frecuencia (el diagrama se calcula solo en f_obj).
 
 ---
 

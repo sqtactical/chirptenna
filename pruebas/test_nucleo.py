@@ -94,6 +94,24 @@ def test_red_adaptacion_generica():
     assert [q['ref'] for q in sol['piezas']] == ['Z1', sol['posicion']]
 
 
+def test_exportar_diagrama_csv(tmp_path):
+    # F4.6: el máximo de ganancia del CSV es el del resultado (±0,1 dB)
+    import csv
+    import numpy as np
+    from antenas import diagrama
+    theta, phi = np.arange(0, 181, 5.0), np.arange(0, 360, 10.0)
+    dd = 2.1 + 0*theta[:, None] + 0*phi[None, :]
+    dd[7, 3] = 4.3
+    r, d = {'directividad_dBi': 4.3, 'ganancia_dBi': 3.55}, {'theta': theta, 'phi': phi, 'd': dd}
+    ruta = str(tmp_path / 'd.csv')
+    assert diagrama.exportar_csv(ruta, r, d) == pytest.approx(3.55, abs=0.1)
+    filas = list(csv.reader(open(ruta, encoding='utf-8')))
+    assert filas[0] == ['theta_deg', 'phi_deg', 'directividad_dBi', 'ganancia_dBi'] and len(filas) == 1 + theta.size*phi.size
+    assert max(float(x[3]) for x in filas[1:]) == pytest.approx(3.55, abs=0.1)
+    with pytest.raises(ValueError):
+        diagrama.filas(r, {})
+
+
 def test_informe_pdf(tmp_path):
     # F4.5: el informe de un diseño sin simulación sale en los idiomas, con paginación y sin errores
     from antenas import i18n, informe

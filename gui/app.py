@@ -16,6 +16,7 @@ import asyncio
 import time
 import threading
 import subprocess
+import tempfile
 
 import numpy as np
 
@@ -25,7 +26,7 @@ sys.path.insert(0, RAIZ)
 from nicegui import app, ui, run, background_tasks   # noqa: E402
 
 from antenas import tipos, vista, fabricacion, exportar, consejos, graficas, ajuste, biblioteca, problemas   # noqa: E402
-from antenas import guia, gpu, entorno, importar_kicad, informe   # noqa: E402
+from antenas import guia, gpu, entorno, importar_kicad, informe, diagrama   # noqa: E402
 from antenas import i18n   # noqa: E402
 from antenas.i18n import tr   # noqa: E402
 from antenas import __version__   # noqa: E402
@@ -1025,6 +1026,21 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                 pass
         return estado['antena']
 
+    def exportar_diagrama(r, d):
+        """F4.6: CSV (θ, φ, directividad y ganancia en dBi) del diagrama simulado."""
+        try:
+            nombre = estado['diseno'] or 'antena'
+            carpeta = biblioteca.carpeta(nombre, 'fabricacion') if estado['diseno'] and biblioteca.existe(nombre) \
+                else os.path.join(tempfile.gettempdir(), 'antenas_diagramas')
+            os.makedirs(carpeta, exist_ok=True)
+            ruta = os.path.join(carpeta, f'{biblioteca.nombre_valido(nombre)}_diagrama.csv')
+            g_max = diagrama.exportar_csv(ruta, r, d)
+        except Exception as ex:
+            ui.notify(tr('No se pudo exportar el diagrama: {0}', ex), type='negative')
+            return
+        ui.notify(tr('Diagrama guardado en {0} (ganancia máxima {1:.2f} dBi)', ruta, g_max), type='positive')
+        ui.download(ruta)
+
     def calcular_red(ant, r, d, caja):
         """F4.2: red en L (valores E24) por circuito con la impedancia simulada, para antenas con la red en π."""
         caja.clear()
@@ -1069,6 +1085,9 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                          (tr('Eficiencia de radiación / total'),
                           f"{r['eficiencia_radiacion_%']:g} % / {r['eficiencia_total_%']:g} %"),
                          (tr('Malla / tiempo'), tr('{0:.2f} M celdas, paso {1} mm, {2:g} s', r['celdas']/1e6, r['paso_malla_mm'], r['tiempo_s']))]
+                if len(d.get('theta', [])) and len(d.get('phi', [])):
+                    ui.button(tr('Exportar diagrama (CSV)'), icon='file_download', on_click=lambda: exportar_diagrama(r, d)) \
+                        .props('outline dense no-caps')
                 red = r.get('red')
                 if red:
                     with ui.row().classes('items-start no-wrap'):
