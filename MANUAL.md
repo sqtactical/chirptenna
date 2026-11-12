@@ -25,7 +25,8 @@ fabricar, medirla y **ajustarla** una vez fabricada, con marcas de corte, puente
 11. [Pestaña Mis diseños](#11-pestaña-mis-diseños)
 12. [Qué antena elegir](#12-qué-antena-elegir)
 13. [Problemas frecuentes](#13-problemas-frecuentes)
-14. [Glosario](#14-glosario)
+14. [Integrar la antena en tu placa](#14-integrar-la-antena-en-tu-placa)
+15. [Glosario](#15-glosario)
 
 ---
 
@@ -528,7 +529,63 @@ La tabla completa de qué está validado está en el [README](README.md#tipos-de
 
 ---
 
-## 14. Glosario
+## 14. Integrar la antena en tu placa
+
+Hasta aquí la antena era una placa de prueba con su SMA. Para un producto la antena es **una esquina de tu
+placa**: la masa ocupa todo menos la zona de antena y la placa entera forma parte de la antena. Funciona con la
+IFA, el monopolo recto, el de Koch y el meandro.
+
+### Cómo se hace
+
+1. En **Diseño**, pon **Antena integrada en una placa** en «Sí» y escribe el **ancho y el alto de tu placa**
+   (los de tu producto, no los de la antena). Elige la esquina (**Posición de la antena**).
+2. **Conector:** «Pad de RF» si vas a llevar la línea de 50 Ω de tu chip hasta la antena (sin conector).
+3. **Ajustar tamaño a la frecuencia** y simula: el ajuste usa tu placa entera, así que la frecuencia ya sale
+   para tu tamaño. Si cambias la placa, **vuelve a ajustar**.
+4. En **Simulación** marca **Entorno** (carcasa, mano, batería) con lo que lleve tu producto y **Analizar
+   tolerancias**: lo primero dice cuánto se mueve la antena dentro de la caja y lo segundo si la fabricación la
+   deja fuera de la banda.
+5. En **Fabricar** baja la **huella para tu placa** (`.kicad_mod`, con zona de exclusión) y, para probar, la
+   placa de ejemplo. Pon la huella en tu placa, conecta el pad de RF a la salida del chip y vuelve a pasar el
+   DRC. La zona de exclusión de la huella puede que KiCad no la respete al volcarla: compruébala en el editor
+   de placas y, si hace falta, dibuja la tuya con el mismo rectángulo.
+
+### Reglas de integración
+
+La pestaña Diseño las muestra como consejos de la categoría «integración» (🧩). Resumidas:
+
+| Regla | Por qué |
+|---|---|
+| **Masa continua** bajo el resto de la placa, del tamaño simulado | Con menos masa la banda se estrecha (IFA a 2,4 GHz: ~125 MHz con 25 mm de ancho, ~215 con 30 mm, ~300 con 80 mm) |
+| **Zona de antena vacía**: sin cobre, pistas, vías, componentes ni serigrafía metálica, en todas las capas | Cualquier metal en la zona la desafina; en placas de más capas, vacía también las internas |
+| **Vías de cosido** cada λ/20 (17 mm a 868 MHz, 6 mm a 2,4 GHz) en el borde de la masa junto a la zona y a los lados de la línea de 50 Ω | Mantienen la masa «de una pieza» a la frecuencia de trabajo |
+| **Batería, blindajes y pantallas a ≥ λ/10** de la zona | En simulación, una batería de metal pegada sube la frecuencia ~6 % |
+| **Línea de 50 Ω corta**, con masa debajo, sin cambiar de capa | Cada milímetro pierde señal y suma una impedancia que no está en la simulación |
+| **Red en π junto al chip**, no junto a la antena | Es lo que ajustarás con la placa montada, y el chip es lo que ves con el VNA |
+
+Los efectos de la carcasa y la mano son los simulados con el tipo recto a 2,4 GHz: una carcasa de ABS baja la
+frecuencia ~7 %, y la mano ~4 % y deja la eficiencia en el 25 %. Con otro tipo o frecuencia, simula tú el entorno.
+
+### Caso: nodo LoRa de 868 MHz en 40 × 80 mm
+
+Es el caso más pedido y el que **no sale**, así que cuenta cómo decidir:
+
+- La IFA integrada de 868 MHz necesita una zona de antena de ~66 mm de ancho, así que **no cabe en 40 × 80 mm**.
+  Chirptenna lo dice al generar. Con 80 × 120 mm sí (865 MHz, banda 834–898 MHz, η 88 %, −23 dB) pero el ajuste
+  tarda 5 simulaciones; el tamaño mínimo razonable es ~80 × 100 mm (no probado entre medias).
+- El meandro integrado **no adapta** en ninguna de las placas probadas (868 MHz y 2,4 GHz): no lo uses en un
+  producto sin simularlo.
+- **Qué hacer con 40 × 80:** (a) pasar a 2,4 GHz, donde la IFA cabe en 30 × 50 mm (centrada en 2 simulaciones, η 88 %);
+  (b) usar un monopolo o un dipolo fuera de la placa (antena externa con SMA o IPEX, ver el [capítulo 4](#parámetros));
+  (c) una antena de chip, que aún no está modelada (F3.8 de la hoja de ruta).
+- Si tu producto es de 868 MHz y la placa mide ≥ 80 × 100 mm, la receta es la de arriba: integrada en «Sí»,
+  tamaño de tu placa, «Pad de RF», Entorno con la carcasa y la batería, y la huella a KiCad.
+
+Lo simulado no sustituye a medir: pon tu placa montada y mídela con el NanoVNA (capítulo 8) antes de fabricar la tirada.
+
+---
+
+## 15. Glosario
 
 | Término | Significado |
 |---|---|

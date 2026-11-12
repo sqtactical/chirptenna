@@ -26,7 +26,8 @@ manufactured, measure it and **tune** it once built, with cut marks, bridges and
 11. [My designs tab](#11-my-designs-tab)
 12. [Which antenna to choose](#12-which-antenna-to-choose)
 13. [Common problems](#13-common-problems)
-14. [Glossary](#14-glossary)
+14. [Integrating the antenna into your board](#14-integrating-the-antenna-into-your-board)
+15. [Glossary](#15-glossary)
 
 ---
 
@@ -528,7 +529,63 @@ The full table of what is validated is in the [README](README.en.md#antenna-type
 
 ---
 
-## 14. Glossary
+## 14. Integrating the antenna into your board
+
+So far the antenna was a test board with its SMA. In a product the antenna is **a corner of your board**: the
+ground fills everything except the antenna zone, and the whole board is part of the antenna. It works with the IFA,
+the straight monopole, the Koch monopole and the meander.
+
+### How to do it
+
+1. In **Design**, set **Antenna integrated into a board** to «Yes» and enter the **width and height of your board**
+   (your product's, not the antenna's). Choose the corner (**Antenna position**).
+2. **Connector:** «RF pad» if you will route your radio chip's 50 Ω line to the antenna (no connector).
+3. **Adjust size to frequency** and simulate: the tuning uses your whole board, so the frequency is already right for
+   your size. If you change the board, **tune again**.
+4. In **Simulation** tick **Environment** (case, hand, battery) with what your product has, and **Analyze
+   tolerances**: the first tells you how much the antenna moves inside the box, the second whether manufacturing
+   pushes it out of the band.
+5. In **Manufacture** download the **footprint for your board** (`.kicad_mod`, with keep-out zone) and, for testing, the
+   example board. Place the footprint on your board, connect the RF pad to the chip output and run the DRC again.
+   KiCad may not honour the footprint's keep-out when it is dumped onto a board: check it in the board editor and,
+   if needed, draw your own with the same rectangle.
+
+### Integration rules
+
+The Design tab shows them as tips in the «integration» category (🧩). In short:
+
+| Rule | Why |
+|---|---|
+| **Continuous ground** under the rest of the board, at the simulated size | With less ground the band narrows (2.4 GHz IFA: ~125 MHz with 25 mm width, ~215 with 30 mm, ~300 with 80 mm) |
+| **Empty antenna zone**: no copper, tracks, vias, components or metallic silkscreen on any layer | Any metal in the zone detunes it; on boards with more layers, clear the inner ones too |
+| **Stitching vias** every λ/20 (17 mm at 868 MHz, 6 mm at 2.4 GHz) along the ground edge next to the zone and on both sides of the 50 Ω line | They keep the ground «in one piece» at the working frequency |
+| **Battery, shields and screens at ≥ λ/10** from the zone | In simulation, a metal battery right behind raises the frequency by ~6 % |
+| **Short 50 Ω line**, with ground below, no layer changes | Each millimetre loses signal and adds an impedance that is not in the simulation |
+| **π network next to the chip**, not next to the antenna | It is what you will tune on the assembled board, and the chip side is what the VNA sees |
+
+The case and hand effects are those simulated with the straight type at 2.4 GHz: an ABS case lowers the frequency by
+~7 %, and the hand by ~4 % while leaving efficiency at 25 %. With another type or frequency, simulate the environment yourself.
+
+### Case: 868 MHz LoRa node on 40 × 80 mm
+
+This is the most requested case and the one that **does not work**, so here is how to decide:
+
+- The integrated 868 MHz IFA needs an antenna zone ~66 mm wide, so it **does not fit on 40 × 80 mm**.
+  Chirptenna says so when generating. On 80 × 120 mm it does (865 MHz, band 834–898 MHz, η 88 %, −23 dB) but tuning
+  takes 5 simulations; the reasonable minimum size is ~80 × 100 mm (not tested in between).
+- The integrated meander **does not match** on any of the boards tested (868 MHz and 2.4 GHz): do not use it in a
+  product without simulating it.
+- **What to do with 40 × 80:** (a) move to 2.4 GHz, where the IFA fits in 30 × 50 mm (centred in 2 simulations, η 88 %);
+  (b) use a monopole or dipole off the board (external antenna with SMA or IPEX, see [chapter 4](#parameters));
+  (c) a chip antenna, not modelled yet (F3.8 of the roadmap).
+- If your product is 868 MHz and the board is ≥ 80 × 100 mm, the recipe is the one above: integrated «Yes», your board
+  size, «RF pad», Environment with case and battery, and the footprint to KiCad.
+
+What is simulated does not replace measuring: put your assembled board on the NanoVNA (chapter 8) before ordering the run.
+
+---
+
+## 15. Glossary
 
 | Term | Meaning |
 |---|---|

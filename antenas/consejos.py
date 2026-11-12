@@ -1,7 +1,7 @@
 """Consejos de diseño: generales de cada tipo y otros que dependen del diseño concreto.
 
 consejos(antena, f_obj, banda) -> lista de (categoría, texto). Categorías: 'diseño',
-'montaje', 'medida', 'banda'.
+'montaje', 'medida', 'banda', 'integración'.
 """
 from .i18n import tr
 from .materiales import lambda0_mm
@@ -177,6 +177,18 @@ def consejos(antena, f_obj=None, banda=None):
         if antena.tipo == 'ifa' and f_hz and p.get('placa_x', 1e9) < 0.22*lambda0_mm(f_hz):
             out.append(('diseño', tr('Masa corta: con una placa tan estrecha la IFA pierde banda (a 2,4 GHz, ~125 MHz con 25 mm de ancho frente a ~215 MHz con 30 mm y ~300 MHz con 80 mm). '
                                   'Si la placa de tu producto es más grande, úsala entera.')))
+        # Reglas de integración (F3.10); los números salen de F3.2 (IFA/meandro en placas) y F3.7 (carcasa, mano, batería)
+        if f_hz:
+            coser = lambda0_mm(f_hz)/20
+            out.append(('integración', tr('Masa: deja bajo el resto de la placa una masa continua del tamaño que simulaste; con menos masa la banda se estrecha '
+                                       '(IFA a 2,4 GHz: ~125 MHz con 25 mm de ancho frente a ~300 MHz con 80 mm).')))
+            out.append(('integración', tr('Zona de antena: sin cobre, pistas, vías, componentes ni serigrafía metálica en ninguna capa. Si tu placa tiene más capas, '
+                                       'vacía también las internas bajo la zona.')))
+            out.append(('integración', tr('Cosido: pon vías de masa cada {0:.0f} mm (λ/20) a lo largo del borde de la masa que da a la zona de antena, y a ambos lados de la línea de 50 Ω.', coser)))
+            out.append(('integración', tr('Distancia: batería, blindajes y pantallas, al menos λ/10 ({0:.0f} mm) de la zona de antena. En simulación, una batería de metal pegada detrás '
+                                       'sube la frecuencia un ~6 % y una carcasa de ABS la baja un ~7 % (marca Entorno en Simulación).', lambda0_mm(f_hz)/10)))
+        out.append(('integración', tr('Línea de 50 Ω: lo más corta posible y con masa continua debajo, sin cambiar de capa ni pasar cerca de otras pistas. '
+                                   'Pon la red en π justo junto al chip de radio, no junto a la antena.')))
         if antena.tipo == 'monopolo_meandro':
             out.append(('diseño', tr('El meandro adapta mal en una placa pequeña (en simulación, a 2,4 GHz y 868 MHz no llega a −10 dB con placas de hasta 80 × 120 mm): '
                                   'para una placa de producto, la IFA es la opción probada.')))

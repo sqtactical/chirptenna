@@ -13,6 +13,18 @@ from antenas import ajuste, bucle, geometria, materiales, tipos  # noqa: E402
 BANDAS = (868e6, 2441.75e6)
 
 
+def test_consejos_integracion():
+    # F3.10: la antena integrada trae las reglas de integración; la de prueba, no
+    from antenas import consejos
+    p = tipos.dimensionar('ifa', 2441.75e6, {'integrada': 1, 'placa_x': 30, 'placa_y': 50})
+    cs = consejos.consejos(tipos.generar('ifa', p), 2441.75e6)
+    reglas = [t for c, t in cs if c == 'integración']
+    assert len(reglas) >= 5
+    assert any('6 mm' in t for t in reglas)  # cosido cada λ/20 = 6 mm a 2,4 GHz
+    p0 = tipos.dimensionar('ifa', 2441.75e6, {})
+    assert not [1 for c, _ in consejos.consejos(tipos.generar('ifa', p0), 2441.75e6) if c == 'integración']
+
+
 @pytest.mark.parametrize('n', [0, 1, 2, 3])
 def test_longitud_koch(n):
     # cada iteración multiplica la longitud por 4/3

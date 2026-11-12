@@ -249,3 +249,7 @@ Decisión de diseño ya tomada: **no se crea un generador nuevo por tipo**. Se e
   con masa continua debajo, red en π junto al chip. Sección nueva en `MANUAL.md` / `MANUAL.en.md`: «Integrar la
   antena en tu placa», con el caso de un nodo LoRa de 868 MHz en 40 × 80 mm.
 - **Hecho cuando**: los consejos salen en la interfaz con `integrada` = 1 y el manual tiene el caso completo.
+- **HECHA (12-11)**: `consejos.consejos` añade cinco reglas de categoría «integración» (icono propio en escritorio y web) cuando `info['integrada']`; el
+  cosido (λ/20) y la distancia (λ/10) salen de la frecuencia. Manual: capítulo 14 en `MANUAL.md` y `MANUAL.en.md` (el glosario pasa a 15). El caso de
+  868 MHz en 40 × 80 mm **no sale** (la IFA necesita ~66 mm de zona; mínimo ~80 × 100 mm, meandro no adapta): el manual lo cuenta y da las salidas (2,4 GHz,
+  antena externa, chip pendiente de F3.8). Test `test_consejos_integracion`; no se ha mirado la interfaz con una antena integrada en el navegador.

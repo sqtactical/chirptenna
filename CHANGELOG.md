@@ -11,6 +11,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
   placa de tu producto. Parámetros `integrada`, `placa_x`, `placa_y`, `posicion` (esquina izquierda, derecha o centrada), `zona_x`, `zona_y`
   y `margen_zona`: la masa ocupa toda la placa menos la zona de antena (sin cobre en ninguna capa) y el conector se queda en el borde
   opuesto para medir el prototipo. Si algo no cabe, el error dice cuántos mm faltan. Interfaz de escritorio y web.
+- **Reglas de integración y manual** (F3.10): categoría de consejos «integración» (🧩) con las antenas integradas (masa continua, zona vacía, vías de
+  cosido cada λ/20, distancia a batería y blindajes, línea de 50 Ω corta, red en π junto al chip) y capítulo 14 del manual («Integrar la antena en tu
+  placa», en castellano e inglés) con el caso del nodo LoRa de 868 MHz: en 40 × 80 mm no cabe, y explica qué hacer.
 - **Tolerancias de fabricación** (F3.9): «Analizar tolerancias» en Simulación simula con εr ±5 %, grosor ±10 % y cobre ±0,05 mm y dice si la banda
   sigue cubierta (monopolo recto de 2,4 GHz: cubre, ~2,2 %; parche rectangular: no cubre, la εr sola lo saca de la banda).
 - **Entorno en la simulación** (F3.7): «Entorno» en Simulación (carcasa de ABS, batería metálica, mano) simula la antena con y sin esos bloques con la

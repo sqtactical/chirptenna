@@ -60,7 +60,8 @@ estado = {
 estado['serigrafia'] = dict(SERIGRAFIA_DEFECTO)
 _banda_de = presentacion.banda_de
 ICONOS_CONSEJO = {'banda': ('podcasts', 'deep-orange'), 'diseño': ('lightbulb', 'amber-8'),
-                  'montaje': ('construction', 'blue-grey'), 'medida': ('straighten', 'teal')}
+                  'montaje': ('construction', 'blue-grey'), 'medida': ('straighten', 'teal'),
+                  'integración': ('developer_board', 'indigo-5')}
 
 
 def _titulo_card(texto, icono=None):

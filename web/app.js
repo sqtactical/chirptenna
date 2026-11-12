@@ -42,7 +42,7 @@ const TEXTOS_MOTOR = [N_('Cargando Python (Pyodide)…'), N_('Cargando numpy y s
   N_('Cargando el generador de Chirptenna…'), N_('Cargando ezdxf (DXF)…'), N_('Preparando…')];
 const CLAVE_LOCAL = 'chirptenna-web-diseno';
 const ICONOS = { grave: '⛔', error: '⛔', aviso: '⚠️', info: 'ℹ️', ok: '✅' };
-const ICONOS_CONSEJO = { banda: '📡', 'diseño': '💡', montaje: '🔧', medida: '📏' };
+const ICONOS_CONSEJO = { banda: '📡', 'diseño': '💡', montaje: '🔧', medida: '📏', 'integración': '🧩' };
 
 // ------------------------------------------------------------------ motor (Web Worker con Pyodide)
 const motor = new Worker('motor.js');
