@@ -287,10 +287,11 @@ def placa_kicad(antena, ruta, titulo='', etiqueta=None, logo=True):
         # el DRC no dé zones_intersect (mismas net y prioridad)
         for k, trozo in enumerate(sin_agujeros(pol)):
             pts = _xy(conv.anillo(trozo.exterior.coords))
-            cuerpo.append(f'  (zone (net {nets.index(n_inf)}) (net_name "{n_inf}") (layer "B.Cu") (uuid "{_u()}") (hatch edge 0.5) (priority {k})\n'
-                          f'    (connect_pads yes (clearance 0)) (min_thickness 0.2) (filled_areas_thickness no)\n'
-                          f'    (fill yes (thermal_gap 0.5) (thermal_bridge_width 0.5) (island_removal_mode 1))\n'
-                          f'    (polygon (pts {pts}))\n    (filled_polygon (layer "B.Cu") (pts {pts})))')
+            for capa_inf in _inferiores(antena):          # con 4 capas, la misma masa en In1.Cu, In2.Cu y B.Cu (unidas por las vías)
+                cuerpo.append(f'  (zone (net {nets.index(n_inf)}) (net_name "{n_inf}") (layer "{capa_inf}") (uuid "{_u()}") (hatch edge 0.5) (priority {k})\n'
+                              f'    (connect_pads yes (clearance 0)) (min_thickness 0.2) (filled_areas_thickness no)\n'
+                              f'    (fill yes (thermal_gap 0.5) (thermal_bridge_width 0.5) (island_removal_mode 1))\n'
+                              f'    (polygon (pts {pts}))\n    (filled_polygon (layer "{capa_inf}") (pts {pts})))')
     # Cobre superior: cada pieza es un pad de forma libre con su net. La que toca el conector es
     # ANT; las islas de la red en π van a GND; el resto (lado antena tras el componente en serie,
     # tramos con puente, directores) llevan nets propias para que el DRC no vea cortocircuitos.
@@ -716,18 +717,46 @@ def _componentes_ajuste(aj, conv, nets, net_en, dentro=None):
     return lineas
 
 
+def _inferiores(antena):
+    """Capas de cobre de masa por debajo de la cara superior: B.Cu con 2 capas; In1.Cu, In2.Cu y B.Cu con 4."""
+    return ['In1.Cu', 'In2.Cu', 'B.Cu'] if int(antena.info.get('capas_cobre', 2)) > 2 else ['B.Cu']
+
+
+def _capas_cu(antena):
+    """Capas de cobre para un `(layers …)` de KiCad, entre comillas y separadas por espacios."""
+    return ' '.join(f'"{c}"' for c in ['F.Cu'] + _inferiores(antena))
+
+
+# Apilado de JLC de 4 capas (JLC04161H-7628, ver materiales.py): cobre, prepreg 7628, núcleo NP-155F
+_STACKUP_4 = ('  (setup (stackup\n'
+              '    (layer "F.SilkS" (type "Top Silk Screen"))\n    (layer "F.Paste" (type "Top Solder Paste"))\n'
+              '    (layer "F.Mask" (type "Top Solder Mask") (thickness 0.01))\n'
+              '    (layer "F.Cu" (type "copper") (thickness 0.035))\n'
+              '    (layer "dielectric 1" (type "prepreg") (thickness 0.2104) (material "7628") (epsilon_r 4.4) (loss_tangent 0.02))\n'
+              '    (layer "In1.Cu" (type "copper") (thickness 0.0152))\n'
+              '    (layer "dielectric 2" (type "core") (thickness 1.065) (material "NP-155F") (epsilon_r 4.43) (loss_tangent 0.02))\n'
+              '    (layer "In2.Cu" (type "copper") (thickness 0.0152))\n'
+              '    (layer "dielectric 3" (type "prepreg") (thickness 0.2104) (material "7628") (epsilon_r 4.4) (loss_tangent 0.02))\n'
+              '    (layer "B.Cu" (type "copper") (thickness 0.035))\n'
+              '    (layer "B.Mask" (type "Bottom Solder Mask") (thickness 0.01))\n    (layer "B.Paste" (type "Bottom Solder Paste"))\n'
+              '    (layer "B.SilkS" (type "Bottom Silk Screen"))\n'
+              '    (copper_finish "None") (dielectric_constraints no))\n    (pad_to_mask_clearance 0))')
+
+
 def _escribir_pcb(ruta, nets, cuerpo, antena):
     h = antena.info.get('h_mm', 1.6)
+    cuatro = int(antena.info.get('capas_cobre', 2)) > 2
+    capas_cu = '(0 "F.Cu" signal) (1 "In1.Cu" signal) (2 "In2.Cu" signal) (31 "B.Cu" signal)' if cuatro else '(0 "F.Cu" signal) (31 "B.Cu" signal)'
     cab = ['(kicad_pcb (version 20240108) (generator "generador_antenas") (generator_version "8.0")',
            f'  (general (thickness {h}) (legacy_teardrops no))', '  (paper "A4")',
-           '  (layers (0 "F.Cu" signal) (31 "B.Cu" signal) (32 "B.Adhes" user "B.Adhesive") '
+           f'  (layers {capas_cu} (32 "B.Adhes" user "B.Adhesive") '
            '(33 "F.Adhes" user "F.Adhesive") (34 "B.Paste" user) (35 "F.Paste" user) '
            '(36 "B.SilkS" user "B.Silkscreen") (37 "F.SilkS" user "F.Silkscreen") (38 "B.Mask" user) '
            '(39 "F.Mask" user) (40 "Dwgs.User" user "User.Drawings") (41 "Cmts.User" user "User.Comments") '
            '(42 "Eco1.User" user "User.Eco1") (43 "Eco2.User" user "User.Eco2") (44 "Edge.Cuts" user) '
            '(45 "Margin" user) (46 "B.CrtYd" user "B.Courtyard") (47 "F.CrtYd" user "F.Courtyard") '
            '(48 "B.Fab" user) (49 "F.Fab" user))',
-           '  (setup (pad_to_mask_clearance 0))']
+           _STACKUP_4 if cuatro else '  (setup (pad_to_mask_clearance 0))']
     cab += [f'  (net {i} "{n}")' for i, n in enumerate(nets)]
     with open(ruta, 'w', encoding='utf-8') as fh:
         fh.write('\n'.join(cab + cuerpo) + '\n)\n')
@@ -800,7 +829,7 @@ def _texto_huella(antena, nombre, integrar=False, nets=None, en=None):
         pts = [(x - ancla[0], y - ancla[1]) for x, y in conv.anillo(zl.exterior.coords)]
         # zona de exclusión: ni pistas, ni vías, ni relleno de masa en ninguna capa de cobre. Los pads de la propia antena y su
         # huella quedan permitidos (si no, el DRC marcaría el radiador contra su propia zona)
-        lineas.append(f'  (zone (net 0) (net_name "") (layers "F.Cu" "B.Cu") (uuid "{_u()}") (name "{tr("zona de antena")}") '
+        lineas.append(f'  (zone (net 0) (net_name "") (layers {_capas_cu(antena)}) (uuid "{_u()}") (name "{tr("zona de antena")}") '
                       f'(hatch edge 0.5) (connect_pads (clearance 0)) (min_thickness 0.25) (filled_areas_thickness no)\n'
                       f'    (keepout (tracks not_allowed) (vias not_allowed) (pads allowed) (copperpour not_allowed) '
                       f'(footprints allowed))\n    (fill (thermal_gap 0.5) (thermal_bridge_width 0.5))\n'
@@ -870,7 +899,7 @@ def placa_ejemplo_integrada(antena, ruta, nombre):
     # KiCad no aplica (al menos con `kicad-cli --refill-zones`) la zona de exclusión que va dentro de la huella: la misma zona, a nivel
     # de placa, hace que el ejemplo se vea y se compruebe igual. En KiCad con la interfaz, la de la huella es la que vale.
     pts = _xy(conv.anillo(zl.exterior.coords))
-    cuerpo.append(f'  (zone (net 0) (net_name "") (layers "F.Cu" "B.Cu") (uuid "{_u()}") (name "{tr("zona de antena")}") (hatch edge 0.5) '
+    cuerpo.append(f'  (zone (net 0) (net_name "") (layers {_capas_cu(antena)}) (uuid "{_u()}") (name "{tr("zona de antena")}") (hatch edge 0.5) '
                   f'(connect_pads (clearance 0)) (min_thickness 0.25) (filled_areas_thickness no)\n'
                   f'    (keepout (tracks not_allowed) (vias not_allowed) (pads allowed) (copperpour not_allowed) (footprints allowed))\n'
                   f'    (fill (thermal_gap 0.5) (thermal_bridge_width 0.5))\n    (polygon (pts {pts})))')
@@ -919,6 +948,9 @@ def gerber(ruta_pcb, carpeta, ruta_zip):
     for n in os.listdir(carpeta):
         os.remove(os.path.join(carpeta, n))
     capas = 'F.Cu,B.Cu,F.Mask,B.Mask,F.SilkS,B.SilkS,Edge.Cuts'
+    with open(ruta_pcb, encoding='utf-8') as f:
+        if '(1 "In1.Cu" signal)' in f.read():             # placa de 4 capas: las internas también van a fabricar
+            capas = 'F.Cu,In1.Cu,In2.Cu,B.Cu,F.Mask,B.Mask,F.SilkS,B.SilkS,Edge.Cuts'
     for args in (['pcb', 'export', 'gerbers', '--layers', capas, '-o', carpeta, ruta_pcb],
                  ['pcb', 'export', 'drill', '--format', 'excellon', '--excellon-separate-th', '-o',
                   carpeta + os.sep, ruta_pcb]):

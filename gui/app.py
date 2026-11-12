@@ -25,7 +25,7 @@ sys.path.insert(0, RAIZ)
 from nicegui import app, ui, run, background_tasks   # noqa: E402
 
 from antenas import tipos, vista, fabricacion, exportar, consejos, graficas, ajuste, biblioteca, problemas   # noqa: E402
-from antenas import guia, gpu, entorno   # noqa: E402
+from antenas import guia, gpu, entorno, importar_kicad   # noqa: E402
 from antenas import i18n   # noqa: E402
 from antenas.i18n import tr   # noqa: E402
 from antenas import __version__   # noqa: E402
@@ -589,6 +589,8 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
             for p in visibles_p:
                 if p.nombre in basicos:
                     campo(p)
+            if int(p_act.get('integrada', 0)) == 1:
+                bloque_importar()
             avanzados = [p for p in visibles_p if p.nombre not in basicos]
             if avanzados:
                 exp_av = ui.expansion(tr('Ajustes avanzados ({0})', len(avanzados)), icon='tune',
@@ -1270,6 +1272,55 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
         refrescar_biblioteca()
         mostrar_asistente(f, s11, tr('Medida «{0}»', etiqueta or os.path.basename(ruta)), anterior)
         ui.notify(tr('Medida guardada en el diseño «{0}»', estado["diseno"]), type='positive')
+
+    def bloque_importar():
+        """Importar la placa del producto (.kicad_pcb) como placa anfitriona de la antena integrada (F3.6)."""
+        d = tipos.integracion.importada(estado['params'])
+        with ui.column().classes('w-full gap-1 q-mt-sm'):
+            if d:
+                ui.label(tr('Placa importada: {0} ({1:g} × {2:g} mm, girada {3}°)', d.get('nombre') or '', d['ancho'], d['alto'],
+                            int(d.get('giro', 0)))).classes('text-caption text-weight-medium')
+                with ui.row().classes('items-center gap-1'):
+                    ui.button(tr('Girar 90°'), icon='rotate_left', on_click=lambda: girar_placa()).props('flat dense no-caps')
+                    ui.button(tr('Quitar la placa importada'), icon='close', on_click=lambda: quitar_placa()).props('flat dense no-caps')
+                ui.label(tr('La antena va en el borde superior de esta placa: gírala para elegir el lado.')).classes('text-caption texto-sec')
+            else:
+                subida_pcb = ui.upload(label=tr('Importar la placa de tu producto (.kicad_pcb)'), auto_upload=True, max_files=1) \
+                    .props('accept=.kicad_pcb flat bordered').classes('w-full')
+                subida_pcb.on_upload(subir_kicad)
+                ui.label(tr('Abre tu placa en KiCad y rellena las zonas (B) antes de guardarla. Se usa el contorno y el cobre como masa; '
+                            'el cobre que tengas en la zona de antena se avisa.')).classes('text-caption texto-sec')
+
+    async def subir_kicad(e):
+        try:
+            datos = await e.file.read()          # NiceGUI 3
+            nombre = e.file.name
+        except AttributeError:
+            datos = e.content.read()             # NiceGUI 2
+            nombre = e.name
+        try:
+            pl = importar_kicad.leer_texto(datos.decode('utf-8-sig', errors='replace'))
+        except Exception as ex:
+            ui.notify(tr('No se puede importar la placa: {0}', ex), type='negative')
+            return
+        for aviso in pl['avisos']:
+            ui.notify(aviso, type='warning')
+        estado['params']['placa_importada'] = importar_kicad.a_dato(pl, os.path.splitext(nombre)[0])
+        marcar_cambio()
+        construir_params()
+        ajustar()
+
+    def girar_placa():
+        estado['params']['placa_importada'] = importar_kicad.girar_dato(estado['params']['placa_importada'], 90)
+        marcar_cambio()
+        construir_params()
+        ajustar()
+
+    def quitar_placa():
+        estado['params'].pop('placa_importada', None)
+        marcar_cambio()
+        construir_params()
+        ajustar()
 
     async def subir_s1p(e):
         try:

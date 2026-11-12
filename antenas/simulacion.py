@@ -144,6 +144,8 @@ def _clave_cache(antena, sustrato, fmin, fmax, precision):
                              [p.wkb.hex() for p in antena.ajuste.get('puentes_sim', [])]], default=str).encode())
     if antena.entorno:
         h.update(json.dumps(['entorno', antena.entorno], default=str).encode())
+    if sustrato.capas > 2:
+        h.update(json.dumps(['capas', sustrato.capas, sustrato.h_ref]).encode())     # la caché de 2 capas no cambia
     h.update(json.dumps([sustrato.er, sustrato.tand, sustrato.h, fmin, fmax, precision,
                          antena.puerto['borde'], antena.puerto['direccion']]).encode())
     return h.hexdigest()[:16]
@@ -182,6 +184,7 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
     fmin, fmax = rango[0]*f_centro, rango[1]*f_centro
     f0, fc = (fmin + fmax)/2, (fmax - fmin)/2
     h, er = sustrato.h, sustrato.er
+    zm = sustrato.z_masa           # cota de la masa: 0 con 2 capas, la de In1.Cu con 4 (el FR4 llega hasta z = 0 igualmente)
     clave = _clave_cache(antena, sustrato, fmin, fmax, f'{precision}{paso}' + ('' if malla == 'uniforme' else malla + '2'))
     sim_path = os.path.join(tempfile.gettempdir(), 'antenas_sim', clave)
     os.makedirs(sim_path, exist_ok=True)
@@ -227,7 +230,7 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
             aire.AddLinPoly(points=[np.array(hx[:-1]), np.array(hy[:-1])], norm_dir='z', elevation=0, length=h,
                             priority=1)
     cobre = CSX.AddMetal('cobre')
-    for geom, z in ((inf, 0.0), (sup, h)):
+    for geom, z in ((inf, zm), (sup, h)):
         for pol in poligonos(geom):
             for t in sin_agujeros(pol):
                 xs, ys = np.array(t.exterior.coords[:-1]).T
@@ -282,9 +285,9 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
         px, py = bx + dx*u, by + dy*u
         wp = antena.puerto.get('ancho_puerto', w)
         if dy:
-            ini, fin = [px - wp/2, py, 0], [px + wp/2, py, h]
+            ini, fin = [px - wp/2, py, zm], [px + wp/2, py, h]
         else:
-            ini, fin = [px, py - wp/2, 0], [px, py + wp/2, h]
+            ini, fin = [px, py - wp/2, zm], [px, py + wp/2, h]
         port = FDTD.AddLumpedPort(1, 50, ini, fin, 'z', 1.0, priority=20)
 
     # Malla
@@ -314,7 +317,11 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
     mesh.AddLine('x', [ex0 - margen, ex1 + margen, ini[0], fin[0], ex0, ex1] + xs_caps + xs_ent)
     mesh.AddLine('y', [ey0 - margen, ey1 + margen, ini[1], fin[1], ey0, ey1] + ys_caps + ys_ent)
     # sustratos muy finos (flex de 25–50 µm): 2 celdas en z; con 4, el paso de tiempo se hundiría (la celda más pequeña lo fija)
-    mesh.AddLine('z', np.linspace(0, h, 5 if h >= 0.4 else 3))
+    if zm > 0:
+        # 4 capas: el prepreg entre F.Cu y la masa de In1.Cu (~0,2 mm) lleva 2 celdas (con más, la celda fina hundiría el paso de tiempo)
+        mesh.AddLine('z', np.r_[np.linspace(0, zm, 4), np.linspace(zm, h, 3)])
+    else:
+        mesh.AddLine('z', np.linspace(0, h, 5 if h >= 0.4 else 3))
     mesh.AddLine('z', [min([z_ref] + zs_ent) - margen, max([h] + zs_ent) + margen, z_ref] + zs_ent)
     mesh.SmoothMeshLines('all', res_aire, 1.3)
     # Las líneas del puerto y de los bordes no caen en la rejilla: si quedan a micras de otra, la celda
@@ -322,7 +329,7 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
     # De dos líneas pegadas se queda la de la rejilla de la placa o la de una cara (el puerto se ajusta
     # solo a la malla). Las cachés de esas mallas tienen resultados sin terminar: van a otra carpeta.
     fijas = {'x': set(np.round(np.r_[rejilla['x'], ex0, ex1, xs_caps, xs_ent], 6)), 'y': set(np.round(np.r_[rejilla['y'], ey0, ey1, ys_caps, ys_ent], 6)),
-             'z': set(np.round([0.0, h, z_ref] + zs_ent, 6))}
+             'z': set(np.round([0.0, zm, h, z_ref] + zs_ent, 6))}
     # Las del puerto van por encima de todo: un puerto (caja plana) que no cae en una línea de malla
     # desaparece sin avisar y la simulación corre sin excitación (le pasó al Hilbert de 2,4 GHz).
     puerto = {d: set(np.round([ini[i], fin[i]], 6)) for i, d in enumerate('xyz')}
@@ -334,7 +341,7 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
     fundidas = False
     for d in 'xyz':
         ls = np.sort(np.asarray(mesh.GetLines(d)))
-        tol = (h/4 if d == 'z' else res)*FUSION_LINEAS
+        tol = (sustrato.h_linea/4 if d == 'z' else res)*FUSION_LINEAS
         quedan = [ls[0]]
         for v in ls[1:]:
             if v - quedan[-1] >= tol:
@@ -362,7 +369,7 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
 
     for vx, vy in antena.vias:
         mx, my = en_malla(vx, vy)
-        cobre.AddBox([mx, my, 0.0], [mx, my, h], priority=10)
+        cobre.AddBox([mx, my, zm], [mx, my, h], priority=10)
     for vx, vy in (refl.get('hilos', []) if refl else []):
         mx, my = en_malla(vx, vy)
         cobre.AddBox([mx, my, z_ref], [mx, my, 0.0], priority=10)
@@ -408,7 +415,7 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
         z_ant = zin
         l_lin = antena.puerto.get('largo_linea_mm')
         if l_lin:
-            ee = eps_eff_microstrip(er, h, w)
+            ee = eps_eff_microstrip(er, sustrato.h_linea, w)
             t = np.tan(2*np.pi*f*math.sqrt(ee)/C0*l_lin*1e-3)
             z_ant = 50*(zin - 1j*50*t)/(50 - 1j*zin*t)
         x = np.imag(z_ant)
@@ -615,7 +622,7 @@ def _datos_red_bucle(antena, r, sustrato):
     """(f, z_anillo, ee, d_z1, d_comp, y_puerto, comp) para la red en L del bucle: la impedancia del anillo sin la línea de
     50 Ω hasta él (la Z simulada en el conector, de-embebida) y las distancias de línea entre anillo, Z1 y las derivaciones."""
     w = antena.puerto['ancho_linea']
-    ee = eps_eff_microstrip(sustrato.er, sustrato.h, w)
+    ee = eps_eff_microstrip(sustrato.er, sustrato.h_linea, w)
     comp = {c['ref']: c for c in antena.ajuste['componentes']}
     if 'Z1' not in comp or 'Z3' not in comp:
         return None
@@ -757,7 +764,8 @@ def tolerancias(antena, sustrato, f_obj, banda, base, precision='normal', malla=
             if var == 'er':
                 s = dataclasses.replace(sustrato, er=sustrato.er*(1 + signo*frac))
             elif var == 'h':
-                s = dataclasses.replace(sustrato, h=round(sustrato.h*(1 + signo*frac), 4))
+                s = dataclasses.replace(sustrato, h=round(sustrato.h*(1 + signo*frac), 4),
+                                        h_ref=round(sustrato.h_ref*(1 + signo*frac), 4))
             else:
                 a = copy.copy(antena)
                 a.capas = {capa: antena.cobre(capa).buffer(signo*frac, join_style='mitre') for capa in ('F.Cu', 'B.Cu')}

@@ -13,6 +13,99 @@ from antenas import ajuste, bucle, geometria, materiales, tipos  # noqa: E402
 BANDAS = (868e6, 2441.75e6)
 
 
+def test_sexp():
+    from antenas import sexp
+    r = sexp.leer('(a (b 1 2.5 "x y") (c)\n (b foo))')
+    assert r[0] == 'a' and r[1] == ['b', 1.0, 2.5, 'x y'] and r[2] == ['c']
+    assert len(sexp.hijos(r, 'b')) == 2 and sexp.hijo(r, 'c') == ['c']
+    with pytest.raises(ValueError):
+        sexp.leer('(a (b)')
+
+
+def test_importar_kicad_placa_propia(tmp_path):
+    # F3.6: una placa exportada por el programa se importa con el mismo contorno y casi el mismo cobre
+    from antenas import exportar, importar_kicad
+    p = tipos.dimensionar('ifa', 2441.75e6, {'integrada': 1, 'placa_x': 30, 'placa_y': 50})
+    a = tipos.generar('ifa', p)
+    ruta = str(tmp_path / 'p.kicad_pcb')
+    exportar.placa_kicad(a, ruta)
+    pl = importar_kicad.placa(ruta)
+    assert pl['ancho_mm'] == pytest.approx(30, abs=0.01) and pl['alto_mm'] == pytest.approx(50, abs=0.01)
+    assert pl['contorno'].area == pytest.approx(a.contorno.area, rel=0.01)
+    masa = pl['cobre']['B.Cu']
+    assert masa.area == pytest.approx(a.cobre('B.Cu').area, rel=0.02)
+    assert pl['grosor_mm'] == pytest.approx(1.6)
+    # y se puede usar como placa anfitriona: el contorno y la masa coinciden con los de la antena integrada normal
+    dato = importar_kicad.a_dato(pl, 'prueba')
+    q = dict(p, placa_importada=dato)
+    b = tipos.generar('ifa', q)
+    assert b.contorno.area == pytest.approx(a.contorno.area, rel=0.01)
+    assert b.info['placa_importada'] == 'prueba'
+    assert b.cobre('B.Cu').area == pytest.approx(a.cobre('B.Cu').area, rel=0.05)
+    # girar 90° intercambia ancho y alto
+    g = importar_kicad.girar_dato(dato, 90)
+    assert (g['ancho'], g['alto']) == pytest.approx((50, 30), abs=0.01) and g['giro'] == 90
+
+
+def test_importar_kicad_placa_en_l():
+    # placa no rectangular escrita a mano: un chaflán con arco, una pista en F.Cu, una zona en B.Cu y un pad girado
+    from antenas import importar_kicad
+    pcb = '''(kicad_pcb (version 20240108) (generator "x") (general (thickness 1.6))
+     (layers (0 "F.Cu" signal) (2 "B.Cu" signal) (44 "Edge.Cuts" user))
+     (gr_line (start 100 100) (end 150 100) (layer "Edge.Cuts"))
+     (gr_line (start 150 100) (end 150 160) (layer "Edge.Cuts"))
+     (gr_line (start 150 160) (end 120 160) (layer "Edge.Cuts"))
+     (gr_arc (start 120 160) (mid 110 150) (end 100 140) (layer "Edge.Cuts"))
+     (gr_line (start 100 140) (end 100 100) (layer "Edge.Cuts"))
+     (segment (start 105 150) (end 140 150) (width 0.3) (layer "F.Cu") (net 1))
+     (zone (net 1) (net_name "GND") (layer "B.Cu") (polygon (pts (xy 101 101) (xy 149 101) (xy 149 159) (xy 101 159)))
+      (filled_polygon (layer "B.Cu") (pts (xy 101 101) (xy 149 101) (xy 149 159) (xy 101 159))))
+     (footprint "X" (layer "F.Cu") (at 110 110 90) (pad "1" smd rect (at 2 0) (size 2 1) (layers "F.Cu")))
+    )'''
+    pl = importar_kicad.leer_texto(pcb)
+    assert (pl['ancho_mm'], pl['alto_mm']) == pytest.approx((50, 60), abs=0.01)
+    assert 2700 < pl['contorno'].area < 2900          # 50 × 60 menos el chaflán redondeado
+    assert pl['cobre']['B.Cu'].area == pytest.approx(48*58 - 0, abs=1)   # zona entera en la placa recortada por el chaflán o no
+    # huella girada 90° (antihorario en pantalla): su +x local apunta hacia arriba, así que el pad queda en (110, 108) en KiCad,
+    # x = 10, y = 60 - 8 = 52 en el modelo, y de 1 × 2 mm (la huella lo gira)
+    pad = pl['cobre']['F.Cu']
+    from shapely.geometry import Point
+    assert pad.contains(Point(10, 52.9)) and not pad.contains(Point(11.2, 52))
+    d = importar_kicad.a_dato(pl, 'L')
+    p = tipos.dimensionar('ifa', 2441.75e6, {'integrada': 1, 'placa_importada': d})
+    a = tipos.generar('ifa', p)
+    assert a.contorno.area == pytest.approx(pl['contorno'].area, rel=0.001)
+    assert any('cobre de tu placa' in v for v in a.info.get('avisos', []))
+
+
+def test_sustrato_4_capas(tmp_path):
+    # F3.5: la línea de 50 Ω sale de ~0,4 mm (h_ref 0,21 mm), solo vale integrada y la placa lleva In1.Cu e In2.Cu con la masa
+    from antenas import exportar
+    S = 'FR4 JLC 4 capas 1,6 mm'
+    s = materiales.SUSTRATOS[S]
+    assert s.capas == 4 and s.h_linea == pytest.approx(0.2104) and s.z_masa == pytest.approx(s.h - 0.2104)
+    assert materiales.SUSTRATOS['FR4 JLC 1,6 mm'].z_masa == 0 and materiales.SUSTRATOS['FR4 JLC 1,6 mm'].h_linea == 1.6
+    p = tipos.dimensionar('ifa', 2441.75e6, {'integrada': 1, 'placa_x': 30, 'placa_y': 50}, S)
+    a = tipos.generar('ifa', p, S)
+    assert 0.3 < a.info['ancho_linea_50ohm_mm'] < 0.5 and a.info['capas_cobre'] == 4
+    with pytest.raises(ValueError):
+        tipos.generar('parche_rectangular', {}, S)
+    ruta = str(tmp_path / 'p.kicad_pcb')
+    exportar.placa_kicad(a, ruta)
+    t = open(ruta, encoding='utf-8').read()
+    assert '(1 "In1.Cu" signal)' in t and '(layer "In1.Cu")' in t and '(layer "In2.Cu")' in t and 'stackup' in t
+    assert 'In1.Cu' not in (lambda b: exportar.placa_kicad(b, str(tmp_path / 'q.kicad_pcb')) or open(str(tmp_path / 'q.kicad_pcb'), encoding='utf-8').read())(
+        tipos.generar('ifa', tipos.dimensionar('ifa', 2441.75e6, {'integrada': 1, 'placa_x': 30, 'placa_y': 50})))
+
+
+def test_importar_kicad_arco():
+    from antenas import importar_kicad
+    pts = importar_kicad._arco((10, 0), (0, 10), (-10, 0))       # semicírculo por arriba (en KiCad y es hacia abajo, da igual)
+    assert all(abs(math.hypot(x, y) - 10) < 1e-6 for x, y in pts)
+    assert pts[0] == pytest.approx((10, 0)) and pts[-1] == pytest.approx((-10, 0))
+    assert len(pts) >= 12 and max(abs(x) for x, _ in pts) <= 10 + 1e-9   # flecha ≤ 0,1 mm: 12 tramos en el semicírculo
+
+
 def test_consejos_integracion():
     # F3.10: la antena integrada trae las reglas de integración; la de prueba, no
     from antenas import consejos

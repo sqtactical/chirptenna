@@ -11,6 +11,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
   placa de tu producto. Parámetros `integrada`, `placa_x`, `placa_y`, `posicion` (esquina izquierda, derecha o centrada), `zona_x`, `zona_y`
   y `margen_zona`: la masa ocupa toda la placa menos la zona de antena (sin cobre en ninguna capa) y el conector se queda en el borde
   opuesto para medir el prototipo. Si algo no cabe, el error dice cuántos mm faltan. Interfaz de escritorio y web.
+- **Sustrato de 4 capas** (F3.5): «FR4 JLC 4 capas 1,6 mm» (apilado JLC04161H-7628) para antenas integradas (IFA y monopolos): línea de 50 Ω de 0,4 mm sobre la masa de In1.Cu, masa en
+  In1.Cu, In2.Cu y B.Cu, apilado en el `.kicad_pcb` y capas internas en el Gerber. IFA de 30 × 50 mm a 2,4 GHz: 2418 MHz (2 capas: 2465), banda 205 MHz, S11 −19 dB, η 86 %.
+  La εr sale de una transcripción de la calculadora de JLC: compruébala antes de fabricar.
+- **Importar la placa de tu producto** (F3.6, `antenas/sexp.py` y `antenas/importar_kicad.py`): en el modo integrado del escritorio, «Importar la placa de tu producto (.kicad_pcb)» lee el
+  contorno (con arcos y recortes), el cobre, los taladros y el grosor; la antena se coloca en el borde superior (con «Girar 90°» eliges lado), el cobre importado es la masa y avisa del cobre
+  que haya en la zona de antena. Probado con una placa exportada por el programa y una en L escrita a mano; falta una placa real.
 - **Reglas de integración y manual** (F3.10): categoría de consejos «integración» (🧩) con las antenas integradas (masa continua, zona vacía, vías de
   cosido cada λ/20, distancia a batería y blindajes, línea de 50 Ω corta, red en π junto al chip) y capítulo 14 del manual («Integrar la antena en tu
   placa», en castellano e inglés) con el caso del nodo LoRa de 868 MHz: en 40 × 80 mm no cabe, y explica qué hacer.

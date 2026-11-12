@@ -3,6 +3,7 @@
 consejos(antena, f_obj, banda) -> lista de (categoría, texto). Categorías: 'diseño',
 'montaje', 'medida', 'banda', 'integración'.
 """
+from . import integracion
 from .i18n import tr
 from .materiales import lambda0_mm
 GENERALES = {
@@ -174,7 +175,7 @@ def consejos(antena, f_obj=None, banda=None):
                               'o si añades una batería o una carcasa metálica cerca de la zona de antena.')))
         f_hz = f_obj or info.get('f_estimada_MHz', 0)*1e6
         # 25 mm a 2,4 GHz = 0,2 λ (λ = 123 mm) ya da la mitad de banda que 30 mm: el aviso salta por debajo de 0,22 λ
-        if antena.tipo == 'ifa' and f_hz and p.get('placa_x', 1e9) < 0.22*lambda0_mm(f_hz):
+        if antena.tipo == 'ifa' and f_hz and integracion.placa({'placa_x': 1e9, 'placa_y': 1e9, **p})[0] < 0.22*lambda0_mm(f_hz):
             out.append(('diseño', tr('Masa corta: con una placa tan estrecha la IFA pierde banda (a 2,4 GHz, ~125 MHz con 25 mm de ancho frente a ~215 MHz con 30 mm y ~300 MHz con 80 mm). '
                                   'Si la placa de tu producto es más grande, úsala entera.')))
         # Reglas de integración (F3.10); los números salen de F3.2 (IFA/meandro en placas) y F3.7 (carcasa, mano, batería)

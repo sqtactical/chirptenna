@@ -115,6 +115,9 @@ The bar is always at the top:
   not widen the band on their own. **Flex** has no controlled impedance and a 50 Ω line would be ~0.1 mm: use it with the types that
   have the coax soldered to the antenna (dipole, bowtie, J-pole). With PTFE or flex choose the rules “JLC high frequency and flex
   (0.1 mm)” in Manufacture; they are ordered through JLC's high-frequency and flex services.
+  **4 layers:** «FR4 JLC 4 layers 1.6 mm» only works with an integrated antenna (IFA or monopoles): the ground is on inner layer 1, 0.21 mm
+  below the track, so the 50 Ω line is ~0.4 mm wide and the simulation is ~10 times slower (30 × 50 mm IFA: 2418 MHz, 205 MHz bandwidth). Its εr (4.4) comes from a transcription of
+  JLC's impedance calculator: check it in their calculator before manufacturing. With 4 layers use the «RF pad» connector (the edge-mount SMA pad over 0.2 mm of dielectric is not modelled).
 - **Resize to the frequency.** Recomputes the dimensions so that the antenna resonates at the chosen
   centre. **Press it whenever you change band, type or substrate.** It respects the dimensions you have
   set by hand.
@@ -539,6 +542,11 @@ the straight monopole, the Koch monopole and the meander.
 
 1. In **Design**, set **Antenna integrated into a board** to «Yes» and enter the **width and height of your board**
    (your product's, not the antenna's). Choose the corner (**Antenna position**).
+   **Importing your board:** instead of typing the sizes, press **Import your product board (.kicad_pcb)**. First, in
+   KiCad, fill the zones (key B) and save. Chirptenna uses the **outline** (`Edge.Cuts`, including arcs and cut-outs)
+   and the **copper** of all layers as ground; the antenna goes on the **top edge** of the imported board (**Rotate 90°**
+   picks another side). If your board already has copper in the antenna zone, a warning gives the mm² to remove. If the board has no copper,
+   the ground is the whole board minus the zone. **Remove the imported board** goes back to the rectangle.
 2. **Connector:** «RF pad» if you will route your radio chip's 50 Ω line to the antenna (no connector).
 3. **Adjust size to frequency** and simulate: the tuning uses your whole board, so the frequency is already right for
    your size. If you change the board, **tune again**.

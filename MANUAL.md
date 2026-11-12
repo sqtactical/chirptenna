@@ -114,6 +114,9 @@ La barra está siempre arriba:
   arrays), pero son más caros y no ensanchan la banda por sí solos. El **flex** no tiene impedancia controlada y una línea de
   50 Ω saldría de ~0,1 mm: úsalo con los tipos que llevan el coaxial soldado en la antena (dipolo, bowtie, J-pole). Con PTFE o flex
   elige las reglas «JLC alta frecuencia y flex (0,1 mm)» en Fabricar; se piden en los servicios de alta frecuencia y de flex de JLC.
+  **4 capas:** «FR4 JLC 4 capas 1,6 mm» solo vale con la antena integrada (IFA o monopolos): la masa va en la capa interna 1, a 0,21 mm
+  de la pista, así que la línea de 50 Ω mide ~0,4 mm y la simulación es ~10 veces más lenta (IFA de 30 × 50 mm: 2418 MHz, 205 MHz de banda). Su εr (4,4) sale de una transcripción de la
+  calculadora de JLC: compruébala en su calculadora antes de fabricar. Con 4 capas usa el conector «Pad de RF» (el pad del SMA de canto sobre 0,2 mm de dieléctrico no está modelado).
 - **Ajustar tamaño a la frecuencia.** Recalcula las medidas para que la antena resuene en el centro
   elegido. **Púlsalo siempre que cambies de banda, de tipo o de sustrato.** Respeta las medidas que hayas
   fijado a mano.
@@ -539,6 +542,11 @@ IFA, el monopolo recto, el de Koch y el meandro.
 
 1. En **Diseño**, pon **Antena integrada en una placa** en «Sí» y escribe el **ancho y el alto de tu placa**
    (los de tu producto, no los de la antena). Elige la esquina (**Posición de la antena**).
+   **Importar tu placa:** en lugar de escribir las medidas, pulsa **Importar la placa de tu producto (.kicad_pcb)**.
+   Antes, en KiCad, rellena las zonas (tecla B) y guarda. Chirptenna usa el **contorno** (`Edge.Cuts`, también arcos y
+   recortes) y el **cobre** de todas las capas como masa; la antena va en el **borde superior** de la placa importada
+   (**Girar 90°** elige otro lado). Si tu placa ya tiene cobre en la zona de antena, sale un aviso con los mm² que
+   hay que retirar. Si la placa no tiene cobre, la masa es toda la placa menos la zona. **Quitar la placa importada** vuelve al rectángulo.
 2. **Conector:** «Pad de RF» si vas a llevar la línea de 50 Ω de tu chip hasta la antena (sin conector).
 3. **Ajustar tamaño a la frecuencia** y simula: el ajuste usa tu placa entera, así que la frecuencia ya sale
    para tu tamaño. Si cambias la placa, **vuelve a ajustar**.

@@ -39,6 +39,18 @@ def activa(p, clave=None):
     return int(p.get('integrada', 0) or 0) == 1 and (clave is None or clave in TIPOS)
 
 
+def importada(p):
+    """Placa importada de KiCad guardada en los parámetros (`importar_kicad.a_dato`), o None."""
+    d = p.get('placa_importada')
+    return d if isinstance(d, dict) and d.get('contorno') else None
+
+
+def placa(p):
+    """(ancho, alto) de la placa anfitriona: los de la placa importada si la hay, si no `placa_x` y `placa_y`."""
+    d = importada(p)
+    return (float(d['ancho']), float(d['alto'])) if d else (p['placa_x'], p['placa_y'])
+
+
 def alto_zona(p, rad_arriba):
     """Alto de la zona de antena. rad_arriba: lo que sube el radiador sobre el borde de la masa (sin margen)."""
     return max(float(p.get('zona_y', 0) or 0), rad_arriba + p['margen_zona'])
@@ -46,7 +58,7 @@ def alto_zona(p, rad_arriba):
 
 def largo_masa(p, rad_arriba):
     """Largo de la masa bajo la zona de antena [mm] (puede salir ≤ 0 si la zona no cabe: quien genera lo comprueba)."""
-    return p['placa_y'] - alto_zona(p, rad_arriba)
+    return placa(p)[1] - alto_zona(p, rad_arriba)
 
 
 def geometria(p, radiador, lg, semiancho_min):
@@ -59,7 +71,7 @@ def geometria(p, radiador, lg, semiancho_min):
     minx, _, maxx, maxy = radiador.bounds
     m = p['margen_zona']
     zy = max(float(p.get('zona_y', 0) or 0), maxy - lg + m)
-    ancho, alto = p['placa_x'], lg + zy
+    ancho, alto = placa(p)[0], lg + zy
     zx_pedido = float(p.get('zona_x', 0) or 0)
     # el conector está en x = 0, en el borde inferior: necesita masa a los dos lados
     necesita = semiancho_min + BORDE_COBRE
@@ -87,7 +99,31 @@ def geometria(p, radiador, lg, semiancho_min):
                             'faltan {2:.1f} mm de ancho de placa (o cambia la posición de la antena).',
                             min(-gx0, gx1), necesita, falta))
     contorno = box(gx0, 0, gx1, alto)
-    masa = (box(gx0, 0, gx1, alto).difference(box(zx0, lg, zx1, alto))
+    zona_caja = box(zx0, lg, zx1, alto)
+    masa = (box(gx0, 0, gx1, alto).difference(zona_caja)
             .intersection(contorno.buffer(-BORDE_COBRE, join_style='mitre')))
-    return {'contorno': contorno, 'masa': masa, 'zona': box(zx0, lg, zx1, alto).intersection(contorno),
+    extra = {}
+    d = importada(p)
+    if d:
+        from . import importar_kicad as ik
+        from shapely import affinity
+        cont_imp, cobre_imp = ik.desde_dato(d)
+        mover = (gx0, 0)
+        contorno = affinity.translate(cont_imp, *mover)
+        cobre_imp = affinity.translate(cobre_imp, *mover)
+        zona = zona_caja.intersection(contorno)
+        if not cobre_imp.is_empty:
+            en_zona = cobre_imp.intersection(zona_caja).area
+            if en_zona > 0.5:
+                extra['cobre_en_zona_mm2'] = round(en_zona, 1)
+            # el cobre de la placa es la masa; junto al conector se asegura un trozo de masa para soldarlo
+            base = ik.masa_desde_cobre(cobre_imp, contorno).difference(zona_caja)
+            conector_masa = box(-necesita, 0, necesita, 8).intersection(contorno)
+            masa = base.union(conector_masa).intersection(contorno.buffer(-BORDE_COBRE, join_style='mitre')) \
+                .difference(zona_caja)
+        else:
+            masa = contorno.buffer(-BORDE_COBRE, join_style='mitre').difference(zona_caja)
+        return {'contorno': contorno, 'masa': masa, 'zona': zona, 'gx0': gx0, 'gx1': gx1, 'alto_placa': alto,
+                'zona_mm': (round(zx, 2), round(zy, 2)), **extra}
+    return {'contorno': contorno, 'masa': masa, 'zona': zona_caja.intersection(contorno),
             'gx0': gx0, 'gx1': gx1, 'alto_placa': alto, 'zona_mm': (round(zx, 2), round(zy, 2))}

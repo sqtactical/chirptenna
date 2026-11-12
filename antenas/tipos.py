@@ -207,12 +207,12 @@ def _longitud_equivalente(clave, p):
 
 def _generar_monopolo(tipo, p, sustrato):
     rad, l_traza, pts = _radiador_monopolo(tipo.clave, p)
-    w50 = ancho_microstrip(50, sustrato.er, sustrato.h)
+    w50 = ancho_microstrip(50, sustrato.er, sustrato.h_linea)
     le = _longitud_equivalente(tipo.clave, p)
     lg = largo_masa_monopolo(p, le, tipo.clave)
     integrada = integracion.activa(p, tipo.clave)
     if integrada and integracion.largo_masa(p, _radiador_monopolo(tipo.clave, p)[0].bounds[3]) < conector.MASA_MINIMA[conector.tipo(p)]:
-        zona = p['placa_y'] - integracion.largo_masa(p, _radiador_monopolo(tipo.clave, p)[0].bounds[3])
+        zona = integracion.placa(p)[1] - integracion.largo_masa(p, _radiador_monopolo(tipo.clave, p)[0].bounds[3])
         raise ValueError(tr('La zona de antena mide {0:.1f} mm de alto y bajo ella el conector necesita {1:.0f} mm de masa: '
                             'la placa tiene que medir al menos {2:.1f} mm de alto.',
                             zona, conector.MASA_MINIMA[conector.tipo(p)], zona + conector.MASA_MINIMA[conector.tipo(p)]))
@@ -287,7 +287,8 @@ def _generar_monopolo(tipo, p, sustrato):
                   info={'longitud_traza_mm': round(l_traza, 2), 'ancho_linea_50ohm_mm': round(w50, 3),
                         'solape_pistas': None if solape is None else round(solape, 3),
                         'hueco_minimo_mm': None if hueco is None else round(max(hueco, 0.0), 3),
-                        'pista_minima_mm': p.get('ancho_pista', p.get('cuello')),
+                        # con 4 capas la línea de 50 Ω (~0,4 mm) es la pista más fina y es corta: la malla tiene que verla (lección 25)
+                        'pista_minima_mm': (lambda pm: round(min(pm, w50), 3) if sustrato.capas > 2 and pm else pm)(p.get('ancho_pista', p.get('cuello'))),
                         'placa_mm': [round(ancho, 2), round(alto_placa, 2)],
                         'masa_mm': [round(gx1 - gx0 - 2*BORDE_COBRE, 2), round(lg - BORDE_COBRE, 2)],
                         'area_placa_cm2': round(contorno.area/100, 2),
@@ -930,6 +931,17 @@ def _marcar_integrada(a, p):
     a.info['integrada'] = True
     a.info['zona_antena_mm'] = [round(x1 - x0, 2), round(y1 - y0, 2)]
     a.info['posicion_antena'] = integracion.POSICIONES[int(p.get('posicion', 0))]
+    d = integracion.importada(p)
+    if d:
+        from . import importar_kicad
+        from shapely import affinity
+        a.info['placa_importada'] = d.get('nombre') or tr('placa importada')
+        _, cobre = importar_kicad.desde_dato(d)
+        en_zona = affinity.translate(cobre, a.contorno.bounds[0], 0).intersection(a.zona_libre).area
+        if en_zona > 0.5:
+            a.info.setdefault('avisos', []).append(
+                tr('Tienes cobre de tu placa en la zona de antena ({0:.1f} mm²): no se ha usado como masa, pero hay que retirarlo en tu diseño '
+                   '(pistas, pads y rellenos en todas las capas).', en_zona))
 
 
 def _aligerar(a, p):
@@ -960,6 +972,9 @@ def generar(clave, parametros=None, nombre_sustrato=None):
     p = tipo.defectos()
     p.update(parametros or {})
     s = sustrato(nombre_sustrato)
+    if s.capas > 2 and not (tipo.familia == 'monopolo' and integracion.activa(p, clave)):
+        raise ValueError(tr('El sustrato de 4 capas solo vale con una antena integrada en una placa (ifa, monopolo recto, de Koch o en meandro): '
+                            'en el resto de tipos la masa está en la cara inferior.'))
     if tipo.familia == 'monopolo':
         a = _generar_monopolo(tipo, p, s)
         if clave in ('ifa', 'pifa'):
@@ -1002,7 +1017,7 @@ def generar(clave, parametros=None, nombre_sustrato=None):
     if int(p.get('aligerado', 0)) == 1:
         _aligerar(a, p)
     if conector.tipo(p) == conector.IPEX and a.puerto.get('tipo') not in ('coaxial', 'pasante'):
-        conector.aplicar_ipex(a, ancho_microstrip(50, s.er, s.h))
+        conector.aplicar_ipex(a, ancho_microstrip(50, s.er, s.h_linea))
     elif conector.tipo(p) == conector.COAX and a.puerto.get('tipo') not in ('coaxial', 'pasante'):
         a.puerto['conector'] = conector.COAX
     elif conector.tipo(p) == conector.PAD_RF and a.puerto.get('tipo') not in ('coaxial', 'pasante'):
@@ -1015,6 +1030,8 @@ def generar(clave, parametros=None, nombre_sustrato=None):
                                       'MHz': round((bw['f_hi'] - bw['f_lo'])/1e6, 1),
                                       'porcentaje': round(100*bw['fbw'], 1)}
     a.info['sustrato'] = s.nombre
+    if s.capas > 2:
+        a.info['capas_cobre'] = int(s.capas)
     return a
 
 

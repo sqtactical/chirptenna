@@ -164,6 +164,16 @@ Decisión de diseño ya tomada: **no se crea un generador nuevo por tipo**. Se e
 - **Prueba**: IFA integrada a 2,4 GHz en 4 capas: resuena a ±5 % de la de 2 capas (el radiador ve el grosor
   total, no `h_ref`); DRC limpio; `FDTD timestep` razonable.
 - **Hecho cuando**: se diseña, simula y exporta una antena integrada en 4 capas.
+- **HECHA en parte (12-11)**: sustrato `FR4 JLC 4 capas 1,6 mm` (`Sustrato.capas`, `h_ref`, `h_linea`, `z_masa`; JLC04161H-7628: prepreg 7628 de 0,2104 mm εr 4,4, núcleo NP-155F de
+  1,065 mm εr 4,43, εr única 4,4 y dieléctrico de 1,516 mm; **fuente: un gist que transcribe la calculadora de JLC** (https://gist.github.com/biergaizi/21954da168b29b4435d420730ff26b17),
+  la web de JLC da 4,6 para el prepreg 7628: comprobarlo en su calculadora antes de fabricar). Solo con antena integrada de la familia monopolo (`tipos.generar` lanza `ValueError` si no).
+  Línea de 50 Ω de 0,40 mm. Simulación: masa en `z_masa`, puerto y vías desde ahí, 2 celdas en z en el prepreg. Exportación: In1.Cu, In2.Cu y B.Cu con la misma masa, `stackup`,
+  Gerber con las capas interiores; DRC de KiCad limpio. **Prueba (IFA integrada de 30 × 50 mm, 2,4 GHz, GPU)**: 2 capas 2465 MHz, banda 215 MHz; 4 capas **2418 MHz (−1,9 %),
+  banda 2318–2523 MHz (205 MHz), S11 −19 dB, G 1,46 dBi, η 86 %**. Coste: la línea de 0,4 mm obliga a un paso de malla de 0,145 mm (4,7 M celdas, ~4 min por iteración frente a
+  ~20 s de 2 capas). Fallo de método: la malla no veía la línea (lección 25: `info['pista_minima_mm']` ahora incluye `w50` con 4 capas); con un paso de 0,36 mm el puerto no recibía
+  corriente (S11 = 0 dB) sin ningún aviso. **Sin hacer**: otros tipos de antena en 4 capas; capas internas distintas de una masa continua; el SMA de canto sobre 0,2 mm de dieléctrico
+  (su pad no se modela: con 4 capas, «Pad de RF»); In2.Cu y B.Cu se funden con In1.Cu en la simulación; la cara posterior del conjunto (1,3 mm de FR4 bajo la masa) no se verificó con una
+  medida.
 
 ## F3.6 · Importar una placa de KiCad
 
@@ -184,6 +194,14 @@ Decisión de diseño ya tomada: **no se crea un generador nuevo por tipo**. Se e
 - **Prueba**: importar una placa exportada por el programa y comprobar que contorno y área de cobre coinciden
   (±1 %); importar una placa real del usuario (pídesela; **no uses `placas/`**, son Gerber, no KiCad).
 - **Hecho cuando**: una placa real se importa, se ve y se simula con la antena en su esquina.
+- **HECHA en parte (12-11), falta una placa real del usuario**: `sexp.py`, `importar_kicad.py` (lee Edge.Cuts con arcos de tres puntos, cobre de zonas rellenas, pistas, vías,
+  pads con forma, taladros y grosor) y botón «Importar la placa de tu producto (.kicad_pcb)» en el modo integrado del escritorio (con «Girar 90°» y «Quitar»).
+  La placa importada se guarda como WKT en `parametros['placa_importada']`; `integracion.geometria` pone la antena en el borde superior (rectángulo de la caja de la placa:
+  sobre un contorno no rectangular la zona se recorta con el contorno), usa el cobre importado como masa y avisa del cobre que cae en la zona de antena. Probado: una placa
+  exportada por el propio programa (contorno y masa ±1–2 %), una placa en L escrita a mano con arco, zona y pad girado, y el flujo completo en la interfaz (subir y girar).
+  **Sin hacer**: importar en la web lite; la antena solo va en el borde superior de la caja (se elige el lado girando); sin comprobar con una placa real de un producto
+  (pídesela al usuario: huellas con muchos tipos de pad, zonas con aislamientos, etc.). Las vías y pads de las huellas girados/volteados (cara B) se asumen ya guardados
+  en coordenadas absolutas de capa; si una placa con huellas en B.Cu sale mal, mirar `_pad` y el espejo.
 
 ## F3.7 · Entorno: carcasa, batería, mano
 

@@ -14,6 +14,18 @@ class Sustrato:
     h: float           # grosor del dieléctrico [mm]
     cobre_um: float = 35.0
     nota: str = ''
+    capas: int = 2     # capas de cobre de la placa (4: In1.Cu y In2.Cu entre las dos caras)
+    h_ref: float = 0.0  # con 4 capas: distancia de F.Cu a la masa In1.Cu [mm] (la línea de 50 Ω ve esta, no `h`)
+
+    @property
+    def h_linea(self):
+        """Grosor de dieléctrico que ve la microstrip: bajo ella está la masa más cercana."""
+        return self.h_ref if self.capas > 2 and self.h_ref > 0 else self.h
+
+    @property
+    def z_masa(self):
+        """Cota de la masa respecto a la cara inferior [mm]: 0 con 2 capas; con 4, la de In1.Cu."""
+        return self.h - self.h_ref if self.capas > 2 and self.h_ref > 0 else 0.0
 
 
 # εr del FR4: valor de la calculadora de impedancias de JLC para 2 capas (pendiente de
@@ -41,6 +53,14 @@ for _n, _er, _td in PTFE_JLC:
 # JLC no ofrece impedancia controlada en flex y una microstrip de 50 Ω sale de ~0,05–0,09 mm: no se puede fabricar.
 for _h, _k in ((0.05, 'Flex PI 50 µm'), (0.025, 'Flex PI 25 µm')):
     SUSTRATOS[_k] = Sustrato(_k, 3.3, 0.004, _h, cobre_um=18.0, nota='flex: sin coverlay ni adhesivo; sin impedancia controlada')
+
+# 4 capas de JLC, apilado JLC04161H-7628 (1,6 mm): cobre 35 µm fuera y 15,2 µm dentro, prepreg 7628 de 0,2104 mm (εr 4,4) entre F.Cu y
+# In1.Cu, núcleo NP-155F de 1,065 mm (εr 4,43) entre In1.Cu e In2.Cu. Fuente: la transcripción de la calculadora de impedancias de JLC de
+# https://gist.github.com/biergaizi/21954da168b29b4435d420730ff26b17 (no he podido leer la tabla en la web de JLC; su página de capacidades da
+# 4,6 para el prepreg 7628: **comprobar en la calculadora de JLC antes de fabricar**). Se modela con una sola εr (4,4) y el grosor del dieléctrico
+# entre las dos caras (0,2104·2 + 0,0152·2 + 1,065 = 1,516 mm); la masa de la simulación es la de In1.Cu (las de In2.Cu y B.Cu se funden con ella).
+SUSTRATOS['FR4 JLC 4 capas 1,6 mm'] = Sustrato('FR4 JLC 4 capas 1,6 mm', 4.4, 0.02, 1.516, capas=4, h_ref=0.2104,
+                                               nota='4 capas JLC04161H-7628: línea de 50 Ω de ~0,4 mm sobre In1.Cu; εr sin medir')
 SUSTRATO_POR_DEFECTO = 'FR4 JLC 1,6 mm'
 
 
