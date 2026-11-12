@@ -25,7 +25,7 @@ sys.path.insert(0, RAIZ)
 from nicegui import app, ui, run, background_tasks   # noqa: E402
 
 from antenas import tipos, vista, fabricacion, exportar, consejos, graficas, ajuste, biblioteca, problemas   # noqa: E402
-from antenas import guia, gpu, entorno, importar_kicad   # noqa: E402
+from antenas import guia, gpu, entorno, importar_kicad, informe   # noqa: E402
 from antenas import i18n   # noqa: E402
 from antenas.i18n import tr   # noqa: E402
 from antenas import __version__   # noqa: E402
@@ -388,6 +388,9 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                              ).classes('text-caption texto-sec')
                     btn_export = ui.button(tr('Exportar KiCad + Gerber + DXF'), icon='download') \
                         .props('color=positive no-caps').classes('w-full q-mt-sm')
+                    btn_informe = ui.button(tr('Informe en PDF'), icon='picture_as_pdf').props('outline no-caps').classes('w-full q-mt-xs')
+                    ui.label(tr('Geometría, parámetros, consejos y, si el diseño tiene simulación guardada, S11, ROE, Smith, diagrama, '
+                                'tolerancias y red de adaptación.')).classes('text-caption texto-sec')
                     res_export = ui.column().classes('w-full gap-1')
                 with ui.card().classes('grow basis-[340px]'):
                     _titulo_card(tr('Serigrafía (inscripciones)'), 'format_paint')
@@ -1666,7 +1669,27 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                 ui.label(tr('DRC de KiCad sin errores')).classes('text-caption text-positive')
         ui.notify(tr('Exportado en el diseño «{0}»', nombre), type='positive')
 
+    def informe_click():
+        """F4.5: informe PDF del diseño (con su simulación guardada, si la hay)."""
+        a = estado['antena']
+        if a is None or not asegurar_guardado():
+            return
+        nombre = estado['diseno']
+        try:
+            sim_guardada = biblioteca.leer_simulacion(nombre)
+            r_, d_ = sim_guardada if sim_guardada else (None, None)
+            ruta = os.path.join(biblioteca.carpeta(nombre, 'fabricacion'), f'{biblioteca.nombre_valido(nombre)}_informe.pdf')
+            os.makedirs(os.path.dirname(ruta), exist_ok=True)
+            lo, hi = banda_actual()
+            informe.generar(ruta, a, nombre, estado['clave'], dict(estado['params']), estado['sustrato'], estado['f_MHz'], (lo, hi), r_, d_)
+        except Exception as ex:
+            ui.notify(tr('No se pudo crear el informe: {0}', ex), type='negative', multi_line=True)
+            return
+        ui.notify(tr('Informe guardado en {0}', ruta), type='positive')
+        ui.download(ruta)
+
     # ================================================================== eventos
+    btn_informe.on_click(informe_click)
     sel_tipo.on_value_change(cambiar_tipo)
     banda.on_value_change(cambiar_banda)
     f_in.on_value_change(cambiar_f)

@@ -94,6 +94,22 @@ def test_red_adaptacion_generica():
     assert [q['ref'] for q in sol['piezas']] == ['Z1', sol['posicion']]
 
 
+def test_informe_pdf(tmp_path):
+    # F4.5: el informe de un diseño sin simulación sale en los idiomas, con paginación y sin errores
+    from antenas import i18n, informe
+    a = tipos.generar('monopolo_recto', tipos.dimensionar('monopolo_recto', 2441.75e6, {}))
+    previo = i18n.idioma()
+    try:
+        for cod in ('es', 'en', 'fr', 'de'):
+            i18n.fijar_idioma(cod)
+            ruta = str(tmp_path / f'{cod}.pdf')
+            informe.generar(ruta, a, 'prueba', 'monopolo_recto', a.parametros, a.info['sustrato'], 2441.75, (2400, 2483.5))
+            datos = open(ruta, 'rb').read()
+            assert datos.startswith(b'%PDF') and len(datos) > 10000
+    finally:
+        i18n.fijar_idioma(previo)
+
+
 def test_asistente_con_medida_sintetica():
     # F4.3: carga de 20 − j30 Ω a 868 MHz tras 15 mm de línea hasta la red (la medida está en el conector): la red propuesta,
     # aplicada por circuito sobre esa misma Z, da ≤ −20 dB y el asistente da piezas, banda y peor caso

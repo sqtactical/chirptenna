@@ -223,6 +223,10 @@ conocidos** del tipo de antena.
 
 Al acabar se pasa el **DRC de KiCad**. Debe salir sin errores.
 
+**Informe en PDF** crea `<diseño>_informe.pdf` en la misma carpeta y lo descarga: portada con la vista, parámetros,
+problemas conocidos y consejos y, si el diseño tiene una simulación guardada, S11, ROE, Smith, diagrama, ganancia y
+eficiencia, tolerancias, entorno y red de adaptación. Sale en el idioma de la interfaz.
+
 **Al pedir en JLCPCB:** sube el zip de Gerber y elige 2 capas, el **material y el grosor del sustrato que
 pusiste en el diseño** (FR4 de 1,6 mm por defecto), cualquier color de máscara y el acabado que quieras
 (HASL o ENIG). El grosor importa: cambiarlo desplaza la frecuencia y estropea la línea de 50 Ω.

@@ -86,6 +86,11 @@ Antes de nada: [`00_como_trabajar.md`](00_como_trabajar.md).
   de adaptación y avisos de `problemas`/`consejos`. Botón en Fabricar. Textos con `tr`.
 - **Prueba**: generar el informe de un diseño con y sin simulación; abrirlo y revisar que no hay texto cortado.
 - **Hecho cuando**: el PDF sale en los 4 idiomas sin errores.
+- **HECHA (12-11), botón sin probar con clic**: `antenas/informe.py` (`generar(ruta, antena, nombre, clave, parametros, sustrato, f_MHz, banda_MHz, resultado, datos)`; matplotlib `PdfPages`, A4
+  con paginación propia, nada de texto cortado), botón «Informe en PDF» en Fabricar (guarda en `fabricacion/` del diseño con su simulación guardada, si la hay, y lo descarga).
+  `herramientas/prueba_informe.py [carpeta_sim]` lo genera en es/en/fr/de con y sin simulación (8 PDF sin errores; revisados a ojo en el visor: portada, parámetros, S11/ROE/Smith). Test
+  `test_informe_pdf`. Sin hacer: el diagrama polar solo cuando hay datos de NF2FF (no se probó un resultado sin ellos); el texto de los consejos y problemas estáticos sale en el
+  idioma que tenga su traducción; solo se ha mirado una simulación (la IFA de 4 capas).
 
 ## F4.6 · Exportar el diagrama
 

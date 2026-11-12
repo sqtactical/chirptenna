@@ -223,6 +223,10 @@ problems** of the antenna type.
 
 When it finishes, the **KiCad DRC** is run. It must come out with no errors.
 
+**PDF report** creates `<design>_informe.pdf` in the same folder and downloads it: cover with the view, parameters,
+known problems and tips and, if the design has a saved simulation, S11, VSWR, Smith, pattern, gain and efficiency, tolerances, environment and
+matching network. It comes out in the interface language.
+
 **When ordering at JLCPCB:** upload the Gerber zip and choose 2 layers, the **material and thickness of the substrate you
 set in the design** (1.6 mm FR4 by default), any mask colour and the finish you want
 (HASL or ENIG). The thickness matters: changing it shifts the frequency and spoils the 50 Ω line.
