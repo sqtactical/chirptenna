@@ -656,6 +656,48 @@ def red_adaptacion_bucle(antena, r, f_obj, sustrato):
     return sol
 
 
+def red_adaptacion(antena, f, zin, f_obj, sustrato, tolerancia=0.05):
+    """Red en L de adaptación para cualquier antena con red en π (`ajuste` = 1), por circuito y sin FDTD (F4.2).
+
+    f [Hz] y zin: frecuencias e impedancia simuladas en el conector SIN componentes en las derivaciones (el serie va a 0 Ω).
+    Quita la línea de 50 Ω hasta la antena, busca la red E24 con más adaptación (a igualdad, menos componentes: ver
+    `ajuste.mejor_red_l`) y da el S11 a `tolerancia` (±5 % de los valores) en las cuatro esquinas. Devuelve el dict de
+    `red_adaptacion_bucle` más 's11_peor_dB' (peor caso en f_obj), 'banda_peor_MHz' (a −10 dB en las cuatro esquinas a la vez),
+    's11_sin_red_dB' y 'piezas' (lista de {'ref', 'tipo', 'valor', 'descripcion'}), o None si no hay red o no se pudo."""
+    from . import ajuste as aj_mod
+    r = {'f_Hz': np.asarray(f, float), 'zin': np.asarray(zin, complex)}
+    sol = red_adaptacion_bucle(antena, r, f_obj, sustrato)
+    d = _datos_red_bucle(antena, r, sustrato)
+    if sol is None or d is None:
+        return None
+    fa, z_ant, ee, d_z1, d_comp, _, _ = d
+    top, cs, cp = sol['posicion'], sol['serie'], sol['derivacion']
+    k = int(np.argmin(np.abs(fa - f_obj)))
+    peor, bandas = -1e9, []
+    for fs in (1 - tolerancia, 1 + tolerancia):
+        for fp in (1 - tolerancia, 1 + tolerancia):
+            cs2 = cs if cs[0] == '0 Ω' else (cs[0], cs[1]*fs)
+            z = aj_mod.zin_red_l(fa, z_ant, top, cs2, (cp[0], cp[1]*fp), d_z1, d_comp, ee)
+            s_db = 20*np.log10(np.abs((z - 50)/(z + 50)) + 1e-12)
+            peor = max(peor, float(s_db[k]))
+            cb = centro_banda(fa, s_db, -10.0, (0.8*f_obj, 1.25*f_obj))
+            bandas.append((cb[1], cb[2]))
+    sol['s11_peor_dB'] = round(peor, 1)
+    if all(b[0] is not None for b in bandas):
+        lo, hi = max(b[0] for b in bandas), min(b[1] for b in bandas)
+        sol['banda_peor_MHz'] = [round(lo/1e6, 1), round(hi/1e6, 1)] if hi > lo else None
+    else:
+        sol['banda_peor_MHz'] = None
+    sol['s11_sin_red_dB'] = round(float(20*np.log10(abs((np.asarray(zin, complex)[k] - 50)/(np.asarray(zin, complex)[k] + 50)))), 1)
+    sol['s11_dB'] = round(float(sol['s11_dB']), 1)
+    pieza = lambda ref, c, extra: {'ref': ref, 'tipo': c[0], 'valor': aj_mod.texto_componente(*c),
+                                    'descripcion': (tr('condensador C0G/NP0 0402 o 0603') if c[0] == 'C' else
+                                                    tr('bobina 0402 o 0603 (Q ≥ 40)') if c[0] == 'L' else tr('resistencia de 0 Ω 0402 o 0603')) + extra}
+    sol['piezas'] = [pieza('Z1', cs, tr(' (en serie)')), pieza(top, cp, tr(' (a masa)'))]
+    sol.pop('s11_f_dB', None)
+    return sol
+
+
 def aplicar_red_bucle(antena, r, f_obj, sustrato):
     """Aplica por circuito la red en L de `antena.parametros['red_L']` al resultado `r` de la simulación del anillo SIN red
     (la FDTD con la red como elementos concentrados no es fiable con C ≥ ~2 pF: ver `ajuste.montar_red`). Cambia S11, Z, banda y

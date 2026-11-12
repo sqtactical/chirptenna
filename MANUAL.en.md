@@ -183,6 +183,11 @@ instant.
 
 ### How to read the results
 
+- **Calculate matching network:** for antennas with the π network (monopoles with **Tuning after manufacture** = «Tunable»), this button appears after
+  simulating. It calculates **by circuit** (no further simulation) the E24-valued L network that brings the simulated impedance to 50 Ω, and gives the parts
+  (Z1 in series and the shunt to ground), the resulting S11, the worst case with ±5 % components and the band that survives. Fit only those two parts and leave
+  the other shunt unfitted. Not done: checking it with a simulation with the components fitted.
+
 - **S11** and **VSWR**: the curve must drop below −10 dB (or VSWR 2) across your whole band (shaded area).
 - **Smith chart:** the closer the ★ passes to the centre, the better. If the curve makes a **loop** near the
   centre, the band is wider.

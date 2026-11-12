@@ -78,6 +78,22 @@ def test_importar_kicad_placa_en_l():
     assert any('cobre de tu placa' in v for v in a.info.get('avisos', []))
 
 
+def test_red_adaptacion_generica():
+    # F4.2: un monopolo con red en π y una Z de antena desadaptada (22 − j35 Ω a 868 MHz) se devuelve a ≤ −15 dB por circuito
+    import numpy as np
+    from antenas import simulacion
+    a = tipos.generar('monopolo_recto', tipos.dimensionar('monopolo_recto', 868e6, {'ajuste': 1}))
+    f = np.linspace(700e6, 1050e6, 351)
+    z_ant = (22 - 35j) + 0*f
+    l_lin = a.puerto['largo_linea_mm']
+    ee = materiales.eps_eff_microstrip(4.5, 1.6, a.puerto['ancho_linea'])
+    zin = ajuste._trasladar(z_ant, 2*np.pi*f*np.sqrt(ee)/materiales.C0*l_lin*1e-3)       # lo que ve el conector
+    sol = simulacion.red_adaptacion(a, f, zin, 868e6, tipos.sustrato())
+    assert sol is not None and sol['s11_dB'] <= -15
+    assert sol['s11_peor_dB'] <= -10 and sol['s11_sin_red_dB'] > sol['s11_dB']
+    assert [q['ref'] for q in sol['piezas']] == ['Z1', sol['posicion']]
+
+
 def test_sustrato_4_capas(tmp_path):
     # F3.5: la línea de 50 Ω sale de ~0,4 mm (h_ref 0,21 mm), solo vale integrada y la placa lleva In1.Cu e In2.Cu con la masa
     from antenas import exportar

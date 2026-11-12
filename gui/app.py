@@ -33,6 +33,7 @@ from antenas.materiales import ancho_microstrip, eps_eff_microstrip   # noqa: E4
 
 sys.path.insert(0, os.path.join(RAIZ, 'vna'))   # driver del NanoVNA y calibración del PC
 from antenas.simulacion import PRECISIONES   # noqa: E402
+from antenas import simulacion   # noqa: E402
 from antenas.materiales import SUSTRATOS, SUSTRATO_POR_DEFECTO   # noqa: E402
 
 DIR_SALIDAS = os.path.join(RAIZ, 'salidas')
@@ -1021,6 +1022,31 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                 pass
         return estado['antena']
 
+    def calcular_red(ant, r, d, caja):
+        """F4.2: red en L (valores E24) por circuito con la impedancia simulada, para antenas con la red en π."""
+        caja.clear()
+        lo, hi = banda_actual()
+        f_obj = (lo + hi)/2*1e6 if lo and hi else float(r['f_resonancia_MHz'])*1e6
+        try:
+            sol = simulacion.red_adaptacion(ant, d['f'], d['zin'], f_obj, tipos.sustrato(estado['sustrato']))
+        except Exception as ex:
+            sol = None
+            ui.notify(tr('No se pudo calcular la red: {0}', ex), type='negative')
+        with caja:
+            if sol is None:
+                ui.label(tr('No hay red que mejore esta antena con los componentes de la red en π.')).classes('text-caption texto-aviso')
+                return
+            ok = sol['s11_peor_dB'] <= -10
+            with ui.row().classes('items-start no-wrap'):
+                ui.icon('check_circle' if ok else 'warning', color='positive' if ok else 'warning')
+                ui.label(tr('Red de adaptación: {0}. S11 en {1:g} MHz: {2:g} dB (sin red, {3:g} dB); con componentes ±5 %, peor caso {4:g} dB. '
+                            'Banda a −10 dB con ±5 %: {5}. Calculada por circuito con la impedancia simulada, no con otra simulación; '
+                            'deja sin montar la otra derivación.',
+                            '; '.join(f"{q['ref']} = {q['valor']} ({q['descripcion']})" for q in sol['piezas']), f_obj/1e6, sol['s11_dB'],
+                            sol['s11_sin_red_dB'], sol['s11_peor_dB'],
+                            tr('{0:g}–{1:g} MHz', *sol['banda_peor_MHz']) if sol['banda_peor_MHz'] else tr('ninguna'))
+                         ).classes('text-caption')
+
     def pintar_simulacion(r, d):
         sim['mostrada'] = (r, d)            # para repintarla al cambiar de tema
         lo, hi = banda_actual()
@@ -1050,6 +1076,13 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                                     ajuste.texto_componente(*red['serie']), red['posicion'], ajuste.texto_componente(*red['derivacion']),
                                     red['s11_dB'], red['s11_sin_red_dB'], 100*(1 - red.get('eficiencia_red', 1.0)))
                                  ).classes('text-caption')
+                if not red:
+                    ant_s = antena_simulada(r)
+                    comps = {c['ref'] for c in (ant_s.ajuste or {}).get('componentes', [])}
+                    if {'Z1', 'Z2', 'Z3'} <= comps and ant_s.puerto.get('largo_linea_mm') and 'zin' in d:
+                        caja_red = ui.column().classes('w-full gap-1')
+                        ui.button(tr('Calcular red de adaptación'), icon='electrical_services',
+                                  on_click=lambda a=ant_s, c=caja_red: calcular_red(a, r, d, c)).props('outline dense no-caps')
                 tol = r.get('tolerancias')
                 if tol and tol.get('error'):
                     with ui.row().classes('items-start no-wrap'):

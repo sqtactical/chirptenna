@@ -33,6 +33,12 @@ Antes de nada: [`00_como_trabajar.md`](00_como_trabajar.md).
 - **Prueba**: IFA a 868 MHz desadaptada a propósito (`separacion_toma` ×1,5) → la red la devuelve a ≤ −15 dB; el
   cálculo por circuito y la simulación coinciden en ±3 dB en el objetivo.
 - **Hecho cuando**: la prueba pasa y el resultado va al LÉEME de fabricación como lista de piezas.
+- **HECHA en parte (12-11), sin F4.1**: `simulacion.red_adaptacion(antena, f, zin, f_obj, sustrato)` calcula por circuito, con la Z simulada sin componentes, la red E24
+  (`ajuste.mejor_red_l`: menos componentes a igualdad) y da el S11 en el objetivo, el peor caso de las 4 esquinas con ±5 %, la banda que sobrevive a ellas y la lista de
+  piezas. Botón «Calcular red de adaptación» en Simulación para los tipos con Z1, Z2 y Z3 (monopolos con `ajuste` = 1; el bucle ya lo hace solo; la IFA no lleva red en π).
+  Test `test_red_adaptacion_generica` (Z sintética 22 − j35 Ω a 868 MHz → ≤ −15 dB). **Sin hacer**: la comprobación con FDTD (depende de F4.1: los elementos concentrados fallan con
+  C ≥ ~2 pF en derivación, lección 77, y no hay prueba de que el circuito y la FDTD coincidan a ±3 dB); la prueba de la IFA desadaptada a 868 MHz (la IFA no tiene red en π);
+  elegir «la de mayor banda» (hoy se elige la de menor S11 en el objetivo); el resultado no va al zip de fabricación (el escritorio no escribe LÉEME; solo se ve en Simulación).
 
 ## F4.3 · Asistente con medida: lista de piezas y tolerancias
 

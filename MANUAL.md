@@ -184,6 +184,10 @@ instantáneo.
 
 ### Cómo leer los resultados
 
+- **Calcular red de adaptación:** con las antenas que llevan la red en π (monopolos con **Ajuste tras fabricar** = «Ajustable»), tras
+  simular sale este botón. Calcula **por circuito** (sin otra simulación) la red en L de valores E24 que lleva la impedancia simulada
+  a 50 Ω, y da las piezas (Z1 en serie y la derivación a masa), el S11 resultante, el peor caso con componentes ±5 % y la banda que se
+  mantiene. Monta solo esas dos piezas y deja la otra derivación sin montar. Sin hacer: comprobarlo con una simulación con los componentes puestos.
 - **S11** y **ROE**: la curva tiene que bajar de −10 dB (o de ROE 2) en toda tu banda (zona sombreada).
 - **Carta de Smith:** cuanto más cerca del centro pase la ★, mejor. Si la curva da un **bucle** cerca del
   centro, la banda es más ancha.
