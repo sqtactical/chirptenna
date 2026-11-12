@@ -27,7 +27,7 @@ from shapely.ops import unary_union
 from . import gpu
 from .geometria import poligonos, sin_agujeros
 from .materiales import C0, eps_eff_microstrip
-from .i18n import tr
+from .i18n import tr, N_
 
 DIR_OPENEMS = os.environ.get('CSXCAD_INSTALL_PATH',
                              os.path.join(os.environ.get('LOCALAPPDATA', ''), 'Programs', 'openEMS', 'openEMS'))
@@ -731,6 +731,63 @@ def verificar_malla(antena, sustrato, base, frecuencias_Hz, precision='normal', 
     return {'veredicto': 'sensible' if sensible else 'estable', 'filas': filas, 'compara_f': usar_f,
             'frecuencias_MHz': [round(f/1e6, 2) for f in frecuencias_Hz], 's11_base_dB': [round(x, 1) for x in s11_base],
             'paso_base_mm': base['paso_malla_mm'], 'umbral_f_pct': UMBRAL_MALLA_F_PCT, 'umbral_s11_dB': UMBRAL_MALLA_S11_DB}
+
+
+TOLERANCIAS = (('er', 0.05, N_('εr ±5 %')), ('h', 0.10, N_('grosor ±10 %')), ('cobre', 0.05, N_('cobre ±0,05 mm')))
+
+
+def tolerancias(antena, sustrato, f_obj, banda, base, precision='normal', malla='uniforme', rango=(0.6, 1.4), progreso=print):
+    """Cómo cambia la resonancia con las tolerancias de fabricación (una variable cada vez, malla fija, sin diagrama de radiación).
+
+    Simula la antena con la εr un ±5 %, el grosor del FR4 un ±10 % y el cobre ±0,05 mm (`buffer` de las dos caras): 6 simulaciones.
+    banda: (f_inf, f_sup) en Hz que hay que cubrir. base: resultado de la antena nominal (da el paso de malla y la referencia).
+    Devuelve el desplazamiento por variable, la suma cuadrática, la banda que sobrevive (intersección de las bandas a −10 dB de los 7 casos)
+    y un veredicto: 'cubre' (la banda que sobrevive contiene la objetivo), 'justo' (la nominal la cubre, la que sobrevive no) o 'no_cubre'.
+    """
+    import copy
+    import dataclasses
+    paso = base.get('paso_malla_mm')
+    f0 = base['f_resonancia_Hz']
+    bandas = [base['banda_Hz']]
+    filas = []
+    for var, frac, etq in TOLERANCIAS:
+        fila = {'variable': var, 'etiqueta': etq, 'df_pct': [], 'f_MHz': [], 'banda_MHz': []}
+        for signo in (-1, 1):
+            a, s = antena, sustrato
+            if var == 'er':
+                s = dataclasses.replace(sustrato, er=sustrato.er*(1 + signo*frac))
+            elif var == 'h':
+                s = dataclasses.replace(sustrato, h=round(sustrato.h*(1 + signo*frac), 4))
+            else:
+                a = copy.copy(antena)
+                a.capas = {capa: antena.cobre(capa).buffer(signo*frac, join_style='mitre') for capa in ('F.Cu', 'B.Cu')}
+            progreso(tr('Tolerancias: {0} ({1:+d})…', tr(etq), signo))
+            r = simular(a, s, f_obj, precision, nf2ff=False, progreso=lambda m: None, rango=rango, paso=paso, malla=malla)
+            fila['f_MHz'].append(round(r['f_resonancia_Hz']/1e6, 2))
+            fila['df_pct'].append(round(100*(r['f_resonancia_Hz']/f0 - 1), 2))
+            flo, fhi = r['banda_Hz']
+            fila['banda_MHz'].append(None if flo is None else [round(flo/1e6, 1), round(fhi/1e6, 1)])
+            bandas.append(r['banda_Hz'])
+        fila['max_df_pct'] = max(abs(v) for v in fila['df_pct'])
+        filas.append(fila)
+    lo, hi = banda
+    validas = [b for b in bandas if b[0] is not None]
+    inter = None
+    if len(validas) == len(bandas):
+        i0, i1 = max(b[0] for b in validas), min(b[1] for b in validas)
+        inter = (i0, i1) if i1 > i0 else None
+    nominal = base['banda_Hz']
+    cubre_nominal = nominal[0] is not None and nominal[0] <= lo and nominal[1] >= hi
+    if inter and inter[0] <= lo and inter[1] >= hi:
+        veredicto = 'cubre'
+    elif cubre_nominal:
+        veredicto = 'justo'
+    else:
+        veredicto = 'no_cubre'
+    return {'filas': filas, 'df_total_pct': round(math.sqrt(sum(f['max_df_pct']**2 for f in filas)), 2),
+            'banda_sobrevive_MHz': None if inter is None else [round(inter[0]/1e6, 1), round(inter[1]/1e6, 1)],
+            'banda_nominal_MHz': None if nominal[0] is None else [round(nominal[0]/1e6, 1), round(nominal[1]/1e6, 1)],
+            'banda_objetivo_MHz': [round(lo/1e6, 2), round(hi/1e6, 2)], 'veredicto': veredicto, 'f_nominal_MHz': round(f0/1e6, 2)}
 
 
 def efecto_entorno(antena, sustrato, f_obj, nombres, base, precision='normal', malla='uniforme', rango=(0.6, 1.4), progreso=print):

@@ -233,6 +233,13 @@ Decisión de diseño ya tomada: **no se crea un generador nuevo por tipo**. Se e
      margen», «justo» o «no cubre: necesita ajuste tras fabricar».
 - **Prueba**: monopolo recto a 2,4 GHz (banda ancha) → «cubre»; parche rectangular (banda ~36 MHz) → «no cubre».
 - **Hecho cuando**: las dos pruebas dan lo esperado.
+- **HECHA (12-11)**: `simulacion.tolerancias` (6 simulaciones sin diagrama, malla fija del paso de la nominal; εr ±5 %, h ±10 %, `buffer` ±0,05 mm
+  de las dos caras), `simular_cli` (`tolerancias` + `banda_MHz` en el trabajo) y casilla «Analizar tolerancias» en Simulación (no es un botón: va
+  como «Verificar con otra malla», con el resultado en el aviso y el veredicto). Veredicto: `cubre` si la banda que sobrevive (intersección de las 7
+  bandas) contiene la objetivo; `justo` si la nominal la cubre y la que sobrevive no; `no_cubre` en otro caso. **Pruebas (2,4 GHz, banda 2400–2483,5
+  MHz, GPU)**: monopolo recto → `cubre` (εr ±5 % mueve ±0,8 %, grosor ±0,2 %, cobre +2,0/+0,2 %; suma cuadrática 2,2 %; sobrevive 2276–2512 MHz);
+  parche rectangular → `no_cubre` (εr ±5 % mueve +2,5/−2,3 %, grosor ±0,4 %, cobre ±0,07 %; suma 2,5 %; la banda nominal 2424–2469 MHz ni cubre la
+  objetivo y la intersección queda vacía). Al parche le basta la εr para salirse de la banda. Sin simular: otros tipos ni 868 MHz.
 
 ## F3.10 · Reglas de integración
 

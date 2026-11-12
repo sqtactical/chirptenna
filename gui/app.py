@@ -348,6 +348,9 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                     chk_malla = ui.checkbox(tr('Verificar con otra malla'), value=False).tooltip(
                         tr('Repite la simulación con el paso de malla un 15 % menor y un 15 % mayor y avisa si el resultado '
                            'cambia mucho (tarda el triple). Se hace siempre con dos bandas, paneles y arrays.'))
+                    chk_tol = ui.checkbox(tr('Analizar tolerancias'), value=False).tooltip(
+                        tr('Simula la antena con la εr un ±5 %, el grosor del FR4 un ±10 % y el cobre ±0,05 mm (6 simulaciones más) y dice si la banda '
+                           'sigue cubierta con esas tolerancias de fabricación.'))
                     sel_entorno = ui.select({k: tr(v) for k, v in entorno.PREDEFINIDOS.items()}, value=[], multiple=True, clearable=True,
                                             label=tr('Entorno')).classes('w-64').tooltip(
                         tr('Simula además con una carcasa de ABS, una batería metálica o una mano cerca y dice cuánto cambian la frecuencia y la '
@@ -950,7 +953,8 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                     or tipos.CATALOGO[estado['clave']].familia in ('panel', 'array'))
         trabajo = {'clave': estado['clave'], 'parametros': estado['params'], 'sustrato': estado['sustrato'],
                    'f_obj_Hz': estado['f_MHz']*1e6, 'precision': sel_prec.value, 'ajustar': chk_ajustar.value,
-                   'verificar_malla': bool(chk_malla.value or sensible), 'entorno': list(sel_entorno.value or []), 'salida': carpeta}
+                   'verificar_malla': bool(chk_malla.value or sensible), 'entorno': list(sel_entorno.value or []), 'tolerancias': bool(chk_tol.value),
+                   'banda_MHz': list(banda_actual()), 'salida': carpeta}
         ruta = os.path.join(carpeta, 'trabajo.json')
         with open(ruta, 'w', encoding='utf-8') as fh:
             json.dump(trabajo, fh, ensure_ascii=False, default=float)
@@ -1043,6 +1047,22 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                                     ajuste.texto_componente(*red['serie']), red['posicion'], ajuste.texto_componente(*red['derivacion']),
                                     red['s11_dB'], red['s11_sin_red_dB'], 100*(1 - red.get('eficiencia_red', 1.0)))
                                  ).classes('text-caption')
+                tol = r.get('tolerancias')
+                if tol and tol.get('error'):
+                    with ui.row().classes('items-start no-wrap'):
+                        ui.icon('warning', color='warning')
+                        ui.label(tr('No se pudo analizar las tolerancias: {0}', tol['error'])).classes('text-caption')
+                elif tol:
+                    veredicto = {'cubre': (tr('Cubre la banda con margen aunque la fabricación se desvíe dentro de esas tolerancias.'), 'check_circle', 'positive'),
+                                 'justo': (tr('Justo: la antena nominal cubre la banda, pero con esas tolerancias puede quedarse fuera. Deja margen o prevé ajustarla tras fabricar.'), 'warning', 'warning'),
+                                 'no_cubre': (tr('No cubre la banda: necesita ajuste tras fabricar (o una antena de más banda).'), 'cancel', 'negative')}[tol['veredicto']]
+                    with ui.row().classes('items-start no-wrap'):
+                        ui.icon(veredicto[1], color=veredicto[2])
+                        ui.label(veredicto[0]).classes('text-caption text-weight-medium')
+                    ui.label(tr('Tolerancias de fabricación: desplazamiento máximo de la frecuencia {0}; suma cuadrática {1:.1f} %. Banda que sobrevive: {2}.',
+                                '; '.join(tr('{0} {1:.1f} %', tr(f['etiqueta']), f['max_df_pct']) for f in tol['filas']), tol['df_total_pct'],
+                                tr('{0:g}–{1:g} MHz', *tol['banda_sobrevive_MHz']) if tol['banda_sobrevive_MHz'] else tr('ninguna'))
+                             ).classes('text-caption')
                 en = r.get('entorno')
                 if en and en.get('error'):
                     with ui.row().classes('items-start no-wrap'):

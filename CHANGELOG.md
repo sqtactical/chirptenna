@@ -11,6 +11,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
   placa de tu producto. Parámetros `integrada`, `placa_x`, `placa_y`, `posicion` (esquina izquierda, derecha o centrada), `zona_x`, `zona_y`
   y `margen_zona`: la masa ocupa toda la placa menos la zona de antena (sin cobre en ninguna capa) y el conector se queda en el borde
   opuesto para medir el prototipo. Si algo no cabe, el error dice cuántos mm faltan. Interfaz de escritorio y web.
+- **Tolerancias de fabricación** (F3.9): «Analizar tolerancias» en Simulación simula con εr ±5 %, grosor ±10 % y cobre ±0,05 mm y dice si la banda
+  sigue cubierta (monopolo recto de 2,4 GHz: cubre, ~2,2 %; parche rectangular: no cubre, la εr sola lo saca de la banda).
 - **Entorno en la simulación** (F3.7): «Entorno» en Simulación (carcasa de ABS, batería metálica, mano) simula la antena con y sin esos bloques con la
   misma malla y dice cuánto cambian la frecuencia, la eficiencia y la ganancia (monopolo de 2,4 GHz: carcasa −6,6 %, mano −3,7 % con η de 97 a 23 %).
 - **Pad de RF** (F3.4): nuevo valor del parámetro «Conector» sin conector: la línea de 50 Ω acaba en un pad con dos vías de masa a los lados, para
