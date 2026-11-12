@@ -44,20 +44,28 @@ def inductancia_nH(p):
 # 0,34 pF (758 y 824 MHz), lado 9 mm con 0,07 pF (2406 MHz) y sin condensador (2937 MHz) y lado 11,5 mm sin condensador (2367 MHz). La fórmula
 # sale 4 % baja a 868 MHz y dentro de ±5 % a 2,4 GHz. Interpolado en log f.
 CALIBRACION = ((780e6, 1.04), (2400e6, 1.0))
+# Anillo redondo (11-11, `herramientas/calibrar_bucle.py --forma 1`; fórmula sin calibrar → resonancia simulada): 750 MHz ×1,054, 920 MHz ×1,048,
+# 1066 MHz ×1,035 y 1224 MHz ×1,033. Con menos de LADO_MIN_REDONDO mm no vale (a 14,6 y 11,6 mm salió ×1,38: la línea, el hueco de
+# alimentación y la vía no encajan bien en un círculo tan pequeño), así que no se calibra ni se deja generar.
+CALIBRACION_REDONDO = ((750e6, 1.054), (920e6, 1.048), (1066e6, 1.035), (1224e6, 1.033))
+LADO_MIN_REDONDO = 16.0
 
 
-def _factor(f):
-    (f0, k0), (f1, k1) = CALIBRACION
-    if f <= f0:
-        return k0
-    if f >= f1:
-        return k1
-    t = (math.log(f) - math.log(f0))/(math.log(f1) - math.log(f0))
-    return k0 + t*(k1 - k0)
+def _factor(f, redonda=False):
+    tabla = CALIBRACION_REDONDO if redonda else CALIBRACION
+    if f <= tabla[0][0]:
+        return tabla[0][1]
+    if f >= tabla[-1][0]:
+        return tabla[-1][1]
+    for (f0, k0), (f1, k1) in zip(tabla, tabla[1:]):
+        if f0 <= f <= f1:
+            t = (math.log(f) - math.log(f0))/(math.log(f1) - math.log(f0))
+            return k0 + t*(k1 - k0)
 
 
-def estimar_f(p):
+def estimar_f(p, calibrada=True):
     """Resonancia serie del anillo con su condensador: f = 1/(2π√(L·C)), con C = condensador + capacidad parásita.
+    `calibrada=False` da la fórmula sola (para calibrar con `herramientas/calibrar_bucle.py`).
 
     Ojo al medirla en una simulación: la impedancia en el conector incluye la línea de 50 Ω hasta el anillo (~λ/4 a 2,4 GHz), que
     invierte la impedancia y hace pasar por cero la reactancia en otra frecuencia. Hay que quitar la línea antes (ver `puerto['largo_linea_mm']`).
@@ -65,7 +73,7 @@ def estimar_f(p):
     L = inductancia_nH(p)*1e-9
     C = (p['capacidad_pF'] + C_PARASITA_PF_MM*p['lado'])*1e-12
     f = 1/(2*math.pi*math.sqrt(L*C))
-    return f*_factor(f)
+    return f*_factor(f, int(p.get('forma', 0)) == 1) if calibrada else f
 
 
 def resistencia_radiacion(p, f):
@@ -88,6 +96,10 @@ def generar(p, s, tipo='bucle'):
     x_g0 = w50/2 + 0.2
     x_g1 = x_g0 + HUECO_ALIM
     xv = x_g1 + 0.9
+    if redonda and a < LADO_MIN_REDONDO:
+        raise ValueError(tr('El anillo redondo de menos de {0:g} mm (diámetro {1:g} mm) no se puede alimentar bien: la línea, el hueco de '
+                            'alimentación y la vía no encajan en un círculo tan pequeño (en simulación resuena un 38 % más alto de lo '
+                            'previsto). Usa el anillo cuadrado o un diámetro mayor.', LADO_MIN_REDONDO, a))
     if a < 2*(xv + 1.0) or a < 2*w + 3*hc:
         raise ValueError(f'el lado del anillo ({a} mm) es demasiado pequeño para la línea, el hueco de alimentación y la vía')
     # --- anillo con sus dos huecos
@@ -117,9 +129,14 @@ def generar(p, s, tipo='bucle'):
         aj['notas'].append(tr('C1 = {0:g} pF (C0G/NP0, {1}): sintoniza el anillo. Su Q fija la eficiencia: usa un condensador de Q alta.', C_pF, huella))
     else:
         aj['notas'].append(tr('C1 sin montar: con un anillo así de pequeño basta la capacidad del hueco (menos de {0:g} pF). Dejar el hueco abierto.', C_MINIMA_MONTADO_PF))
+    vias_red = []
     if con_pi:
         y_pi = max(8.6, lg - 4.6)
-        aj = ajuste.unir(aj, ajuste.red_pi(0.0, y_pi, w50, p, vertical=True, lado=1))
+        aj_pi = ajuste.red_pi(0.0, y_pi, w50, p, vertical=True, lado=1)
+        if p.get('red_L'):
+            # red de adaptación calculada por `simulacion.ajustar` (valores E24): se monta en Z1/Z2/Z3 y se simula
+            vias_red = ajuste.montar_red(aj_pi, p['red_L'], w50, p)
+        aj = ajuste.unir(aj, aj_pi)
     cortes_pi = [c for c in aj['cortes'] if c is not corte_c]
     if cortes_pi:
         sup = sup.difference(unary_union(cortes_pi))
@@ -138,7 +155,7 @@ def generar(p, s, tipo='bucle'):
         avisos.append(tr('Bucle muy pequeño: la resistencia de radiación es de {0:.2f} Ω, menos que la de pérdida del cobre y del '
                          'condensador. Casi no radia: agranda el anillo.', resistencia_radiacion(p, f_est)))
     return Antena(tipo=tipo, parametros=dict(p), capas={'F.Cu': sup, 'B.Cu': masa}, ajuste=aj, radiador=ring,
-                  contorno=contorno, zona_libre=zona_libre, vias=[(xv, yb + w/2)],
+                  contorno=contorno, zona_libre=zona_libre, vias=[(xv, yb + w/2)] + vias_red,
                   puerto={'borde': (0.0, 0.0), 'direccion': (0, 1), 'alimentacion': (0.0, yb), 'ancho_linea': w50,
                           'largo_linea_mm': yb + w/2 - 0.5},
                   info={'longitud_traza_mm': round(per, 2), 'ancho_linea_50ohm_mm': round(w50, 3),

@@ -52,6 +52,8 @@ def main():
             'direccion_max': r.get('direccion_max'), 'celdas': r['celdas'], 'paso_malla_mm': round(r['paso_malla_mm'], 3),
             'tiempo_s': r['tiempo_s'], 'avisos': r['avisos'], 'precision': prec, 'malla': malla,
         }
+        if r.get('red'):
+            resumen['red'] = r['red']             # bucle: red en L aplicada por circuito (valores E24)
         np.savez_compressed(os.path.join(salida, 'datos.npz'), f=r['f_Hz'], s11=r['s11'], zin=r['zin'],
                             theta=r.get('theta', []), phi=r.get('phi', []),
                             d=r.get('directividad_dBi_grid', np.zeros((0, 0))))

@@ -130,6 +130,14 @@ F2.1–F2.6 no necesitan hardware y se pueden adelantar mientras llegan las plac
   (lección 72). Una bobina de prueba de 10 nH en serie con 50 Ω debe dar Z = 50 + j·2πf·10e-9 (±5 %).
 - **Hecho cuando**: el bucle por defecto sale adaptado sin scripts aparte y el estado en `problemas.py` lo dice.
 
+- **HECHA el 12-11-2026 (con un cambio)**: `ajuste.mejor_red_l` (prueba todos los valores E24, dos topologías, Q y línea), `simulacion.red_adaptacion_bucle` y
+  `aplicar_red_bucle`, `red_L` en los parámetros, `bucle.generar` pone sus valores en Z1/Z2/Z3 y la interfaz la muestra. **No se hizo la segunda FDTD con la red
+  montada** como pedía el paso 2: con elementos concentrados, una derivación de 2 pF sale en cortocircuito (Z = 0,8 + 46,8j en vez de −3,6 dB) y una bobina de 5 nH da S11 = +75 dB
+  (inestable); con 0,1 y 0,5 pF sí coincide con el circuito (|ΔS11| < 0,3 dB). Por eso la red se aplica por circuito sobre la Z simulada del anillo (una sola FDTD).
+  Resultados: 868 MHz −33,1 dB, 862–871 MHz, η 43 %, −1,7 dBi (0,56 nH + 12 pF); 2,4 GHz −30,2 dB, 2419–2463 MHz, η 50 %, −1,6 dBi (2,4 pF + 2 pF). Anillo redondo:
+  factores 1,054 (750 MHz), 1,048 (920), 1,035 (1066), 1,033 (1224); validado a 868 y 1000 MHz (−0,2 y −0,3 %); a 1500 y 1900 MHz salió ×1,38 (alimentación que no encaja en
+  un círculo de < 16 mm), y a 2,4 GHz no cabe: no se genera con menos de 16 mm. Bug encontrado: la caché de simulación ignoraba los condensadores.
+
 ## F2.7 · Yagi comercial B
 
 - **Quién**: Usuario delante (datos). **Bloqueada** hasta tener: grosor del FR4 (calibre), cotas con calibre de

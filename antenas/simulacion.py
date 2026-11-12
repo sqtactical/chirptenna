@@ -138,6 +138,10 @@ def _clave_cache(antena, sustrato, fmin, fmax, precision):
         r = antena.reflector
         h.update(r['contorno'].wkb)
         h.update(json.dumps([round(r['separacion_mm'], 4), r.get('hilos', []), 'en_malla']).encode())
+    if antena.ajuste and (antena.ajuste.get('condensadores') or antena.ajuste.get('puentes_sim')):
+        # elementos concentrados (C o L con su Q) y relleno del serie: el cobre es el mismo con valores distintos
+        h.update(json.dumps(['elementos', antena.ajuste.get('condensadores', []),
+                             [p.wkb.hex() for p in antena.ajuste.get('puentes_sim', [])]], default=str).encode())
     h.update(json.dumps([sustrato.er, sustrato.tand, sustrato.h, fmin, fmax, precision,
                          antena.puerto['borde'], antena.puerto['direccion']]).encode())
     return h.hexdigest()[:16]
@@ -227,10 +231,16 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
                 xs, ys = np.array(t.exterior.coords[:-1]).T
                 cobre.AddPolygon([xs, ys], norm_dir='z', elevation=z, priority=10)
     for k, c in enumerate(caps):
-        # condensador en serie: C con su resistencia serie por la Q (a la frecuencia central de la simulación)
-        c_f = c['C_pF']*1e-12
-        r_esr = 1/(2*math.pi*f0*c_f*c.get('Q', 250.0))
-        el = CSX.AddLumpedElement(f'condensador{k + 1}', ny=0 if c.get('dir', 'x') == 'x' else 1, caps=True, R=r_esr, C=c_f, LEtype=1)
+        # condensador o bobina en serie: con su resistencia serie por la Q (a la frecuencia central de la simulación)
+        ny = 0 if c.get('dir', 'x') == 'x' else 1
+        if 'L_nH' in c:
+            l_h = c['L_nH']*1e-9
+            r_esr = 2*math.pi*f0*l_h/c.get('Q', 40.0)
+            el = CSX.AddLumpedElement(f'bobina{k + 1}', ny=ny, caps=c.get('caps', True), R=r_esr, L=l_h, LEtype=1)
+        else:
+            c_f = c['C_pF']*1e-12
+            r_esr = 1/(2*math.pi*f0*c_f*c.get('Q', 250.0))
+            el = CSX.AddLumpedElement(f'condensador{k + 1}', ny=ny, caps=c.get('caps', True), R=r_esr, C=c_f, LEtype=1)
         x0c, y0c, x1c, y1c = c['caja']
         el.AddBox([x0c, y0c, h], [x1c, y1c, h], priority=20)
     # Reflector (panel): lámina PEC bajo la cara inferior, separada por aire
@@ -443,6 +453,8 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
     if os.environ.get('ANTENAS_BORRAR_SIM') == '1':
         # campañas largas: los volcados de campos ocupan GB por simulación y la caché no se reutiliza
         shutil.rmtree(sim_path, ignore_errors=True)
+    if antena.parametros.get('red_L'):
+        res_out = aplicar_red_bucle(antena, res_out, f_centro, sustrato)      # bucle con su red en L (por circuito)
     return res_out
 
 
@@ -579,6 +591,86 @@ def _ajustar_adaptacion(clave, q, nombre_sustrato, s, f_obj, precision, paso, pr
 # El S11 solo cuenta si el cambio importa: de −25 a −15 dB no cambia nada, de −9 a −4 dB sí. Se marca cuando varía
 # más de UMBRAL_MALLA_S11_DB y alguno de los dos queda por encima de −10 dB (el monopolo de Koch dio +5,3 dB entre
 # −17 y −12 dB: sin esa condición saltaba un aviso sin sentido).
+def _datos_red_bucle(antena, r, sustrato):
+    """(f, z_anillo, ee, d_z1, d_comp, y_puerto, comp) para la red en L del bucle: la impedancia del anillo sin la línea de
+    50 Ω hasta él (la Z simulada en el conector, de-embebida) y las distancias de línea entre anillo, Z1 y las derivaciones."""
+    w = antena.puerto['ancho_linea']
+    ee = eps_eff_microstrip(sustrato.er, sustrato.h, w)
+    comp = {c['ref']: c for c in antena.ajuste['componentes']}
+    if 'Z1' not in comp or 'Z3' not in comp:
+        return None
+    f = r['f_Hz']
+    l_lin = antena.puerto['largo_linea_mm']
+    t = np.tan(2*np.pi*f*math.sqrt(ee)/C0*l_lin*1e-3)
+    z_anillo = 50*(r['zin'] - 1j*50*t)/(50 - 1j*r['zin']*t)               # quitando la línea de 50 Ω hasta el anillo
+    y_puerto = antena.puerto['borde'][1] + antena.puerto.get('inicio_mm', BORDE_COBRE)
+    d_z1 = y_puerto + l_lin - comp['Z1']['y']
+    d_comp = abs(comp['Z3']['y'] - comp['Z1']['y'])
+    return f, z_anillo, ee, d_z1, d_comp, y_puerto, comp
+
+
+def red_adaptacion_bucle(antena, r, f_obj, sustrato):
+    """Red en L (valores E24, con las pérdidas de los componentes y la línea entre ellos) que adapta el bucle en `f_obj`
+    a partir de la impedancia simulada SIN red. `r`: resultado de `simular` de la antena sin `red_L`.
+    Devuelve el dict de `ajuste.mejor_red_l` más 'z_anillo_ohm' y 'banda_circuito_MHz' (a −10 dB por circuito), o None."""
+    from . import ajuste as aj_mod
+    d = _datos_red_bucle(antena, r, sustrato)
+    if d is None:
+        return None
+    f, z_anillo, ee, d_z1, d_comp, _, _ = d
+    sol = aj_mod.mejor_red_l(z_anillo, f, f_obj, d_z1, d_comp, ee)
+    if sol is None:
+        return None
+    k = int(np.argmin(np.abs(f - f_obj)))
+    sol['z_anillo_ohm'] = [round(float(z_anillo[k].real), 2), round(float(z_anillo[k].imag), 2)]
+    cb = centro_banda(f, sol['s11_f_dB'], -10.0, (0.8*f_obj, 1.25*f_obj))
+    if cb[1] is not None:
+        sol['banda_circuito_MHz'] = [round(cb[1]/1e6, 1), round(cb[2]/1e6, 1)]
+    return sol
+
+
+def aplicar_red_bucle(antena, r, f_obj, sustrato):
+    """Aplica por circuito la red en L de `antena.parametros['red_L']` al resultado `r` de la simulación del anillo SIN red
+    (la FDTD con la red como elementos concentrados no es fiable con C ≥ ~2 pF: ver `ajuste.montar_red`). Cambia S11, Z, banda y
+    eficiencia total (con las pérdidas de los componentes); el diagrama y la ganancia son los del anillo. Devuelve un
+    resultado nuevo (`r` no se toca) con 'red': {…, 's11_sin_red_dB'}; si no hay red o no se puede, devuelve `r`."""
+    from . import ajuste as aj_mod
+    red = antena.parametros.get('red_L')
+    d = _datos_red_bucle(antena, r, sustrato) if red else None
+    if d is None:
+        return r
+    f, z_anillo, ee, d_z1, d_comp, y_puerto, comp = d
+    top, cs, cp = red['posicion'], tuple(red['serie']), tuple(red['derivacion'])
+    z_red = aj_mod.zin_red_l(f, z_anillo, top, cs, cp, d_z1, d_comp, ee)
+    y_plano = comp['Z2' if top == 'Z2' else 'Z1']['y'] if 'Z2' in comp else comp['Z1']['y']
+    z_puerto = aj_mod._trasladar(z_red, 2*np.pi*f*math.sqrt(ee)/C0*(y_plano - y_puerto)*1e-3)   # hasta el conector
+    s11 = (z_puerto - 50)/(z_puerto + 50)
+    s11_db = 20*np.log10(np.abs(s11) + 1e-12)
+    out = dict(r)
+    out.update({'s11': s11, 'zin': z_puerto})
+    fcen, flo, fhi, fmn, smn = centro_banda(f, s11_db, -10.0, (0.6*f_obj, 1.4*f_obj))
+    out.update({'f_min_s11_Hz': fmn, 's11_min_dB': smn})
+    if flo is not None:
+        out.update({'f_resonancia_Hz': fcen, 'banda_Hz': (flo, fhi), 'criterio': tr('centro de la banda a −10 dB')})
+    else:
+        out['banda_Hz'] = (None, None)
+    out['avisos'] = [a for a in r.get('avisos', []) if 'No llega a −10 dB' not in a]
+    if flo is None:
+        out['avisos'].append(tr('Con la red en L no llega a −10 dB (mínimo {0:.1f} dB): los valores E24 no bastan, retoca la red.', smn))
+    k = int(np.argmin(np.abs(f - f_obj)))
+    f_rad = r.get('f_radiacion_Hz', f_obj)
+    kr = int(np.argmin(np.abs(f - f_rad)))
+    eta_red = aj_mod.eficiencia_red_l(f[k], z_anillo[k], top, cs, cp, d_z1, d_comp, ee)
+    if 'eficiencia_radiacion' in r and not math.isnan(r.get('eficiencia_total', float('nan'))):
+        # la total del anillo ya incluía su propio desacoplo (casi total sin red): se rehace con el de la red
+        out['eficiencia_total'] = r['eficiencia_radiacion']*aj_mod.eficiencia_red_l(f[kr], z_anillo[kr], top, cs, cp, d_z1, d_comp, ee) \
+            * (1 - abs(s11[kr])**2)
+    out['red'] = {'posicion': top, 'serie': list(cs), 'derivacion': list(cp), 's11_dB': round(float(s11_db[k]), 1),
+                  's11_sin_red_dB': round(float(20*np.log10(abs(r['s11'][k]))), 1), 'eficiencia_red': round(eta_red, 3),
+                  'z_anillo_ohm': [round(float(z_anillo[k].real), 2), round(float(z_anillo[k].imag), 2)]}
+    return out
+
+
 UMBRAL_MALLA_F_PCT = 5.0     # desplazamiento máximo de la resonancia al cambiar el paso
 UMBRAL_MALLA_S11_DB = 5.0    # y del S11 en las frecuencias de interés
 LIMITE_S11_DB = -10.0
@@ -633,6 +725,7 @@ def ajustar(clave, parametros, nombre_sustrato, f_obj, precision='normal', max_s
     s = tipos.sustrato(nombre_sustrato)
     p = tipos.dimensionar(clave, f_obj, parametros, nombre_sustrato, fijos=tuple(parametros or ()))
     p.pop('_aviso', None)
+    p.pop('red_L', None)                          # la red del bucle se vuelve a calcular al final
     if aj_mod.activo(p) and int(p.get('marcas', 0)) == 1 and p.get('sobrelargo', 0) > 0:
         f_final = f_obj
         f_obj = f_obj/(1 + p['sobrelargo']/100)
@@ -709,6 +802,18 @@ def ajustar(clave, parametros, nombre_sustrato, f_obj, precision='normal', max_s
     progreso(tr('Simulación final con diagrama de radiación…'))
     r = simular(a, s, f_obj, precision, nf2ff=True, progreso=progreso, paso=paso, malla=malla, rango=rango,
                 f_radiacion=f_obj if (multi or tipo.familia in ('panel', 'array')) else None)
+    if tipo.familia == 'bucle' and aj_mod.activo(q) and int(q.get('red_pi', 0)) == 1:
+        # el bucle (R de entrada de pocos ohmios) no adapta sin red: con la Z simulada del anillo se calcula una red en L con
+        # valores E24 y pérdidas, y se aplica por circuito (no hace falta otra FDTD: ver `aplicar_red_bucle`)
+        progreso(tr('Calculando la red de adaptación con la impedancia simulada…'))
+        red = red_adaptacion_bucle(a, r, f_obj, s)
+        if red:
+            q = dict(q, red_L={'posicion': red['posicion'], 'serie': list(red['serie']), 'derivacion': list(red['derivacion'])})
+            a = tipos.generar(clave, q, nombre_sustrato)
+            r = aplicar_red_bucle(a, r, f_obj, s)
+            progreso(tr('Red: serie {0}, derivación {1} en {2}: S11 {3:.1f} dB en el objetivo (sin red, {4:.1f} dB).',
+                        aj_mod.texto_componente(*red['serie']), aj_mod.texto_componente(*red['derivacion']), red['posicion'],
+                        r['red']['s11_dB'], r['red']['s11_sin_red_dB']))
     f_est = a.info.get('f_sin_cortar_MHz')
     if f_est and tipo.familia not in ('panel', 'array'):
         # las marcas se rotulaban con la estimación analítica (un 5 % baja en el monopolo de 868):

@@ -39,7 +39,7 @@ ESTADO = {
     'colineal_coco': ('no_funciona', 'No adapta bien ni radia con eficiencia en FR4 (−4 dB, η 24–35 %)'),
     'colineal_franklin': ('pendiente', 'Adapta, pero con poca banda y poca ganancia'),
     'jpole': ('validada', 'Validada en simulación (de 868 MHz a 2,4 GHz)'),
-    'bucle': ('pendiente', 'Simulado (868 MHz y 2,4 GHz): adapta solo con la red en π; η ~40–55 %, banda estrecha'),
+    'bucle': ('pendiente', 'Simulado (868 MHz y 2,4 GHz): adapta con la red en L calculada; η ~40–50 %, banda estrecha'),
     'jpole_koch': ('validada', 'Validada en simulación (868 MHz y 1,2 GHz; 2,4 GHz casi)'),
 }
 ESTADO_TEXTO = {'validada': 'Validada', 'pendiente': 'Pendiente de validación', 'no_funciona': 'No funciona'}
@@ -141,10 +141,13 @@ FIJOS = {
     ],
     'bucle': [
         ('aviso', 'La resistencia de entrada del anillo es de 3–15 Ω (la de radiación, ~1,5 Ω): sin la red en π la S11 sale casi 0 dB. '
-                  'La red en π (Z1, Z2 y Z3) viene activada: usa el asistente con tu medida para elegir sus valores (L en derivación y C en serie, o al revés).'),
-        ('info', 'Simulado con FR4 de 1,6 mm y con una red en L calculada con la Z simulada: a 868 MHz (anillo de 25 mm, 0,26 pF) adapta a −25,6 dB con '
-                 '9 MHz de banda, η 43 % y −1,8 dBi; a 2,4 GHz (10,7 mm, sin condensador), −29,9 dB con 52 MHz, η 53 % y −0,9 dBi. '
-                 'Más de la mitad de la potencia se pierde en el cobre y en el condensador (Q de 250): sube la Q y el ancho de la pista.'),
+                  'La red en π (Z1, Z2 y Z3) viene activada: «Ajustar a la frecuencia simulando» calcula con la Z simulada una red en L con valores E24 '
+                  'y la muestra (se monta en Z1 y en Z2 o Z3); con una medida, el asistente da los valores reales.'),
+        ('info', 'Simulado con FR4 de 1,6 mm; la red en L se aplica por circuito sobre la Z simulada del anillo: a 868 MHz (anillo de 25 mm, 0,26 pF; 0,56 nH en serie y '
+                 '12 pF a masa) adapta a −33 dB con 9 MHz de banda, η 43 % y −1,7 dBi; a 2,4 GHz (10,7 mm, sin condensador; 2,4 pF en serie y 2 pF a masa), −30 dB con '
+                 '44 MHz, η 50 % y −1,6 dBi. Más de la mitad de la potencia se pierde en el cobre y en el condensador (Q de 250): sube la Q y el ancho de la pista.'),
+        ('info', 'Anillo redondo (diámetro = lado): calibrado de 750 a 1224 MHz (±3 %); con menos de 16 mm no se deja generar (la alimentación no encaja en el círculo; '
+                 'a 2,4 GHz no cabe): usa el cuadrado. La FDTD con la red como componentes concentrados no es fiable con C ≥ 2 pF, por eso se calcula por circuito.'),
         ('info', 'A 2,4 GHz el anillo no lleva condensador (menos de 0,1 pF no existe): se afina con el lado y el hueco queda abierto. '
                  'La frecuencia depende mucho del lado, de la masa y de lo que haya cerca: simula y mide. «Ajustar tamaño» da el lado '
                  'con la fórmula (±5 %).'),

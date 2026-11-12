@@ -506,3 +506,9 @@ archivos modificados después de la última revisión. La marca de esa revisión
 76. **Bibanda no robusta (11-11)**: `herramientas/robustez_bibanda.py <ifa|jpole> CONSTANTE=v,…` (cambia en memoria las constantes de `bibanda.py`, simula con 3 pasos de
     malla y pide ≤ −8 dB en las dos bandas con todos). IFA de dos ramas (12 puntos) y J-pole unida (6 puntos): **ninguno cumple** (mejores −6,8 y −1,2 dB); informe en
     `docs/desarrollo/bibanda_robustez.md`. Mover las constantes no arregla la dependencia de la malla. Decisión del usuario (11-11): se deja `multibanda` en la interfaz con el aviso (`problemas.py` cita las 18 variantes).
+77. **Red en L del bucle (12-11)**: `simulacion.ajustar` calcula la red (`ajuste.mejor_red_l`: todos los valores E24, serie Z1 + derivación Z2/Z3, con la Q y la línea entre
+    componentes), la guarda en `red_L` (parámetro extra, no `Parametro`; la interfaz lo borra al cambiar cualquier parámetro) y la **aplica por circuito**
+    (`aplicar_red_bucle`, también al simular un diseño con `red_L`): la FDTD con elementos concentrados falla con C ≥ ~2 pF (derivación en cortocircuito) y L pequeñas
+    (inestable); `ajuste.montar_red(..., elementos=True)` queda por si se arregla. **La clave de la caché de `simular` no incluía los condensadores/bobinas ni `puentes_sim`**
+    (mismo cobre, otro valor = resultado de otro): ya los incluye. Anillo redondo: `bucle.CALIBRACION_REDONDO` (750–1224 MHz) y `LADO_MIN_REDONDO` = 16 mm;
+    `herramientas/calibrar_bucle.py` (el anillo sin red, resonancia por reactancia nula quitando la línea). Detalle en `docs/desarrollo/roadmap/fase2.md` (F2.6).

@@ -78,7 +78,7 @@ diferencia identificada.
 - [x] (11-11, F2.4; 5,8 GHz calibrado pero sensible a la malla, 868 MHz sin simular por coste) **Panel calibrado por banda** (`K_MALLA_FINA_PANEL` solo vale a 2,4 GHz; a 5,8 GHz resuena un 17 % baja).
 - [x] (11-11, F2.5: medido, ningún punto es robusto; el usuario decidió dejar `multibanda` con el aviso, ver `docs/desarrollo/bibanda_robustez.md`) **Bibanda robusta**: J-pole unida e IFA de dos ramas rediseñadas para que aguanten el cambio de malla, o
   retiradas de la interfaz si no se consigue. El Sierpinski de dos bandas es la referencia.
-- [ ] **Bucle**: calibrar el anillo redondo, simular en 0,8 mm y que `ajustar` calcule solo la red en L a partir de
+- [x] (12-11, F2.6; la red va por circuito, no por FDTD) **Bucle**: calibrar el anillo redondo, simular en 0,8 mm y que `ajustar` calcule solo la red en L a partir de
   la Z sin la línea (hoy es un script aparte).
 - [ ] **Yagi comercial B**: cerrar el modelo cuando haya cotas con calibre, grosor del FR4 y foto macro.
 - [ ] **Segundo pedido a JLC**: 868 MHz (monopolo, Koch, IFA, J-pole recta), Sierpinski de dos bandas, bucle con su

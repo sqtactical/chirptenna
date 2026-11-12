@@ -40,6 +40,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ### Cambiado
 
+- **Bucle: red en L automática y anillo redondo calibrado**: «Ajustar a la frecuencia simulando» calcula con la impedancia simulada del anillo una red
+  en L con valores E24 (serie Z1 + derivación Z2 o Z3, con las pérdidas de los componentes y la línea entre ellos), la guarda en `red_L` y la
+  aplica **por circuito** (`simulacion.aplicar_red_bucle`): 868 MHz, 0,56 nH en serie y 12 pF a masa, −33 dB con 9 MHz de banda (η 43 %); 2,4 GHz, 2,4 pF y 2 pF,
+  −30 dB con 44 MHz (η 50 %). La interfaz la muestra y la fabricación lista los valores de Z1/Z2. Anillo redondo calibrado de 750 a 1224 MHz (±0,3 % en
+  868 y 1000 MHz) y no se genera con menos de 16 mm. **Arreglo**: la caché de simulación no distinguía valores de condensador o bobina con el mismo cobre.
+  `herramientas/calibrar_bucle.py`. La FDTD con la red como componentes concentrados no es fiable con C ≥ 2 pF (derivación en cortocircuito).
 - **Bibanda (J-pole unida e IFA de dos ramas) medida frente a la malla** (`herramientas/robustez_bibanda.py`, informe en
   `docs/desarrollo/bibanda_robustez.md`): 18 variantes de las medidas de la segunda rama con tres pasos de malla; ninguna da −8 dB en las
   dos bandas con todos (mejores −6,8 y −1,2 dB). La opción «Bandas» se mantiene, con el aviso actualizado.

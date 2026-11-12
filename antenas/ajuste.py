@@ -147,6 +147,179 @@ def red_pi(x_eje, y_centro, w_linea, p, vertical=True, lado=1):
     return aj
 
 
+Q_CONDENSADOR_RED = 250.0           # C0G/NP0 0402/0603 a ~1 GHz (solo para las pérdidas simuladas)
+Q_BOBINA_RED = 40.0                 # bobina cerámica o de hilo 0402/0603 a ~1 GHz
+C0_RED = 299792458.0
+
+
+def _trasladar(z, beta_d, z0=50.0):
+    """Impedancia vista una distancia `d` más cerca del generador (línea sin pérdidas de z0; beta_d = β·d en rad)."""
+    t = np.tan(beta_d)
+    return z0*(z + 1j*z0*t)/(z0 + 1j*z*t)
+
+
+def _z_componente_q(tipo, valor, f, q_l, q_c):
+    """Impedancia de una L (nH) o C (pF) con su resistencia serie por la Q; ('0 Ω') = 0."""
+    w = 2*np.pi*f
+    if tipo == 'L':
+        x = w*valor*1e-9
+        return x/q_l + 1j*x
+    if tipo == 'C':
+        x = 1/(w*valor*1e-12)
+        return x/q_c - 1j*x
+    return 0j*w
+
+
+def zin_red_l(freq, z_ref, topologia, cs, cp, d_z1_mm, d_comp_mm, eps_eff, q_l=Q_BOBINA_RED, q_c=Q_CONDENSADOR_RED, z0=50.0):
+    """Impedancia vista desde el conector con la red en L montada. z_ref: la del anillo en `freq` (array o escalar);
+    topologia 'Z2' (serie Z1 junto al anillo y derivación Z2 hacia el conector) o 'Z3' (derivación Z3 junto al anillo y
+    serie Z1 hacia el conector); cs, cp: (tipo, valor) del serie y la derivación."""
+    def beta(mm):
+        return 2*np.pi*freq*np.sqrt(eps_eff)/C0_RED*mm*1e-3
+    zs = _z_componente_q(cs[0], cs[1], freq, q_l, q_c)
+    zp = _z_componente_q(cp[0], cp[1], freq, q_l, q_c)
+    if topologia == 'Z2':       # anillo → línea → Z1 serie → línea → Z2 derivación → conector
+        z1 = _trasladar(z_ref, beta(d_z1_mm), z0) + zs
+        z2 = _trasladar(z1, beta(d_comp_mm), z0)
+        return 1/(1/z2 + 1/zp)
+    z3 = _trasladar(z_ref, beta(d_z1_mm - d_comp_mm), z0)                    # anillo → línea → Z3 derivación
+    z3 = 1/(1/z3 + 1/zp)
+    return _trasladar(z3, beta(d_comp_mm), z0) + zs                         # → línea → Z1 serie → conector
+
+
+def eficiencia_red_l(freq, z_ref, topologia, cs, cp, d_z1_mm, d_comp_mm, eps_eff, q_l=Q_BOBINA_RED, q_c=Q_CONDENSADOR_RED, z0=50.0):
+    """Fracción de la potencia aceptada que llega al anillo (el resto se pierde en la resistencia de los componentes), a `freq`
+    (escalar). Mismos argumentos que `zin_red_l`; z_ref: la impedancia del anillo en esa frecuencia."""
+    def beta(mm):
+        return 2*np.pi*freq*np.sqrt(eps_eff)/C0_RED*mm*1e-3
+
+    def linea(v, i, mm):
+        th = beta(mm)
+        return v*np.cos(th) + 1j*z0*i*np.sin(th), i*np.cos(th) + 1j*v/z0*np.sin(th)
+    zs = _z_componente_q(cs[0], cs[1], freq, q_l, q_c)
+    zp = _z_componente_q(cp[0], cp[1], freq, q_l, q_c)
+    v, i = z_ref*1.0, 1.0 + 0j                              # corriente 1 A en el anillo
+    p_anillo = (abs(i)**2)*z_ref.real
+    if topologia == 'Z2':
+        v, i = linea(v, i, d_z1_mm)
+        v = v + zs*i
+        v, i = linea(v, i, d_comp_mm)
+        i = i + v/zp
+    else:
+        v, i = linea(v, i, d_z1_mm - d_comp_mm)
+        i = i + v/zp
+        v, i = linea(v, i, d_comp_mm)
+        v = v + zs*i
+    p_entrada = (v*np.conj(i)).real
+    return float(p_anillo/p_entrada) if p_entrada > 0 else 0.0
+
+
+def mejor_red_l(z_anillo, f, f_obj, d_z1_mm, d_comp_mm, eps_eff, q_l=Q_BOBINA_RED, q_c=Q_CONDENSADOR_RED, z0=50.0):
+    """Red en L (serie Z1 + derivación Z2 o Z3) con valores E24 que adapta a z0 la impedancia `z_anillo(f)` de una antena
+    pequeña de resistencia baja, teniendo en cuenta las pérdidas de los componentes (Q) y la línea de 50 Ω entre ellos.
+
+    z_anillo: impedancia en el punto de alimentación del anillo (sin la línea de 50 Ω hasta el conector), array sobre `f` [Hz].
+    d_z1_mm: línea de 50 Ω entre ese punto y Z1; d_comp_mm: entre Z1 y cada derivación (Z2 al lado del conector, Z3 al de la
+    antena); eps_eff: de la línea. Prueba las dos topologías con todos los valores E24 (L de 0,5 a 100 nH, C de 0,3 a 100 pF).
+    Devuelve {'posicion', 'serie', 'derivacion', 's11_dB' (en f_obj), 's11_f_dB' (array sobre f)} o None."""
+    f = np.asarray(f, float)
+    z_anillo = np.asarray(z_anillo, complex)
+    k = int(np.argmin(np.abs(f - f_obj)))
+    cand_l = [v for v in np.concatenate([E24*10**e for e in range(-1, 3)]) if 0.5 <= v <= 100]
+    cand_c = [v for v in np.concatenate([E24*10**e for e in range(-1, 3)]) if 0.3 <= v <= 100]
+    lista_s = [('0 Ω', 0.0)] + [('L', float(f'{v:.3g}')) for v in cand_l] + [('C', float(f'{v:.3g}')) for v in cand_c]
+    lista_p = [('L', float(f'{v:.3g}')) for v in cand_l] + [('C', float(f'{v:.3g}')) for v in cand_c]
+
+    def zin(freq, z_ref, topologia, cs, cp):
+        return zin_red_l(freq, z_ref, topologia, cs, cp, d_z1_mm, d_comp_mm, eps_eff, q_l, q_c, z0)
+
+    mejor = None
+    for topologia in ('Z2', 'Z3'):
+        for cs in lista_s:
+            for cp in lista_p:
+                z = zin(f[k], z_anillo[k], topologia, cs, cp)
+                g = abs((z - z0)/(z + z0))
+                n = (cs[0] != '0 Ω') + 1
+                clave = (round(g, 4), n)
+                if mejor is None or clave < mejor[0]:
+                    mejor = (clave, topologia, cs, cp)
+    if mejor is None:
+        return None
+    _, topologia, cs, cp = mejor
+    z = zin(f, z_anillo, topologia, cs, cp)
+    s11 = 20*np.log10(np.abs((z - z0)/(z + z0)) + 1e-12)
+    return {'posicion': topologia, 'serie': cs, 'derivacion': cp, 's11_dB': float(s11[k]), 's11_f_dB': s11}
+
+
+def texto_componente(tipo, valor):
+    """('L', 3.9) → '3,9 nH' (con punto, como el resto de valores del ajuste); ('C', 1.2) → '1.2 pF'."""
+    if tipo == 'L':
+        return f'{valor:g} nH'
+    if tipo == 'C':
+        return f'{valor:g} pF'
+    return '0 Ω'
+
+
+def montar_red(aj, red, w_linea, p, elementos=False):
+    """Da valores a la red en π `aj` (la de `red_pi`, con la línea vertical u horizontal): los pone en la lista de
+    componentes (valor y «montar») y, con `elementos`, también como elementos concentrados de la simulación
+    (`aj['condensadores']`: C o L con su Q). **Con `elementos` la FDTD no es fiable con C ≥ ~2 pF o L pequeñas** (la
+    derivación sale en cortocircuito o inestable con el paso de malla normal): por defecto la red se aplica por
+    circuito sobre la impedancia simulada del anillo (`simulacion.aplicar_red_bucle`).
+
+    red: {'posicion': 'Z2' o 'Z3', 'serie': (tipo, valor), 'derivacion': (tipo, valor)} como da `redes_l`;
+    tipo 'L' (nH), 'C' (pF) o '0 Ω' (serie sin componente). El serie va en Z1 y la derivación en Z2 (lado del
+    conector) o Z3 (lado de la antena). Devuelve las vías de masa de la isla que se usa (para `Antena.vias`; vacío si
+    no hay `elementos`)."""
+    huella = '0402' if int(p.get('componentes', 0)) == 1 else '0603'
+    largo, ancho, paso = HUELLAS[huella]
+    hueco = paso - largo + 0.1
+    comp = {c['ref']: c for c in aj['componentes']}
+    z1 = comp['Z1']
+    vertical = z1['rot'] == 90
+
+    def elemento(tipo, valor, caja, direccion):
+        d = {'caja': tuple(caja), 'dir': direccion, 'caps': False}
+        if tipo == 'L':
+            d.update({'L_nH': valor, 'Q': Q_BOBINA_RED})
+        else:
+            d.update({'C_pF': valor, 'Q': Q_CONDENSADOR_RED})
+        return d
+
+    ts, vs = red['serie']
+    if ts in ('L', 'C') and vs:
+        z1['valor'], z1['montar'] = texto_componente(ts, vs), True
+        if vertical:
+            caja = (z1['x'] - w_linea/2, z1['y'] - hueco/2, z1['x'] + w_linea/2, z1['y'] + hueco/2)
+        else:
+            caja = (z1['x'] - hueco/2, z1['y'] - w_linea/2, z1['x'] + hueco/2, z1['y'] + w_linea/2)
+        if elementos:
+            aj['condensadores'].append(elemento(ts, vs, caja, 'y' if vertical else 'x'))
+            aj['puentes_sim'] = []                  # el hueco del serie queda abierto: lo llena el elemento concentrado
+    td, vd = red['derivacion']
+    c = comp[red['posicion']]
+    c['valor'], c['montar'] = texto_componente(td, vd), True
+    if vertical:
+        lado = 1.0 if c['rot'] == 0 else -1.0
+        x_linea = z1['x'] + lado*w_linea/2
+        x_isla = c['x'] + lado*(paso/2 - largo/2 - 0.1)
+        caja = (min(x_linea, x_isla), c['y'] - ancho/2, max(x_linea, x_isla), c['y'] + ancho/2)
+        via = (c['x'] + lado*(paso/2 + 0.85), c['y'])
+        direccion = 'x'
+    else:
+        lado = 1.0 if c['rot'] == 90 else -1.0
+        y_linea = z1['y'] + lado*w_linea/2
+        y_isla = c['y'] + lado*(paso/2 - largo/2 - 0.1)
+        caja = (c['x'] - ancho/2, min(y_linea, y_isla), c['x'] + ancho/2, max(y_linea, y_isla))
+        via = (c['x'], c['y'] + lado*(paso/2 + 0.85))
+        direccion = 'y'
+    if elementos:
+        aj['condensadores'].append(elemento(td, vd, caja, direccion))
+    aj['notas'].append(tr('Red de adaptación: Z1 (serie) = {0}; {1} (a masa) = {2}.',
+                          texto_componente(ts, vs), red['posicion'], texto_componente(td, vd)))
+    return [via] if elementos else []
+
+
 # ------------------------------------------------------------------ marcas y tramos
 def alargar_polilinea(pts, w, le, k_eq, f_nom, p, prefijo='T'):
     """Sobrelargo + marcas + tramos al final de una polilínea de radiador.

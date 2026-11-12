@@ -595,6 +595,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
         if valor is None or estado.get('silencio'):
             return
         estado['params'][nombre] = int(round(valor)) if entero else float(valor)
+        estado['params'].pop('red_L', None)     # la red en L del bucle se calculó para otro anillo: se vuelve a calcular al simular
         marcar_cambio()
         if nombre in tipos.ESCALABLES.get(estado['clave'], ()) and int(estado['params'].get('escalado', 0)) == 1:
             # el usuario fija una medida a mano: si siguiera en «proporcionales», el próximo ajuste la pisaría
@@ -757,6 +758,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
         regenerar()
 
     def ajustar():
+        estado['params'].pop('red_L', None)
         p = tipos.dimensionar(estado['clave'], estado['f_MHz']*1e6, estado['params'], estado['sustrato'])
         aviso_ajuste.text = p.pop('_aviso', '')
         poner_params(p)
@@ -1024,6 +1026,16 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                          (tr('Eficiencia de radiación / total'),
                           f"{r['eficiencia_radiacion_%']:g} % / {r['eficiencia_total_%']:g} %"),
                          (tr('Malla / tiempo'), tr('{0:.2f} M celdas, paso {1} mm, {2:g} s', r['celdas']/1e6, r['paso_malla_mm'], r['tiempo_s']))]
+                red = r.get('red')
+                if red:
+                    with ui.row().classes('items-start no-wrap'):
+                        ui.icon('electrical_services', color='primary')
+                        ui.label(tr('Red de adaptación: Z1 en serie = {0}; {1} a masa = {2}. S11 en el objetivo {3:g} dB (sin la red, {4:g} dB); '
+                                    'los componentes pierden el {5:.0f} % de la potencia. Calculada por circuito con la impedancia simulada del anillo '
+                                    '(Q de 250 en los condensadores y de 40 en las bobinas); monta estos valores en Z1 y {1} y deja la otra derivación sin montar.',
+                                    ajuste.texto_componente(*red['serie']), red['posicion'], ajuste.texto_componente(*red['derivacion']),
+                                    red['s11_dB'], red['s11_sin_red_dB'], 100*(1 - red.get('eficiencia_red', 1.0)))
+                                 ).classes('text-caption')
                 v = r.get('verificacion_malla')
                 if v and v.get('error'):
                     with ui.row().classes('items-start no-wrap'):
