@@ -245,7 +245,11 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
         else:
             c_f = c['C_pF']*1e-12
             r_esr = 1/(2*math.pi*f0*c_f*c.get('Q', 250.0))
-            el = CSX.AddLumpedElement(f'condensador{k + 1}', ny=ny, caps=c.get('caps', True), R=r_esr, C=c_f, LEtype=1)
+            esl = c.get('esl_nH', 0.0)*1e-9                  # condensador real: inductancia serie parásita (F4.1)
+            if esl:
+                el = CSX.AddLumpedElement(f'condensador{k + 1}', ny=ny, caps=c.get('caps', True), R=r_esr, C=c_f, L=esl, LEtype=1)
+            else:
+                el = CSX.AddLumpedElement(f'condensador{k + 1}', ny=ny, caps=c.get('caps', True), R=r_esr, C=c_f, LEtype=1)
         x0c, y0c, x1c, y1c = c['caja']
         el.AddBox([x0c, y0c, h], [x1c, y1c, h], priority=20)
     # Reflector (panel): lámina PEC bajo la cara inferior, separada por aire
@@ -482,7 +486,45 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
         shutil.rmtree(sim_path, ignore_errors=True)
     if antena.parametros.get('red_L'):
         res_out = aplicar_red_bucle(antena, res_out, f_centro, sustrato)      # bucle con su red en L (por circuito)
+    if antena.ajuste and antena.ajuste.get('derivaciones_circuito'):
+        res_out = aplicar_derivaciones(antena, res_out, f_centro, sustrato)   # condensadores a masa de la red en π (F4.1)
     return res_out
+
+
+def aplicar_derivaciones(antena, r, f_obj, sustrato):
+    """Aplica por circuito los condensadores a masa de `antena.ajuste['derivaciones_circuito']` (con su ESR por la Q y su ESL) a la
+    impedancia simulada `r['zin']` en el conector: la FDTD no los reproduce (ver `ajuste.montar_componentes`). Cada uno se pone en su
+    plano de la línea de 50 Ω, de la antena hacia el conector. Cambia S11, Z y banda; el diagrama y la ganancia no se tocan.
+    Devuelve un resultado nuevo con 'derivaciones_circuito': [{'ref', 'valor_pF'}]."""
+    from . import ajuste as aj_mod
+    ders = sorted(antena.ajuste['derivaciones_circuito'], key=lambda d: -d['y'])
+    f = np.asarray(r['f_Hz'], float)
+    ee = eps_eff_microstrip(sustrato.er, sustrato.h_linea, antena.puerto['ancho_linea'])
+    y_puerto = antena.puerto['borde'][1] + antena.puerto.get('inicio_mm', BORDE_COBRE)
+
+    def beta(mm):
+        return 2*np.pi*f*math.sqrt(ee)/C0*mm*1e-3
+    z = np.asarray(r['zin'], complex)
+    y_aqui = y_puerto                                  # plano en el que está `z` (el conector)
+    for d in ders:
+        z = aj_mod._trasladar(z, -beta(d['y'] - y_aqui))        # hasta su plano, mirando hacia la antena
+        zp = aj_mod._z_componente_q('C', d['valor'], f, aj_mod.Q_BOBINA_RED, aj_mod.Q_CONDENSADOR_RED) + 1j*2*np.pi*f*d.get('esl_nH', 0.0)*1e-9
+        z = 1/(1/z + 1/zp)
+        y_aqui = d['y']
+    z = aj_mod._trasladar(z, beta(y_aqui - y_puerto))           # de vuelta al conector
+    s11 = (z - 50)/(z + 50)
+    s11_db = 20*np.log10(np.abs(s11) + 1e-12)
+    out = dict(r)
+    out.update({'s11': s11, 'zin': z})
+    fcen, flo, fhi, fmn, smn = centro_banda(f, s11_db, -10.0, (0.6*f_obj, 1.4*f_obj))
+    out.update({'f_min_s11_Hz': fmn, 's11_min_dB': smn})
+    if flo is not None:
+        out.update({'f_resonancia_Hz': fcen, 'banda_Hz': (flo, fhi), 'criterio': tr('centro de la banda a −10 dB')})
+    else:
+        out['banda_Hz'] = (None, None)
+    out['avisos'] = list(r.get('avisos', [])) + [tr('Los condensadores a masa de la red en π se han aplicado por circuito sobre la impedancia simulada, no en la FDTD.')]
+    out['derivaciones_circuito'] = [{'ref': d['ref'], 'valor_pF': d['valor']} for d in ders]
+    return out
 
 
 # ------------------------------------------------------------------ ajuste
@@ -685,7 +727,9 @@ def red_adaptacion(antena, f, zin, f_obj, sustrato, tolerancia=0.05):
     sol['s11_peor_dB'] = round(peor, 1)
     if all(b[0] is not None for b in bandas):
         lo, hi = max(b[0] for b in bandas), min(b[1] for b in bandas)
-        sol['banda_peor_MHz'] = [round(lo/1e6, 1), round(hi/1e6, 1)] if hi > lo else None
+        sol['banda_peor_MHz'] = [round(float(lo)/1e6, 1), round(float(hi)/1e6, 1)] if hi > lo else None
+        if sol.get('banda_circuito_MHz'):
+            sol['banda_circuito_MHz'] = [float(v) for v in sol['banda_circuito_MHz']]
     else:
         sol['banda_peor_MHz'] = None
     sol['s11_sin_red_dB'] = round(float(20*np.log10(abs((np.asarray(zin, complex)[k] - 50)/(np.asarray(zin, complex)[k] + 50)))), 1)

@@ -18,6 +18,7 @@ con la polilínea del radiador (o el parche) y la línea de 50 Ω, y guardan el 
     tramos:       número de tramos con puente
 """
 import math
+import re
 
 import numpy as np
 from shapely.geometry import LineString
@@ -318,6 +319,88 @@ def montar_red(aj, red, w_linea, p, elementos=False):
     aj['notas'].append(tr('Red de adaptación: Z1 (serie) = {0}; {1} (a masa) = {2}.',
                           texto_componente(ts, vs), red['posicion'], texto_componente(td, vd)))
     return [via] if elementos else []
+
+
+# Componentes reales en la simulación (F4.1). Valores TÍPICOS de 0402/0603 de gama media, sin hoja de datos concreta (los de Murata
+# GJM/LQW no los he consultado): hay que sustituirlos por los de la pieza que se compre.
+ESL_C_NH = {'0402': 0.4, '0603': 0.6}      # inductancia serie parásita de un condensador [nH]
+ESL_C_DEFECTO_NH = 0.5
+
+
+def parse_componente(texto):
+    """'C 1,2 pF' → ('C', 1.2); 'L 3,9 nH' → ('L', 3.9); '0R' o '0 Ω' → ('0 Ω', 0.0); vacío, None o «sin montar» → None.
+    Lanza ValueError si no se entiende."""
+    if texto is None:
+        return None
+    t = str(texto).strip()
+    if t == '' or t.lower() in ('sin montar', 'vacio', 'vacío', '-', '—'):
+        return None
+    if t.lower() in ('0r', '0 r', '0', '0 ω', '0ω', '0 ohm', '0ohm'):
+        return ('0 Ω', 0.0)
+    m = re.fullmatch(r'([CcLl])\s*([0-9]+(?:[.,][0-9]+)?)\s*(pF|nH|pf|nh)?', t)
+    if not m:
+        raise ValueError(tr('Componente no válido: «{0}». Usa «C 1,2 pF», «L 3,9 nH», «0R» o déjalo vacío.', texto))
+    tipo = m.group(1).upper()
+    unidad = (m.group(3) or '').lower()
+    if unidad and unidad != ('pf' if tipo == 'C' else 'nh'):
+        raise ValueError(tr('Componente no válido: «{0}»: un condensador va en pF y una bobina en nH.', texto))
+    return (tipo, float(m.group(2).replace(',', '.')))
+
+
+def montar_componentes(aj, z1, z2, z3, w_linea, p):
+    """Monta como elementos concentrados de la simulación los componentes de la red en π `aj`: z1 en serie y z2, z3 a masa, cada uno
+    (tipo, valor) como da `parse_componente` o None. Un condensador lleva su ESR (Q) y su ESL en serie; una bobina, su ESR por la Q
+    (la capacidad paralela de la bobina —su SRF— no se modela). Pone también el valor en la lista de componentes. Devuelve las vías
+    de masa de las islas usadas (para `Antena.vias`). Z1 (serie) y las bobinas a masa van a la FDTD (validadas a 2,4 GHz: S11 a ±0,5 dB
+    del circuito); **un condensador a masa NO**: la FDTD lo deja casi abierto aunque sean 100 pF (lección 77), así que se guarda en
+    `aj['derivaciones_circuito']` y `simulacion.aplicar_derivaciones` lo aplica por circuito sobre la Z simulada (hacia el conector)."""
+    huella = '0402' if int(p.get('componentes', 0)) == 1 else '0603'
+    largo, ancho, paso = HUELLAS[huella]
+    hueco = paso - largo + 0.1
+    comp = {c['ref']: c for c in aj['componentes']}
+    zc = comp['Z1']
+    vertical = zc['rot'] == 90
+
+    def elemento(tipo, valor, caja, direccion):
+        d = {'caja': tuple(caja), 'dir': direccion, 'caps': False}
+        if tipo == 'L':
+            d.update({'L_nH': valor, 'Q': Q_BOBINA_RED})
+        else:
+            d.update({'C_pF': valor, 'Q': Q_CONDENSADOR_RED, 'esl_nH': ESL_C_NH.get(huella, ESL_C_DEFECTO_NH)})
+        return d
+
+    vias = []
+    if z1 and z1[0] in ('L', 'C'):
+        zc['valor'], zc['montar'] = texto_componente(*z1), True
+        if vertical:
+            caja = (zc['x'] - w_linea/2, zc['y'] - hueco/2, zc['x'] + w_linea/2, zc['y'] + hueco/2)
+        else:
+            caja = (zc['x'] - hueco/2, zc['y'] - w_linea/2, zc['x'] + hueco/2, zc['y'] + w_linea/2)
+        aj['condensadores'].append(elemento(*z1, caja, 'y' if vertical else 'x'))
+        aj['puentes_sim'] = []                      # el hueco del serie queda abierto: lo llena el elemento concentrado
+    for ref, z in (('Z2', z2), ('Z3', z3)):
+        if not z or z[0] not in ('L', 'C'):
+            continue
+        c = comp[ref]
+        c['valor'], c['montar'] = texto_componente(*z), True
+        if not vertical:
+            raise ValueError(tr('Los componentes simulados solo están preparados para la red en π sobre una línea vertical.'))
+        lado = 1.0 if c['rot'] == 0 else -1.0
+        x_linea, x_isla = zc['x'] + lado*w_linea/2, c['x'] + lado*(paso/2 - largo/2 - 0.1)
+        caja = (min(x_linea, x_isla), c['y'] - ancho/2, max(x_linea, x_isla), c['y'] + ancho/2)
+        vias.append((c['x'] + lado*(paso/2 + 0.85), c['y']))
+        if z[0] == 'C':
+            # el condensador a masa NO va a la FDTD (no hace corto ni con 100 pF: ver docstring): se aplica por circuito sobre la Z simulada
+            if ref == 'Z3' and z1 and z1[0] in ('L', 'C'):
+                raise ValueError(tr('Un condensador en Z3 con un componente en Z1 no se puede simular: el orden de la red lo impide. '
+                                    'Ponlo en Z2 (lado del conector) o deja Z1 en 0 Ω.'))
+            aj.setdefault('derivaciones_circuito', []).append(
+                {'ref': ref, 'tipo': 'C', 'valor': z[1], 'y': c['y'], 'esl_nH': ESL_C_NH.get(huella, ESL_C_DEFECTO_NH)})
+        else:
+            aj['condensadores'].append(elemento(*z, caja, 'x'))
+    aj['notas'].append(tr('Componentes simulados: Z1 = {0}; Z2 = {1}; Z3 = {2}.', texto_componente(*z1) if z1 else '—',
+                          texto_componente(*z2) if z2 else '—', texto_componente(*z3) if z3 else '—'))
+    return vias
 
 
 # ------------------------------------------------------------------ marcas y tramos

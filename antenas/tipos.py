@@ -1016,6 +1016,10 @@ def generar(clave, parametros=None, nombre_sustrato=None):
         a = _generar_parche(tipo, p, s)
     if int(p.get('aligerado', 0)) == 1:
         _aligerar(a, p)
+    if (p.get('z1') or p.get('z2') or p.get('z3')) and a.ajuste and a.ajuste.get('componentes') and tipo.familia != 'bucle':
+        # F4.1: componentes de la red en π como elementos concentrados de la simulación (z1 serie, z2 y z3 a masa; ver ajuste.parse_componente)
+        zs = [ajuste.parse_componente(p.get(k)) for k in ('z1', 'z2', 'z3')]
+        a.vias = list(a.vias) + ajuste.montar_componentes(a.ajuste, *zs, a.puerto['ancho_linea'], p)
     if conector.tipo(p) == conector.IPEX and a.puerto.get('tipo') not in ('coaxial', 'pasante'):
         conector.aplicar_ipex(a, ancho_microstrip(50, s.er, s.h_linea))
     elif conector.tipo(p) == conector.COAX and a.puerto.get('tipo') not in ('coaxial', 'pasante'):

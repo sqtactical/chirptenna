@@ -19,6 +19,18 @@ Antes de nada: [`00_como_trabajar.md`](00_como_trabajar.md).
 - **Prueba**: línea de 50 Ω acabada en 50 Ω con un C serie de 1 pF a 2,4 GHz → Z = 50 − j66 Ω (±5 %). Monopolo
   con la red calculada por `redes_l` → S11 ≤ −15 dB en el objetivo.
 - **Hecho cuando**: las dos pruebas pasan en GPU.
+- **HECHA en parte (12-11), la segunda prueba NO pasa**: parámetros extra (no `Parametro`, no salen en la interfaz) `z1`, `z2`, `z3` con `ajuste.parse_componente`
+  («C 1,2 pF», «L 3,9 nH», «0R», vacío) y `ajuste.montar_componentes`, que `tipos.generar` aplica a cualquier tipo con red en π sobre línea vertical (monopolos).
+  Condensador real: ESR por la Q (250) y ESL en serie (0,4 nH 0402, 0,6 nH 0603: **valores típicos sin hoja de datos**, sustituirlos por los de la pieza real);
+  bobina: ESR por la Q (40); su capacidad paralela (SRF) no se modela. **Medido a 2,44 GHz en un monopolo recto de FR4 (GPU, paso 0,4 mm), FDTD frente a circuito sobre la
+  misma Z simulada**: serie C 100 / 3,3 / 1 / 0,5 pF: S11 a ±0,3 dB, Z a 2 / 2 / 6 / 7,5 Ω (la X sale ~6–7 Ω por encima con C ≤ 1 pF: ~0,1 pF de capacidad del hueco de 0,9 mm que el
+  circuito no tiene); bobina a masa 3,9 y 100 nH: S11 a ±0,5 dB. **Condensador a masa: la FDTD no lo reproduce** (con 100 pF sale Z = 41 − 71j Ω cuando debería ser un corto;
+  2,2 pF: 224 − 457j frente a 14 + 97j Ω): se aplica por circuito sobre la Z simulada (`simulacion.aplicar_derivaciones`, `aj['derivaciones_circuito']`); no se admite un C en Z3 con
+  un componente en Z1 (el orden de la red lo impide). **Prueba de la red calculada** (monopolo recto 2,4 GHz, Z sin red 24,8 + 22,9j Ω, −7,2 dB; red de `red_adaptacion`: Z1 = C 0,82 pF
+  y Z3 = L 3,6 nH, circuito −38,5 dB, peor caso ±5 % −22 dB): **simulada con los componentes, −10,3 dB** (Z = 30 + 14,6j Ω), lejos del ≤ −15 dB pedido. Causas probables: la capacidad
+  del hueco, la vía y la isla de la derivación (no están en el circuito) y que una C de 0,82 pF es muy sensible. Falta: llevar esos parásitos al circuito de `red_adaptacion`
+  (o iterar la red con la FDTD) y repetir. **Sin hacer**: la prueba de la línea de 50 Ω en 50 Ω con 1 pF (se hizo con el monopolo, no con una línea cargada); líneas horizontales; el bucle
+  (tiene su propio `red_L`); cómo se escriben z1–z3 desde la interfaz.
 
 ## F4.2 · Adaptación automática tras simular
 

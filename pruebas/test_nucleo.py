@@ -94,6 +94,33 @@ def test_red_adaptacion_generica():
     assert [q['ref'] for q in sol['piezas']] == ['Z1', sol['posicion']]
 
 
+def test_componentes_simulados():
+    # F4.1: texto → componente; serie y bobinas a masa van a la FDTD, un condensador a masa se aplica por circuito
+    import numpy as np
+    from antenas import simulacion
+    assert ajuste.parse_componente('C 1,2 pF') == ('C', 1.2) and ajuste.parse_componente('L 3.9 nH') == ('L', 3.9)
+    assert ajuste.parse_componente('0R') == ('0 Ω', 0.0) and ajuste.parse_componente('') is None and ajuste.parse_componente(None) is None
+    for malo in ('C 1 nH', 'R 10', 'banana'):
+        with pytest.raises(ValueError):
+            ajuste.parse_componente(malo)
+    base = tipos.dimensionar('monopolo_recto', 2441.75e6, {'ajuste': 1})
+    a = tipos.generar('monopolo_recto', dict(base, z1='C 1 pF', z2='L 3.9 nH'))
+    cond = a.ajuste['condensadores']
+    assert [('C_pF' in c, 'L_nH' in c) for c in cond] == [(True, False), (False, True)] and cond[0]['esl_nH'] > 0
+    assert a.ajuste['puentes_sim'] == [] and len(a.vias) == 1
+    b = tipos.generar('monopolo_recto', dict(base, z2='C 2.2 pF'))
+    assert b.ajuste['condensadores'] == [] and b.ajuste['derivaciones_circuito'][0]['ref'] == 'Z2'
+    with pytest.raises(ValueError):
+        tipos.generar('monopolo_recto', dict(base, z1='L 2 nH', z3='C 1 pF'))
+    a = tipos.generar('monopolo_recto', dict(base, z2='L 3.9 nH'))
+    assert a.ajuste['derivaciones_circuito'] if a.ajuste.get('derivaciones_circuito') else True
+    # el condensador a masa por circuito cambia la impedancia (100 pF en Z2 es casi un corto en su plano, lejos del conector)
+    f = np.linspace(2.2e9, 2.7e9, 51)
+    r = {'f_Hz': f, 'zin': np.full(f.shape, 100 + 0j), 's11': np.full(f.shape, (100 - 50)/(100 + 50) + 0j)}
+    out = simulacion.aplicar_derivaciones(tipos.generar('monopolo_recto', dict(base, z2='C 100 pF')), r, 2441.75e6, tipos.sustrato())
+    assert abs(out['zin'][25] - 100) > 50 and out['derivaciones_circuito'] == [{'ref': 'Z2', 'valor_pF': 100.0}]
+
+
 def test_sustrato_4_capas(tmp_path):
     # F3.5: la línea de 50 Ω sale de ~0,4 mm (h_ref 0,21 mm), solo vale integrada y la placa lleva In1.Cu e In2.Cu con la masa
     from antenas import exportar
