@@ -57,6 +57,13 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit 1 }
           & "$env:LOCALAPPDATA\antenas\venv\Scripts\python.exe" -m pip freeze
 
+      - name: Pruebas del núcleo (pytest)
+        run: |
+          & "$env:LOCALAPPDATA\antenas\venv\Scripts\python.exe" -m pip install --disable-pip-version-check -r requirements-dev.txt
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          & "$env:LOCALAPPDATA\antenas\venv\Scripts\python.exe" -m pytest pruebas -q
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
       - name: KiCad
         run: |
           choco install kicad -y --no-progress

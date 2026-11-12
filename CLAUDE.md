@@ -34,7 +34,9 @@ archivos modificados después de la última revisión. La marca de esa revisión
   nicegui, plotly, ezdxf; rango probado `>=actual,<siguiente mayor`) + openEMS desde sus wheels. El instalador usa
   `requirements-lock.txt` (versiones exactas, `pip freeze` del venv sin openEMS/CSXCAD): **regenerarlo al subir
   una dependencia** y ajustar el mínimo del rango. Comandos en `RETOMAR.md`.
-- CI (`.github/workflows/comprobar.yml`, Windows, en cada push/PR y los lunes): ejecuta `instalar.ps1`, instala
+- Pruebas unitarias: `python -m pytest pruebas` (0,3 s, sin openEMS; pytest en `requirements-dev.txt`, no en el lock). En la sesión
+  de Claude el pip del venv falla (lección 49): `pip install pytest --target <carpeta>` con el Python del sistema y `PYTHONPATH`.
+- CI (`.github/workflows/comprobar.yml`, Windows, en cada push/PR y los lunes): ejecuta `instalar.ps1`, pytest, instala
   KiCad con choco, pasa `comprobar_tipos.py` y `herramientas/prueba_interfaz.py` (arranca la interfaz con una
   biblioteca temporal y abre cada pestaña en claro y oscuro). Dos variantes: `lock` y `rangos` (lo más nuevo que
   permiten los rangos; si solo falla esta, ha salido una versión de un paquete que rompe algo). No simula.

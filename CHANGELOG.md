@@ -7,6 +7,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ### Añadido
 
+- **Pruebas con pytest** (`pruebas/test_nucleo.py`, `requirements-dev.txt`): Koch, Sierpinski, microstrip de 50 Ω, redes en L,
+  `dimensionar`/`estimar_f` de todos los tipos a 868 y 2441,75 MHz y el bucle; 68 pruebas en menos de 1 s, también en la CI.
 - **Sustratos**: cuatro PTFE de JLC (ZYF255DA, ZYF265D, ZYF300CA-C y ZYF300CA-P, de 0,65 / 0,9 / 1,65 mm) y poliimida flex de 25 y 50 µm, con
   las reglas de fabricación «JLC alta frecuencia y flex (0,1 mm)» y consejos por sustrato. La simulación usa 2 celdas en z con sustratos de
   menos de 0,4 mm. Parche en PTFE: η ~90 % pero banda de 33 MHz; dipolo, bowtie y J-pole simulados en flex de 50 µm.

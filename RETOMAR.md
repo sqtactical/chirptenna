@@ -110,7 +110,7 @@ integrar antenas en la PCB de un producto (v0.5). Las ideas pendientes de abajo 
    - **Comprobación de «respuesta conocida» en la CI** (barata, interés alto): trabajo semanal que simula el dipolo
      y el monopolo de referencia en precisión rápida y falla si se salen de lo validado en `fase0` (L/λ, R ≈ 72 Ω,
      3,1 dBi). Protege `simulacion.py`, sobre todo antes de añadir la máscara.
-   - **Pruebas unitarias con `pytest`** (barata, interés alto): `ajuste.redes_l`, `leer_s1p`, el desembebido de la
+   - **Pruebas con `pytest`**: empezadas el 12-11 (`pruebas/test_nucleo.py`, 68 pruebas). Faltan `leer_s1p`, el desembebido de la
      línea, `normalizado` (E24) e invariantes de la geometría (contorno válido, cobre dentro del margen).
    - **Optimización de varios parámetros a la vez** (bayesiana, 20–50 simulaciones; no evolución diferencial):
      reflector, directores y separaciones de las directivas buscando ganancia + delante/detrás + S11, lanzada de

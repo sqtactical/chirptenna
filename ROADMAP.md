@@ -83,8 +83,8 @@ diferencia identificada.
 - [ ] **Yagi comercial B**: cerrar el modelo cuando haya cotas con calibre, grosor del FR4 y foto macro.
 - [ ] **Segundo pedido a JLC**: 868 MHz (monopolo, Koch, IFA, J-pole recta), Sierpinski de dos bandas, bucle con su
   red, y una antena **integrada en una placa con forma de producto** (ver fase 3) para validar ese flujo.
-- [ ] **Instalador con GPU opcional** (SHA-256 fijado) y prueba en otra GPU.
-- [ ] **Deuda**: tests unitarios de `geometria`, `ajuste.redes_l` y `tipos.dimensionar` (hoy solo hay pruebas de
+- [x] (12-11, F2.9; descarga sin probar con GPU visible ni en otra tarjeta) **Instalador con GPU opcional** (SHA-256 fijado) y prueba en otra GPU.
+- [x] (12-11, F2.10: `pruebas/test_nucleo.py`, 68 pruebas en 0,3 s) **Deuda**: tests unitarios de `geometria`, `ajuste.redes_l` y `tipos.dimensionar` (hoy solo hay pruebas de
   generación y de interfaz); partir `gui/app.py` por pestañas.
 
 ## Fase 3 · v0.5: integración en la PCB de un producto

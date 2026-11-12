@@ -1,0 +1,2 @@
+# Solo para desarrollo y la CI (no lo instala instalar.ps1): pruebas del núcleo en pruebas/
+pytest>=8,<10
