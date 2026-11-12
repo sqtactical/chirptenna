@@ -47,6 +47,7 @@ El instalador no toca nada fuera de tu usuario y no necesita permisos de adminis
 | La carpeta del programa | Donde la descomprimas (paso 1) | El programa en sí |
 | Python 3.14 | `%LOCALAPPDATA%\Programs\Python\Python314` | El lenguaje en el que está hecho. Si ya tienes Python 3.13 o 3.14, usa ese |
 | openEMS 0.37 | `%LOCALAPPDATA%\Programs\openEMS` | El simulador electromagnético |
+| Motor de GPU (opcional, solo con una tarjeta NVIDIA compatible) | `%LOCALAPPDATA%\Programs\gpu-build` | El mismo simulador con aceleración por GPU: ~10 veces más rápido |
 | Entorno del programa | `%LOCALAPPDATA%\antenas\venv` | Las librerías de Chirptenna, aparte de cualquier otro Python que tengas |
 | Tus diseños | `Documentos\Chirptenna\disenos` | Se crea la primera vez que guardas un diseño |
 
@@ -95,7 +96,8 @@ El instalador no toca nada fuera de tu usuario y no necesita permisos de adminis
    | 3 | Crea un entorno de Python propio del programa, para no mezclarse con nada más | — | segundos |
    | 4 | Instala las librerías con las **versiones exactas probadas** (`requirements-lock.txt`) y los módulos de openEMS | ~150 MB | 2–5 min |
    | 5 | Mira si tienes **KiCad** (apartado 3). Si no, avisa y pregunta si abrir su web de descarga | — | — |
-   | 6 | Pregunta si quieres un **acceso directo** en el escritorio. Pulsa **Intro** para decir que sí | — | — |
+   | 6 | Si tienes una **GPU NVIDIA** compatible (RTX 20, 30, 40 o 50; la detecta con `nvidia-smi`), pregunta si instalas el **motor de GPU** (comprueba su SHA-256). Sin tarjeta NVIDIA lo salta y se simula en la CPU. Con `-SinGPU` no lo instala | 12 MB | segundos |
+   | 7 | Pregunta si quieres un **acceso directo** en el escritorio. Pulsa **Intro** para decir que sí | — | — |
 
 4. Al final hace una comprobación y debe poner **«OK el programa carga bien»** y **«Instalación
    terminada»**. Pulsa una tecla para cerrar la ventana.
@@ -104,7 +106,7 @@ Si algo falla, la ventana dice qué ha pasado. Corrígelo (casi siempre es la co
 antivirus; mira los [problemas frecuentes](#problemas-frecuentes)) y vuelve a ejecutar `instalar.bat`: lo
 que ya estaba hecho no se repite ni se vuelve a descargar.
 
-> **¿Es seguro?** El instalador solo descarga de python.org y de la página oficial de openEMS en GitHub, y
+> **¿Es seguro?** El instalador solo descarga de python.org, de la página oficial de openEMS en GitHub y (el motor de GPU, opcional) de la release del proyecto, y
 > comprueba lo que descarga antes de usarlo. Si la firma o el SHA-256 no coinciden, se detiene. Puedes leer
 > lo que hace en `instalar\instalar.ps1`: es texto y está comentado.
 
@@ -256,6 +258,7 @@ Antes de pegarlo, **quita tu nombre de usuario** de las rutas si no quieres que 
 2. Borra estas carpetas (pega cada ruta en la barra del Explorador de archivos):
    - `%LOCALAPPDATA%\antenas` (entorno de Python y descargas);
    - `%LOCALAPPDATA%\Programs\openEMS`;
+   - `%LOCALAPPDATA%\Programs\gpu-build` (motor de GPU, si lo instalaste);
    - `%TEMP%\antenas_sim` (caché de simulaciones).
 3. Si Python lo instaló el instalador y no lo usas para nada más: **Configuración → Aplicaciones** →
    «Python 3.14…» → Desinstalar.
@@ -293,9 +296,13 @@ Lo mismo que hace el instalador, paso a paso:
 
 5. KiCad 8 o posterior (opcional). Se busca en `Program Files\KiCad\<versión>\bin\kicad-cli.exe`, en el
    PATH o en la variable `KICAD_CLI`.
-6. Arranca con `iniciar.bat` o con `%LOCALAPPDATA%\antenas\venv\Scripts\python.exe gui\app.py`.
+6. Motor de GPU (opcional, tarjeta NVIDIA RTX 20, 30, 40 o 50): descarga
+   `openEMS-gpu-win64-cuda12.9-sm75-80-86-89-120.zip` de la release v0.2.0-alpha del proyecto (SHA-256
+   `9cb3d3e6dd7239c7a8f211df05faf17e7ab4557d70c114bf3a3af1a424af6b3d`) y descomprímelo en `%LOCALAPPDATA%\Programs\gpu-build`
+   (debe existir `gpu-build\opt\bin\openEMS.exe`). Guía y otras tarjetas: `docs/GPU.md`.
+7. Arranca con `iniciar.bat` o con `%LOCALAPPDATA%\antenas\venv\Scripts\python.exe gui\app.py`.
    Opciones: `--puerto 8081` (otro puerto), `--disenos <carpeta>` (otra biblioteca de diseños, igual que la
    variable `CHIRPTENNA_DISENOS`).
 
-Opciones del instalador: `-Comprobar` (solo informa), `-SinPreguntas`, `-SinAccesoDirecto` y
+Opciones del instalador: `-Comprobar` (solo informa), `-SinPreguntas`, `-SinAccesoDirecto`, `-SinGPU` y
 `-Python <ruta a python.exe>` (usar un Python 3.13/3.14 que ya tengas).

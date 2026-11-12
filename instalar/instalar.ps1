@@ -7,14 +7,17 @@ Se lanza con instalar.bat (doble clic). Hace, saltándose lo que ya esté hecho:
   3. Entorno de Python propio en %LOCALAPPDATA%\antenas\venv (fuera de OneDrive: rutas largas).
   4. Paquetes de Python (versiones exactas de requirements-lock.txt) y los módulos de openEMS.
   5. Comprueba KiCad (opcional: hace falta para sacar los Gerber).
-  6. Acceso directo «Chirptenna» en el escritorio.
+  6. Si hay una GPU NVIDIA compatible, el openEMS con motor GPU de la release de Chirptenna (opcional, 12 MB, se
+     comprueba el SHA-256) en %LOCALAPPDATA%\Programs\gpu-build: simula ~10 veces más rápido. Guía: docs/GPU.md.
+  7. Acceso directo «Chirptenna» en el escritorio.
 
 Opciones:  -Comprobar          solo dice qué falta, sin descargar ni cambiar nada
            -SinPreguntas       no pregunta (acceso directo sí, no abre la web de KiCad)
            -SinAccesoDirecto   no crea el acceso directo del escritorio
+           -SinGPU             no instala el motor de GPU (se simula en la CPU)
            -Python <ruta>      usa ese python.exe (3.13 o 3.14) en vez de buscarlo o instalarlo
 #>
-param([switch]$Comprobar, [switch]$SinPreguntas, [switch]$SinAccesoDirecto, [string]$Python = '')
+param([switch]$Comprobar, [switch]$SinPreguntas, [switch]$SinAccesoDirecto, [switch]$SinGPU, [string]$Python = '')
 
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'          # la barra de progreso hace muy lenta la descarga en PowerShell 5.1
@@ -26,6 +29,7 @@ $Venv       = Join-Path $Base 'venv'
 $PyVenv     = Join-Path $Venv 'Scripts\python.exe'
 $Descargas  = Join-Path $Base 'descargas'
 $DirOpenEMS = Join-Path $env:LOCALAPPDATA 'Programs\openEMS\openEMS'
+$DirGPU     = Join-Path $env:LOCALAPPDATA 'Programs\gpu-build'
 
 # Versiones fijadas (comprobadas): las wheels de openEMS 0.37 solo existen para Python 3.13 y 3.14
 $PY_VERSION  = '3.14.10'
@@ -33,10 +37,14 @@ $PY_URL      = "https://www.python.org/ftp/python/$PY_VERSION/python-$PY_VERSION
 $OEMS_URL    = 'https://github.com/thliebig/openEMS-Project/releases/download/v0.37.0/openEMS_x64_v0.37.0_msvc.zip'
 $OEMS_SHA256 = 'E4F14FD6E9BE7D0C1FD9C244768C21C1C2B62B8AA81F08253EBF6E06040CDA5A'
 $KICAD_WEB   = 'https://www.kicad.org/download/windows/'
+# openEMS con motor GPU (NVIDIA): lo compila .github/workflows/compilar-gpu.yml y está adjunto a la release v0.2.0-alpha
+$GPU_URL     = 'https://github.com/sqtactical/chirptenna/releases/download/v0.2.0-alpha/openEMS-gpu-win64-cuda12.9-sm75-80-86-89-120.zip'
+$GPU_SHA256  = '9CB3D3E6DD7239C7A8F211DF05FAF17E7AB4557D70C114BF3A3AF1A424AF6B3D'
+$GPU_CC      = @('7.5', '8.0', '8.6', '8.9', '12.0')   # compute capability incluidas: RTX 20, A100, RTX 30, RTX 40, RTX 50
 
 $faltan = New-Object System.Collections.ArrayList
 
-function Paso($n, $t) { Write-Host ''; Write-Host "[$n/6] $t" -ForegroundColor Cyan }
+function Paso($n, $t) { Write-Host ''; Write-Host "[$n/7] $t" -ForegroundColor Cyan }
 function Bien($t)     { Write-Host "   OK  $t" -ForegroundColor Green }
 function Aviso($t)    { Write-Host "   !   $t" -ForegroundColor Yellow }
 function Falla($t)    { Write-Host "   X   $t" -ForegroundColor Red }
@@ -98,6 +106,22 @@ function Buscar-KiCad {
     $g = Get-Command kicad-cli.exe -ErrorAction SilentlyContinue
     if ($g) { return $g.Source }
     return $null
+}
+
+function Buscar-GPU {
+    # (nombre, compute capability) de la primera GPU NVIDIA que ve nvidia-smi, o $null
+    $smi = Get-Command nvidia-smi.exe -ErrorAction SilentlyContinue
+    $exe = if ($smi) { $smi.Source } else {
+        @((Join-Path $env:SystemRoot 'System32\nvidia-smi.exe'),
+          (Join-Path $env:ProgramFiles 'NVIDIA Corporation\NVSMI\nvidia-smi.exe')) | Where-Object { Test-Path $_ } | Select-Object -First 1
+    }
+    if (-not $exe) { return $null }
+    try {
+        $l = & $exe --query-gpu=name,compute_cap --format=csv,noheader 2>$null | Select-Object -First 1
+        if ($LASTEXITCODE -ne 0 -or -not $l) { return $null }
+        $p = "$l".Split(',')
+        return [pscustomobject]@{ Nombre = $p[0].Trim(); Cap = $(if ($p.Count -gt 1) { $p[1].Trim() } else { '' }) }
+    } catch { return $null }
 }
 
 Write-Host ''
@@ -219,8 +243,52 @@ try {
         }
     }
 
-    # ------------------------------------------------------------------ 6. Acceso directo
-    Paso 6 'Acceso directo en el escritorio'
+    # ------------------------------------------------------------------ 6. GPU (opcional)
+    Paso 6 'Aceleración por GPU NVIDIA (opcional: simula ~10 veces más rápido)'
+    $exeGPU = Join-Path $DirGPU 'opt\bin\openEMS.exe'
+    $gpu = Buscar-GPU
+    if (Test-Path $exeGPU) {
+        Bien "openEMS con GPU en $DirGPU"
+    } elseif ($SinGPU) {
+        Aviso 'Sin motor de GPU (opción -SinGPU): se simula en la CPU.'
+    } elseif (-not $gpu) {
+        Aviso 'No se encuentra una GPU NVIDIA (nvidia-smi): se simula en la CPU. Es lo normal sin tarjeta dedicada.'
+    } else {
+        Bien "GPU: $($gpu.Nombre) (compute capability $($gpu.Cap))"
+        if ($gpu.Cap -and ($gpu.Cap -notin $GPU_CC)) {
+            Aviso "El paquete de GPU incluye las arquitecturas $($GPU_CC -join ', ') y la tuya es $($gpu.Cap): se simula en la CPU (compilarlo para tu tarjeta: docs/GPU.md)."
+        } elseif ($Comprobar) {
+            Aviso 'Hay una GPU compatible pero no está instalado el motor de GPU (opcional): instalar.bat lo instala.'
+        } elseif (Preguntar '¿Instalar el motor de GPU (12 MB)? (S/n)' $true) {
+            try {
+                $zipGPU = Join-Path $Descargas 'openEMS-gpu-win64.zip'
+                if (-not (Test-Path $zipGPU) -or (Get-FileHash $zipGPU -Algorithm SHA256).Hash -ne $GPU_SHA256) {
+                    Descargar $GPU_URL $zipGPU
+                }
+                $hash = (Get-FileHash $zipGPU -Algorithm SHA256).Hash
+                if ($hash -ne $GPU_SHA256) { throw "el SHA-256 no coincide ($hash)" }
+                Bien 'Descarga comprobada (SHA-256)'
+                New-Item -ItemType Directory -Force -Path $DirGPU | Out-Null
+                Expand-Archive -Path $zipGPU -DestinationPath $DirGPU -Force
+                if (-not (Test-Path $exeGPU)) { throw 'el paquete no contiene opt\bin\openEMS.exe' }
+                Bien "Motor de GPU instalado en $DirGPU"
+                Push-Location $Raiz
+                try {
+                    $r = & $PyVenv -c "from antenas import gpu; ok, m = gpu.disponible(); print('OK' if ok else 'NO ' + str(m))"
+                } finally { Pop-Location }
+                if ("$r".Trim() -eq 'OK') { Bien 'El programa lo reconoce: la simulación usará la GPU (casilla en la pestaña Simulación)' }
+                else { Aviso "El programa no lo reconoce ($r): se simula en la CPU." }
+            } catch {
+                Aviso "No se pudo instalar el motor de GPU ($($_.Exception.Message)): se simula en la CPU."
+                if ((Test-Path $DirGPU) -and -not (Test-Path $exeGPU)) { Remove-Item $DirGPU -Recurse -Force -ErrorAction SilentlyContinue }
+            }
+        } else {
+            Aviso 'Sin motor de GPU: se simula en la CPU (puedes instalarlo después con instalar.bat).'
+        }
+    }
+
+    # ------------------------------------------------------------------ 7. Acceso directo
+    Paso 7 'Acceso directo en el escritorio'
     $escritorio = [Environment]::GetFolderPath('Desktop')
     $lnk = Join-Path $escritorio 'Chirptenna.lnk'
     if ($Comprobar) {

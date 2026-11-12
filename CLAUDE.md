@@ -42,7 +42,8 @@ archivos modificados después de la última revisión. La marca de esa revisión
   la versión más nueva en `Program Files\KiCad\*` (o `KICAD_CLI`, o el PATH); también hay una 9.0 instalada.
 - Instalador para usuarios (`instalar.bat` → `instalar/instalar.ps1`, guía en `INSTALAR.md` / `INSTALL.en.md`):
   Python 3.14 de python.org (firma comprobada), openEMS 0.37 de GitHub (SHA-256 fijado), venv, paquetes, KiCad
-  (solo avisa), acceso directo a `iniciar.bat`. Idempotente; `-Comprobar` solo informa. El `.ps1` va en UTF-8
+  (solo avisa), **motor de GPU opcional** (si `nvidia-smi` ve una GPU con compute capability 7.5/8.0/8.6/8.9/12.0: zip de la
+  release v0.2.0-alpha, SHA-256 fijado, en `%LOCALAPPDATA%\Programs\gpu-build`; `-SinGPU` lo salta), acceso directo a `iniciar.bat`. Idempotente; `-Comprobar` solo informa. El `.ps1` va en UTF-8
   **con BOM** y CRLF (PowerShell 5.1; `.gitattributes`). Probado desde cero con `LOCALAPPDATA` temporal y
   `-Python` (4 min). Si cambian las versiones de Python u openEMS, actualizar URL y SHA-256 del script.
 - Los scripts de `fase0/`, `vna/`, `cupon/`, `placa_sim/` se ejecutan desde su propia carpeta

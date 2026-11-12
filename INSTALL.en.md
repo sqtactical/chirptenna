@@ -48,6 +48,7 @@ The installer stays inside your user account and needs no administrator rights:
 | The program folder | Wherever you extract it (step 1) | The program itself |
 | Python 3.14 | `%LOCALAPPDATA%\Programs\Python\Python314` | The language it is written in. If you already have Python 3.13 or 3.14, it uses that |
 | openEMS 0.37 | `%LOCALAPPDATA%\Programs\openEMS` | The electromagnetic simulator |
+| GPU engine (optional, only with a compatible NVIDIA card) | `%LOCALAPPDATA%\Programs\gpu-build` | The same simulator with GPU acceleration: ~10 times faster |
 | Program environment | `%LOCALAPPDATA%\antenas\venv` | Chirptenna's libraries, kept apart from any other Python |
 | Your designs | `Documents\Chirptenna\disenos` | Created the first time you save a design |
 
@@ -95,7 +96,8 @@ The installer stays inside your user account and needs no administrator rights:
    | 3 | Creates a Python environment just for the program, so nothing else is affected | — | seconds |
    | 4 | Installs the libraries with the **exact tested versions** (`requirements-lock.txt`) and the openEMS modules | ~150 MB | 2–5 min |
    | 5 | Checks whether you have **KiCad** (section 3). If not, warns you and offers to open its download page | — | — |
-   | 6 | Asks whether you want a **desktop shortcut**. Press **Enter** for yes | — | — |
+   | 6 | If you have a compatible **NVIDIA GPU** (RTX 20, 30, 40 or 50; detected with `nvidia-smi`), asks whether to install the **GPU engine** (its SHA-256 is checked). Without an NVIDIA card it skips this and simulates on the CPU. With `-SinGPU` it is not installed | 12 MB | seconds |
+   | 7 | Asks whether you want a **desktop shortcut**. Press **Enter** for yes | — | — |
 
 4. At the end it runs a check and should say **“OK el programa carga bien”** (the program loads fine) and
    **“Instalación terminada”** (installation finished). Press any key to close the window.
@@ -104,7 +106,7 @@ If something fails, the window says what happened. Fix it (it's almost always th
 the antivirus; see [common problems](#common-problems)) and run `instalar.bat` again: whatever was already
 done is not repeated or downloaded again.
 
-> **Is it safe?** The installer only downloads from python.org and openEMS's official GitHub page, and
+> **Is it safe?** The installer only downloads from python.org, openEMS's official GitHub page and (the optional GPU engine) the project's release, and
 > checks what it downloads before using it. If the signature or the SHA-256 don't match, it stops. You can
 > read what it does in `instalar\instalar.ps1`: it is plain text with comments.
 
@@ -255,6 +257,7 @@ For questions that aren't bugs, use [Discussions](https://github.com/sqtactical/
 2. Delete these folders (paste each path into the File Explorer address bar):
    - `%LOCALAPPDATA%\antenas` (Python environment and downloads);
    - `%LOCALAPPDATA%\Programs\openEMS`;
+   - `%LOCALAPPDATA%\Programs\gpu-build` (GPU engine, if you installed it);
    - `%TEMP%\antenas_sim` (simulation cache).
 3. If the installer installed Python and you don't use it for anything else: **Settings → Apps** →
    “Python 3.14…” → Uninstall.
@@ -292,9 +295,13 @@ The same steps the installer performs:
 
 5. KiCad 8 or later (optional). It is looked up in `Program Files\KiCad\<version>\bin\kicad-cli.exe`, on the
    PATH or in the `KICAD_CLI` environment variable.
-6. Start it with `iniciar.bat` or `%LOCALAPPDATA%\antenas\venv\Scripts\python.exe gui\app.py`. Options:
+6. GPU engine (optional, NVIDIA RTX 20, 30, 40 or 50 card): download
+   `openEMS-gpu-win64-cuda12.9-sm75-80-86-89-120.zip` from the project's v0.2.0-alpha release (SHA-256
+   `9cb3d3e6dd7239c7a8f211df05faf17e7ab4557d70c114bf3a3af1a424af6b3d`) and extract it into `%LOCALAPPDATA%\Programs\gpu-build`
+   (`gpu-build\opt\bin\openEMS.exe` must exist). Guide and other cards: `docs/GPU.md`.
+7. Start it with `iniciar.bat` or `%LOCALAPPDATA%\antenas\venv\Scripts\python.exe gui\app.py`. Options:
    `--puerto 8081` (another port), `--disenos <folder>` (another design library, same as the
    `CHIRPTENNA_DISENOS` variable).
 
 Installer options: `-Comprobar` (report only), `-SinPreguntas` (no questions), `-SinAccesoDirecto` (no
-shortcut) and `-Python <path to python.exe>` (use an existing Python 3.13/3.14).
+shortcut), `-SinGPU` (no GPU engine) and `-Python <path to python.exe>` (use an existing Python 3.13/3.14).

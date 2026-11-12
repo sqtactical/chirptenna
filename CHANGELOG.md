@@ -40,6 +40,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ### Cambiado
 
+- **Instalador con motor de GPU opcional** (paso 6 de 7 de `instalar.ps1`): si `nvidia-smi` ve una GPU NVIDIA con compute capability 7.5, 8.0, 8.6, 8.9 o 12.0 (RTX 20 a 50), pregunta
+  si instala el openEMS con motor GPU de la release v0.2.0-alpha (12 MB, SHA-256 fijado) en `%LOCALAPPDATA%\Programs\gpu-build` y comprueba que el programa lo reconoce. Sin
+  GPU NVIDIA o con otra arquitectura lo salta y se simula en la CPU; `-SinGPU` lo omite. `-Comprobar` lo informa sin instalar. Guías `INSTALAR.md` / `INSTALL.en.md` al día.
 - **Bucle: red en L automática y anillo redondo calibrado**: «Ajustar a la frecuencia simulando» calcula con la impedancia simulada del anillo una red
   en L con valores E24 (serie Z1 + derivación Z2 o Z3, con las pérdidas de los componentes y la línea entre ellos), la guarda en `red_L` y la
   aplica **por circuito** (`simulacion.aplicar_red_bucle`): 868 MHz, 0,56 nH en serie y 12 pF a masa, −33 dB con 9 MHz de banda (η 43 %); 2,4 GHz, 2,4 pF y 2 pF,

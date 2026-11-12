@@ -209,6 +209,6 @@ Silicon** (Metal integrado; la ganancia publicada es ~1×, no compensa). No se h
 
 - [x] Verificada desde cero en GitHub Actions (un *runner* de Windows limpio) y el resultado probado en una RTX 3050.
 - [ ] Probar el paquete en otra GPU NVIDIA (RTX 20, 40 o 50): el flujo ya compila para esas arquitecturas, sin probar.
-- [ ] Publicar el `.zip` como archivo de una release y ofrecerlo desde el instalador.
+- [x] Publicar el `.zip` como archivo de una release (v0.2.0-alpha) y ofrecerlo desde el instalador (paso 6 de `instalar.ps1`, 12-11-2026: detecta la GPU con
+  `nvidia-smi`, comprueba la *compute capability* —7.5, 8.0, 8.6, 8.9 o 12.0— y el SHA-256, e instala en `%LOCALAPPDATA%\Programs\gpu-build`; `-SinGPU` lo salta).
 - [ ] Un script (`herramientas/compilar_gpu.ps1`) que haga los pasos 1-6 y pida solo la arquitectura de la GPU.
-- [ ] Ofrecer el openEMS con GPU como opción del instalador (hoy solo se instala el 0.37 de CPU).

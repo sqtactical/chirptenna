@@ -167,6 +167,10 @@ F2.1–F2.6 no necesitan hardware y se pueden adelantar mientras llegan las plac
 - **Prueba**: instalación desde cero con `LOCALAPPDATA` temporal (ver `CLAUDE.md`) y `comparar_gpu.py` con un
   monopolo.
 - **Hecho cuando**: instala y simula en GPU en una instalación limpia.
+- **HECHA en parte (12-11)**: paso 6 de `instalar.ps1` (nvidia-smi, compute capability, SHA-256, `-SinGPU`, `-Comprobar`
+  informa). Instalación limpia con `LOCALAPPDATA` temporal: todo bien, pero el paso 6 salió «sin GPU NVIDIA» (el
+  `nvidia-smi` no se ve desde ese entorno), así que **la descarga e instalación del zip no se han probado**. Falta
+  probarla en una sesión normal con la GPU visible y en otra tarjeta (Usuario).
 
 ## F2.10 · Deuda técnica
 
