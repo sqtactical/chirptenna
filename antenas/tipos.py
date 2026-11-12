@@ -929,15 +929,6 @@ def _marcar_integrada(a, p):
     a.info['posicion_antena'] = integracion.POSICIONES[int(p.get('posicion', 0))]
 
 
-def _avisar_placa_corta(a, p, f_est):
-    """La IFA depende sobre todo del largo de la masa en el eje del brazo: avisa si la placa es más estrecha que λ/4."""
-    cuarto = lambda0_mm(f_est)/4
-    if a.tipo == 'ifa' and p['placa_x'] < cuarto:
-        a.info.setdefault('avisos', []).append(
-            tr('La placa mide {0:.0f} mm de ancho, menos de λ/4 ({1:.0f} mm): la antena depende mucho de la placa.',
-               p['placa_x'], cuarto))
-
-
 def _aligerar(a, p):
     """Abre en el contorno las ventanas de `geometria.ventanas_aligerado` (lejos del cobre de las dos caras,
     de los taladros y del conector). La simulación pone aire en ellas y la exportación las fresa."""
@@ -1013,8 +1004,6 @@ def generar(clave, parametros=None, nombre_sustrato=None):
         a.puerto['conector'] = conector.COAX
     f_est = estimar_f(clave, p, nombre_sustrato)
     a.info['f_estimada_MHz'] = round(f_est/1e6, 1)
-    if integracion.activa(p, clave):
-        _avisar_placa_corta(a, p, f_est)
     a.info['precision_estimacion'] = precision_estimacion(clave, p)
     bw = ancho_banda.estimar(a, f_est, s)
     a.info['ancho_banda_estimado'] = {'f_inf_MHz': round(bw['f_lo']/1e6, 1), 'f_sup_MHz': round(bw['f_hi']/1e6, 1),

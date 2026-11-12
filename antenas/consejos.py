@@ -4,6 +4,7 @@ consejos(antena, f_obj, banda) -> lista de (categoría, texto). Categorías: 'di
 'montaje', 'medida', 'banda'.
 """
 from .i18n import tr
+from .materiales import lambda0_mm
 GENERALES = {
     'monopolo': [
         ('montaje', 'Deja sin cobre, en las dos caras, toda la zona del radiador (el recuadro de la huella). '
@@ -162,6 +163,18 @@ def consejos(antena, f_obj=None, banda=None):
     if int(p.get('masa', 0)) in (2, 3) and tipo.familia == 'monopolo':
         out.append(('medida', tr('Con masa compacta el cable forma parte de la antena: mide con una ferrita en el '
                               'coaxial a 2–3 cm de la placa y sin tocar la placa.')))
+    # Antena integrada en una placa (F3.2: IFA a 2,4 GHz en GPU: 25 × 40 mm 124 MHz de banda, 30 × 50 215 MHz, 50 × 80 278 MHz, 80 × 120 314 MHz)
+    if info.get('integrada'):
+        out.append(('diseño', tr('Antena integrada: la placa es parte de la antena. Simula con el tamaño real de tu placa y vuelve a ajustar si lo cambias '
+                              'o si añades una batería o una carcasa metálica cerca de la zona de antena.')))
+        f_hz = f_obj or info.get('f_estimada_MHz', 0)*1e6
+        # 25 mm a 2,4 GHz = 0,2 λ (λ = 123 mm) ya da la mitad de banda que 30 mm: el aviso salta por debajo de 0,22 λ
+        if antena.tipo == 'ifa' and f_hz and p.get('placa_x', 1e9) < 0.22*lambda0_mm(f_hz):
+            out.append(('diseño', tr('Masa corta: con una placa tan estrecha la IFA pierde banda (a 2,4 GHz, ~125 MHz con 25 mm de ancho frente a ~215 MHz con 30 mm y ~300 MHz con 80 mm). '
+                                  'Si la placa de tu producto es más grande, úsala entera.')))
+        if antena.tipo == 'monopolo_meandro':
+            out.append(('diseño', tr('El meandro adapta mal en una placa pequeña (en simulación, a 2,4 GHz y 868 MHz no llega a −10 dB con placas de hasta 80 × 120 mm): '
+                                  'para una placa de producto, la IFA es la opción probada.')))
     # Iteraciones altas
     if int(p.get('iteracion', 0)) >= 3 and antena.tipo in ('monopolo_koch', 'yagi_koch'):
         out.append(('diseño', tr('Iteración 3 o más: los detalles son pequeños y la ganancia de tamaño, marginal; '

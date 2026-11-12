@@ -78,6 +78,11 @@ Decisión de diseño ya tomada: **no se crea un generador nuevo por tipo**. Se e
      salga de los datos.
 - **Hecho cuando**: IFA y meandro integrados se centran en ≤ 3 simulaciones en una placa de 30 × 50 mm a 2,4 GHz
   y de 40 × 80 mm a 868 MHz, o está documentado el tamaño mínimo que lo permite.
+- **HECHA en parte (12-11)**: tabla en `docs/desarrollo/integracion_ifa.md`. **IFA**: se centra en 2 simulaciones a 2,4 GHz en 30 × 50 mm
+  (3–4 en 25 × 40, 50 × 80 y 80 × 120; no cabe en 20 × 30) y el ancho de banda crece con la placa (124 → 314 MHz); a 868 MHz no cabe en
+  40 × 80 y en 80 × 120 hace falta 5 simulaciones. **Meandro: no adapta** (−2,8 a −9,3 dB) en ninguna placa probada; queda sin validar en modo
+  integrado. Parar con un mensaje claro si la zona no cabe ya lo hace `integracion.geometria` (dice cuántos mm faltan). `consejos.py` lleva
+  tres avisos nuevos (antena integrada, IFA con placa < 0,22 λ de ancho y meandro integrado).
 
 ## F3.3 · Exportar para integrar: huella con zona de exclusión
 
