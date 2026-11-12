@@ -390,7 +390,9 @@ function cambiarParametro(p, valor) {
     estado.parametros.escalado = 0;
     avisar(T('Medidas secundarias pasadas a «Manuales» para respetar el valor que has puesto.'));
   }
-  if ((p.nombre === 'escalado' && valor === 1) || p.nombre === 'masa' || p.nombre === 'multibanda' || (p.nombre === 'conector' && t.familia === 'monopolo')) {
+  const integrado = ['integrada', 'placa_x', 'placa_y', 'posicion', 'zona_x', 'zona_y', 'margen_zona'].includes(p.nombre);
+  if ((p.nombre === 'escalado' && valor === 1) || p.nombre === 'masa' || p.nombre === 'multibanda' || (p.nombre === 'conector' && t.familia === 'monopolo') ||
+      (integrado && (p.nombre === 'integrada' || Number(estado.parametros.integrada ?? 0) === 1))) {
     dimensionar();
     return;
   }

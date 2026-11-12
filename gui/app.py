@@ -608,10 +608,13 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
         if nombre == 'escalado' and int(valor) == 1:
             ajustar()                   # vuelve a escalar las medidas con la frecuencia actual
             return
-        if nombre in ('masa', 'multibanda'):
+        if nombre in ('masa', 'multibanda', 'integrada'):
             # cambia qué medidas se muestran y la masa (o las dos bandas) cambian el tamaño: se reajusta
             construir_params()
             ajustar()
+            return
+        if nombre in tipos.integracion.SOLO_INTEGRADA and int(estado['params'].get('integrada', 0)) == 1:
+            ajustar()                   # el tamaño de la placa y de la zona fija la masa, que mueve la resonancia
             return
         if nombre == 'conector' and tipos.CATALOGO[estado['clave']].familia == 'monopolo':
             ajustar()                   # el conector fija la masa mínima, que mueve la resonancia

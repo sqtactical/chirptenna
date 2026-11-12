@@ -92,8 +92,13 @@ def parametros_visibles(clave, p):
     ajustable = int(p.get('ajuste', 0)) == 1
     muesca = int(p.get('alimentacion', 0)) == 1 and tipo.familia == 'parche'
     aligerado = int(p.get('aligerado', 0)) == 1
+    integrada = int(p.get('integrada', 0)) == 1
     visibles = []
     for par in tipo.parametros:
+        if integrada and par.nombre in tipos.integracion.SOBRAN_INTEGRADA:
+            continue            # la placa y la masa las fija la placa anfitriona
+        if not integrada and par.nombre in tipos.integracion.SOLO_INTEGRADA:
+            continue
         if masa_auto and par.nombre in tipos.PARAMS_SOLO_MANUAL:
             continue            # con masa automática el programa calcula estas medidas
         if not ajustable and par.nombre in ajuste.PARAMS_SOLO_AJUSTABLE:

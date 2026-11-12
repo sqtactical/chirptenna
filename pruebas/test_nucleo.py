@@ -4,6 +4,7 @@ import os
 import sys
 
 import pytest
+from shapely.geometry import box
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -47,6 +48,29 @@ def test_dimensionar_estimar(clave, f_obj):
     p = {k: v for k, v in p.items() if not k.startswith('_')}
     f = tipos.estimar_f(clave, p)
     assert abs(f - f_obj)/f_obj <= 0.01
+
+
+@pytest.mark.parametrize('clave', ['ifa', 'monopolo_recto', 'monopolo_meandro', 'monopolo_koch'])
+@pytest.mark.parametrize('posicion', [0, 1, 2])
+def test_antena_integrada(clave, posicion):
+    # F3.1: placa de 30 × 50 mm a 2,4 GHz; ni masa ni cobre de ninguna capa en la zona de antena, salvo la propia antena
+    p = tipos.dimensionar(clave, 2441.75e6, {'integrada': 1, 'placa_x': 30, 'placa_y': 50, 'posicion': posicion})
+    a = tipos.generar(clave, p)
+    x0, y0, x1, y1 = a.contorno.bounds
+    assert (x1 - x0, y1 - y0) == pytest.approx((30, 50), abs=1e-6)
+    assert a.info['integrada'] is True
+    assert a.cobre('B.Cu').intersection(a.zona_libre).area == pytest.approx(0, abs=1e-6)
+    assert a.contorno.contains(a.cobre('F.Cu')) and a.contorno.contains(a.cobre('B.Cu'))
+    # el radiador cae en la zona (salvo el arranque de la pista y el cortocircuito de la IFA, que entran en la masa)
+    zx0, zy0, zx1, zy1 = a.zona_libre.bounds
+    assert a.radiador.intersection(box(zx0 - 1, zy0, zx1 + 1, zy1 + 1)).within(a.zona_libre.buffer(1e-6))
+
+
+def test_integrada_no_cabe():
+    # la IFA de 868 MHz no cabe en 40 mm de ancho: error claro con lo que falta
+    p = tipos.dimensionar('ifa', 868e6, {'integrada': 1, 'placa_x': 40, 'placa_y': 80})
+    with pytest.raises(ValueError, match='faltan'):
+        tipos.generar('ifa', p)
 
 
 def test_bucle_estimar_f():

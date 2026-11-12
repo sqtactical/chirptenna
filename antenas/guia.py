@@ -23,11 +23,11 @@ GRUPOS = [
 # Por tipo: grupo de la galería, resumen de una línea y parámetros básicos (el resto, en «Ajustes avanzados»)
 TIPOS = {
     'monopolo_recto': ('portatil', 'Una tira recta sobre un plano de masa. La más predecible: la referencia para comparar.',
-                       ['alto', 'masa', 'conector', 'ajuste']),
+                       ['alto', 'integrada', 'placa_x', 'placa_y', 'posicion', 'masa', 'conector', 'ajuste']),
     'monopolo_meandro': ('portatil', 'Una tira en zigzag: más baja que la recta, para placas cortas.',
-                         ['alto', 'vueltas', 'masa', 'conector', 'ajuste']),
+                         ['alto', 'vueltas', 'integrada', 'placa_x', 'placa_y', 'posicion', 'masa', 'conector', 'ajuste']),
     'monopolo_koch': ('portatil', 'Monopolo fractal de Koch: más compacto que el recto, con buena banda. Recomendado.',
-                      ['alto', 'iteracion', 'masa', 'conector', 'ajuste']),
+                      ['alto', 'iteracion', 'integrada', 'placa_x', 'placa_y', 'posicion', 'masa', 'conector', 'ajuste']),
     'monopolo_sierpinski': ('portatil', 'Triángulo fractal de Sierpinski: mucho ancho de banda, tolera desajustes; con «Dos bandas», cubre LoRa de 868/915 MHz y 2,4 GHz.',
                             ['alto', 'iteracion', 'multibanda', 'masa', 'conector', 'ajuste']),
     'parche_rectangular': ('directiva', 'Parche sobre plano de masa: algo directivo (~5 dBi) y de banda estrecha.',
@@ -48,7 +48,7 @@ TIPOS = {
     'monopolo_hilbert': ('experimental', 'Curva de Hilbert: muy compacta, pero adapta mal sin red en π.',
                          ['lado', 'orden', 'masa', 'conector', 'ajuste']),
     'ifa': ('portatil', 'Antena F invertida (J-pole en F): monopolo plegado con cortocircuito a masa.',
-            ['largo_brazo', 'altura', 'separacion_toma', 'multibanda', 'masa', 'conector']),
+            ['largo_brazo', 'altura', 'separacion_toma', 'multibanda', 'integrada', 'placa_x', 'placa_y', 'posicion', 'masa', 'conector']),
     'pifa': ('portatil', 'PIFA: F invertida con brazo ancho, más banda.',
              ['largo_brazo', 'altura', 'separacion_toma', 'masa', 'conector']),
     'dipolo_sleeve': ('sin_masa', 'Dipolo con manga: tira λ/4 y manga de masa λ/4 debajo.',
@@ -131,6 +131,14 @@ AYUDAS = {
     'masa': 'Cómo se calcula el plano de masa (la «otra mitad» de un monopolo). «λ/4» es la recomendada; las '
             'compactas encogen la placa pero hacen la antena más sensible a lo que se conecte detrás.',
     'ancho_placa': 'Ancho del plano de masa (y de la placa) cuando la masa es manual.',
+    'integrada': 'Sí: la antena es una esquina de la placa de tu producto. La placa tiene el tamaño que indiques, la masa ocupa '
+                 'todo menos la zona de antena (sin cobre en ninguna capa) y el conector queda en el borde opuesto.',
+    'placa_x': 'Ancho de la placa de tu producto. La IFA depende mucho de él: por debajo de λ/4 la antena pierde banda y eficiencia.',
+    'placa_y': 'Alto de la placa de tu producto, contando la zona de antena. Lo que queda debajo de la zona es el plano de masa.',
+    'posicion': 'Dónde va la antena en el borde superior de la placa: en una esquina o centrada.',
+    'zona_x': 'Ancho del rectángulo reservado a la antena. 0 = lo que ocupa el radiador más el margen; si pones más, la zona crece.',
+    'zona_y': 'Alto del rectángulo reservado a la antena. 0 = lo que ocupa el radiador más el margen.',
+    'margen_zona': 'Cobre retirado alrededor del radiador, dentro de la zona de antena (en todas las capas).',
     'largo_masa': 'Largo del plano de masa cuando es manual. Por debajo de λ/4 la frecuencia sube y hay que alargar el radiador.',
     'margen_masa': 'Plano de masa que sobresale alrededor del parche. Con menos de ~λ/20 la radiación hacia atrás aumenta.',
     'contorno': 'Forma de la placa: rectangular o ajustada a la antena (esquinas redondeadas, menos FR4).',

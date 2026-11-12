@@ -92,7 +92,7 @@ diferencia identificada.
 Es el núcleo de la hoja de ruta. Hoy el programa genera una placa cuya única función es ser antena; aquí pasa a
 diseñar la antena **dentro** de otra placa.
 
-- [ ] **Modo «antena integrada»**: el usuario da el contorno de su placa (rectángulo con medidas, o importado), la
+- [ ] (F3.1 hecha el 12-11: placa rectangular y 4 tipos; faltan F3.2 ajuste, F3.3 huella y F3.6 importar) **Modo «antena integrada»**: el usuario da el contorno de su placa (rectángulo con medidas, o importado), la
   esquina o el borde donde va la antena y el tamaño de la zona reservada. El programa elige los tipos que caben
   (IFA, meandro, monopolo, bucle, antena chip) y dimensiona con **la masa real del producto**, no con la mínima.
 - [ ] **Importar una placa de KiCad** (`.kicad_pcb`): leer `Edge.Cuts`, las zonas de masa y las zonas prohibidas;

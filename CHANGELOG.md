@@ -7,6 +7,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ### Añadido
 
+- **Antena integrada en una placa** (F3.1, `antenas/integracion.py`): IFA, monopolo recto, de Koch y en meandro pueden ser una esquina de la
+  placa de tu producto. Parámetros `integrada`, `placa_x`, `placa_y`, `posicion` (esquina izquierda, derecha o centrada), `zona_x`, `zona_y`
+  y `margen_zona`: la masa ocupa toda la placa menos la zona de antena (sin cobre en ninguna capa) y el conector se queda en el borde
+  opuesto para medir el prototipo. Si algo no cabe, el error dice cuántos mm faltan. Interfaz de escritorio y web.
 - **Pruebas con pytest** (`pruebas/test_nucleo.py`, `requirements-dev.txt`): Koch, Sierpinski, microstrip de 50 Ω, redes en L,
   `dimensionar`/`estimar_f` de todos los tipos a 868 y 2441,75 MHz y el bucle; 68 pruebas en menos de 1 s, también en la CI.
 - **Sustratos**: cuatro PTFE de JLC (ZYF255DA, ZYF265D, ZYF300CA-C y ZYF300CA-P, de 0,65 / 0,9 / 1,65 mm) y poliimida flex de 25 y 50 µm, con

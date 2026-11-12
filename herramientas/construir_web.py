@@ -16,7 +16,7 @@ import importlib.util
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Módulos del núcleo que usa la web (si un tipo nuevo necesita otro módulo, añadirlo aquí)
 NUCLEO = ['__init__', 'ajuste', 'ancho_banda', 'bibanda', 'bucle', 'conector', 'consejos', 'dipolos', 'directivas', 'exportar',
-          'fabricacion', 'geometria', 'guia', 'i18n', 'jpole', 'logo', 'materiales', 'modelo', 'presentacion', 'problemas',
+          'fabricacion', 'geometria', 'guia', 'i18n', 'integracion', 'jpole', 'logo', 'materiales', 'modelo', 'presentacion', 'problemas',
           'robusto', 'tipos', 'tipos_base', 'web_api']
 DATOS = ['calibracion_estimaciones.json', 'logo_texto.json']
 # Lo que el núcleo no puede importar en el navegador

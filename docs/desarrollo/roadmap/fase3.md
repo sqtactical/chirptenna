@@ -56,6 +56,13 @@ Decisión de diseño ya tomada: **no se crea un generador nuevo por tipo**. Se e
      η > 60 %. Si no resuena, revisa primero que la zona de antena no tenga masa debajo (mira la vista).
   3. Verificación de malla (F2.3) «estable».
 - **Hecho cuando**: las tres pruebas pasan y la vista muestra placa, masa, zona y antena.
+- **HECHA (12-11)**: `integracion.py` + `tipos._generar_monopolo`; sin `bucle` (su generador es aparte). Notas: (a) con la esquina izquierda o
+  derecha, si el conector no cabe (necesita ~4,5 mm a cada lado de la alimentación) se corre la esquina y la zona crece, en lugar de fallar;
+  (b) la IFA de 868 MHz no cabe en 40 × 80 mm (la zona mide ~66 mm de ancho): el caso de `comprobar_tipos` usa 80 × 120 mm; el meandro sí
+  cabe en 40 × 80; (c) la estimación de la IFA integrada sale ~12 % baja con el brazo por defecto y `ajustar` la corrige en 2 iteraciones.
+  Resultados en GPU (FR4 1,6 mm, 2441,75 MHz, placa 30 × 50): IFA suelta 2430 MHz, banda 2324–2539, 2,18 dBi, η 90 %; integrada 2465 MHz,
+  banda 2360–2575, 1,62 dBi, η 88 %, `verificar_malla` «estable» (−2,0 y −4,3 %). `comprobar_tipos`: DRC limpio en los 4 casos nuevos.
+  No probado: meandro integrado simulado, ni 868 MHz.
 
 ## F3.2 · Ajuste por simulación de la antena integrada
 

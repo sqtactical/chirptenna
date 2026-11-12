@@ -22,6 +22,11 @@ from antenas import tipos, exportar, fabricacion, __version__   # noqa: E402
 VARIANTES = [('dipolo_bowtie', {'forma': 3}), ('dipolo_bowtie', {'forma': 3, 'alimentacion': 1}), ('monopolo_sierpinski', {'multibanda': 1}), ('jpole', {'multibanda': 1}), ('ifa', {'multibanda': 1}), ('dipolo_bowtie', {'forma': 2}), ('dipolo_bowtie', {'forma': 2, 'alimentacion': 1}),
              ('panel_dipolos', {'tamano': 1, 'elemento': 1}), ('panel_dipolos', {'tamano': 1, 'elemento': 2}),
              ('panel_dipolos', {'tamano': 2, 'elemento': 2}), ('panel_dipolos', {'tamano': 4, 'elemento': 2})]
+# Antenas integradas en una placa (F3.1): (tipo, frecuencia en MHz, opciones). Cada una solo en su banda, con la placa que le cabe
+INTEGRADAS = [('ifa', 2441.75, {'integrada': 1, 'placa_x': 30, 'placa_y': 50}),
+              ('monopolo_meandro', 2441.75, {'integrada': 1, 'placa_x': 30, 'placa_y': 50}),
+              ('monopolo_meandro', 866.5, {'integrada': 1, 'placa_x': 40, 'placa_y': 80}),
+              ('ifa', 866.5, {'integrada': 1, 'placa_x': 80, 'placa_y': 120, 'posicion': 1})]   # a 868 MHz la IFA no cabe en 40 × 80
 
 
 def main():
@@ -32,11 +37,14 @@ def main():
     a = ap.parse_args()
     bandas = [float(x) for x in a.bandas.split(',') if x]
     claves = [c for c in tipos.CATALOGO if not a.solo or c in a.solo.split(',')]
-    casos = [(c, {}) for c in claves] + [(c, x) for c, x in VARIANTES if c in claves]
+    casos = ([(c, {}, None) for c in claves] + [(c, x, None) for c, x in VARIANTES if c in claves]
+             + [(c, x, f) for c, f, x in INTEGRADAS if c in claves and f in bandas])
     resumen, fallos = [], 0
     print(f'Chirptenna {__version__}: {len(casos)} casos × {len(bandas)} bandas -> {a.salida}')
-    for clave, extra in casos:
+    for clave, extra, solo_f in casos:
         for f in bandas:
+            if solo_f is not None and f != solo_f:
+                continue
             t0 = time.time()
             fila = {'tipo': clave, 'f_MHz': f, 'variante': extra}
             try:

@@ -9,6 +9,7 @@ integrar antenas en la PCB de un producto (v0.5). Las ideas pendientes de abajo 
 
 ## Estado
 
+- **F3.1 hecha (12-11): antena integrada en una placa rectangular** (`antenas/integracion.py`; IFA, monopolo recto, Koch y meandro). Probada: IFA de 2,4 GHz en 30 × 50 mm, centrada en 2 simulaciones (2465 MHz, banda 2360–2575, η 88 %; la suelta da 2430 MHz y η 90 %), verificación de malla «estable». DRC limpio. Siguiente: F3.2 (barrido de la IFA en 4 tamaños de placa) y F3.3 (huella con zona de exclusión).
 - **Simulaciones GPU de la v0.2.0 terminadas (06-11)**: lotes en `salidas/_validacion_gpu*` y `_afinado_panel`.
 - **v0.2.0-alpha preparada en la rama local `v0.2.0`** (worktree `%LOCALAPPDATA%\antenas\wt-v020`; fusiona `main` con
   bowtie, `i18n` y `gpu-pruebas`): idiomas es/en/fr/de + lora en escritorio y web, bowtie, GPU opcional, estados al día

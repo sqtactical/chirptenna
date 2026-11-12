@@ -32,6 +32,7 @@ from . import bucle
 from . import dipolos
 from . import ajuste
 from . import conector
+from . import integracion
 from .tipos_base import Parametro
 from .materiales import SUSTRATOS, SUSTRATO_POR_DEFECTO, ancho_microstrip, eps_eff_microstrip, lambda0_mm, C0
 from .modelo import Antena
@@ -110,11 +111,15 @@ PARAM_CONECTOR = Parametro('conector', 'Conector', conector.SMA, 0, 2, 1, True, 
                                  'con un pad para el vivo en la línea y otro para la malla, unido a la masa')
 
 
-def largo_masa_monopolo(p, le):
+def largo_masa_monopolo(p, le, clave=None):
     """Largo del plano de masa [mm] según el modo. le: longitud equivalente del radiador.
 
     Con masa = fracción·λeff/4 y radiador + masa = λeff/2  ->  masa = fracción·le/(2 − fracción).
+    Con la antena integrada en una placa (`clave` en `integracion.TIPOS`) es lo que queda de placa bajo la zona de antena.
     """
+    if clave is not None and integracion.activa(p, clave):
+        arriba = _radiador_monopolo(clave, p)[0].bounds[3]
+        return max(integracion.largo_masa(p, arriba), 1.0)
     modo = int(p.get('masa', 0))
     # con red en π la línea de 50 Ω necesita sitio para los tres componentes además del SMA
     minimo = (MASA_RED_PI if ajuste.activo(p) and int(p.get('red_pi', 0)) == 1
@@ -203,7 +208,13 @@ def _generar_monopolo(tipo, p, sustrato):
     rad, l_traza, pts = _radiador_monopolo(tipo.clave, p)
     w50 = ancho_microstrip(50, sustrato.er, sustrato.h)
     le = _longitud_equivalente(tipo.clave, p)
-    lg = largo_masa_monopolo(p, le)
+    lg = largo_masa_monopolo(p, le, tipo.clave)
+    integrada = integracion.activa(p, tipo.clave)
+    if integrada and integracion.largo_masa(p, _radiador_monopolo(tipo.clave, p)[0].bounds[3]) < conector.MASA_MINIMA[conector.tipo(p)]:
+        zona = p['placa_y'] - integracion.largo_masa(p, _radiador_monopolo(tipo.clave, p)[0].bounds[3])
+        raise ValueError(tr('La zona de antena mide {0:.1f} mm de alto y bajo ella el conector necesita {1:.0f} mm de masa: '
+                            'la placa tiene que medir al menos {2:.1f} mm de alto.',
+                            zona, conector.MASA_MINIMA[conector.tipo(p)], zona + conector.MASA_MINIMA[conector.tipo(p)]))
     aj = ajuste.vacio()
     f_nom = _f_monopolo(tipo, p, sustrato)*k_sim(p)
     if ajuste.activo(p) and pts is not None:
@@ -215,7 +226,9 @@ def _generar_monopolo(tipo, p, sustrato):
         aj = ajuste.unir(aj, ajuste.mover(a1, 0, lg))
     minx, _, maxx, maxy = rad.bounds
     margen = p.get('margen_borde', 2.0)
-    if int(p.get('masa', 0)) == 0:
+    if integrada:
+        pass                   # contorno, masa y zona libre salen de `integracion.geometria` (abajo)
+    elif int(p.get('masa', 0)) == 0:
         # manual: masa centrada con el ancho pedido (o más, si el radiador no cabe)
         semi = max(p['ancho_placa']/2, max(abs(minx), abs(maxx)) + margen)
         gx0, gx1 = -semi, semi
@@ -225,17 +238,23 @@ def _generar_monopolo(tipo, p, sustrato):
         gx0 = min(minx - margen, -a_min/2)
         gx1 = max(maxx + margen, a_min/2)
     radiador = g.mover(rad, 0, lg)
-    contorno = g.contorno_placa([g.rectangulo(gx0, 0, gx1, lg), radiador.buffer(margen)],
-                                int(p.get('contorno', 1)), recorte=(gx0 - 1e3, 0, gx1 + 1e3, 1e4))
-    cx0, _, cx1, alto_placa = contorno.bounds
-    ancho = cx1 - cx0
-    masa = g.rectangulo(gx0, 0, gx1, lg).intersection(contorno.buffer(-BORDE_COBRE, join_style='mitre'))
+    if integrada:
+        # el conector solo necesita su propio ancho (la mitad del ancho mínimo de una placa de prueba, que lleva masa de sobra)
+        geo = integracion.geometria(p, radiador, lg, conector.ANCHO_MINIMO[conector.tipo(p)]/4)
+        contorno, masa, gx0, gx1, alto_placa = geo['contorno'], geo['masa'], geo['gx0'], geo['gx1'], geo['alto_placa']
+        cx0, ancho = gx0, gx1 - gx0
+    else:
+        contorno = g.contorno_placa([g.rectangulo(gx0, 0, gx1, lg), radiador.buffer(margen)],
+                                    int(p.get('contorno', 1)), recorte=(gx0 - 1e3, 0, gx1 + 1e3, 1e4))
+        cx0, _, cx1, alto_placa = contorno.bounds
+        ancho = cx1 - cx0
+        masa = g.rectangulo(gx0, 0, gx1, lg).intersection(contorno.buffer(-BORDE_COBRE, join_style='mitre'))
     entra = 0.01
     if tipo.clave == 'monopolo_sierpinski':
         # el vértice inferior es un punto: la línea entra hasta donde el triángulo es tan ancho como ella
         entra = w50/2/math.tan(math.radians(p['apertura'])/2)
     alim = g.rectangulo(-w50/2, BORDE_COBRE, w50/2, lg + entra)
-    zona_libre = g.rectangulo(cx0, lg, cx1, alto_placa).intersection(contorno)
+    zona_libre = geo['zona'] if integrada else g.rectangulo(cx0, lg, cx0 + ancho, alto_placa).intersection(contorno)
     # Si las vueltas de la pista se pisan, el área real queda por debajo de largo × ancho
     solape = None
     if tipo.clave != 'monopolo_sierpinski':
@@ -285,7 +304,7 @@ def _f_monopolo(tipo, p, sustrato):
     """Radiador + masa como dipolo asimétrico: si la masa es ≥ λ/4 no influye; si no, la
     resonancia es la de un dipolo de largo radiador + masa."""
     le = _longitud_equivalente(tipo.clave, p)
-    lg = largo_masa_monopolo(p, le)
+    lg = largo_masa_monopolo(p, le, tipo.clave)
     cuarto = le if lg >= le else (le + lg)/2
     return C0/(4*cuarto*1e-3*math.sqrt(eps_eff_monopolo(sustrato.er)))
 
@@ -896,8 +915,27 @@ for _t in CATALOGO.values():
     _t.parametros = _t.parametros + ajuste.parametros_para(GRUPO_AJUSTE[_t.clave])
     if _t.familia in ('yagi', 'panel'):
         _t.parametros = _t.parametros + PARAMS_ALIGERADO
+    if _t.clave in integracion.TIPOS:
+        _t.parametros = _t.parametros + integracion.PARAMETROS
 # el bucle sin red en π casi no adapta (R de entrada de pocos ohmios): sale con el ajuste y la red activados
 CATALOGO['bucle'].parametros = [replace(q, defecto=1) if q.nombre == 'ajuste' else q for q in CATALOGO['bucle'].parametros]
+
+
+def _marcar_integrada(a, p):
+    """Datos de la placa anfitriona en `info` y avisos de una antena integrada."""
+    x0, y0, x1, y1 = a.zona_libre.bounds
+    a.info['integrada'] = True
+    a.info['zona_antena_mm'] = [round(x1 - x0, 2), round(y1 - y0, 2)]
+    a.info['posicion_antena'] = integracion.POSICIONES[int(p.get('posicion', 0))]
+
+
+def _avisar_placa_corta(a, p, f_est):
+    """La IFA depende sobre todo del largo de la masa en el eje del brazo: avisa si la placa es más estrecha que λ/4."""
+    cuarto = lambda0_mm(f_est)/4
+    if a.tipo == 'ifa' and p['placa_x'] < cuarto:
+        a.info.setdefault('avisos', []).append(
+            tr('La placa mide {0:.0f} mm de ancho, menos de λ/4 ({1:.0f} mm): la antena depende mucho de la placa.',
+               p['placa_x'], cuarto))
 
 
 def _aligerar(a, p):
@@ -931,10 +969,12 @@ def generar(clave, parametros=None, nombre_sustrato=None):
     if tipo.familia == 'monopolo':
         a = _generar_monopolo(tipo, p, s)
         if clave in ('ifa', 'pifa'):
-            lg = largo_masa_monopolo(p, _longitud_equivalente(clave, p))
+            lg = largo_masa_monopolo(p, _longitud_equivalente(clave, p), clave)
             a.vias = [(-p['separacion_toma'], lg - PROFUNDIDAD_CORTO/2)]
             if clave == 'ifa' and int(p.get('multibanda', 0) or 0) == 1:
                 bibanda.ifa_dos_ramas(a, p, a.puerto['alimentacion'][1])
+        if integracion.activa(p, clave):
+            _marcar_integrada(a, p)
     elif clave == 'yagi_boom':
         a = directivas.generar_yagi_boom(p, s, eps_eff_monopolo(s.er))
     elif clave == 'panel_dipolos':
@@ -973,6 +1013,8 @@ def generar(clave, parametros=None, nombre_sustrato=None):
         a.puerto['conector'] = conector.COAX
     f_est = estimar_f(clave, p, nombre_sustrato)
     a.info['f_estimada_MHz'] = round(f_est/1e6, 1)
+    if integracion.activa(p, clave):
+        _avisar_placa_corta(a, p, f_est)
     a.info['precision_estimacion'] = precision_estimacion(clave, p)
     bw = ancho_banda.estimar(a, f_est, s)
     a.info['ancho_banda_estimado'] = {'f_inf_MHz': round(bw['f_lo']/1e6, 1), 'f_sup_MHz': round(bw['f_hi']/1e6, 1),
