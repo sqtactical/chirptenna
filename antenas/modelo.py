@@ -30,6 +30,9 @@ class Antena:
     # 'separacion_mm': de la cara inferior al reflector, 'hilos': [(x, y)] conductores verticales del
     # reflector a la cara inferior (malla del coaxial), 'taladros': [(x, y, diámetro)]}
     reflector: dict = None
+    # Entorno de la simulación (carcasa, batería, mano…): bloques {'nombre', 'tipo': 'dielectrico'|'metal', 'caja': (x0, y0, z0, x1, y1, z1),
+    # 'er', 'tand', 'sigma' opcional} (ver entorno.py). No forma parte de la placa: solo lo usa `simulacion.simular`
+    entorno: list = field(default_factory=list)
 
     def cobre(self, capa):
         g = self.capas.get(capa)

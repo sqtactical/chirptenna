@@ -163,6 +163,11 @@ def consejos(antena, f_obj=None, banda=None):
     if int(p.get('masa', 0)) in (2, 3) and tipo.familia == 'monopolo':
         out.append(('medida', tr('Con masa compacta el cable forma parte de la antena: mide con una ferrita en el '
                               'coaxial a 2–3 cm de la placa y sin tocar la placa.')))
+    # Entorno (F3.7): una carcasa, la mano o una batería cerca cambian la frecuencia y la eficiencia (en simulación, a 2,4 GHz en un
+    # monopolo recto: carcasa de ABS −6,6 %, mano −3,7 % y η de 97 a 23 %, batería detrás +6 %)
+    if tipo.familia in ('monopolo', 'bucle', 'dipolo', 'jpole'):
+        out.append(('medida', tr('Carcasa, mano y batería cambian la antena: en simulación, a 2,4 GHz, una carcasa de ABS baja la frecuencia '
+                              'un ~7 %, y la mano la baja un ~4 % y deja la eficiencia en el 25 %. Márcalas en Simulación → Entorno y ajusta con ellas puestas.')))
     # Antena integrada en una placa (F3.2: IFA a 2,4 GHz en GPU: 25 × 40 mm 124 MHz de banda, 30 × 50 215 MHz, 50 × 80 278 MHz, 80 × 120 314 MHz)
     if info.get('integrada'):
         out.append(('diseño', tr('Antena integrada: la placa es parte de la antena. Simula con el tamaño real de tu placa y vuelve a ajustar si lo cambias '

@@ -142,6 +142,8 @@ def _clave_cache(antena, sustrato, fmin, fmax, precision):
         # elementos concentrados (C o L con su Q) y relleno del serie: el cobre es el mismo con valores distintos
         h.update(json.dumps(['elementos', antena.ajuste.get('condensadores', []),
                              [p.wkb.hex() for p in antena.ajuste.get('puentes_sim', [])]], default=str).encode())
+    if antena.entorno:
+        h.update(json.dumps(['entorno', antena.entorno], default=str).encode())
     h.update(json.dumps([sustrato.er, sustrato.tand, sustrato.h, fmin, fmax, precision,
                          antena.puerto['borde'], antena.puerto['direccion']]).encode())
     return h.hexdigest()[:16]
@@ -250,6 +252,16 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
         xs, ys = np.array(refl['contorno'].exterior.coords[:-1]).T
         cobre.AddPolygon([xs, ys], norm_dir='z', elevation=z_ref, priority=10)
 
+    # Entorno (carcasa, batería, mano): bloques por debajo del cobre en prioridad; los metálicos son PEC
+    for k, b in enumerate(antena.entorno or []):
+        bx0, by0, bz0, bx1, by1, bz1 = b['caja']
+        if b['tipo'] == 'metal':
+            cobre.AddBox([bx0, by0, bz0], [bx1, by1, bz1], priority=10)
+        else:
+            kap = b['sigma'] if b.get('sigma') is not None else 2*math.pi*f0*EPS0*b['er']*b.get('tand', 0.0)
+            mat = CSX.AddMaterial(f'entorno{k + 1}', epsilon=b['er'], kappa=kap)
+            mat.AddBox([bx0, by0, bz0], [bx1, by1, bz1], priority=5)
+
     # Puerto: vertical en el arranque de la línea de 50 Ω (borde del SMA)
     w = antena.puerto['ancho_linea']
     if antena.puerto.get('tipo') == 'pasante':
@@ -289,20 +301,28 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
     # el dominio abarca también el reflector (más grande que la placa); sus bordes, con líneas propias
     ex0, ey0, ex1, ey1 = refl['contorno'].bounds if refl else (x0, y0, x1, y1)
     ex0, ey0, ex1, ey1 = min(ex0, x0), min(ey0, y0), max(ex1, x1), max(ey1, y1)
+    # el dominio abarca también el entorno, con líneas de malla en las caras de cada bloque
+    ent = [b['caja'] for b in (antena.entorno or [])]
+    xs_ent = [v for c in ent for v in (c[0], c[3])]
+    ys_ent = [v for c in ent for v in (c[1], c[4])]
+    zs_ent = [v for c in ent for v in (c[2], c[5])]
+    if ent:
+        ex0, ey0 = min([ex0] + xs_ent), min([ey0] + ys_ent)
+        ex1, ey1 = max([ex1] + xs_ent), max([ey1] + ys_ent)
     xs_caps = [v for c in caps for v in (c['caja'][0], c['caja'][2])]
     ys_caps = [v for c in caps for v in (c['caja'][1], c['caja'][3])]
-    mesh.AddLine('x', [ex0 - margen, ex1 + margen, ini[0], fin[0], ex0, ex1] + xs_caps)
-    mesh.AddLine('y', [ey0 - margen, ey1 + margen, ini[1], fin[1], ey0, ey1] + ys_caps)
+    mesh.AddLine('x', [ex0 - margen, ex1 + margen, ini[0], fin[0], ex0, ex1] + xs_caps + xs_ent)
+    mesh.AddLine('y', [ey0 - margen, ey1 + margen, ini[1], fin[1], ey0, ey1] + ys_caps + ys_ent)
     # sustratos muy finos (flex de 25–50 µm): 2 celdas en z; con 4, el paso de tiempo se hundiría (la celda más pequeña lo fija)
     mesh.AddLine('z', np.linspace(0, h, 5 if h >= 0.4 else 3))
-    mesh.AddLine('z', [z_ref - margen, h + margen, z_ref])
+    mesh.AddLine('z', [min([z_ref] + zs_ent) - margen, max([h] + zs_ent) + margen, z_ref] + zs_ent)
     mesh.SmoothMeshLines('all', res_aire, 1.3)
     # Las líneas del puerto y de los bordes no caen en la rejilla: si quedan a micras de otra, la celda
     # diminuta hunde el paso de tiempo (1e-19 s: la simulación no acaba y el resultado es basura).
     # De dos líneas pegadas se queda la de la rejilla de la placa o la de una cara (el puerto se ajusta
     # solo a la malla). Las cachés de esas mallas tienen resultados sin terminar: van a otra carpeta.
-    fijas = {'x': set(np.round(np.r_[rejilla['x'], ex0, ex1, xs_caps], 6)), 'y': set(np.round(np.r_[rejilla['y'], ey0, ey1, ys_caps], 6)),
-             'z': set(np.round([0.0, h, z_ref], 6))}
+    fijas = {'x': set(np.round(np.r_[rejilla['x'], ex0, ex1, xs_caps, xs_ent], 6)), 'y': set(np.round(np.r_[rejilla['y'], ey0, ey1, ys_caps, ys_ent], 6)),
+             'z': set(np.round([0.0, h, z_ref] + zs_ent, 6))}
     # Las del puerto van por encima de todo: un puerto (caja plana) que no cae en una línea de malla
     # desaparece sin avisar y la simulación corre sin excitación (le pasó al Hilbert de 2,4 GHz).
     puerto = {d: set(np.round([ini[i], fin[i]], 6)) for i, d in enumerate('xyz')}
@@ -711,6 +731,33 @@ def verificar_malla(antena, sustrato, base, frecuencias_Hz, precision='normal', 
     return {'veredicto': 'sensible' if sensible else 'estable', 'filas': filas, 'compara_f': usar_f,
             'frecuencias_MHz': [round(f/1e6, 2) for f in frecuencias_Hz], 's11_base_dB': [round(x, 1) for x in s11_base],
             'paso_base_mm': base['paso_malla_mm'], 'umbral_f_pct': UMBRAL_MALLA_F_PCT, 'umbral_s11_dB': UMBRAL_MALLA_S11_DB}
+
+
+def efecto_entorno(antena, sustrato, f_obj, nombres, base, precision='normal', malla='uniforme', rango=(0.6, 1.4), progreso=print):
+    """Cuánto cambian la frecuencia y la eficiencia al poner el entorno (carcasa, batería, mano: ver `entorno.py`).
+
+    Se comparan dos simulaciones con la MISMA malla: una con los bloques de verdad y otra con ellos convertidos en aire
+    (`entorno.neutro`). Comparar con la antena sola mezclaría el efecto físico con el de las líneas de malla nuevas, que
+    mueven la frecuencia un ~2 % por sí solas. base: resultado de la antena sola (da el paso de malla y la referencia
+    de la eficiencia). Devuelve un dict con el cambio de frecuencia, de eficiencia y de S11, o con 'error'.
+    """
+    import copy
+    from . import entorno as ent
+    bloques = ent.bloques(antena, sustrato.h, nombres)
+    paso = base.get('paso_malla_mm')
+    res = {}
+    for etq, lista in (('aire', [ent.neutro(b) for b in bloques]), ('entorno', bloques)):
+        a = copy.copy(antena)
+        a.entorno = lista
+        progreso(tr('Entorno ({0}): simulando {1}…', ', '.join(nombres), tr('con los bloques') if etq == 'entorno' else tr('el control, sin material')))
+        res[etq] = simular(a, sustrato, f_obj, precision, nf2ff=True, progreso=lambda m: None, rango=rango, paso=paso, malla=malla)
+    c, e = res['aire'], res['entorno']
+    return {'nombres': list(nombres),
+            'f_sin_MHz': round(c['f_resonancia_Hz']/1e6, 2), 'f_con_MHz': round(e['f_resonancia_Hz']/1e6, 2),
+            'df_pct': round(100*(e['f_resonancia_Hz']/c['f_resonancia_Hz'] - 1), 2),
+            's11_sin_dB': round(c['s11_min_dB'], 1), 's11_con_dB': round(e['s11_min_dB'], 1),
+            'eta_sin_%': round(100*c['eficiencia_radiacion'], 1), 'eta_con_%': round(100*e['eficiencia_radiacion'], 1),
+            'ganancia_sin_dBi': round(c['ganancia_dBi'], 2), 'ganancia_con_dBi': round(e['ganancia_dBi'], 2)}
 
 
 def ajustar(clave, parametros, nombre_sustrato, f_obj, precision='normal', max_sim=5, tolerancia=0.01,

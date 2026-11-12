@@ -25,7 +25,7 @@ sys.path.insert(0, RAIZ)
 from nicegui import app, ui, run, background_tasks   # noqa: E402
 
 from antenas import tipos, vista, fabricacion, exportar, consejos, graficas, ajuste, biblioteca, problemas   # noqa: E402
-from antenas import guia, gpu   # noqa: E402
+from antenas import guia, gpu, entorno   # noqa: E402
 from antenas import i18n   # noqa: E402
 from antenas.i18n import tr   # noqa: E402
 from antenas import __version__   # noqa: E402
@@ -348,6 +348,10 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                     chk_malla = ui.checkbox(tr('Verificar con otra malla'), value=False).tooltip(
                         tr('Repite la simulación con el paso de malla un 15 % menor y un 15 % mayor y avisa si el resultado '
                            'cambia mucho (tarda el triple). Se hace siempre con dos bandas, paneles y arrays.'))
+                    sel_entorno = ui.select({k: tr(v) for k, v in entorno.PREDEFINIDOS.items()}, value=[], multiple=True, clearable=True,
+                                            label=tr('Entorno')).classes('w-64').tooltip(
+                        tr('Simula además con una carcasa de ABS, una batería metálica o una mano cerca y dice cuánto cambian la frecuencia y la '
+                           'eficiencia (2 simulaciones más).'))
                     chk_gpu = ui.checkbox(tr('Aceleración por GPU (experimental)'), value=gpu_ok)
                     if gpu_ok:
                         chk_gpu.tooltip(tr('Usa el openEMS compilado con motor GPU: en las pruebas, ~10× más rápido. '
@@ -946,7 +950,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                     or tipos.CATALOGO[estado['clave']].familia in ('panel', 'array'))
         trabajo = {'clave': estado['clave'], 'parametros': estado['params'], 'sustrato': estado['sustrato'],
                    'f_obj_Hz': estado['f_MHz']*1e6, 'precision': sel_prec.value, 'ajustar': chk_ajustar.value,
-                   'verificar_malla': bool(chk_malla.value or sensible), 'salida': carpeta}
+                   'verificar_malla': bool(chk_malla.value or sensible), 'entorno': list(sel_entorno.value or []), 'salida': carpeta}
         ruta = os.path.join(carpeta, 'trabajo.json')
         with open(ruta, 'w', encoding='utf-8') as fh:
             json.dump(trabajo, fh, ensure_ascii=False, default=float)
@@ -1039,6 +1043,20 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                                     ajuste.texto_componente(*red['serie']), red['posicion'], ajuste.texto_componente(*red['derivacion']),
                                     red['s11_dB'], red['s11_sin_red_dB'], 100*(1 - red.get('eficiencia_red', 1.0)))
                                  ).classes('text-caption')
+                en = r.get('entorno')
+                if en and en.get('error'):
+                    with ui.row().classes('items-start no-wrap'):
+                        ui.icon('warning', color='warning')
+                        ui.label(tr('No se pudo simular el entorno: {0}', en['error'])).classes('text-caption')
+                elif en:
+                    grave = en['df_pct'] < -5 or abs(en['eta_con_%'] - en['eta_sin_%']) > 20
+                    with ui.row().classes('items-start no-wrap'):
+                        ui.icon('warning' if grave else 'check_circle', color='warning' if grave else 'positive')
+                        ui.label(tr('Con {0}: la frecuencia pasa de {1:g} a {2:g} MHz ({3:+.1f} %), la eficiencia de radiación de {4:g} a {5:g} % y la ganancia de '
+                                    '{6:g} a {7:g} dBi. Una carcasa o una mano lo bajan y lo empeoran: deja margen y vuelve a ajustar con ellas puestas.',
+                                    ', '.join(tr(entorno.PREDEFINIDOS[n]).split(' (')[0] for n in en['nombres']), en['f_sin_MHz'], en['f_con_MHz'],
+                                    en['df_pct'], en['eta_sin_%'], en['eta_con_%'], en['ganancia_sin_dBi'], en['ganancia_con_dBi'])
+                                 ).classes('text-caption' + (' texto-aviso' if grave else ''))
                 v = r.get('verificacion_malla')
                 if v and v.get('error'):
                     with ui.row().classes('items-start no-wrap'):

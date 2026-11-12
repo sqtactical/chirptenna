@@ -200,6 +200,15 @@ Decisión de diseño ya tomada: **no se crea un generador nuevo por tipo**. Se e
 - **Prueba**: bloque de εr 1 y tanδ 0 → resultado idéntico al de sin bloque (±0,2 %). Carcasa de ABS sobre un
   monopolo de 2,4 GHz → la frecuencia **baja** (1–5 %). Si sube, hay un error.
 - **Hecho cuando**: las dos pruebas pasan y el aviso sale en `consejos`.
+- **HECHA (12-11)**: `Antena.entorno` + `antenas/entorno.py` (predefinidos `carcasa`, `bateria`, `mano`), soporte en `simulacion.simular` (material o PEC,
+  caras en la malla, dominio ampliado, clave de la caché) y `simulacion.efecto_entorno` (lo usa `simular_cli` con `entorno` en el trabajo y la
+  interfaz: selector «Entorno» en Simulación y un aviso con el cambio de f, η y ganancia). **La prueba del bloque de εr 1 no se puede hacer con la
+  antena sola**: añadir un bloque añade líneas de malla y mueve la frecuencia un ~2 % por sí solo (monopolo de 2,4 GHz, +2,0 % con un bloque de
+  aire 5 mm sobre la placa), así que `efecto_entorno` compara dos simulaciones con la MISMA malla: una con los bloques y otra con ellos convertidos
+  en aire (`entorno.neutro`). Con esa comparación el bloque de εr 1 es idéntico por construcción. Resultados (monopolo recto 2,4 GHz, FR4, GPU, paso
+  0,5 mm): **carcasa de ABS −6,6 %** (η 100 %), **mano −3,7 %** (η de 97 a 23 %, ganancia de 2,9 a −1,3 dBi), **batería detrás +6,0 %** (η igual). La carcasa
+  queda algo por encima del 1–5 % de la guía (dos láminas de 1,5 mm, a 1 mm, que sobresalen 3 mm); baja, como debe. Sin simular: otras antenas,
+  otras frecuencias ni la IFA integrada con carcasa. `consejos.py` avisa del entorno en monopolos, bucle, dipolos y J-pole.
 
 ## F3.8 · Antenas chip
 

@@ -84,6 +84,23 @@ def test_huella_integrar(tmp_path):
     assert ej.read_text(encoding='utf-8').count('(keepout') == 2      # la de la huella y la de la placa
 
 
+def test_entorno_bloques():
+    # F3.7: los predefinidos caen donde se dice (carcasa a 1 mm sobre y bajo la placa, batería detrás, mano a 5 mm por debajo)
+    from antenas import entorno
+    a = tipos.generar('monopolo_recto', tipos.dimensionar('monopolo_recto', 2441.75e6, {}))
+    h = 1.6
+    b = entorno.bloques(a, h, ['carcasa', 'bateria', 'mano'])
+    assert [x['nombre'] for x in b] == ['carcasa', 'carcasa', 'bateria', 'mano']
+    arriba, abajo, bat, mano = b
+    assert arriba['caja'][2] == pytest.approx(h + 1.0) and arriba['caja'][5] == pytest.approx(h + 2.5)
+    assert abajo['caja'][5] == pytest.approx(-1.0) and bat['tipo'] == 'metal' and bat['caja'][5] == pytest.approx(-1.0)
+    assert mano['caja'][5] == pytest.approx(-5.0) and mano['er'] == 30
+    n = entorno.neutro(mano)
+    assert n['er'] == 1.0 and n['tand'] == 0 and n['sigma'] == 0 and n['caja'] == mano['caja']
+    with pytest.raises(KeyError):
+        entorno.bloques(a, h, ['no_existe'])
+
+
 def test_integrada_no_cabe():
     # la IFA de 868 MHz no cabe en 40 mm de ancho: error claro con lo que falta
     p = tipos.dimensionar('ifa', 868e6, {'integrada': 1, 'placa_x': 40, 'placa_y': 80})

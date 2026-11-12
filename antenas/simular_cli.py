@@ -3,7 +3,8 @@
 Uso: python -m antenas.simular_cli <trabajo.json>
 El trabajo indica: clave, parametros, sustrato, f_obj_Hz, precision, ajustar (bool), salida (carpeta)
 y, opcional, malla ('uniforme' o 'adaptada') y verificar_malla (bool: repite con el paso ×0,85 y ×1,15 y
-guarda `verificacion_malla` en resultado.json).
+guarda `verificacion_malla` en resultado.json) y entorno (lista de predefinidos de `entorno.PREDEFINIDOS`: carcasa, bateria, mano;
+guarda `entorno` con el cambio de frecuencia y de eficiencia).
 Escribe en la salida resultado.json (resumen) y datos.npz (curvas y diagrama). Cada línea
 que empieza por «PROGRESO» es un mensaje para el usuario.
 """
@@ -57,6 +58,12 @@ def main():
         np.savez_compressed(os.path.join(salida, 'datos.npz'), f=r['f_Hz'], s11=r['s11'], zin=r['zin'],
                             theta=r.get('theta', []), phi=r.get('phi', []),
                             d=r.get('directividad_dBi_grid', np.zeros((0, 0))))
+        if trabajo.get('entorno'):
+            try:
+                resumen['entorno'] = simulacion.efecto_entorno(a, tipos.sustrato(sus), f_obj, trabajo['entorno'], r, prec, malla, rango, progreso)
+            except Exception as ex:
+                resumen['entorno'] = {'error': f'{type(ex).__name__}: {ex}'}
+                progreso(f'ERROR en la simulación del entorno: {ex}')
         if trabajo.get('verificar_malla'):
             # el resultado ya está calculado: si la verificación falla, no se pierde
             try:
