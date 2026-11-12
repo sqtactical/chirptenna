@@ -11,6 +11,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
   placa de tu producto. Parámetros `integrada`, `placa_x`, `placa_y`, `posicion` (esquina izquierda, derecha o centrada), `zona_x`, `zona_y`
   y `margen_zona`: la masa ocupa toda la placa menos la zona de antena (sin cobre en ninguna capa) y el conector se queda en el borde
   opuesto para medir el prototipo. Si algo no cabe, el error dice cuántos mm faltan. Interfaz de escritorio y web.
+- **Asistente de ajuste con piezas y tolerancias** (F4.3, en parte): con una medida, además de la red en π propone la lista de piezas (descripción, sin números de pieza), el S11
+  por circuito, la banda que quedaría y el peor caso con componentes ±5 %. Falta probarlo adaptando una antena real.
 - **Componentes de la red en π en la simulación** (F4.1, en parte): parámetros `z1`, `z2`, `z3` («C 1,2 pF», «L 3,9 nH», «0R») en los monopolos con red en π (de momento solo desde
   `diseno.json` o el código, no desde la interfaz). El serie y las bobinas a masa van a la FDTD (S11 a ±0,5 dB del circuito); los condensadores a masa, por circuito. Con la red calculada
   por F4.2 la FDTD da −10,3 dB y el circuito −38 dB: falta llevar los parásitos del montaje al circuito.

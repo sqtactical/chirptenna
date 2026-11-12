@@ -64,6 +64,11 @@ Antes de nada: [`00_como_trabajar.md`](00_como_trabajar.md).
 - **Prueba**: con un `.s1p` sintético (carga 20 − j30 Ω tras 15 mm de línea) el asistente propone una red que,
   aplicada por circuito, da ≤ −20 dB.
 - **Hecho cuando**: la prueba pasa y el usuario ha adaptado una antena real siguiendo el asistente.
+- **HECHA en parte (12-11), falta el usuario con una antena real**: `ajuste._efecto_red` (lo llama `asistente` con la primera red de `redes_l`) añade la lista de piezas (valor,
+  descripción sin números de pieza y montaje), el S11 por circuito en el objetivo, la banda a −10 dB que quedaría y el peor caso con ±5 % en las cuatro esquinas, todo con la Z
+  medida llevada a la red (quitando la línea con `distancia_red_mm` y `eps_eff`, que ya se usaban) y con la Q de los componentes; la interfaz lo muestra en Medir. Test
+  `test_asistente_con_medida_sintetica` (20 − j30 Ω tras 15 mm de línea → Z de-embebida 20 − j30 Ω y ≤ −20 dB). La interfaz usaba `s.h` para la εeff de la línea: ahora `s.h_linea`
+  (4 capas). **Sin hacer**: adaptar una antena real; incluir en el cálculo los parásitos del montaje (ver F4.1: el circuito dio −38 dB y la FDTD −10 dB); solo la primera red.
 
 ## F4.4 · Más analizadores
 

@@ -591,6 +591,59 @@ def redes_l(zl, f, z0=50.0):
     return out
 
 
+def descripcion_pieza(tipo):
+    """Qué comprar para un componente de la red (sin números de pieza: solo la descripción, 0402 o 0603 según la huella elegida)."""
+    return {'C': tr('condensador C0G/NP0 0402 o 0603'), 'L': tr('bobina 0402 o 0603 (Q ≥ 40)')}.get(tipo, tr('resistencia de 0 Ω 0402 o 0603'))
+
+
+def _banda_menos10(f, db, f_obj):
+    """(f_inf, f_sup) de la zona a −10 dB que contiene f_obj (o la más cercana), o None."""
+    f = np.asarray(f, float)
+    debajo = np.asarray(db) < -10
+    if not debajo.any():
+        return None
+    idx = np.where(debajo)[0]
+    i = int(idx[np.argmin(np.abs(f[idx] - f_obj))])
+    lo = hi = i
+    while lo > 0 and debajo[lo - 1]:
+        lo -= 1
+    while hi < len(f) - 1 and debajo[hi + 1]:
+        hi += 1
+    return float(f[lo]), float(f[hi])
+
+
+def _efecto_red(f, s11, f_obj, sol, distancia_red_mm, eps_eff, tolerancia=0.05):
+    """Con la medida (s11 en el plano del conector) y la red `sol` (de `redes_l`): lista de piezas, S11 por circuito en la
+    frecuencia objetivo, banda a −10 dB que quedaría y peor caso con los componentes a ±`tolerancia` (cuatro esquinas).
+    La Z medida se lleva a la posición de la red quitando la línea (`distancia_red_mm`, `eps_eff`) y se calcula en toda la
+    banda medida con la Q de los componentes. Es un cálculo por circuito, no una medida."""
+    f = np.asarray(f, float)
+    ee = eps_eff or 3.2
+    z = 50*(1 + np.asarray(s11))/(1 - np.asarray(s11))
+    if distancia_red_mm:
+        z = _trasladar(z, -2*np.pi*f*math.sqrt(ee)/C0_RED*distancia_red_mm*1e-3)
+    top, cs, cp = sol['posicion'], tuple(sol['serie']), tuple(sol['derivacion'])
+    k = int(np.argmin(np.abs(f - f_obj)))
+
+    def s11_db(cs_, cp_):
+        zr = zin_red_l(f, z, top, cs_, cp_, 0.0, 0.0, ee)
+        return 20*np.log10(np.abs((zr - 50)/(zr + 50)) + 1e-12)
+    nominal = s11_db(cs, cp)
+    peor, bandas = -1e9, []
+    for fs in (1 - tolerancia, 1 + tolerancia):
+        for fp in (1 - tolerancia, 1 + tolerancia):
+            db = s11_db(cs if cs[0] == '0 Ω' else (cs[0], cs[1]*fs), (cp[0], cp[1]*fp))
+            peor = max(peor, float(db[k]))
+            bandas.append(_banda_menos10(f, db, f_obj))
+    b = _banda_menos10(f, nominal, f_obj)
+    comunes = None if any(x is None for x in bandas) else (max(x[0] for x in bandas), min(x[1] for x in bandas))
+    return {'piezas': [{'ref': 'Z1', 'valor': texto_componente(*cs), 'descripcion': descripcion_pieza(cs[0]), 'montaje': tr('en serie')},
+                       {'ref': top, 'valor': texto_componente(*cp), 'descripcion': descripcion_pieza(cp[0]), 'montaje': tr('a masa')}],
+            's11_red_dB': round(float(nominal[k]), 1), 's11_peor_dB': round(peor, 1),
+            'banda_esperada_MHz': [round(b[0]/1e6, 1), round(b[1]/1e6, 1)] if b else None,
+            'banda_peor_MHz': [round(comunes[0]/1e6, 1), round(comunes[1]/1e6, 1)] if comunes and comunes[1] > comunes[0] else None}
+
+
 def asistente(antena, f, s11, f_obj, distancia_red_mm=None, eps_eff=None):
     """Recomendaciones a partir de una medida (f en Hz, s11 complejo en el plano del conector)."""
     aj = antena.ajuste or vacio()
@@ -644,6 +697,7 @@ def asistente(antena, f, s11, f_obj, distancia_red_mm=None, eps_eff=None):
             rec['redes'] = sols
             if sols:
                 s = sols[0]
+                rec.update(_efecto_red(f, s11, f_obj, s, distancia_red_mm, eps_eff))
                 txt = lambda c: '0 Ω' if c[0] == '0 Ω' else (f'{c[1]:g} nH' if c[0] == 'L' else f'{c[1]:g} pF')
                 rec['acciones'].append(tr('Red en π: Z1 (serie) = {0}, {1} (a masa) = {2}, la otra derivación sin montar (|S11| calculado {3} dB con valores comerciales).', txt(s["serie"]), s["posicion"], txt(s["derivacion"]), s["s11_dB"]))
     return rec

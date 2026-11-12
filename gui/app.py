@@ -1251,9 +1251,9 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
     def recomendacion(f, s11):
         a = estado['antena']
         s = tipos.sustrato(estado['sustrato'])
-        w50 = ancho_microstrip(50, s.er, s.h)
+        w50 = ancho_microstrip(50, s.er, s.h_linea)
         return ajuste.asistente(a, f, s11, estado['f_MHz']*1e6, ajuste.distancia_conector_a_red(a),
-                                eps_eff_microstrip(s.er, s.h, w50))
+                                eps_eff_microstrip(s.er, s.h_linea, w50))
 
     def mostrar_asistente(f, s11, origen, anterior=None):
         a = estado['antena']
@@ -1282,6 +1282,14 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                 ui.label(tr('Alternativas para la red en π (valores comerciales E24):')).classes('text-caption q-mt-xs')
                 for r_ in rec['redes']:
                     ui.label(tr('· Z1 = {0}, {1} = {2} → |S11| ≈ {3} dB', txt(r_["serie"]), r_["posicion"], txt(r_["derivacion"]), r_["s11_dB"])).classes('text-caption')
+            if rec.get('piezas'):
+                ui.label(tr('Piezas para la primera red: {0}.', '; '.join(f"{q['ref']} = {q['valor']} ({q['descripcion']}, {q['montaje']})" for q in rec['piezas']))
+                         ).classes('text-caption q-mt-xs')
+                ui.label(tr('Por circuito con tu medida: S11 {0:g} dB en el objetivo (con componentes ±5 %, peor caso {1:g} dB); banda a −10 dB {2}; con ±5 %, {3}. '
+                            'Compra los componentes con dieléctrico C0G/NP0 (condensadores) y mide con ellos montados.',
+                            rec['s11_red_dB'], rec['s11_peor_dB'],
+                            tr('{0:g}–{1:g} MHz', *rec['banda_esperada_MHz']) if rec['banda_esperada_MHz'] else tr('ninguna'),
+                            tr('{0:g}–{1:g} MHz', *rec['banda_peor_MHz']) if rec['banda_peor_MHz'] else tr('ninguna'))).classes('text-caption')
             lo, hi = banda_actual()
             ui.plotly(T(graficas.smith(f, s11, (lo*1e6, hi*1e6), estado['f_MHz']*1e6))).classes('w-full h-[300px]')
 
@@ -1530,9 +1538,9 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
             a = estado['antena']
             try:
                 s = tipos.sustrato(estado['sustrato'])
-                w50 = ancho_microstrip(50, s.er, s.h)
+                w50 = ancho_microstrip(50, s.er, s.h_linea)
                 rec = ajuste.asistente(a, f, s11, estado['f_MHz']*1e6, ajuste.distancia_conector_a_red(a),
-                                       eps_eff_microstrip(s.er, s.h, w50))
+                                       eps_eff_microstrip(s.er, s.h_linea, w50))
                 vivo_txt.text = (tr('{0} · resonancia {1:g} MHz ({2:+g} %) · en el objetivo {3:g} dB · ', time.strftime("%H:%M:%S"), rec["f_medida_MHz"], rec["desvio_%"], rec["s11_en_f_obj_dB"])
                                  + (rec['acciones'][0] if rec['acciones'] else ''))
             except Exception:

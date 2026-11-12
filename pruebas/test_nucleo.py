@@ -94,6 +94,24 @@ def test_red_adaptacion_generica():
     assert [q['ref'] for q in sol['piezas']] == ['Z1', sol['posicion']]
 
 
+def test_asistente_con_medida_sintetica():
+    # F4.3: carga de 20 − j30 Ω a 868 MHz tras 15 mm de línea hasta la red (la medida está en el conector): la red propuesta,
+    # aplicada por circuito sobre esa misma Z, da ≤ −20 dB y el asistente da piezas, banda y peor caso
+    import numpy as np
+    a = tipos.generar('monopolo_recto', tipos.dimensionar('monopolo_recto', 868e6, {'ajuste': 1}))
+    f = np.linspace(750e6, 1000e6, 251)
+    ee = materiales.eps_eff_microstrip(4.5, 1.6, a.puerto['ancho_linea'])
+    d = 15.0
+    z_red = 20 - 30j + 0*f                                                   # en la posición de la red
+    z_con = ajuste._trasladar(z_red, 2*np.pi*f*np.sqrt(ee)/materiales.C0*d*1e-3)   # lo que mide el VNA en el conector
+    s11 = (z_con - 50)/(z_con + 50)
+    rec = ajuste.asistente(a, f, s11, 868e6, d, ee)
+    assert rec['Z_en_f_obj_ohm'] == pytest.approx([20, -30], abs=0.3)          # de-embedding de la línea
+    assert rec['s11_red_dB'] <= -20 and rec['s11_peor_dB'] <= -10
+    assert [q['ref'] for q in rec['piezas']][0] == 'Z1' and rec['piezas'][1]['ref'] in ('Z2', 'Z3')
+    assert rec['banda_esperada_MHz'] and rec['banda_esperada_MHz'][0] < 868 < rec['banda_esperada_MHz'][1]
+
+
 def test_componentes_simulados():
     # F4.1: texto → componente; serie y bobinas a masa van a la FDTD, un condensador a masa se aplica por circuito
     import numpy as np
