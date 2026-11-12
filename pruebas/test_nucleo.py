@@ -66,6 +66,24 @@ def test_antena_integrada(clave, posicion):
     assert a.radiador.intersection(box(zx0 - 1, zy0, zx1 + 1, zy1 + 1)).within(a.zona_libre.buffer(1e-6))
 
 
+def test_huella_integrar(tmp_path):
+    # F3.3: la huella lleva la zona de exclusión (todas las capas de cobre), el pad pasante de la vía de la IFA y el lado de Edge.Cuts
+    from antenas import exportar
+    p = tipos.dimensionar('ifa', 2441.75e6, {'integrada': 1, 'placa_x': 30, 'placa_y': 50})
+    a = tipos.generar('ifa', p)
+    ruta = tmp_path / 'h.kicad_mod'
+    exportar.huella_kicad(a, str(ruta), 'h_integrar', integrar=True)
+    t = ruta.read_text(encoding='utf-8')
+    assert '(keepout (tracks not_allowed) (vias not_allowed)' in t and '(copperpour not_allowed)' in t
+    assert '(layers "F.Cu" "B.Cu")' in t
+    assert '(pad "2" thru_hole' in t and 'Dwgs.User' in t
+    exportar.huella_kicad(a, str(ruta), 'h')              # la huella normal no lleva zona
+    assert '(keepout' not in ruta.read_text(encoding='utf-8')
+    ej = tmp_path / 'e.kicad_pcb'
+    exportar.placa_ejemplo_integrada(a, str(ej), 'h_integrar')
+    assert ej.read_text(encoding='utf-8').count('(keepout') == 2      # la de la huella y la de la placa
+
+
 def test_integrada_no_cabe():
     # la IFA de 868 MHz no cabe en 40 mm de ancho: error claro con lo que falta
     p = tipos.dimensionar('ifa', 868e6, {'integrada': 1, 'placa_x': 40, 'placa_y': 80})

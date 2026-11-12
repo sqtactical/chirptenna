@@ -190,9 +190,22 @@ Antes de fabricar (la web no comprueba con KiCad)
   4. Comprime los Gerber y los taladros en un .zip y súbelo al fabricante (JLCPCB: 2 capas,
      {sustrato}).
 
-Validado solo en simulación: mide la antena fabricada antes de fiarte.
+{integrar}Validado solo en simulación: mide la antena fabricada antes de fiarte.
 Manual (ajuste con marcas, puentes y red en π): {url}/blob/main/MANUAL.md
 Generado con Chirptenna (AGPL-3.0): {url}
+"""
+
+INTEGRAR = """Poner la antena en tu placa (la huella «_integrar»)
+  1. Copia la carpeta Antenas.pretty a tu proyecto y añádela en Preferencias → Gestionar bibliotecas de huellas.
+  2. Coloca la huella en una esquina o borde de tu placa: la línea discontinua de la capa Dwgs.User marca el lado que
+     tiene que coincidir con el borde de la placa (Edge.Cuts). El origen de la huella es el pad 1.
+  3. Conecta el pad 1 a tu línea de 50 Ω (microstrip con masa continua debajo). En la IFA, el pad 2 es la vía a masa y comparte
+     cobre con el pad 1: ponles la misma net (la de masa) o acepta el aviso de cortocircuito del DRC, que es el de la propia antena.
+  4. La huella lleva una zona de exclusión (sin pistas, vías ni relleno de masa en ninguna capa de cobre): rellena las zonas
+     de masa (B) y comprueba que no entran en ella. Si tu versión de KiCad no la aplica, dibuja una zona de exclusión igual.
+  5. Cose la masa con vías (cada λ/20, unos 6 mm a 2,4 GHz) a lo largo del borde de la masa junto a la zona de antena.
+  El archivo «_ejemplo_integrada.kicad_pcb» muestra una placa de ese tamaño con la huella colocada.
+
 """
 
 
@@ -215,6 +228,19 @@ def exportar(texto):
         huella = os.path.join(tmp, 'Antenas.pretty', f'{nombre}.kicad_mod')
         exp.huella_kicad(a, huella, nombre)
         archivos.append((huella, f'Antenas.pretty/{nombre}.kicad_mod'))
+        if a.info.get('integrada'):
+            # F3.3: huella con la zona de exclusión y una placa de ejemplo que la usa
+            hi = os.path.join(tmp, 'Antenas.pretty', f'{nombre}_integrar.kicad_mod')
+            exp.huella_kicad(a, hi, f'{nombre}_integrar', integrar=True)
+            archivos.append((hi, f'Antenas.pretty/{nombre}_integrar.kicad_mod'))
+            ej = os.path.join(tmp, f'{nombre}_ejemplo_integrada.kicad_pcb')
+            exp.placa_ejemplo_integrada(a, ej, f'{nombre}_integrar')
+            archivos.append((ej, f'{nombre}_ejemplo_integrada.kicad_pcb'))
+            extra += ('  ' + 'Antenas.pretty/' + f'{nombre}_integrar.kicad_mod   ' + tr('Huella para tu placa, con la zona de exclusión de la antena.') + '\n'
+                      + f'  {nombre}_ejemplo_integrada.kicad_pcb   ' + tr('Placa de ejemplo con la huella colocada en su esquina.') + '\n')
+            integrar = tr(INTEGRAR)
+        else:
+            integrar = ''
         if a.reflector:
             ref = os.path.join(tmp, f'{nombre}_reflector.kicad_pcb')
             exp.placa_reflector(a, ref, titulo)
@@ -245,5 +271,5 @@ def exportar(texto):
                 z.write(ruta, f'{nombre}/{arc}')
             z.writestr(f'{nombre}/diseno.json', json.dumps(diseno, ensure_ascii=False, indent=2, default=float))
             z.writestr(f'{nombre}/LEEME.txt', tr(LEEME, version=__version__, nombre=nombre, titulo=titulo,
-                                                 extra=extra, sustrato=tr(sustrato), url=URL_PROYECTO))
+                                                 extra=extra, sustrato=tr(sustrato), url=URL_PROYECTO, integrar=integrar))
     return salida.getvalue(), _json({'nombre': nombre, 'serigrafia': seri})

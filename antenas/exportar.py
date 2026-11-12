@@ -707,12 +707,24 @@ def _escribir_pcb(ruta, nets, cuerpo, antena):
         fh.write('\n'.join(cab + cuerpo) + '\n)\n')
 
 
-def huella_kicad(antena, ruta, nombre):
+def huella_kicad(antena, ruta, nombre, integrar=False):
     """Huella (.kicad_mod) solo con el radiador, para colocarla en una placa propia.
 
     El pad 1 (la alimentación) está en el origen de la huella. El patio (courtyard) marca
     la zona que debe quedar sin cobre en ambas caras (monopolos y Yagi).
+    integrar (antena integrada en una placa, F3.3): añade una zona de exclusión que cubre la zona de antena en todas las
+    capas de cobre, un pad pasante «2» en la vía a masa (IFA) y, en Dwgs.User, el lado que debe coincidir con Edge.Cuts.
     """
+    texto = _texto_huella(antena, nombre, integrar)
+    os.makedirs(os.path.dirname(ruta), exist_ok=True)
+    with open(ruta, 'w', encoding='utf-8') as fh:
+        fh.write(texto)
+
+
+def _texto_huella(antena, nombre, integrar=False, nets=None, en=None):
+    """Texto del .kicad_mod. nets: {número de pad: (índice de net, nombre)} y en: (x, y) en KiCad, para incrustarla en
+    una placa (`placa_ejemplo_integrada`); sin ellos, es el fichero de la biblioteca."""
+    nets = nets or {}
     conv = _Conversor(antena)
     ancla = conv.p(*antena.puerto['alimentacion'])
     piezas = poligonos(antena.radiador)
@@ -727,9 +739,10 @@ def huella_kicad(antena, ruta, nombre):
         for pol in trozos:
             pts = [(x - ax, y - ay) for x, y in conv.anillo(pol.exterior.coords)]
             prims.append(f'      (gr_poly (pts {_xy(pts)}) (width 0) (fill yes))')
+        net = f' (net {nets[numero][0]} "{nets[numero][1]}")' if numero in nets else ''
         return (f'  (pad "{numero}" smd custom (at {ax - ancla[0]:.4f} {ay - ancla[1]:.4f}) (size 0.3 0.3) '
                 f'(layers "F.Cu")\n    (options (clearance outline) (anchor rect))\n    (primitives\n'
-                + '\n'.join(prims) + f'\n    ) (uuid "{_u()}"))')
+                + '\n'.join(prims) + f'\n    ){net} (uuid "{_u()}"))')
 
     lineas.append(pad_rel('1', sin_agujeros(principal), ancla, True))
     for i, otra in enumerate(p for p in piezas if p is not principal):
@@ -754,16 +767,122 @@ def huella_kicad(antena, ruta, nombre):
         sin_cobre = tr('Sin cobre en ambas caras')
         lineas.append(f'  (fp_text user "{sin_cobre}" (at {pts[0][0] + 2:.3f} {pts[0][1] - 1:.3f} 0) '
                       f'(layer "Cmts.User") (uuid "{_u()}") (effects (font (size 1 1) (thickness 0.15)) (justify left)))')
+    if integrar and antena.zona_libre is not None:
+        zl = antena.zona_libre
+        if not isinstance(zl, Polygon):
+            zl = max(poligonos(zl), key=lambda q: q.area)
+        pts = [(x - ancla[0], y - ancla[1]) for x, y in conv.anillo(zl.exterior.coords)]
+        # zona de exclusión: ni pistas, ni vías, ni relleno de masa en ninguna capa de cobre. Los pads de la propia antena y su
+        # huella quedan permitidos (si no, el DRC marcaría el radiador contra su propia zona)
+        lineas.append(f'  (zone (net 0) (net_name "") (layers "F.Cu" "B.Cu") (uuid "{_u()}") (name "{tr("zona de antena")}") '
+                      f'(hatch edge 0.5) (connect_pads (clearance 0)) (min_thickness 0.25) (filled_areas_thickness no)\n'
+                      f'    (keepout (tracks not_allowed) (vias not_allowed) (pads allowed) (copperpour not_allowed) '
+                      f'(footprints allowed))\n    (fill (thermal_gap 0.5) (thermal_bridge_width 0.5))\n'
+                      f'    (polygon (pts {_xy(pts)})))')
+        # vía a masa de la antena (IFA): pad pasante, unido a la masa de la placa por el relleno de B.Cu
+        for k, (vx, vy) in enumerate(antena.vias):
+            kx, ky = conv.p(vx, vy)
+            numero = str(len(piezas) + 1 + k)
+            net = f' (net {nets[numero][0]} "{nets[numero][1]}")' if numero in nets else ''
+            lineas.append(f'  (pad "{numero}" thru_hole circle (at {kx - ancla[0]:.4f} {ky - ancla[1]:.4f}) (size 0.8 0.8) '
+                          f'(drill 0.4) (layers "*.Cu" "*.Mask"){net} (uuid "{_u()}"))')
+        # el lado de la zona que coincide con el borde de la placa (Edge.Cuts): hay que alinearlo al colocar la huella
+        x0, y0, x1, y1 = antena.contorno.bounds
+        zx0, zy0, zx1, zy1 = zl.bounds
+        lados = [(zx0, zy1, zx1, zy1)] if abs(zy1 - y1) < 1e-6 else []
+        if abs(zx0 - x0) < 1e-6:
+            lados.append((zx0, zy0, zx0, zy1))
+        if abs(zx1 - x1) < 1e-6:
+            lados.append((zx1, zy0, zx1, zy1))
+        for ax, ay, bx, by in lados:
+            (pax, pay), (pbx, pby) = conv.p(ax, ay), conv.p(bx, by)
+            lineas.append(f'  (fp_line (start {pax - ancla[0]:.4f} {pay - ancla[1]:.4f}) (end {pbx - ancla[0]:.4f} {pby - ancla[1]:.4f}) '
+                          f'(stroke (width 0.25) (type dash)) (layer "Dwgs.User") (uuid "{_u()}"))')
+        if lados:
+            ax, ay, bx, by = lados[0]
+            (pax, pay), (pbx, pby) = conv.p(ax, ay), conv.p(bx, by)
+            lineas.append(f'  (fp_text user "{tr("borde de la placa aquí")}" (at {(pax + pbx)/2 - ancla[0]:.3f} {(pay + pby)/2 - ancla[1] + 1.2:.3f} 0) '
+                          f'(layer "Dwgs.User") (uuid "{_u()}") (effects (font (size 1 1) (thickness 0.15))))')
+    en_pcb = f'(uuid "{_u()}") (at {en[0]:.4f} {en[1]:.4f}) ' if en else ''
     texto = (f'(footprint "{nombre}" (version 20240108) (generator "generador_antenas") (generator_version "8.0")\n'
-             f'  (layer "F.Cu")\n  (descr "{antena.tipo} generado; f estimada {antena.info.get("f_estimada_MHz")} MHz; '
+             f'  (layer "F.Cu") {en_pcb}\n  (descr "{antena.tipo} generado; f estimada {antena.info.get("f_estimada_MHz")} MHz; '
              f'alimentar en el pad 1 con línea de 50 Ohm")\n  (attr smd)\n'
              f'  (property "Reference" "AE**" (at 0 -2 0) (layer "F.SilkS") (uuid "{_u()}") '
              f'(effects (font (size 1 1) (thickness 0.15))))\n'
              f'  (property "Value" "{nombre}" (at 0 2 0) (layer "F.Fab") (uuid "{_u()}") '
              f'(effects (font (size 1 1) (thickness 0.15))))\n' + '\n'.join(lineas) + '\n)\n')
-    os.makedirs(os.path.dirname(ruta), exist_ok=True)
-    with open(ruta, 'w', encoding='utf-8') as fh:
-        fh.write(texto)
+    return texto
+
+
+def placa_ejemplo_integrada(antena, ruta, nombre):
+    """Placa de ejemplo de una antena integrada: la placa anfitriona vacía (masa GND en las dos caras) con la huella colocada
+    en su esquina. Sirve para comprobar que el relleno de masa respeta la zona de antena sin tocar nada a mano (el DRC se
+    ejecuta con `--refill-zones`: es KiCad quien rellena)."""
+    conv = _Conversor(antena)
+    nets = ['', 'GND', 'ANT']
+    ancla = conv.p(*antena.puerto['alimentacion'])
+    corto = bool(antena.vias)            # IFA: el cobre de la antena y la vía son el mismo, unido a masa
+    n1 = (1, 'GND') if corto else (2, 'ANT')
+    pads = {'1': n1}
+    for k in range(len(antena.vias)):
+        pads[str(len(poligonos(antena.radiador)) + 1 + k)] = (1, 'GND')
+    cuerpo = []
+    for anillo in [antena.contorno.exterior] + list(antena.contorno.interiors):
+        cuerpo.append(f'  (gr_poly (pts {_xy(conv.anillo(anillo.coords))}) '
+                      f'(stroke (width 0.1) (type default)) (fill none) (layer "Edge.Cuts") (uuid "{_u()}"))')
+    dentro = antena.contorno.buffer(-0.5, join_style='mitre')       # el mismo retranqueo que `tipos.BORDE_COBRE`
+    for capa in ('F.Cu', 'B.Cu'):
+        for pol in poligonos(dentro):
+            pts = _xy(conv.anillo(pol.exterior.coords))
+            cuerpo.append(f'  (zone (net 1) (net_name "GND") (layer "{capa}") (uuid "{_u()}") (hatch edge 0.5)\n'
+                          f'    (connect_pads yes (clearance 0)) (min_thickness 0.2) (filled_areas_thickness no)\n'
+                          f'    (fill yes (thermal_gap 0.5) (thermal_bridge_width 0.5) (island_removal_mode 1))\n'
+                          f'    (polygon (pts {pts})))')
+    zl = antena.zona_libre
+    if not isinstance(zl, Polygon):
+        zl = max(poligonos(zl), key=lambda q: q.area)
+    # KiCad no aplica (al menos con `kicad-cli --refill-zones`) la zona de exclusión que va dentro de la huella: la misma zona, a nivel
+    # de placa, hace que el ejemplo se vea y se compruebe igual. En KiCad con la interfaz, la de la huella es la que vale.
+    pts = _xy(conv.anillo(zl.exterior.coords))
+    cuerpo.append(f'  (zone (net 0) (net_name "") (layers "F.Cu" "B.Cu") (uuid "{_u()}") (name "{tr("zona de antena")}") (hatch edge 0.5) '
+                  f'(connect_pads (clearance 0)) (min_thickness 0.25) (filled_areas_thickness no)\n'
+                  f'    (keepout (tracks not_allowed) (vias not_allowed) (pads allowed) (copperpour not_allowed) (footprints allowed))\n'
+                  f'    (fill (thermal_gap 0.5) (thermal_bridge_width 0.5))\n    (polygon (pts {pts})))')
+    prohibido = zl.buffer(0.8)
+    # (la línea de 50 Ω hasta el pad 1 la traza cada usuario con su placa: aquí queda el pad sin conectar)
+    x0, y0 = antena.puerto['alimentacion']
+    w50 = antena.puerto.get('ancho_linea', 3.0)
+    prohibido = prohibido.union(box(x0 - w50/2 - 0.8, antena.contorno.bounds[1], x0 + w50/2 + 0.8, y0))
+    # vías de cosido entre las masas de las dos caras (sin ellas el DRC da cobre aislado en los trozos que deja la línea)
+    paso = 8.0
+    libre = dentro.buffer(-0.8).difference(prohibido)
+    minx, miny, maxx, maxy = antena.contorno.bounds
+    for k, pol in enumerate(sorted(poligonos(libre), key=lambda q: -q.area)):
+        if pol.area < 1:
+            continue
+        cx, cy = pol.representative_point().x, pol.representative_point().y
+        if k == 0:
+            # un pad de masa (punto de prueba): sin ningún pad de su net, el DRC da la zona por cobre aislado
+            kx, ky = conv.p(cx, cy)
+            cuerpo.append(f'  (footprint "Antenas:GND" (layer "F.Cu") (uuid "{_u()}") (at {kx:.4f} {ky:.4f})\n'
+                          f'    (property "Reference" "TP1" (at 0 -2 0) (layer "F.Fab") (uuid "{_u()}") '
+                          f'(effects (font (size 1 1) (thickness 0.15))))\n    (attr smd)\n'
+                          f'    (pad "1" thru_hole circle (at 0 0) (size 1.4 1.4) (drill 0.7) (layers "*.Cu" "*.Mask") '
+                          f'(net 1 "GND") (uuid "{_u()}")))')
+            continue
+        puestos = [(cx, cy)]
+        nx, ny = int((maxx - minx)/paso), int((maxy - miny)/paso)
+        for i in range(nx + 1):
+            for j in range(ny + 1):
+                q = Point(minx + paso/2 + i*paso, miny + paso/2 + j*paso)
+                if pol.contains(q) and q.distance(Point(cx, cy)) > 0.5:
+                    puestos.append((q.x, q.y))
+        for vx, vy in puestos:
+            kx, ky = conv.p(vx, vy)
+            cuerpo.append(f'  (via (at {kx:.4f} {ky:.4f}) (size 0.8) (drill 0.4) (layers "F.Cu" "B.Cu") (net 1) (uuid "{_u()}"))')
+    texto = _texto_huella(antena, nombre, True, nets=pads, en=ancla)
+    cuerpo.append('  ' + texto.replace('\n', '\n  ').rstrip())
+    _escribir_pcb(ruta, nets, cuerpo, antena)
 
 
 def gerber(ruta_pcb, carpeta, ruta_zip):
@@ -785,10 +904,12 @@ def gerber(ruta_pcb, carpeta, ruta_zip):
             z.write(os.path.join(carpeta, n), n)
 
 
-def drc(ruta_pcb):
-    """Ejecuta el DRC de KiCad y devuelve las infracciones relevantes (sin avisos esperados)."""
+def drc(ruta_pcb, rellenar=False):
+    """Ejecuta el DRC de KiCad y devuelve las infracciones relevantes (sin avisos esperados).
+    rellenar: KiCad rellena las zonas antes (y guarda la placa rellena), para placas con zonas sin relleno."""
     salida = ruta_pcb + '.drc.json'
-    subprocess.run([KICAD_CLI, 'pcb', 'drc', '--format', 'json', '-o', salida, ruta_pcb], capture_output=True)
+    extra = ['--refill-zones', '--save-board'] if rellenar else []
+    subprocess.run([KICAD_CLI, 'pcb', 'drc', '--format', 'json', '-o', salida] + extra + [ruta_pcb], capture_output=True)
     d = json.load(open(salida, encoding='utf-8'))
     ignorar = {'lib_footprint_issues', 'lib_footprint_mismatch', 'silk_overlap', 'silk_over_copper',
                'silk_edge_clearance', 'track_dangling'}
@@ -861,6 +982,13 @@ def exportar_todo(antena, carpeta, nombre, titulo='', etiqueta=None, logo=True):
                                                         if not k.startswith('_')},
                    'info': antena.info}, fh, indent=2, ensure_ascii=False, default=float)
     rutas['drc'] = drc(rutas['placa'])
+    if antena.info.get('integrada'):
+        # F3.3: huella con la zona de exclusión y una placa de ejemplo que la usa (KiCad rellena la masa y respeta la zona)
+        rutas['huella_integrar'] = os.path.join(carpeta, 'Antenas.pretty', f'{nombre}_integrar.kicad_mod')
+        huella_kicad(antena, rutas['huella_integrar'], f'{nombre}_integrar', integrar=True)
+        rutas['placa_ejemplo'] = os.path.join(carpeta, f'{nombre}_ejemplo_integrada.kicad_pcb')
+        placa_ejemplo_integrada(antena, rutas['placa_ejemplo'], f'{nombre}_integrar')
+        rutas['drc'] = rutas['drc'] + [(t, sev, 'ejemplo: ' + d) for t, sev, d in drc(rutas['placa_ejemplo'], rellenar=True)]
     if antena.reflector:
         # Panel: segunda placa (reflector), con sus Gerber y su DXF
         rutas['placa_reflector'] = os.path.join(carpeta, f'{nombre}_reflector.kicad_pcb')

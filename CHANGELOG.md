@@ -11,6 +11,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
   placa de tu producto. Parámetros `integrada`, `placa_x`, `placa_y`, `posicion` (esquina izquierda, derecha o centrada), `zona_x`, `zona_y`
   y `margen_zona`: la masa ocupa toda la placa menos la zona de antena (sin cobre en ninguna capa) y el conector se queda en el borde
   opuesto para medir el prototipo. Si algo no cabe, el error dice cuántos mm faltan. Interfaz de escritorio y web.
+- **Huella para integrar** (F3.3): con una antena integrada, el export añade `Antenas.pretty/<nombre>_integrar.kicad_mod` (zona de exclusión
+  en todas las capas de cobre, pad pasante de la vía a masa y marca del borde de placa) y `<nombre>_ejemplo_integrada.kicad_pcb` (placa con
+  masa y la huella en su esquina; DRC limpio). También en la web (zip con LÉEME de pasos) y en la interfaz de escritorio.
 - **Barrido de la IFA integrada** (F3.2, `docs/desarrollo/integracion_ifa.md`): a 2,4 GHz se centra en 2–4 simulaciones con placas de 25 × 40 a
   80 × 120 mm y la banda crece con la placa (124 → 314 MHz); el meandro integrado no adapta. Consejos nuevos para la antena integrada.
 - **Pruebas con pytest** (`pruebas/test_nucleo.py`, `requirements-dev.txt`): Koch, Sierpinski, microstrip de 50 Ω, redes en L,

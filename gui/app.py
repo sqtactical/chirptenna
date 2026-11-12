@@ -1507,6 +1507,8 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                 ui.button(icon='folder_open', on_click=lambda: os.startfile(carpeta)).props('flat round dense')
             for clave, texto in (('gerber_zip', tr('Gerber para JLC (.zip)')), ('placa', tr('Placa de prueba KiCad (.kicad_pcb)')),
                                  ('huella', tr('Huella KiCad (.kicad_mod)')), ('dxf', tr('DXF para EasyEDA')),
+                                 ('huella_integrar', tr('Huella para tu placa, con zona de exclusión (.kicad_mod)')),
+                                 ('placa_ejemplo', tr('Placa de ejemplo con la huella en su esquina (.kicad_pcb)')),
                                  ('gerber_zip_reflector', tr('Reflector: Gerber para JLC (.zip)')),
                                  ('placa_reflector', tr('Reflector: placa KiCad (.kicad_pcb)')),
                                  ('dxf_reflector', tr('Reflector: DXF (chapa o placa)'))):

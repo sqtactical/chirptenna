@@ -110,6 +110,16 @@ Decisión de diseño ya tomada: **no se crea un generador nuevo por tipo**. Se e
   entra en la zona; `prueba_web.py` en la CI.
 - **Hecho cuando**: la huella se coloca en una placa de KiCad y el relleno de masa respeta la zona sin tocar nada
   a mano. Pide al usuario que lo pruebe en un proyecto suyo: es el uso real.
+- **HECHA en parte (12-11), falta la prueba del usuario**: `exportar.huella_kicad(..., integrar=True)` → `Antenas.pretty/<nombre>_integrar.kicad_mod`
+  (zona de exclusión en F.Cu y B.Cu, pad pasante de la vía de la IFA, lado que debe coincidir con Edge.Cuts en `Dwgs.User`) y
+  `exportar.placa_ejemplo_integrada` → `<nombre>_ejemplo_integrada.kicad_pcb` (placa con masa en las dos caras, vías de cosido y la huella en su
+  esquina). `exportar_todo` y `web_api.exportar` los incluyen (LÉEME con los pasos, en es/en/fr/de) y la interfaz de escritorio ofrece
+  su descarga. DRC con `kicad-cli --refill-zones` (nuevo parámetro `exportar.drc(rellenar=True)`): limpio en la IFA y el monopolo recto
+  (`comprobar_tipos` 12/12). **Descubierto**: `kicad-cli pcb drc --refill-zones` **no aplica la zona de exclusión que va dentro de la huella**
+  (probado con variantes de capas, nombre y atributos, y con la huella oficial del ESP32: solo la zona a nivel de placa recorta el relleno), así
+  que el ejemplo lleva la misma zona también a nivel de placa. Si KiCad con interfaz la aplica o no está **sin comprobar**: ahí queda la
+  prueba del usuario (colocar la huella en un proyecto suyo, rellenar las masas con «B» y mirar que no entran en la zona). Fuera:
+  la IFA tiene el pad 1 y el 2 sobre el mismo cobre (cortocircuito en continua, el de la propia antena): el LÉEME lo explica.
 
 ## F3.4 · Alimentación desde un chip
 
