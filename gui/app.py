@@ -125,7 +125,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
     pestana (una de PESTANAS_URL), diseno (nombre en «Mis diseños») y tema ('claro'/'oscuro', sin guardarlo)."""
     # idioma: el de la URL (sin guardarlo), si no el guardado, si no CHIRPTENNA_IDIOMA o el castellano
     i18n.fijar_idioma(i18n.idioma_inicial(idioma or app.storage.general.get('idioma')))
-    ui.colors(primary='#6a62e6', secondary='#2f2a8f', accent='#ffb454', positive='#1f9d55')
+    ui.colors(primary='#b0841a', secondary='#1b1f4d', accent='#e0b84f', positive='#1f9d55')
     ui.input.default_props('outlined dense')
     ui.number.default_props('outlined dense')
     ui.select.default_props('outlined dense options-dense')
@@ -133,12 +133,12 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
         /* Paleta verde azulada (claro y oscuro). Las variables viven en body para que las usen todas las reglas propias. */
         body.body--light {
             --fondo: #f4f5fb; --tarjeta: #ffffff; --texto: #1b2040; --muted: #5d6385; --linea: #dde0ef;
-            --acento: #4f46c8; --suave: #e8e9fb; --profundo: #2f2a8f; --entrada: #fafaff; --chip: #dcdaf8; --chip-texto: #2f2a8f;
+            --acento: #9a7410; --suave: #fbf1d3; --profundo: #5c4300; --entrada: #fafaff; --chip: #f0cf6b; --chip-texto: #3a2c00;
             --sombra: 0 8px 28px #1b204014; --aviso: #bf360c; --violeta: #5e35b1;
         }
         body.body--dark {
             --fondo: #0e1022; --tarjeta: #171a33; --texto: #e9ebfa; --muted: #a2a8cc; --linea: #2c3157;
-            --acento: #ffb454; --suave: #262a5c; --profundo: #ffd29a; --entrada: #12152b; --chip: #ffb454; --chip-texto: #2b1a05;
+            --acento: #e0b84f; --suave: #262a5c; --profundo: #f5de94; --entrada: #12152b; --chip: #e0b84f; --chip-texto: #2b2200;
             --sombra: 0 8px 28px #00000040; --aviso: #ffb74d; --violeta: #c5b3f0;
         }
         body { background: var(--fondo); color: var(--texto);
