@@ -125,33 +125,85 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
     pestana (una de PESTANAS_URL), diseno (nombre en «Mis diseños») y tema ('claro'/'oscuro', sin guardarlo)."""
     # idioma: el de la URL (sin guardarlo), si no el guardado, si no CHIRPTENNA_IDIOMA o el castellano
     i18n.fijar_idioma(i18n.idioma_inicial(idioma or app.storage.general.get('idioma')))
+    ui.colors(primary='#1b8a5e', secondary='#144c3c', accent='#67ea94', positive='#1f9d55')
+    ui.input.default_props('outlined dense')
+    ui.number.default_props('outlined dense')
+    ui.select.default_props('outlined dense options-dense')
     ui.add_css('''
-        body.body--light { background: #eef1f3; }
-        body.body--dark { background: #121417; }
+        /* Paleta verde azulada (claro y oscuro). Las variables viven en body para que las usen todas las reglas propias. */
+        body.body--light {
+            --fondo: #f3f6f5; --tarjeta: #ffffff; --texto: #183b38; --muted: #5b716e; --linea: #d9e5df;
+            --acento: #1b8a5e; --suave: #e1f5ea; --profundo: #144c3c; --entrada: #fbfdfc; --verde: #67ea94;
+            --sombra: 0 8px 28px #193c3014; --aviso: #bf360c; --violeta: #5e35b1;
+        }
+        body.body--dark {
+            --fondo: #0d1917; --tarjeta: #142521; --texto: #e4f5ed; --muted: #a0b8ae; --linea: #30483e;
+            --acento: #67ea94; --suave: #1b3a30; --profundo: #96f3b6; --entrada: #10201b; --verde: #67ea94;
+            --sombra: 0 8px 28px #00000030; --aviso: #ffb74d; --violeta: #c5b3f0;
+        }
+        body { background: var(--fondo); color: var(--texto);
+               font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+        .nicegui-content { max-width: 1320px; margin: 0 auto; width: 100%; }
         /* Colores propios: los de Quasar (text-grey-8…) van en un @layer con !important y no se pueden
            cambiar para el tema oscuro, así que aquí no se usan. */
-        .texto-sec { color: #5f6b73; }
-        .body--dark .texto-sec { color: #b4c0c8; }
-        .texto-aviso { color: #bf360c; }
-        .body--dark .texto-aviso { color: #ffb74d; }
-        .texto-violeta { color: #5e35b1; }
-        .body--dark .texto-violeta { color: #c5b3f0; }
-        .icono-titulo { color: #546e7a; }
-        .body--dark .icono-titulo { color: #90a4ae; }
-        .pestanas { color: #37474f; }
-        .body--dark .pestanas { color: #e3e9ed; }
-        .pestanas .q-tab--active { color: #1976d2; }
-        .body--dark .pestanas .q-tab--active { color: #64b5f6; }
-        .body--dark .q-field__label { color: #b4c0c8; }
-        .body--dark .q-table tbody td { color: #e6ebee; }
-        .tarjeta-tipo { transition: box-shadow .15s, transform .15s; }
+        .texto-sec { color: var(--muted); }
+        .texto-aviso { color: var(--aviso); }
+        .texto-violeta { color: var(--violeta); }
+        .ayuda-param { color: var(--muted); cursor: help; }
+        /* Cabecera */
+        .cabecera { background: linear-gradient(115deg, #0f3d31 0%, #1b6b52 100%); color: #e4f5ed;
+                    padding: 12px 24px; border-bottom: 1px solid #ffffff1a; box-shadow: none; }
+        .body--dark .cabecera { background: var(--tarjeta); border-bottom: 1px solid var(--linea); }
+        .marca-titulo { font-size: 1.15rem; font-weight: 700; line-height: 1.1; color: #fff; }
+        .marca-sub { font-size: .72rem; color: #cfeee0; opacity: .85; line-height: 1.1; }
+        .pildora { border: 1px solid #ffffff40; border-radius: 30px; padding: 3px 10px; font-size: .72rem; color: #d9f3e6; }
+        .logo-marca { border-radius: 12px; background: #e4f5ed; padding: 3px; }
+        .cabecera .q-field--outlined .q-field__control { background: #ffffff1f; border-radius: 30px; }
+        .cabecera .q-field--outlined .q-field__control:before { border-color: #ffffff40; }
+        .cabecera .q-field__native, .cabecera .q-field__input, .cabecera .q-select__dropdown-icon { color: #fff; }
+        /* Portada de la galería */
+        .eyebrow { color: var(--acento); font-size: .72rem; font-weight: 750; letter-spacing: .14em; text-transform: uppercase; }
+        .hero-titulo { font-size: 2.3rem; font-weight: 750; line-height: 1.1; letter-spacing: -.02em; color: var(--texto); }
+        .hero-sub { color: var(--muted); font-size: .95rem; max-width: 60ch; }
+        /* Tarjetas */
+        .q-card { background: var(--tarjeta); color: var(--texto); border: 1px solid var(--linea);
+                  border-radius: 17px; box-shadow: var(--sombra); }
+        .q-card.q-card--flat { box-shadow: var(--sombra); }
+        .q-expansion-item { border-radius: 14px; }
+        .icono-titulo { background: var(--verde); color: #103424; border-radius: 50%; padding: 6px; font-size: 1.15rem; }
+        .barra-diseno { border-color: var(--linea); }
+        .tarjeta-tipo { transition: box-shadow .15s, transform .15s, border-color .15s; }
         .tarjeta-tipo .q-badge { margin-top: auto; align-self: flex-start; }
-        .tarjeta-tipo:hover { box-shadow: 0 3px 10px rgba(0,0,0,.18); transform: translateY(-2px); }
+        .tarjeta-tipo:hover { border-color: var(--acento); box-shadow: 0 10px 28px #00000026; transform: translateY(-2px); }
         .miniatura svg { width: 200px; height: 110px; display: block; }
-        .ayuda-param { color: #78909c; cursor: help; }
-        .body--dark .ayuda-param { color: #90a4ae; }
-        .q-field__label { font-size: 0.82rem; }
-        .q-tab__label { font-size: 0.85rem; }
+        /* Pestañas en píldora */
+        .pestanas { color: var(--muted); border-bottom: 1px solid var(--linea); padding-bottom: 6px; }
+        .pestanas .q-tabs__content { gap: 4px; }
+        .pestanas .q-tab { border-radius: 10px; min-height: 40px; padding: 0 14px; }
+        .pestanas .q-tab:hover { background: var(--suave); }
+        .pestanas .q-tab--active { color: var(--profundo) !important; background: var(--suave); }
+        .pestanas .q-tab--active .q-tab__content, .pestanas .q-tab--active .q-icon { color: var(--profundo) !important; }
+        .pestanas .q-tab__indicator, .pestanas .q-focus-helper { display: none; }
+        .q-tab__label { font-size: .85rem; font-weight: 600; }
+        /* Campos y botones */
+        .q-field--outlined { margin-bottom: 4px; }
+        .q-field--outlined .q-field__control { border-radius: 9px; background: var(--entrada); min-height: 40px; }
+        .q-field--outlined .q-field__control:before { border-color: var(--linea); }
+        .q-field--outlined.q-field--focused .q-field__control:after { border-color: var(--acento); }
+        .q-field__label { font-size: .82rem; color: var(--muted); }
+        .q-field__native, .q-field__input, .q-select__dropdown-icon { color: var(--texto); }
+        .q-btn { border-radius: 9px; font-weight: 600; }
+        .q-btn--outline { border-color: var(--linea); color: var(--acento); }
+        .body--dark .q-btn--outline:hover { background: var(--suave); }
+        .q-badge { border-radius: 30px; }
+        .q-table tbody td { color: var(--texto); }
+        .q-separator { background: var(--linea); }
+        .q-menu { background: var(--tarjeta); color: var(--texto); border: 1px solid var(--linea); border-radius: 12px; }
+        .q-item__label--caption { color: var(--muted); }
+        @media (max-width: 600px) {
+            .hero-titulo { font-size: 1.7rem; }
+            .cabecera { padding: 10px 12px; }
+        }
     ''')
     # ================================================================== cabecera
     # Easter egg: 5 pinchazos seguidos en el grillo pasan al «idioma LoRa» (y otros 5 lo quitan)
@@ -166,18 +218,19 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
             app.storage.general['idioma'] = i18n.IDIOMA_BASE if i18n.idioma() == i18n.IDIOMA_LORA else i18n.IDIOMA_LORA
             ui.navigate.to('/')
 
-    with ui.header().classes('bg-blue-grey-9 items-center q-py-xs gap-3'):
+    with ui.header().props('flat').classes('cabecera items-center gap-3'):
         if os.path.exists(LOGO):
-            ui.image(LOGO).classes('w-9 h-9').on('click', clic_logo)
-        ui.label(tr('Chirptenna')).classes('text-h6')
-        ui.label(tr('antenas impresas para PCB')).classes('text-caption text-blue-grey-2 gt-xs')
-        ui.badge(f'v{__version__}', color='orange-9').props('outline').classes('gt-xs') \
+            ui.image(LOGO).classes('w-11 h-11 logo-marca cursor-pointer').on('click', clic_logo)
+        with ui.column().classes('gap-0'):
+            ui.label(tr('Chirptenna')).classes('marca-titulo')
+            ui.label(tr('antenas impresas para PCB')).classes('marca-sub gt-xs')
+        ui.label(f'v{__version__}').classes('pildora gt-xs') \
             .tooltip(tr('Alpha: validado solo en simulación. Mide siempre la antena fabricada.'))
         ui.space()
         sel_idioma = ui.select(i18n.idiomas(), value=i18n.idioma()).props('dense borderless options-dense dark') \
             .classes('text-caption w-28').tooltip(tr('Idioma de la interfaz'))
-        lbl_diseno = ui.label().classes('text-subtitle2')
-        lbl_resumen = ui.label().classes('text-caption text-blue-grey-2 gt-sm')
+        lbl_diseno = ui.label().classes('pildora')
+        lbl_resumen = ui.label().classes('marca-sub gt-sm')
         btn_tema = ui.button().props('flat round dense color=white')
 
     # ================================================================== tema claro / oscuro
@@ -195,7 +248,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
         """Adapta una figura de Plotly al tema actual (se llama en cada ui.plotly / update_figure)."""
         if not tema['oscuro']:
             return fig
-        fondo, rejilla, texto = '#1d2023', '#3a3f44', '#e0e0e0'
+        fondo, rejilla, texto = '#10201b', '#30483e', '#e4f5ed'
         fig.update_layout(template='plotly_dark', paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor=fondo,
                           font_color=texto)
         fig.update_xaxes(gridcolor=rejilla, zerolinecolor='#555')
@@ -284,11 +337,15 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
     with ui.tab_panels(pestanas, value=t_gal).classes('w-full bg-transparent'):
         # -------------------------------------------------------------- 0. Galería de tipos
         with ui.tab_panel(t_gal).classes('q-pa-sm'):
-            with ui.row().classes('w-full items-center gap-2'):
-                ui.label(tr('Elige el tipo de antena')).classes('text-h6')
+            with ui.row().classes('w-full items-end gap-2 q-pt-md'):
+                with ui.column().classes('gap-1'):
+                    ui.label(tr('Antenas impresas para PCB')).classes('eyebrow')
+                    ui.label(tr('Diseña la antena de tu placa.')).classes('hero-titulo')
+                    ui.label(tr('Elige el tipo, ajústalo a tu banda, simula y descarga los archivos listos para fabricar.')).classes('hero-sub')
                 ui.space()
                 ui.button(tr('Abrir un diseño guardado'), icon='folder_open',
                           on_click=lambda: pestanas.set_value(t_bib)).props('outline no-caps')
+            ui.label(tr('Elige el tipo de antena')).classes('text-subtitle1 text-weight-bold q-mt-md')
             ui.label(tr('Al elegirla se dimensiona para la banda de la barra de arriba. Solo verás los parámetros '
                      'básicos; el resto está en «Ajustes avanzados». Todo está validado solo en simulación.')
                      ).classes('text-caption texto-sec')

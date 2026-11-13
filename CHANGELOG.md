@@ -11,6 +11,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
   placa de tu producto. Parámetros `integrada`, `placa_x`, `placa_y`, `posicion` (esquina izquierda, derecha o centrada), `zona_x`, `zona_y`
   y `margen_zona`: la masa ocupa toda la placa menos la zona de antena (sin cobre en ninguna capa) y el conector se queda en el borde
   opuesto para medir el prototipo. Si algo no cabe, el error dice cuántos mm faltan. Interfaz de escritorio y web.
+- **Interfaz renovada**: nueva paleta verde azulada en claro y oscuro, cabecera con degradado y logo, pestañas en píldora, tarjetas redondeadas con borde, campos con contorno y una
+  portada en la galería («Diseña la antena de tu placa»). Inspirada en compilador.albacetemesh.es. Comprobada en escritorio y móvil.
 - **Exportar el diagrama** (F4.6, `antenas/diagrama.py`): «Exportar diagrama (CSV)» en Simulación (θ, φ, directividad y ganancia en dBi); el máximo coincide con el del resultado.
 - **Informe en PDF** (F4.5, `antenas/informe.py`): botón «Informe en PDF» en Fabricar con la portada y la vista, los parámetros, los problemas conocidos y los consejos y, si el diseño
   tiene simulación, S11, ROE, Smith, diagrama, ganancia, eficiencia, tolerancias, entorno y red de adaptación. En castellano, inglés, francés y alemán.
