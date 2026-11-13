@@ -6,7 +6,7 @@
 
 *[English version](README.en.md)*
 
-> **Estado: alpha (v0.3.0-alpha).** Validado solo en simulación: todavía no se ha medido ninguna
+> **Estado: alpha (v0.4.0-alpha).** Validado solo en simulación: todavía no se ha medido ninguna
 > placa fabricada. **Se buscan medidas reales**: si fabricas una antena y la mides, compártela con
 > la plantilla [«Medida real»](../../issues/new/choose). Cómo colaborar: [CONTRIBUTING.md](CONTRIBUTING.md).
 > Cambios de cada versión: [CHANGELOG.md](CHANGELOG.md). Hoja de ruta: [ROADMAP.md](ROADMAP.md).

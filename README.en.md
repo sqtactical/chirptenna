@@ -6,7 +6,7 @@
 
 *[Versión en castellano](README.md)*
 
-> **Status: alpha (v0.3.0-alpha).** Validated in simulation only: no manufactured board has been
+> **Status: alpha (v0.4.0-alpha).** Validated in simulation only: no manufactured board has been
 > measured yet. **Real measurements wanted**: if you build an antenna and measure it, share it with
 > the [“Real measurement”](../../issues/new/choose) template. How to contribute: [CONTRIBUTING.md](CONTRIBUTING.md).
 > Release notes: [CHANGELOG.md](CHANGELOG.md). Roadmap (in Spanish): [ROADMAP.md](ROADMAP.md).

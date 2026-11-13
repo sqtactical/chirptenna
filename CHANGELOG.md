@@ -5,6 +5,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ## [Sin publicar]
 
+## [0.4.0-alpha] · 2026-11-13
+
+*English summary: integrated antennas (the antenna as a corner of your product board, with KiCad footprint and keep-out, RF pad, KiCad board import, 4-layer JLC stack, case/hand/battery environment and manufacturing-tolerance analysis), matching network by circuit and parts list, simulated lumped components, PDF report, pattern CSV export and a redesigned interface (indigo with ENIG-gold accents, light and dark). Still validated in simulation only: no manufactured board has been measured. Known gaps are listed under each item.*
+
 ### Añadido
 
 - **Antena integrada en una placa** (F3.1, `antenas/integracion.py`): IFA, monopolo recto, de Koch y en meandro pueden ser una esquina de la
