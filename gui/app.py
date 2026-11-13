@@ -125,21 +125,21 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
     pestana (una de PESTANAS_URL), diseno (nombre en «Mis diseños») y tema ('claro'/'oscuro', sin guardarlo)."""
     # idioma: el de la URL (sin guardarlo), si no el guardado, si no CHIRPTENNA_IDIOMA o el castellano
     i18n.fijar_idioma(i18n.idioma_inicial(idioma or app.storage.general.get('idioma')))
-    ui.colors(primary='#1b8a5e', secondary='#144c3c', accent='#67ea94', positive='#1f9d55')
+    ui.colors(primary='#6a62e6', secondary='#2f2a8f', accent='#ffb454', positive='#1f9d55')
     ui.input.default_props('outlined dense')
     ui.number.default_props('outlined dense')
     ui.select.default_props('outlined dense options-dense')
     ui.add_css('''
         /* Paleta verde azulada (claro y oscuro). Las variables viven en body para que las usen todas las reglas propias. */
         body.body--light {
-            --fondo: #f3f6f5; --tarjeta: #ffffff; --texto: #183b38; --muted: #5b716e; --linea: #d9e5df;
-            --acento: #1b8a5e; --suave: #e1f5ea; --profundo: #144c3c; --entrada: #fbfdfc; --verde: #67ea94;
-            --sombra: 0 8px 28px #193c3014; --aviso: #bf360c; --violeta: #5e35b1;
+            --fondo: #f4f5fb; --tarjeta: #ffffff; --texto: #1b2040; --muted: #5d6385; --linea: #dde0ef;
+            --acento: #4f46c8; --suave: #e8e9fb; --profundo: #2f2a8f; --entrada: #fafaff; --chip: #dcdaf8; --chip-texto: #2f2a8f;
+            --sombra: 0 8px 28px #1b204014; --aviso: #bf360c; --violeta: #5e35b1;
         }
         body.body--dark {
-            --fondo: #0d1917; --tarjeta: #142521; --texto: #e4f5ed; --muted: #a0b8ae; --linea: #30483e;
-            --acento: #67ea94; --suave: #1b3a30; --profundo: #96f3b6; --entrada: #10201b; --verde: #67ea94;
-            --sombra: 0 8px 28px #00000030; --aviso: #ffb74d; --violeta: #c5b3f0;
+            --fondo: #0e1022; --tarjeta: #171a33; --texto: #e9ebfa; --muted: #a2a8cc; --linea: #2c3157;
+            --acento: #ffb454; --suave: #262a5c; --profundo: #ffd29a; --entrada: #12152b; --chip: #ffb454; --chip-texto: #2b1a05;
+            --sombra: 0 8px 28px #00000040; --aviso: #ffb74d; --violeta: #c5b3f0;
         }
         body { background: var(--fondo); color: var(--texto);
                font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
@@ -151,13 +151,13 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
         .texto-violeta { color: var(--violeta); }
         .ayuda-param { color: var(--muted); cursor: help; }
         /* Cabecera */
-        .cabecera { background: linear-gradient(115deg, #0f3d31 0%, #1b6b52 100%); color: #e4f5ed;
+        .cabecera { background: linear-gradient(115deg, #1b1f4d 0%, #4f46c8 100%); color: #e9ebfa;
                     padding: 12px 24px; border-bottom: 1px solid #ffffff1a; box-shadow: none; }
         .body--dark .cabecera { background: var(--tarjeta); border-bottom: 1px solid var(--linea); }
         .marca-titulo { font-size: 1.15rem; font-weight: 700; line-height: 1.1; color: #fff; }
-        .marca-sub { font-size: .72rem; color: #cfeee0; opacity: .85; line-height: 1.1; }
-        .pildora { border: 1px solid #ffffff40; border-radius: 30px; padding: 3px 10px; font-size: .72rem; color: #d9f3e6; }
-        .logo-marca { border-radius: 12px; background: #e4f5ed; padding: 3px; }
+        .marca-sub { font-size: .72rem; color: #d4d7ff; opacity: .9; line-height: 1.1; }
+        .pildora { border: 1px solid #ffffff40; border-radius: 30px; padding: 3px 10px; font-size: .72rem; color: #e2e4ff; }
+        .logo-marca { border-radius: 12px; background: #e9ebfa; padding: 3px; }
         .cabecera .q-field--outlined .q-field__control { background: #ffffff1f; border-radius: 30px; }
         .cabecera .q-field--outlined .q-field__control:before { border-color: #ffffff40; }
         .cabecera .q-field__native, .cabecera .q-field__input, .cabecera .q-select__dropdown-icon { color: #fff; }
@@ -170,7 +170,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                   border-radius: 17px; box-shadow: var(--sombra); }
         .q-card.q-card--flat { box-shadow: var(--sombra); }
         .q-expansion-item { border-radius: 14px; }
-        .icono-titulo { background: var(--verde); color: #103424; border-radius: 50%; padding: 6px; font-size: 1.15rem; }
+        .icono-titulo { background: var(--chip); color: var(--chip-texto); border-radius: 50%; padding: 6px; font-size: 1.15rem; }
         .barra-diseno { border-color: var(--linea); }
         .tarjeta-tipo { transition: box-shadow .15s, transform .15s, border-color .15s; }
         .tarjeta-tipo .q-badge { margin-top: auto; align-self: flex-start; }
@@ -248,7 +248,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
         """Adapta una figura de Plotly al tema actual (se llama en cada ui.plotly / update_figure)."""
         if not tema['oscuro']:
             return fig
-        fondo, rejilla, texto = '#10201b', '#30483e', '#e4f5ed'
+        fondo, rejilla, texto = '#12152b', '#2c3157', '#e9ebfa'
         fig.update_layout(template='plotly_dark', paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor=fondo,
                           font_color=texto)
         fig.update_xaxes(gridcolor=rejilla, zerolinecolor='#555')
