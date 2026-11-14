@@ -13,6 +13,7 @@ manufactured, measure it and **tune** it once built, with cut marks, bridges and
 
 **Contents**
 
+0. [Getting started: your first antenna in 10 minutes](#getting-started-your-first-antenna-in-10-minutes)
 1. [Concepts in 5 minutes](#1-concepts-in-5-minutes)
 2. [The workflow](#2-the-workflow)
 3. [The design bar](#3-the-design-bar)
@@ -27,7 +28,40 @@ manufactured, measure it and **tune** it once built, with cut marks, bridges and
 12. [Which antenna to choose](#12-which-antenna-to-choose)
 13. [Common problems](#13-common-problems)
 14. [Integrating the antenna into your board](#14-integrating-the-antenna-into-your-board)
-15. [Glossary](#15-glossary)
+15. [Language, theme, GPU and web version](#15-language-theme-gpu-and-web-version)
+16. [Glossary](#16-glossary)
+
+---
+
+## Getting started: your first antenna in 10 minutes
+
+If you have never used Chirptenna, do this walk-through once; the rest of the manual explains each step in depth.
+
+1. **Open the program:** double-click the **Chirptenna** shortcut on the desktop (or `iniciar.bat`). Your browser opens at
+   `http://localhost:8080`. Keep the black window open while you use it. If you have not installed it yet, see
+   [INSTALL.en.md](INSTALL.en.md).
+2. **Pick the antenna.** The **Choose antenna** tab opens. For a Meshtastic node at 868 MHz, click **Koch monopole**; for
+   2.4 GHz, **Sierpinski monopole**. Types labelled **Validated** have been checked in simulation; those under
+   **Experimental** have known problems.
+
+   ![Antenna type gallery](docs/capturas/galeria.png)
+
+3. **Pick the band** in the top bar (868 MHz, 915 MHz, 2.4 GHz…). The size is computed for you. If your channel is not in the
+   list, choose **Other** and type the centre and the width.
+4. **Look at the result** in **Design**: the board drawing, the estimated band and the tips. Press **Resize to the
+   frequency** if you change anything.
+
+   ![Design tab with a 2.4 GHz Sierpinski monopole](docs/capturas/diseno.png)
+
+5. **(Optional) Simulate** in the **Simulation** tab with **Simulate**. It takes 1 to 15 minutes and gives you S11, Smith, gain and
+   pattern. If the band is not covered, the program says so in red.
+6. **Save the design** (the **Save design** button in the bar) and, in **Manufacture**, press **Export KiCad + Gerber + DXF**. Upload
+   the zip to JLCPCB (2 layers, 1.6 mm FR4).
+7. **When the board arrives:** solder the SMA, measure with the NanoVNA in **Measure** and tune with the cut marks or the π network
+   ([chapters 7 to 10](#7-assembling-the-board)).
+
+> **If you only want to try it**, the [web version](#15-language-theme-gpu-and-web-version) needs no installation: design and
+> download the KiCad files, with no simulation.
 
 ---
 
@@ -107,6 +141,11 @@ The bar is always at the top:
 
 ## 4. Design tab
 
+The tab has three areas: on the left the **size and material** and the **parameters**; on the right the **board drawing**
+(outline, ground, copper and connector); and below the **result** and the **tips**.
+
+![Design tab](docs/capturas/diseno.png)
+
 ### Size and material
 
 - **Substrate.** The material and thickness of the board: JLC FR4 of 1.6 / 1.2 / 1.0 / 0.8 mm, Rogers
@@ -160,6 +199,8 @@ gaps, track widths, fine tuning options…), and you normally do not need to tou
 
 Simulates the antenna with **openEMS** (a full-wave electromagnetic simulator, FDTD).
 
+![Simulation tab of a 2450 MHz Yagi, with S11, VSWR, Smith and patterns](docs/capturas/simulacion.png)
+
 1. **Precision:**
    - **fast** for a quick look (±3 %);
    - **normal** for designing;
@@ -204,6 +245,8 @@ size, press **Apply the tuned parameters** to pass them to the design.
 ---
 
 ## 6. Manufacture tab
+
+![Manufacture tab: checks, export and silkscreen](docs/capturas/fabricar.png)
 
 ### Manufacturing checks
 
@@ -266,6 +309,8 @@ labels on the board use the interface language.
 ## 8. Measure tab
 
 ### With a NanoVNA (assistant)
+
+![Measure tab with the NanoVNA assistant and the simulation overlaid](docs/capturas/medir.png)
 
 The assistant has four steps:
 
@@ -540,6 +585,12 @@ The full table of what is validated is in the [README](README.en.md#antenna-type
 | Good S11 but poor range | Low efficiency (FR4) or covered antenna | Look at the simulated η; move the antenna away from the battery and metals |
 | Nothing goes below −3 dB | Antenna disconnected or short-circuited | Check Z1 (is it fitted?), the bridges and the SMA solder joints. Look at Z: ~0 Ω is a short; very high, an open circuit |
 | The assistant proposes odd values (≪1 pF, ≫100 nH) | Antenna badly mismatched or badly measured | Check the calibration (load < −30 dB). Tune the frequency first |
+| The interface shows an **old version** (e.g. “v0.3.0-alpha”) after updating | The black window of the previous version is still open: the interface does not reload its code by itself | Close the black window (and the browser tab), open Chirptenna again and reload the page |
+| “Port 8080 is in use” | Chirptenna is already open | Use the one you already have open, or close it before opening another |
+| Charts appear **blank** | The page loaded with the tab hidden, or the chart library failed to load | Reload the page (F5). If it persists, close and reopen the program |
+| “Simulate” does not start or ends instantly with an error | openEMS is not installed or the geometry is invalid | Read the log under the button; run `instalar.bat` with `-Comprobar` (see [INSTALL.en.md](INSTALL.en.md)) |
+| The simulation does not cover the band and you do not know why | Starting size far off, coarse mesh or a narrow-band antenna | Tick **Tune to the frequency by simulating**, read the type's **known problems** and try **Check with another mesh** |
+| The **integrated** board does not fit or does not match | The antenna zone does not fit in the board you entered | Read the warning when it is generated; [chapter 14](#14-integrating-the-antenna-into-your-board) |
 
 ---
 
@@ -604,10 +655,42 @@ What is simulated does not replace measuring: put your assembled board on the Na
 
 ---
 
-## 15. Glossary
+## 15. Language, theme, GPU and web version
+
+**Language.** The selector in the header switches between Spanish, English, French and German (the last three are translated by
+Claude and pending review by native speakers). The choice applies to the whole interface, the tips, the warnings, the PDF report
+and the board silkscreen. Appending `?idioma=en` to the address also works.
+
+**Light and dark theme.** The moon/sun button (top right) cycles between **automatic** (like your system), **light** and **dark**.
+The preference is saved. The screenshots in this manual use the dark theme.
+
+**GPU simulation.** If you have a compatible NVIDIA RTX card and accepted the GPU engine when installing, the **Simulation** tab has the
+**GPU acceleration (experimental)** checkbox: the same simulation runs about **10 times faster**. With a single card, simulations run
+one at a time. For final tuning it is worth repeating on the CPU (untick the box), which is the reference. Without a compatible card
+the box is greyed out (hover over it to see why) and everything runs on the CPU. Installation and cards:
+[INSTALL.en.md](INSTALL.en.md) and [`docs/GPU.md`](docs/GPU.md).
+
+**Web lite version.** At [sqtactical.github.io/chirptenna](https://sqtactical.github.io/chirptenna/) there is a version that runs in
+the browser with nothing to install: pick the type and the band, see the antenna and download the KiCad files (`.kicad_pcb`, footprint,
+DXF and `diseno.json`). It **does not simulate, measure or import boards**: for that you need the desktop version. It is good for
+a quick look and for generating a simple board fast.
+
+**Where designs are stored.** In `Documents\Chirptenna\disenos`. To use another folder (for example for tests), set the
+`CHIRPTENNA_DISENOS` environment variable.
+
+---
+
+## 16. Glossary
 
 | Term | Meaning |
 |---|---|
+| **IFA** | *Inverted-F Antenna*: a folded monopole with a short to ground, compact and widely used on product boards |
+| **ENIG** | Electroless nickel immersion gold finish. More expensive than HASL, but flat and it does not oxidise |
+| **Keep-out zone** | Area of the board where there can be no copper or components, on any layer |
+| **Via stitching** | A row of ground vias that tie the ground planes of different layers together so they behave as one |
+| **RF pad** | A 50 Ω pad to which the chip signal is routed, instead of a connector |
+| **FDTD** | Finite-difference time-domain, the simulation method openEMS uses |
+| **Mesh** | The grid the space is divided into for simulating. Finer = more accurate and slower |
 | **λ (lambda)** | Wavelength. At 868 MHz it is 34.5 cm; at 2.44 GHz, 12.3 cm. On the board it is shorter (λg) because of the FR4 |
 | **εr** | Permittivity of the substrate. The higher it is, the shorter the antenna ends up. FR4 ≈ 4.5 |
 | **Microstrip / 50 Ω line** | The track that carries the signal from the connector to the antenna, with ground underneath. Its width sets the 50 Ω |

@@ -353,7 +353,7 @@ archivos modificados después de la última revisión. La marca de esa revisión
     `pestanas` (cada una con su variante `.body--dark`). **Diseño visual (13-11, inspirado en compilador.albacetemesh.es)**: fondo índigo profundo con acentos dorados tipo ENIG (como un PCB; se evitó el verde para no parecerse a Meshtastic), tarjetas de 17 px con borde, cabecera
     con degradado, pestañas en píldora, portada con «eyebrow» en la galería. Todo con variables CSS de `body.body--light`/`body.body--dark` (`--fondo`, `--tarjeta`, `--texto`,
     `--muted`, `--linea`, `--acento`, `--suave`…) en el `ui.add_css` de `gui/app.py`: usar esas variables en lugar de colores sueltos; los campos son `outlined dense` por
-    `default_props`. Tras tocar el CSS hay que **reiniciar el servidor** (no recarga). Las capturas de `docs/capturas/` del README son del diseño anterior.
+    `default_props`. Tras tocar el CSS hay que **reiniciar el servidor** (no recarga). Las capturas de `docs/capturas/` (README y manuales) se regeneran con `herramientas/capturas_readme.py` (Edge sin ventana por CDP con espera real: `--screenshot` con tiempo virtual o `--timeout` sale a medio pintar y sin Plotly); datan del 14-11 (diseño nuevo).
 49. **Entorno de la sesión de Claude** (no del usuario): el venv `%LOCALAPPDATA%\antenas` lo creó un proceso de la app de
     Claude y vive virtualizado en `AppData\Local\Packages\Claude_…\LocalCache`; `Path.resolve()` de un archivo da esa ruta
     y la de su carpeta no. Consecuencias: NiceGUI responde **403** a sus módulos ESM (Plotly sale en blanco) y pip falla

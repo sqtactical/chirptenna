@@ -5,6 +5,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ## [Sin publicar]
 
+### Documentación
+- Capturas del README rehechas con la interfaz nueva (`herramientas/capturas_readme.py` las regenera).
+- Manual (castellano e inglés): capítulo «Primeros pasos» de 10 minutos, capturas en Diseño, Simulación, Fabricar y Medir,
+  capítulo nuevo «Idioma, tema, GPU y versión web», más problemas frecuentes y términos en el glosario.
+
+### Interfaz
+- El asistente del NanoVNA ya no sale con el fondo gris de Quasar: usa los colores del tema.
+
 ## [0.4.0-alpha] · 2026-11-13
 
 *English summary: integrated antennas (the antenna as a corner of your product board, with KiCad footprint and keep-out, RF pad, KiCad board import, 4-layer JLC stack, case/hand/battery environment and manufacturing-tolerance analysis), matching network by circuit and parts list, simulated lumped components, PDF report, pattern CSV export and a redesigned interface (indigo with ENIG-gold accents, light and dark). Still validated in simulation only: no manufactured board has been measured. Known gaps are listed under each item.*

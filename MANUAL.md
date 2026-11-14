@@ -12,6 +12,7 @@ fabricar, medirla y **ajustarla** una vez fabricada, con marcas de corte, puente
 
 **Índice**
 
+0. [Primeros pasos: tu primera antena en 10 minutos](#primeros-pasos-tu-primera-antena-en-10-minutos)
 1. [Conceptos en 5 minutos](#1-conceptos-en-5-minutos)
 2. [El flujo de trabajo](#2-el-flujo-de-trabajo)
 3. [La barra del diseño](#3-la-barra-del-diseño)
@@ -26,7 +27,40 @@ fabricar, medirla y **ajustarla** una vez fabricada, con marcas de corte, puente
 12. [Qué antena elegir](#12-qué-antena-elegir)
 13. [Problemas frecuentes](#13-problemas-frecuentes)
 14. [Integrar la antena en tu placa](#14-integrar-la-antena-en-tu-placa)
-15. [Glosario](#15-glosario)
+15. [Idioma, tema, GPU y versión web](#15-idioma-tema-gpu-y-versión-web)
+16. [Glosario](#16-glosario)
+
+---
+
+## Primeros pasos: tu primera antena en 10 minutos
+
+Si nunca has usado Chirptenna, haz este recorrido una vez; el resto del manual explica cada paso a fondo.
+
+1. **Abre el programa:** doble clic en el acceso directo **Chirptenna** del escritorio (o en `iniciar.bat`). Se abre el
+   navegador en `http://localhost:8080`. Mantén abierta la ventana negra mientras lo uses. Si no lo has instalado,
+   mira [INSTALAR.md](INSTALAR.md).
+2. **Elige la antena.** Sale la pestaña **Elegir antena**. Para un nodo Meshtastic de 868 MHz, pincha **Monopolo de
+   Koch**; para 2,4 GHz, **Monopolo de Sierpinski**. Los tipos con la etiqueta **Validada** son los que se han
+   comprobado en simulación; los de **Experimental** tienen problemas conocidos.
+
+   ![Galería de tipos de antena](docs/capturas/galeria.png)
+
+3. **Elige la banda** en la barra de arriba (868 MHz, 915 MHz, 2,4 GHz…). El tamaño se calcula solo. Si tu canal no está
+   en la lista, elige **Otra** y escribe el centro y el ancho.
+4. **Mira el resultado** en **Diseño**: el dibujo de la placa, la banda estimada y los consejos. Pulsa **Ajustar tamaño a
+   la frecuencia** si cambias algo.
+
+   ![Pestaña Diseño con un monopolo de Sierpinski a 2,4 GHz](docs/capturas/diseno.png)
+
+5. **(Opcional) Simula** en la pestaña **Simulación** con **Simular**. Tarda de 1 a 15 minutos y te da S11, Smith, ganancia
+   y diagrama. Si la banda no queda cubierta, el programa lo dice en rojo.
+6. **Guarda el diseño** (botón **Guardar diseño** de la barra) y, en **Fabricar**, pulsa **Exportar KiCad + Gerber + DXF**. Sube el zip a
+   JLCPCB (2 capas, FR4 de 1,6 mm).
+7. **Cuando llegue la placa:** suelda el SMA, mide con el NanoVNA en **Medir** y ajusta con las marcas de corte o la red en π
+   ([capítulos 7 a 10](#7-montar-la-placa)).
+
+> **Si solo quieres probar**, la [versión web](#15-idioma-tema-gpu-y-versión-web) no necesita instalar nada: diseña y
+> descarga los archivos de KiCad, sin simulación.
 
 ---
 
@@ -106,6 +140,11 @@ La barra está siempre arriba:
 
 ## 4. Pestaña Diseño
 
+La pestaña tiene tres zonas: a la izquierda el **tamaño y el material** y los **parámetros**; a la derecha el
+**dibujo de la placa** (contorno, masa, cobre y conector); y debajo el **resultado** y los **consejos**.
+
+![Pestaña Diseño](docs/capturas/diseno.png)
+
 ### Tamaño y material
 
 - **Sustrato.** El material y el grosor de la placa: FR4 de JLC de 1,6 / 1,2 / 1,0 / 0,8 mm, Rogers
@@ -161,6 +200,8 @@ botón **?**: púlsalo para ver qué hace. Los más habituales:
 
 Simula la antena con **openEMS** (un simulador electromagnético de onda completa, FDTD).
 
+![Pestaña Simulación de una Yagi de 2450 MHz, con S11, ROE, Smith y diagramas](docs/capturas/simulacion.png)
+
 1. **Precisión:**
    - **rápida** para tantear (±3 %);
    - **normal** para diseñar;
@@ -203,6 +244,8 @@ tamaño, pulsa **Aplicar los parámetros ajustados** para pasarlos al diseño.
 ---
 
 ## 6. Pestaña Fabricar
+
+![Pestaña Fabricar: comprobaciones, exportación y serigrafía](docs/capturas/fabricar.png)
 
 ### Comprobaciones de fabricación
 
@@ -264,6 +307,8 @@ referencias de los componentes (Z1, Z2, Z3, JP…) se ponen siempre: hacen falta
 ## 8. Pestaña Medir
 
 ### Con un NanoVNA (asistente)
+
+![Pestaña Medir con el asistente del NanoVNA y la simulación superpuesta](docs/capturas/medir.png)
 
 El asistente tiene cuatro pasos:
 
@@ -538,6 +583,12 @@ La tabla completa de qué está validado está en el [README](README.md#tipos-de
 | S11 bueno pero el alcance es malo | Eficiencia baja (FR4) o antena tapada | Mira la η simulada; aleja la antena de la batería y de los metales |
 | Nada baja de −3 dB | Antena desconectada o en cortocircuito | Revisa Z1 (¿está puesta?), los puentes y las soldaduras del SMA. Mira la Z: ~0 Ω es un corto; muy alta, un circuito abierto |
 | El asistente propone valores raros (≪1 pF, ≫100 nH) | Antena muy desadaptada o medida mal | Revisa la calibración (carga < −30 dB). Ajusta la frecuencia primero |
+| La interfaz enseña una **versión antigua** (p. ej. «v0.3.0-alpha») tras actualizar | Sigue abierta la ventana negra de la versión anterior: la interfaz no recarga el código sola | Cierra la ventana negra (y la pestaña del navegador), abre Chirptenna otra vez y recarga la página |
+| «El puerto 8080 está en uso» | Ya hay un Chirptenna abierto | Usa el que ya tienes abierto, o ciérralo antes de abrir otro |
+| Los gráficos salen **en blanco** | La página se cargó con la pestaña oculta o falló la carga de la librería de gráficos | Recarga la página (F5). Si sigue igual, cierra y vuelve a abrir el programa |
+| «Simular» no empieza o acaba al instante con un error | openEMS no está instalado o la geometría es inválida | Mira el registro bajo el botón; ejecuta `instalar.bat` con `-Comprobar` (ver [INSTALAR.md](INSTALAR.md)) |
+| La simulación no cubre la banda y no sabes por qué | Tamaño inicial lejos, malla gruesa o antena de banda estrecha | Marca **Ajustar a la frecuencia simulando**, mira los **problemas conocidos** del tipo y prueba **Verificar con otra malla** |
+| La placa **integrada** no cabe o no adapta | La zona de antena no cabe en la placa que has puesto | Lee el aviso al generar; [capítulo 14](#14-integrar-la-antena-en-tu-placa) |
 
 ---
 
@@ -602,10 +653,42 @@ Lo simulado no sustituye a medir: pon tu placa montada y mídela con el NanoVNA 
 
 ---
 
-## 15. Glosario
+## 15. Idioma, tema, GPU y versión web
+
+**Idioma.** El selector de la cabecera cambia entre castellano, inglés, francés y alemán (las tres últimas están
+traducidas por Claude y pendientes de revisar por hablantes nativos). La elección vale para toda la interfaz, los consejos, los
+avisos, el informe en PDF y la serigrafía de la placa. También sirve `?idioma=en` al final de la dirección.
+
+**Tema claro y oscuro.** El botón de la luna/sol (arriba a la derecha) alterna entre **automático** (como tu sistema),
+**claro** y **oscuro**. La preferencia se guarda. Las capturas de este manual son del tema oscuro.
+
+**Simulación con GPU.** Si tienes una tarjeta NVIDIA RTX compatible y aceptaste el motor de GPU al instalar, en
+**Simulación** sale la casilla **Aceleración por GPU (experimental)**: la misma simulación va unas **10 veces más
+rápida**. Con una sola tarjeta, se simula de una en una. Para los ajustes finales conviene repetir en la CPU
+(desmarca la casilla), que es la referencia. Sin tarjeta compatible, la casilla sale desactivada (pasa el ratón por encima para ver el motivo) y todo funciona en la CPU. Instalación y
+tarjetas: [INSTALAR.md](INSTALAR.md) y [`docs/GPU.md`](docs/GPU.md).
+
+**Versión web lite.** En [sqtactical.github.io/chirptenna](https://sqtactical.github.io/chirptenna/) hay una versión que corre en
+el navegador, sin instalar nada: eliges el tipo y la banda, ves la antena y descargas los archivos para KiCad (`.kicad_pcb`, huella, DXF y
+`diseno.json`). **No simula ni mide ni importa placas**: para eso hace falta la versión de escritorio. Sirve para curiosear
+y para generar una placa sencilla rápido.
+
+**Dónde se guardan los diseños.** En `Documentos\Chirptenna\disenos`. Para usar otra carpeta (por ejemplo para pruebas),
+pon la variable de entorno `CHIRPTENNA_DISENOS`.
+
+---
+
+## 16. Glosario
 
 | Término | Significado |
 |---|---|
+| **IFA** | *Inverted-F Antenna*: antena en F invertida. Un monopolo plegado con un cortocircuito a masa, compacto y muy usado en placas de producto |
+| **ENIG** | Acabado de oro químico sobre níquel. Más caro que el HASL, pero plano y que no se oxida |
+| **Zona de exclusión (keepout)** | Área de la placa donde no puede haber cobre ni componentes, en ninguna capa |
+| **Cosido de vías** | Fila de vías a masa que unen los planos de masa de distintas capas para que se comporten como uno |
+| **Pad de RF** | Pad de 50 Ω al que se lleva la señal del chip, en lugar de un conector |
+| **FDTD** | Método de simulación (diferencias finitas en el dominio del tiempo) que usa openEMS |
+| **Malla** | La cuadrícula en la que se divide el espacio para simular. Más fina = más preciso y más lento |
 | **λ (lambda)** | Longitud de onda. A 868 MHz son 34,5 cm; a 2,44 GHz, 12,3 cm. En la placa es más corta (λg) por el FR4 |
 | **εr** | Permitividad del sustrato. Cuanto mayor, más corta queda la antena. FR4 ≈ 4,5 |
 | **Microstrip / línea de 50 Ω** | La pista que lleva la señal del conector a la antena, con masa debajo. Su ancho fija los 50 Ω |

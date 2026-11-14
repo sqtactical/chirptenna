@@ -169,6 +169,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
         .q-card { background: var(--tarjeta); color: var(--texto); border: 1px solid var(--linea);
                   border-radius: 17px; box-shadow: var(--sombra); }
         .q-card.q-card--flat { box-shadow: var(--sombra); }
+        .q-stepper { background: transparent; color: var(--texto); box-shadow: none; border: 1px solid var(--linea); }
         .q-expansion-item { border-radius: 14px; }
         .icono-titulo { background: var(--chip); color: var(--chip-texto); border-radius: 50%; padding: 6px; font-size: 1.15rem; }
         .barra-diseno { border-color: var(--linea); }
