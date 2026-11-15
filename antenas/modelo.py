@@ -33,6 +33,11 @@ class Antena:
     # Entorno de la simulación (carcasa, batería, mano…): bloques {'nombre', 'tipo': 'dielectrico'|'metal', 'caja': (x0, y0, z0, x1, y1, z1),
     # 'er', 'tand', 'sigma' opcional} (ver entorno.py). No forma parte de la placa: solo lo usa `simulacion.simular`
     entorno: list = field(default_factory=list)
+    # Colineal modular: placas que se fabrican y se unen para formar esta antena: [{'nombre', 'cantidad', 'antena'}]
+    # (el cobre de la antena entera es el de todas ellas unidas). Ver dipolos.generar_colineal_dipolos
+    modulos: list = field(default_factory=list)
+    # Aperturas de la máscara de soldadura para unir placas con estaño: [(capa 'F'|'B', polígono)] en coordenadas del modelo
+    mascara_abierta: list = field(default_factory=list)
 
     def cobre(self, capa):
         g = self.capas.get(capa)

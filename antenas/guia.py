@@ -56,7 +56,7 @@ TIPOS = {
     'vivaldi': ('directiva', 'Vivaldi antipodal: banda ancha y directiva hacia la boca.',
                 ['ancho_apertura', 'largo_aleta', 'conector']),
     'colineal_dipolos': ('sin_masa', 'Dipolos en serie (U al vivo, U invertida a la malla) unidos por microstrip de λg: más ganancia omni.',
-                         ['largo_brazo', 'elementos', 'conector']),
+                         ['largo_brazo', 'elementos', 'modular', 'encaje', 'conector']),
     'parche_ranura': ('experimental', 'Parche con ranura en U: más banda que el rectangular. Sin validar.',
                       ['largo', 'ancho', 'ranura_ancho', 'ranura_largo', 'alimentacion', 'conector']),
     'parche_apilado': ('experimental', 'Parche con parásito acoplado (más banda), en la misma cara. En simulación no adapta.',
@@ -220,7 +220,13 @@ AYUDAS_TIPO = {
                'largo_alimentacion': 'Largo del balun impreso (la tira central): separa la antena del conector.',
                'alimentacion': 'Balun impreso: conector en el borde y una tira que hace de balun (todo en la placa). '
                                'Coaxial al centro: sueldas el coaxial directamente en el centro del dipolo.'},
-    'colineal_dipolos': {'elementos': 'Número de dipolos en serie. Más dipolos: más ganancia y una placa más larga (4 a 2,4 GHz: ~26 cm).'},
+    'colineal_dipolos': {'elementos': 'Número de dipolos en serie. Más dipolos: más ganancia y una placa más larga (4 a 2,4 GHz: ~31 cm). '
+                                      'En FR4, más de 4 no suben la ganancia (las pérdidas de la línea se la comen).',
+                         'modular': 'Una placa por dipolo, todas iguales: se piden tantas placas como dipolos (la primera con el SMA) y se sueldan por el canto '
+                                    'sobre las aperturas de máscara. Sirve para fabricar a 868 MHz, donde la placa entera pasa de 80 cm.',
+                         'encaje': 'Muescas en el canto de los módulos. Lengüetas y ranuras: alinean las placas (no se desplazan ni giran al soldar). '
+                                   'Cola de milano: además impiden que se separen tirando de ellas; se montan juntándolas en el plano de la placa y bajando una sobre otra. '
+                                   'La ranura de JLC va fresada: ancho mínimo 1 mm.'},
     'dipolo_bowtie': {'ancho_flecha': 'Ancho de la pista de cada brazo con la forma «Flecha de Sierpinski» (una pista fina que rellena un triángulo).',
                       'forma': 'Bowtie: dos triángulos como brazos, más banda que el dipolo recto. Bowtie de Sierpinski: '
                                'triángulos con huecos fractales. La bowtie aguanta mejor los desajustes de frecuencia.',

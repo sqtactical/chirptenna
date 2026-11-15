@@ -355,12 +355,23 @@ def placa_kicad(antena, ruta, titulo='', etiqueta=None, logo=True):
         kx, ky = conv.p(xa + antena.puerto['pad_malla_mm']/2 - 0.75, ya)
         pads.append(f'    (pad "M" smd rect (at {kx - ancla[0]:.4f} {ky - ancla[1]:.4f}) (size 1 1) (layers "B.Cu" "B.Mask") '
                     f'(net 1 "GND") (uuid "{_u()}"))')
+    if antena.puerto.get('conector') == conector.SIN:
+        # Sin conector no hay pad de masa y el DRC da la zona inferior por cobre aislado: un pad GND sobre la tira de masa
+        xa, ya = antena.puerto['alimentacion']
+        kx, ky = conv.p(xa, ya/2)
+        pads.append(f'    (pad "M" smd rect (at {kx - ancla[0]:.4f} {ky - ancla[1]:.4f}) (size 1 1) (layers "B.Cu" "B.Mask") '
+                    f'(net 1 "GND") (uuid "{_u()}"))')
+    for capa, zona in antena.mascara_abierta:
+        # Aperturas de máscara para unir placas con estaño (colineal modular): sobre el cobre del extremo de la línea y de la masa
+        pts = _xy([(kx - ancla[0], ky - ancla[1]) for kx, ky in (conv.p(x, y) for x, y in list(zona.exterior.coords)[:-1])])
+        pads.append(f'    (fp_poly (pts {pts}) (stroke (width 0) (type solid)) (fill solid) (layer "{capa}.Mask") '
+                    f'(uuid "{_u()}"))')
     cuerpo.append(f'  (footprint "Antenas:{antena.tipo}" (layer "F.Cu") (uuid "{_u()}") (at {ancla[0]:.4f} {ancla[1]:.4f})\n'
                   f'    (property "Reference" "AE1" (at 0 -3 0) (layer "F.Fab") '
                   f'(uuid "{_u()}") (effects (font (size 1 1) (thickness 0.15))))\n'
                   f'    (property "Value" "{antena.tipo}" (at 0 3 0) (layer "F.Fab") '
                   f'(uuid "{_u()}") (effects (font (size 1 1) (thickness 0.15))))\n'
-                  f'    (attr smd{" allow_soldermask_bridges" if pasante else ""})\n' + '\n'.join(pads) + '\n  )')
+                  f'    (attr smd{" allow_soldermask_bridges" if (pasante or antena.mascara_abierta) else ""})\n' + '\n'.join(pads) + '\n  )')
     if coaxial:
         (xm, ym), (xv, yv) = antena.puerto['pads']
         dentro = antena.contorno.buffer(-0.6)
@@ -387,6 +398,8 @@ def placa_kicad(antena, ruta, titulo='', etiqueta=None, logo=True):
         cuerpo += _coax_soldado(conv, antena.puerto, 1 if corto else 2)
     elif antena.puerto.get('conector') == conector.PAD_RF:
         cuerpo += _pad_rf(conv, antena.puerto, 1 if corto else 2)
+    elif antena.puerto.get('conector') == conector.SIN:
+        pass                                     # módulo de una colineal modular: sin conector
     else:
         cuerpo += _sma(conv, antena.puerto['borde'], antena.puerto['direccion'], 1 if corto else 2)
     cuerpo += _componentes_ajuste(aj, conv, nets, net_en, antena.contorno.buffer(-0.6))
@@ -1056,4 +1069,13 @@ def exportar_todo(antena, carpeta, nombre, titulo='', etiqueta=None, logo=True):
         rutas['dxf_reflector'] = os.path.join(carpeta, f'{nombre}_reflector.dxf')
         dxf_reflector(antena, rutas['dxf_reflector'])
         rutas['drc'] = rutas['drc'] + [(t, sev, 'reflector: ' + d) for t, sev, d in drc(rutas['placa_reflector'])]
+    if antena.modulos:
+        # Colineal modular: cada placa a fabricar (la primera con el conector y las demás iguales) en su subcarpeta, con
+        # su Gerber y su DRC; las de arriba son la cadena entera unida (por si se prefiere una sola placa larga)
+        rutas['modulos'] = []
+        for m in antena.modulos:
+            sub = exportar_todo(m['antena'], os.path.join(carpeta, 'modulos', m['nombre']), f"{nombre}_{m['nombre']}",
+                                titulo or nombre, etiqueta, logo)
+            rutas['modulos'].append({'nombre': m['nombre'], 'cantidad': m['cantidad'], 'rutas': sub})
+            rutas['drc'] = rutas['drc'] + [(t, sev, f"{m['nombre']}: " + d) for t, sev, d in sub['drc']]
     return rutas

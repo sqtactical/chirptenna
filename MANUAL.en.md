@@ -186,6 +186,14 @@ gaps, track widths, fine tuning options…), and you normally do not need to tou
   (**868 or 915 MHz**) and also 2.4 GHz. Always choose the **low** band in the design bar. The Sierpinski is the most
   reliable; the two-band J-pole and IFA are experimental.
 
+- **Modular collinear** (dipole collinear, **Construction** parameter): instead of one long board, one board per dipole, joined
+  edge to edge. **Number of dipoles** (2 to 4 in FR4) sets the gain: in simulation at 2.4 GHz, 4 dipoles give 4.0 dBi with η 61 %
+  and more do not raise the gain (the λg line in FR4 eats it). Exporting gives three boards: the **start** board (with the SMA), the
+  **module** (the same for every middle one) and a short **end** board, plus the whole chain in case you prefer a single board. Assembly
+  tips: order N boards (1 start, N−2 modules, 1 end), align them and solder the line and the ground of both faces over the solder-mask
+  openings (4 joints per junction), and reinforce with a glued FR4 splint or a PVC tube. **Fit between modules:** *Tabs and slots* (the default) align the boards (two 3 mm tabs on the top edge that go into the slots of the next one, with 0.15 mm clearance) so they do not shift or rotate when soldering; *Dovetail* also holds them (brought together in the plane of the board and lowered one onto the other); *Flat edge* leaves them without notches. JLC routes the slots (minimum width 1 mm). **The soldered junction is neither simulated
+  nor measured**: measure the joined antenna. At 868 MHz, where the whole board is ~84 cm long, it is the practical way to build it.
+
 ### Result and tips
 
 - **Result (estimate):** board size, estimated frequency, band, approximate gain and
@@ -568,6 +576,7 @@ To share a design, compress its folder. Another person can copy it into their li
 | LoRa and 2.4 GHz with a single antenna | **Sierpinski monopole** with **Bands = Two bands** | Covers 868/915 MHz and 2.4 GHz in simulation; ~96 × 115 mm board |
 | A point-to-point link | **Yagi with boom** (straight elements) or **2×2/4×4 panel** | 6–7 dBi the Yagi, 12–17 dBi the panel, in simulation |
 | An antenna without a ground plane | **Koch J-pole** or **dipole** | They do not depend on the board they are connected to |
+| More omnidirectional gain than a dipole | **Dipole collinear**, with **Construction = modules** | ~4 dBi with 4 dipoles in FR4 (η 61 %); the modular one is joined from boards, for example at 868 MHz |
 | Experimenting | Hilbert, Minkowski, quasi-Yagi, COCO, Franklin | They have known problems: read them first |
 
 The full table of what is validated is in the [README](README.en.md#antenna-types).

@@ -43,6 +43,26 @@ escala bien, aunque con tamaños de FR4 sin centrar (la resonancia sale a +10 % 
 A 868 MHz la placa de N = 4 mide 843 mm (en RETOMAR/README figuraba 722 mm), lo que sí justifica partirla en módulos de ~200 mm.
 La eficiencia aguanta mejor que a 2,4 GHz (la línea pierde menos por mm) pero hacen falta 4 módulos para llegar a 4,6 dBi.
 
+## Cadena de módulos (implementada, 15-11-2026)
+
+`colineal_dipolos` con `modular` = 1 (y `encaje` 0/1/2): una placa por dipolo, dipolo a `y_d` del canto de abajo (así la línea que
+precede al primero y no hay un tramo abierto sobrante: un primer diseño con el dipolo en el centro y la línea hasta el canto
+perdía 12 puntos de η por el tramo abierto de λg/2) y tres placas: inicio (con el SMA), módulo (igual en todos los
+intermedios) y final (tapa corta que acaba la línea en la barra del último dipolo). La cadena simulada es la suma de las placas
+(`barrido.py … modular=1 elementos=N`):
+
+| Cadena | Peor S11 | Banda a −10 dB | G (dBi) | η |
+|---|---|---|---|---|
+| 4 módulos, 2,4 GHz, FR4 (con encaje) | −12,9 dB | 2342–2541 MHz | 4,0 | 61 % |
+| 2 módulos, 2,4 GHz, FR4 | −8,5 dB (sin centrar) | — | 1,9 | 65 % |
+| 4 módulos, 868 MHz, FR4 (sin centrar) | −5,6 dB, resuena a 1034 MHz | — | 3,9 | 69 % |
+
+Encaje (`encaje`): 1 = dos lengüetas rectangulares de 3 × 3 mm en el canto de arriba, que entran en ranuras con 0,15 mm de holgura en
+el canto de abajo del siguiente (alinean), 2 = cola de milano (cuello 2,0 mm, punta 3,6 mm: sujeta al tirar). El cobre va a ≥ 0,5 mm del
+borde también junto a las ranuras. La simulación no incluye las muescas (despreciables) ni la unión soldada.
+Exportación: una carpeta por placa (`modulos/<inicio|modulo|final>`) con Gerber, KiCad y DRC (limpio), más la cadena entera en una sola placa.
+Aperturas de máscara de 3 mm en cada canto de unión y un pad GND sobre la tira de masa de las placas sin conector (evita `isolated_copper`).
+
 ## Conclusiones
 
 - Modularizar es viable geométricamente, y a 868 MHz resuelve un problema real (placa de 0,4–0,8 m).

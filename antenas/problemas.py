@@ -106,6 +106,9 @@ FIJOS = {
                   'microstrip (~0,05 dB/cm a 2,4 GHz) se comen parte de la ganancia: con RO4350B sube a 7 dBi, pero deja de adaptar. '
                   'La placa es larga. El cable coaxial real, pegado a la placa, no está modelado: en la simulación la alimentación '
                   'es la línea desde el borde.'),
+        ('aviso', 'Construcción modular (módulos iguales unidos por el canto): la cadena simulada de 4 módulos en FR4 da −12,9 dB (banda 2342–2541 MHz), 4,0 dBi y η 61 % a 2,4 GHz. '
+                  'Más módulos no suben la ganancia en FR4 (6: 4,0 dBi, η 48 %; 8: 5,3 dBi, η 38 %); con RO4350B sí (4: 6,0 dBi; 8: 8,9 dBi, η > 90 %, sin centrar). '
+                  'Solo está centrada a 2,4 GHz; a 868 MHz, sin centrar, da 3,9 dBi (η 69 %) pero resuena a 1034 MHz: hay que centrarla simulando (la placa entera mide 84 cm). La unión soldada entre placas NO está simulada ni medida.'),
     ],
     'parche_ranura': [
         ('aviso', 'Sin testear ni validar: no se ha simulado ni medido. La ranura en U ensancha la banda, pero su '

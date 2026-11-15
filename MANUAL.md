@@ -187,6 +187,15 @@ botón **?**: púlsalo para ver qué hace. Los más habituales:
   (**868 o 915 MHz**) y además 2,4 GHz. Elige siempre la banda **baja** en la barra del diseño. El Sierpinski es el
   más fiable; la J-pole y la IFA de dos bandas son experimentales.
 
+- **Colineal modular** (colineal de dipolos, parámetro **Construcción**): en lugar de una placa larga, una placa por
+  dipolo, que se unen por el canto. **Número de dipolos** (de 2 a 4 en FR4) fija la ganancia: en simulación a 2,4 GHz, 4
+  dipolos dan 4,0 dBi con η 61 % y más no suben la ganancia (la línea de λg en FR4 se la come). Al exportar salen tres
+  placas: la de **inicio** (con el SMA), el **módulo** (igual para todos los intermedios) y una **final** corta, además de
+  la cadena entera por si prefieres una sola placa. Consejos de montaje: pide N placas (1 de inicio, N−2 módulos, 1
+  final), alinéalas y suelda la línea y la masa de las dos caras sobre las aperturas de máscara (4 soldaduras por unión), y
+  refuerza con una pletina de FR4 pegada o un tubo de PVC. **Encaje entre módulos:** *Lengüetas y ranuras* (por defecto) alinean las placas (dos lengüetas de 3 mm en el canto de arriba que entran en las ranuras del siguiente, con 0,15 mm de holgura) para que no se desplacen ni giren al soldar; *Cola de milano* además las sujeta (se juntan en el plano de la placa y se bajan una sobre otra); *Canto plano* las deja sin muescas. JLC fresa las ranuras (ancho mínimo 1 mm). **La unión soldada no está simulada ni medida**: mide la
+  antena unida. A 868 MHz, donde la placa entera mide ~84 cm, es la forma práctica de fabricarla.
+
 ### Resultado y consejos
 
 - **Resultado (estimación):** tamaño de la placa, frecuencia estimada, banda, ganancia aproximada y
@@ -566,6 +575,7 @@ Para compartir un diseño, comprime su carpeta. Otra persona puede copiarla en s
 | LoRa y 2,4 GHz con una sola antena | **Monopolo de Sierpinski** con **Bandas = Dos bandas** | Cubre 868/915 MHz y 2,4 GHz en simulación; placa de ~96 × 115 mm |
 | Un enlace punto a punto | **Yagi con boom** (elementos rectos) o **panel 2×2/4×4** | 6–7 dBi la Yagi, 12–17 dBi el panel, en simulación |
 | Una antena sin plano de masa | **J-pole de Koch** o **dipolo** | No dependen de la placa a la que se conectan |
+| Más ganancia omnidireccional que un dipolo | **Colineal de dipolos**, con **Construcción = módulos** | ~4 dBi con 4 dipolos en FR4 (η 61 %); el modular se une por placas, por ejemplo a 868 MHz |
 | Experimentar | Hilbert, Minkowski, quasi-Yagi, COCO, Franklin | Tienen problemas conocidos: léelos antes |
 
 La tabla completa de qué está validado está en el [README](README.md#tipos-de-antena).

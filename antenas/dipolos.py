@@ -202,6 +202,8 @@ def generar_colineal_dipolos(p, s, eps_impreso):
     Ls = p['factor_linea']*C0/f_est*1e3/math.sqrt(eps_eff_microstrip(s.er, s.h, w50))
     if Ls < 2*La + 2.0:
         avisos.append(tr('Los dipolos se tocan: el tramo de línea es más corto que los dos brazos. Alarga el tramo o acorta los brazos.'))
+    if int(p.get('modular', 0) or 0) == 1:
+        return _colineal_modular(p, s, w50, wb, Ls, avisos)
     y_prim = BORDE_COBRE + p['largo_entrada'] + La
     ys = [y_prim + k*Ls for k in range(n)]
     F, B = [], []
@@ -229,6 +231,99 @@ def generar_colineal_dipolos(p, s, eps_impreso):
                                               'pista_minima_mm': round(min(w50, wa), 3),
                                               'longitud_linea_mm': round(Ls, 1), 'avisos': avisos,
                                               'f_sin_cortar_MHz': None, 'ajuste': None}))
+
+
+VENTANA_UNION = 3.0      # colineal modular: largo de la apertura de máscara a cada lado de una unión [mm]
+ENCAJE_ANCHO = 3.0       # ... ancho de cada lengüeta (la ranura es 0,3 mm más ancha por la tolerancia del fresado) [mm]
+ENCAJE_LARGO = 3.0       # ... lo que sobresale la lengüeta del canto [mm]
+ENCAJE_HOLGURA = 0.15    # ... holgura de la ranura a cada lado [mm]
+COLA_CUELLO, COLA_PUNTA = 2.0, 3.6     # cola de milano: ancho de la lengüeta en el canto y en la punta [mm]
+
+
+def _lengueta(encaje, xc, y0, sentido=1):
+    """Lengüeta (rectangular o de cola de milano) centrada en x = xc que sale del canto y = y0 hacia `sentido`."""
+    if encaje == 2:
+        pts = [(xc - COLA_CUELLO/2, y0), (xc + COLA_CUELLO/2, y0),
+               (xc + COLA_PUNTA/2, y0 + sentido*ENCAJE_LARGO), (xc - COLA_PUNTA/2, y0 + sentido*ENCAJE_LARGO)]
+        return Polygon(pts)
+    return g.rectangulo(xc - ENCAJE_ANCHO/2, min(y0, y0 + sentido*ENCAJE_LARGO), xc + ENCAJE_ANCHO/2, max(y0, y0 + sentido*ENCAJE_LARGO))
+
+
+def _cobre_colineal_modular(p, w50, wb, ys, y_ini, y_fin):
+    """Cobre de una colineal modular: dipolos centrados en `ys` y la línea (F.Cu) con su tira de masa (B.Cu) de y_ini a y_fin."""
+    La, wa, xs = p['largo_brazo'], p['ancho_brazo'], p['separacion_patas']
+    F, B = [g.rectangulo(-w50/2, y_ini, w50/2, y_fin)], [g.rectangulo(-wb/2, y_ini, wb/2, y_fin)]
+    for yk in ys:
+        for cara, sentido in ((F, 1), (B, -1)):
+            cara.append(g.rectangulo(-xs - wa/2, yk - wa/2, xs + wa/2, yk + wa/2))
+            for x in (-xs, xs):
+                cara.append(g.rectangulo(x - wa/2, min(yk, yk + sentido*La), x + wa/2, max(yk, yk + sentido*La)))
+    return unary_union(F), unary_union(B)
+
+
+def _colineal_modular(p, s, w50, wb, Lm, avisos):
+    """Colineal de `elementos` dipolos sobre placas unidas por el canto. Cada módulo mide Lm (un tramo de λg) de largo y lleva
+    su dipolo cerca del borde de abajo (a `y_d`) y la línea de 50 Ω de borde a borde con su tira de masa debajo: al juntarlos,
+    los dipolos quedan separados Lm y en fase. Hay tres placas: la de **inicio** (con el conector), el **módulo** (igual en todos
+    los intermedios) y el **final**, una tapa corta donde la línea acaba en la barra del último dipolo (un tramo abierto más
+    largo cargaría y perdería). `modulos` = [inicio, módulo × (N−2), final]; la antena que se devuelve es la cadena entera
+    (lo que se simula). El cobre llega a 0,5 mm del canto (mínimo de KiCad): la unión son ~1 mm que se rellenan con estaño
+    sobre las aperturas de máscara (`mascara_abierta`)."""
+    n = int(p['elementos'])
+    La, wa, xs = p['largo_brazo'], p['ancho_brazo'], p['separacion_patas']
+    margen = p.get('margen_borde', 2.0)
+    ancho = max(2*(xs + wa/2 + margen), conector.ANCHO_MINIMO[conector.tipo(p)])
+    encaje = int(p.get('encaje', 1) or 0)
+    # el brazo de abajo (B.Cu) queda a 3 mm del canto de la unión (4,2 con encaje: la ranura entra 3,3 mm y el cobre va a ≥ 0,5 mm del borde)
+    y_d = La + (4.2 if encaje else 3.0)
+    x_enc = wb/2 + 1.0 + (COLA_PUNTA if encaje == 2 else ENCAJE_ANCHO)/2     # eje de las lengüetas: a 1 mm de la tira de masa
+    if Lm < y_d + La + 2.0:
+        avisos.append(tr('El módulo es más corto que el dipolo más la entrada: el dipolo de un módulo tocaría el de su vecino. Acorta los brazos o alarga el tramo.'))
+    if n > 4:
+        avisos.append(tr('Más de 4 módulos en FR4: la línea de λg pierde tanto que la ganancia ya no sube (6 módulos: 4,0 dBi, η 48 %; 4 módulos: 4,1 dBi, η 59 %). Usa RO4350B o PTFE, o menos módulos.'))
+
+    def antena(largo, ys, y_fin_linea, inicio, abiertas, arriba=False, abajo=False):
+        contorno = g.rectangulo(-ancho/2, 0.0, ancho/2, largo)
+        if encaje and arriba:                    # lengüetas que entran en las ranuras del módulo siguiente
+            contorno = unary_union([contorno] + [_lengueta(encaje, sg*x_enc, largo - 0.01) for sg in (-1, 1)])
+        if encaje and abajo:                     # ranuras para las lengüetas del módulo anterior (con holgura y pasando del canto)
+            contorno = contorno.difference(unary_union(
+                [_lengueta(encaje, sg*x_enc, 0.0, -1).union(_lengueta(encaje, sg*x_enc, 0.0, 1)).buffer(ENCAJE_HOLGURA, join_style='mitre')
+                 for sg in (-1, 1)]))
+        sup, inf = _cobre_colineal_modular(p, w50, wb, ys, BORDE_COBRE, y_fin_linea)
+        interior = contorno.buffer(-BORDE_COBRE, join_style='mitre')
+        sup, inf = sup.intersection(interior), inf.intersection(interior)
+        x0, _, x1, y1_ = unary_union([sup, inf]).bounds
+        puerto = {'borde': (0.0, 0.0), 'direccion': (0, 1), 'alimentacion': (0.0, ys[0]), 'ancho_linea': w50}
+        if not inicio:
+            puerto['conector'] = conector.SIN
+        a = Antena(tipo='colineal_dipolos', parametros=dict(p), capas={'F.Cu': sup, 'B.Cu': inf}, ajuste=ajuste.vacio(),
+                   radiador=unary_union([sup, inf]), contorno=contorno, zona_libre=contorno, puerto=puerto,
+                   info=_info_placa(contorno, {'radiador_mm': [round(x1 - x0, 2), round(y1_, 2)],
+                                               'hueco_minimo_mm': round(xs - wa/2 - wb/2, 2),
+                                               'pista_minima_mm': round(min(w50, wa), 3),
+                                               'longitud_linea_mm': round(Lm, 1), 'avisos': list(avisos),
+                                               'f_sin_cortar_MHz': None, 'ajuste': None}))
+        for y0 in abiertas:                 # y0 = el canto de la unión (0 o el largo); la apertura entra VENTANA_UNION en la placa
+            sgn = 1 if y0 == 0 else -1
+            for capa, a_cobre in (('F', w50), ('B', wb)):
+                ya, yb = sorted((y0, y0 + sgn*VENTANA_UNION))
+                a.mascara_abierta.append((capa, g.rectangulo(-a_cobre/2 - 0.25, ya, a_cobre/2 + 0.25, yb)))
+        return a
+
+    ys_cadena = [y_d + k*Lm for k in range(n)]
+    largo_fin = y_d + La + margen                # tapa: hasta el extremo de la pata de arriba más el margen
+    cadena = antena(ys_cadena[-1] + La + margen, ys_cadena, ys_cadena[-1] + wa/2, True, [])
+    cadena.info.update({'modulos': n, 'largo_modulo_mm': round(Lm, 2), 'largo_final_mm': round(largo_fin, 1),
+                        'largo_total_mm': round(ys_cadena[-1] + La + margen, 1)})
+    cadena.modulos = [{'nombre': 'inicio', 'cantidad': 1,
+                       'antena': antena(Lm, [y_d], Lm - BORDE_COBRE, True, [Lm], arriba=True)}]
+    if n > 2:
+        cadena.modulos.append({'nombre': 'modulo', 'cantidad': n - 2,
+                               'antena': antena(Lm, [y_d], Lm - BORDE_COBRE, False, [0.0, Lm], arriba=True, abajo=True)})
+    cadena.modulos.append({'nombre': 'final', 'cantidad': 1,
+                           'antena': antena(largo_fin, [y_d], y_d + wa/2, False, [0.0], abajo=True)})
+    return cadena
 
 
 # ------------------------------------------------------------------ colineal coaxial impresa (COCO)

@@ -154,6 +154,14 @@ def consejos(antena, f_obj=None, banda=None):
                               'Usa tipos con el coaxial soldado en la antena (dipolo, bowtie, J-pole) y las reglas «JLC alta frecuencia y flex (0,1 mm)».')))
         out.append(('montaje', tr('Se simula plana y sin coverlay: doblada o pegada a una superficie, la frecuencia cambia. '
                                'Ajusta la antena ya montada y respeta el radio de curvatura (≥ 6 veces el grosor).')))
+    # Colineal modular: cómo se pide y cómo se une
+    if info.get('modulos'):
+        n = int(info['modulos'])
+        out.append(('montaje', tr('Colineal modular: pide {0} placas (1 de inicio con el conector, {1} módulos iguales y 1 final corta) y úneselas por el canto con estaño '
+                                  'sobre las aperturas de máscara: línea de 50 Ω y tira de masa, por las dos caras (4 soldaduras por unión). Alinea las placas y refuérzalas '
+                                  '(pletina de FR4 pegada o tubo de PVC): la soldadura sola no aguanta esfuerzos.', n, n - 2)))
+        out.append(('diseño', tr('La placa final acaba la línea en la barra del último dipolo: es lo que se simula. No la dejes más larga: un tramo abierto de más carga y pierde ganancia.')))
+        out.append(('medida', tr('La unión soldada no está simulada: mide la antena ya unida (ROE y frecuencia). Una unión con huecos o desalineada hace que la frecuencia suba y la banda cambie.')))
     # Conector IPEX
     if antena.puerto.get('conector') == 1:
         out.append(('montaje', tr('IPEX / U.FL (MHF1, no MHF4): aguanta ~30 conexiones. El latiguillo de 1,13 mm pierde '

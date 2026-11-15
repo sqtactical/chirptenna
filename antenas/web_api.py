@@ -246,6 +246,13 @@ def exportar(texto):
             exp.placa_reflector(a, ref, titulo)
             archivos.append((ref, f'{nombre}_reflector.kicad_pcb'))
             extra += f'  {nombre}_reflector.kicad_pcb   ' + tr('Placa del reflector (va detrás, separada).') + '\n'
+        for m in a.modulos:
+            # Colineal modular: una placa por módulo distinto (la primera lleva el conector); la de arriba es la cadena entera
+            mp = os.path.join(tmp, f'{nombre}_{m["nombre"]}.kicad_pcb')
+            exp.placa_kicad(m['antena'], mp, titulo, presentacion.lineas_serigrafia(s, clave, f_MHz, nombre),
+                            None if modo_logo == 'ninguno' else modo_logo)
+            archivos.append((mp, f'{nombre}_{m["nombre"]}.kicad_pcb'))
+            extra += f'  {nombre}_{m["nombre"]}.kicad_pcb   ' + tr('Placa a fabricar: {0} unidad(es); se unen por el canto.', m['cantidad']) + '\n'
         try:
             import ezdxf  # noqa: F401
             ruta = os.path.join(tmp, f'{nombre}.dxf')

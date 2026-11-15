@@ -94,7 +94,7 @@ The resulting board (KiCad render): top side and bottom side with the logo and l
 | Inverted-F antenna (F-shaped J-pole) and PIFA | monopole | ✅ validated in simulation (868 MHz, 1.2 GHz, 2.4 and 5.8 GHz) |
 | Sleeve dipole | monopole | ✅ validated in simulation (868 MHz to 5.8 GHz) |
 | Antipodal Vivaldi | vivaldi | ✅ validated in simulation (2.4 GHz −18 dB and 5.8 GHz −12.3 dB; very wide band) |
-| Series dipole collinear (microstrip line) | collinear | ✅ validated in simulation at 2.4 GHz (−12.7 dB, 4.1 dBi, η 59 %) and 5.8 GHz (−13.8 dB, 3.5 dBi, η 50 %); on FR4 the gain falls short |
+| Series dipole collinear (microstrip line) | collinear | ✅ validated in simulation at 2.4 GHz (−12.7 dB, 4.1 dBi, η 59 %) and 5.8 GHz (−13.8 dB, 3.5 dBi, η 50 %); on FR4 the gain falls short; **modular** construction (identical boards joined edge to edge, simulated at 2.4 GHz: −12.9 dB, 4.0 dBi, η 61 % with 4 modules), soldered junction not measured |
 | Printed dipole (straight or Koch; printed balun or centre-fed coax) | dipole | ✅ validated (868 MHz to 5.8 GHz) |
 | Bowtie dipole or Sierpinski bowtie | dipole_bowtie | ✅ validated (868 MHz to 5.8 GHz; marginal at 5.8 GHz); twice the bandwidth of the straight one |
 | J-pole and Koch J-pole | jpole | ✅ Koch validated (868 MHz and 1.2 GHz; 2.4 GHz almost, −9 dB); the straight one from 868 MHz to 2.4 GHz (−15 dB at 868 MHz and −12 dB at 2.4 GHz; now the default) |

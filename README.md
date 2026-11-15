@@ -92,7 +92,7 @@ La placa resultante (render de KiCad): cara superior y cara inferior con el logo
 | Antena F invertida (J-pole en F) y PIFA | monopolo | ✅ validadas en simulación (868 MHz, 1,2 GHz, 2,4 y 5,8 GHz) |
 | Dipolo con manga (sleeve) | monopolo | ✅ validado en simulación (de 868 MHz a 5,8 GHz) |
 | Vivaldi antipodal | vivaldi | ✅ validado en simulación (2,4 GHz −18 dB y 5,8 GHz −12,3 dB; banda muy ancha) |
-| Colineal de dipolos en serie (línea microstrip) | colineal | ✅ validada en simulación a 2,4 GHz (−12,7 dB, 4,1 dBi, η 59 %) y a 5,8 GHz (−13,8 dB, 3,5 dBi, η 50 %); con FR4 la ganancia queda corta |
+| Colineal de dipolos en serie (línea microstrip) | colineal | ✅ validada en simulación a 2,4 GHz (−12,7 dB, 4,1 dBi, η 59 %) y a 5,8 GHz (−13,8 dB, 3,5 dBi, η 50 %); con FR4 la ganancia queda corta; construcción **modular** (placas iguales unidas por el canto, simulada a 2,4 GHz: −12,9 dB, 4,0 dBi, η 61 % con 4 módulos), unión soldada sin medir |
 | Dipolo impreso (recto o de Koch; balun impreso o coaxial al centro) | dipolo | ✅ validado (de 868 MHz a 5,8 GHz; a 1,2 GHz −14,4 dB con la pista de 2,9 mm) |
 | Dipolo bowtie (pajarita) o bowtie de Sierpinski | dipolo_bowtie | ✅ validado (de 868 MHz a 5,8 GHz; con apertura 55°, −13,0 dB a 2,4 GHz y −11,6 dB a 5,8 GHz); da el doble de banda que el recto |
 | J-pole y J-pole de Koch | jpole | ✅ Koch validada (868 MHz y 1,2 GHz; 2,4 GHz casi, −9 dB); la recta de 868 MHz a 2,4 GHz (−15 dB a 868 MHz y −12 dB a 2,4 GHz; ya sale así por defecto) |

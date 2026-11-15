@@ -1727,6 +1727,15 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                     continue
                 ui.button(texto, icon='file_download', on_click=lambda r=r, c=clave: ui.download(r[c])) \
                     .props('flat dense no-caps').classes('w-full justify-start')
+            if r.get('modulos'):
+                # Colineal modular: las placas a fabricar (arriba, la cadena entera unida)
+                ui.label(tr('Placas a fabricar (módulos que se unen por el canto):')).classes('text-caption texto-sec q-mt-sm')
+                for m in r['modulos']:
+                    nombre_m = tr('placa de inicio (con el conector)') if m['nombre'] == 'inicio' else tr('módulo')
+                    for clave, texto in (('gerber_zip', tr('{0} × {1}: Gerber para JLC (.zip)', m['cantidad'], nombre_m)),
+                                         ('placa', tr('{0}: placa KiCad (.kicad_pcb)', nombre_m))):
+                        ui.button(texto, icon='file_download', on_click=lambda rr=m['rutas'], c=clave: ui.download(rr[c])) \
+                            .props('flat dense no-caps').classes('w-full justify-start')
             s = r.get('serigrafia') or {}
             if s.get('logo_forma') == 'texto':
                 ui.label(tr('Serigrafía: no cabe el grillo; va la palabra «Chirptenna»')).classes('text-caption texto-aviso')

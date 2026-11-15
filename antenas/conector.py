@@ -16,6 +16,7 @@ from .i18n import tr
 
 BORDE_COBRE = 0.5                  # donde empieza la línea con SMA (retranqueo del cobre) [mm]
 SMA, IPEX, COAX, PAD_RF = 0, 1, 2, 3
+SIN = 4                            # interno (no sale en el selector): módulo de una colineal modular, sin conector
 NOMBRES = {SMA: 'SMA de canto', IPEX: 'IPEX / U.FL (MHF1)', COAX: 'Coaxial soldado en la línea (sin conector)',
            PAD_RF: 'Pad de RF (sin conector: la línea del producto llega al pad)'}
 MASA_MINIMA = {SMA: 12.0, IPEX: 7.0, COAX: 10.0, PAD_RF: 6.0}       # largo mínimo de la masa de los monopolos [mm]

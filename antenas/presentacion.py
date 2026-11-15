@@ -50,6 +50,7 @@ ETIQUETAS_INFO = {
     'f_sin_cortar_MHz': 'Frecuencia sin cortar [MHz]', 'muesca_mm': 'Profundidad de la ranura [mm]',
     'largo_adaptador_mm': 'Largo del adaptador λ/4 [mm]', 'altura_toma_mm': 'Altura de la toma [mm]',
     'ventanas_aligerado': 'Ventanas de aligerado', 'fr4_quitado_%': 'FR4 quitado [%]',
+    'modulos': 'Módulos a unir', 'largo_modulo_mm': 'Largo de cada módulo [mm]', 'largo_total_mm': 'Largo total unidos [mm]', 'largo_final_mm': 'Largo de la placa final [mm]',
 }
 
 
@@ -109,6 +110,8 @@ def parametros_visibles(clave, p):
             continue            # con ranura la línea solo cruza el margen de masa
         if int(p.get('reflector', 1)) == 0 and par.nombre in ('separacion_reflector', 'margen_reflector'):
             continue            # sin reflector no hay separación ni margen que ajustar
+        if int(p.get('modular', 0) or 0) != 1 and par.nombre == 'encaje':
+            continue            # el encaje es de los módulos de la colineal modular
         if not aligerado and par.nombre in tipos.PARAMS_SOLO_ALIGERADO:
             continue            # medidas de las ventanas solo si se aligera
         visibles.append(par.nombre)

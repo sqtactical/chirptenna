@@ -5,6 +5,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ## [Sin publicar]
 
+### Colineal modular
+- `colineal_dipolos` con **Construcción = módulos**: una placa por dipolo (inicio con el conector, módulo igual para los intermedios y una final corta) que se unen por el canto, con aperturas de máscara para el estaño, **encaje** opcional (lengüetas y ranuras, o cola de milano) y exportación de cada placa con su Gerber y su DRC (también en la versión web). Simulada la cadena a 2,4 GHz: 4 módulos −12,9 dB, 4,0 dBi, η 61 % en FR4; más de 4 no suben la ganancia (ver `docs/desarrollo/colineal_modular.md`). La unión soldada no está simulada ni medida.
+
 ### Documentación
 - Capturas del README rehechas con la interfaz nueva (`herramientas/capturas_readme.py` las regenera).
 - Manual (castellano e inglés): capítulo «Primeros pasos» de 10 minutos, capturas en Diseño, Simulación, Fabricar y Medir,

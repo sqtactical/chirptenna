@@ -316,3 +316,75 @@ def test_bucle_estimar_f():
     assert abs(bucle.estimar_f(p, calibrada=False)/f - 1) < 0.15
     # más condensador -> frecuencia más baja
     assert bucle.estimar_f(dict(p, capacidad_pF=p['capacidad_pF']*2)) < f
+
+def test_colineal_modular(tmp_path):
+    # Colineal modular: la cadena entera coincide con las placas unidas y los módulos se exportan sin errores del DRC
+    from shapely.ops import unary_union
+    from antenas import exportar
+    for f in BANDAS:
+        p = tipos.dimensionar('colineal_dipolos', f, {'modular': 1, 'elementos': 4})
+        a = tipos.generar('colineal_dipolos', p)
+        nombres = [m['nombre'] for m in a.modulos]
+        assert nombres == ['inicio', 'modulo', 'final'] and [m['cantidad'] for m in a.modulos] == [1, 2, 1]
+        Lm = a.info['largo_modulo_mm']
+        # el cobre de las placas unidas = el de la cadena (salvo los ~1 mm de la unión, que se rellenan con estaño)
+        unidas = {'F.Cu': [], 'B.Cu': []}
+        y0 = 0.0
+        for m, k in zip(a.modulos, (1, 2, 1)):
+            for _ in range(k):
+                for capa in unidas:
+                    from shapely import affinity
+                    unidas[capa].append(affinity.translate(m['antena'].cobre(capa), 0, y0))
+                y0 += Lm if m['nombre'] != 'final' else m['antena'].contorno.bounds[3]
+        for capa in unidas:
+            falta = a.cobre(capa).difference(unary_union(unidas[capa]).buffer(0.01))
+            assert falta.area < 4*3.0*(2*0.5 + 0.1)*10          # solo los 4 cantos de unión (3 uniones por la línea y la masa)
+        assert a.info['largo_total_mm'] == pytest.approx(y0, abs=0.1)          # las placas unidas miden lo que la cadena
+        # dipolos separados un tramo de línea
+        assert Lm == pytest.approx(a.info['longitud_linea_mm'], abs=0.1)
+        # cada módulo tiene aperturas de máscara en sus cantos de unión, el conector solo el de inicio
+        assert len(a.modulos[0]['antena'].mascara_abierta) == 2 and len(a.modulos[1]['antena'].mascara_abierta) == 4
+        assert a.modulos[1]['antena'].puerto.get('conector') == 4 and a.modulos[0]['antena'].puerto.get('conector') is None
+    # sin modular no cambia nada
+    q = tipos.generar('colineal_dipolos', tipos.dimensionar('colineal_dipolos', 2441.75e6))
+    assert q.modulos == [] and not q.mascara_abierta
+    # la placa KiCad de un módulo lleva las aperturas de máscara y el pad de masa
+    ruta = str(tmp_path / 'm.kicad_pcb')
+    exportar.placa_kicad(a.modulos[1]['antena'], ruta, 'm')
+    texto = open(ruta, encoding='utf-8').read()
+    assert texto.count('(layer "F.Mask")') + texto.count('(layer "B.Mask")') >= 4 and '(pad "M" smd rect' in texto
+    # con 2 elementos no hay módulo intermedio
+    a2 = tipos.generar('colineal_dipolos', tipos.dimensionar('colineal_dipolos', 2441.75e6, {'modular': 1, 'elementos': 2}))
+    assert [m['nombre'] for m in a2.modulos] == ['inicio', 'final']
+    from antenas import consejos
+    assert any('modular' in c[1].lower() for c in consejos.consejos(a, 2441.75e6))
+
+
+def test_colineal_modular_encaje(tmp_path):
+    # Las lengüetas del módulo entran en las ranuras del siguiente sin pisar su placa (con holgura), y el cobre sigue a >= 0,5 mm del borde
+    from shapely import affinity
+    from shapely.geometry import box
+    from antenas import exportar
+    for enc in (0, 1, 2):
+        a = tipos.generar('colineal_dipolos', tipos.dimensionar('colineal_dipolos', 2441.75e6, {'modular': 1, 'elementos': 3, 'encaje': enc}))
+        Lm = a.info['largo_modulo_mm']
+        ini, mod, fin = (m['antena'] for m in a.modulos)
+        if enc == 0:
+            assert ini.contorno.bounds[3] == pytest.approx(Lm, abs=0.01) and mod.contorno.area == pytest.approx(ini.contorno.area)
+            continue
+        lengüetas = ini.contorno.difference(box(-50, 0, 50, Lm - 0.01))
+        assert lengüetas.area > 10                                  # dos lengüetas que sobresalen del canto
+        for sig in (mod, fin):
+            sig_t = affinity.translate(sig.contorno, 0, Lm - 0.0007)
+            assert lengüetas.intersection(sig_t).area < 0.05          # no se pisan: caben en las ranuras
+            assert lengüetas.difference(box(-50, Lm - 0.01, 50, Lm + 10)).area < 1e-6
+        # cobre a >= 0,5 mm del borde (también junto a las ranuras)
+        for m in (ini, mod, fin):
+            for capa in ('F.Cu', 'B.Cu'):
+                assert m.contorno.exterior.distance(m.cobre(capa)) >= 0.5 - 1e-6
+    # el DRC de KiCad no ve nada raro en una placa con ranuras
+    a = tipos.generar('colineal_dipolos', tipos.dimensionar('colineal_dipolos', 2441.75e6, {'modular': 1, 'elementos': 3, 'encaje': 2}))
+    ruta = str(tmp_path / 'c.kicad_pcb')
+    exportar.placa_kicad(a.modulos[1]['antena'], ruta, 'c')
+    assert open(ruta, encoding='utf-8').read().count('Edge.Cuts') >= 1
+

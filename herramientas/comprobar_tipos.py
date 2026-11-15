@@ -21,7 +21,8 @@ from antenas import tipos, exportar, fabricacion, __version__   # noqa: E402
 # Opciones que cambian la geometría de forma notable: se generan y exportan además de los valores por defecto
 VARIANTES = [('monopolo_recto', {'conector': 3}), ('ifa', {'conector': 3, 'ajuste': 1, 'red_pi': 1}), ('dipolo_bowtie', {'forma': 3}), ('dipolo_bowtie', {'forma': 3, 'alimentacion': 1}), ('monopolo_sierpinski', {'multibanda': 1}), ('jpole', {'multibanda': 1}), ('ifa', {'multibanda': 1}), ('dipolo_bowtie', {'forma': 2}), ('dipolo_bowtie', {'forma': 2, 'alimentacion': 1}),
              ('panel_dipolos', {'tamano': 1, 'elemento': 1}), ('panel_dipolos', {'tamano': 1, 'elemento': 2}),
-             ('panel_dipolos', {'tamano': 2, 'elemento': 2}), ('panel_dipolos', {'tamano': 4, 'elemento': 2})]
+             ('panel_dipolos', {'tamano': 2, 'elemento': 2}), ('panel_dipolos', {'tamano': 4, 'elemento': 2}),
+             ('colineal_dipolos', {'modular': 1, 'elementos': 4}), ('colineal_dipolos', {'modular': 1, 'elementos': 2})]
 # Antenas integradas en una placa (F3.1): (tipo, frecuencia en MHz, opciones). Cada una solo en su banda, con la placa que le cabe
 INTEGRADAS = [('ifa', 2441.75, {'integrada': 1, 'placa_x': 30, 'placa_y': 50}),
               ('monopolo_meandro', 2441.75, {'integrada': 1, 'placa_x': 30, 'placa_y': 50}),
