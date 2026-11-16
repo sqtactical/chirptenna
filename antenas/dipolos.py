@@ -183,20 +183,29 @@ def generar_vivaldi(p, s, eps_impreso):
 
 # ------------------------------------------------------------------ colineal de dipolos en serie (microstrip)
 K_BOWTIE_COLINEAL = 0.9   # bowtie de la colineal (triángulo de ~41° de apertura, más estrecho que el del dipolo): sin calibrar; `--centrar` lo afina
+K_SIERPINSKI_COLINEAL = 0.85   # Sierpinski (iteración 2): los huecos alargan el brazo; 0,9·0,75/0,79 como en el dipolo, sin calibrar
 
 
 def estimar_f_colineal_dipolos(p, eps_impreso):
     """Cada dipolo mide 2 brazos de `largo_brazo`: resuena donde esos dos brazos son λ/2 (efectiva). Con la bowtie (`forma` = 1) el
     brazo ancho resuena más bajo que la pata fina: como en el dipolo bowtie, f = K·f_recto."""
     f = C0/(2*2*p['largo_brazo']*1e-3*math.sqrt(eps_impreso))
-    return f*K_BOWTIE_COLINEAL if int(p.get('forma', 0) or 0) == 1 else f
+    forma = int(p.get('forma', 0) or 0)
+    return f*(K_BOWTIE_COLINEAL if forma == 1 else K_SIERPINSKI_COLINEAL if forma == 2 else 1.0)
 
 
 def _brazo_colineal(p, yk, sentido):
     """Cobre de un brazo del dipolo colineal centrado en y = yk (sentido +1 hacia arriba, −1 hacia abajo): una «U» (barra y dos patas,
-    `forma` = 0) o un triángulo bowtie (`forma` = 1) que ocupa el mismo ancho, de la punta (`ancho_brazo`) en la línea al extremo."""
+    `forma` = 0), un triángulo bowtie (`forma` = 1) o un triángulo de Sierpinski (`forma` = 2, con `iteracion_s` y `cuello_s`); los dos
+    últimos ocupan el mismo ancho que la U y van de la punta (`ancho_brazo`) en la línea al extremo."""
     La, wa, xs = p['largo_brazo'], p['ancho_brazo'], p['separacion_patas']
-    if int(p.get('forma', 0) or 0) == 1:
+    forma = int(p.get('forma', 0) or 0)
+    if forma == 2:
+        w = xs + wa/2
+        tri = g.sierpinski(int(p.get('iteracion_s', 2)), 2*w, La, p.get('cuello_s', 1.0))        # vértice en el origen, base arriba
+        tri = affinity.scale(tri, xfact=1, yfact=sentido, origin=(0, 0))
+        return [affinity.translate(tri, 0, yk), g.rectangulo(-wa/2, min(yk, yk + sentido*wa), wa/2, max(yk, yk + sentido*wa))]
+    if forma == 1:
         w = xs + wa/2
         return [Polygon([(-wa/2, yk), (wa/2, yk), (w, yk + sentido*La), (-w, yk + sentido*La)])]
     piezas = [g.rectangulo(-xs - wa/2, yk - wa/2, xs + wa/2, yk + wa/2)]          # barra en el eje
@@ -206,10 +215,22 @@ def _brazo_colineal(p, yk, sentido):
 
 
 def _hueco_colineal(p, w50, wb, Ls):
-    """Hueco más pequeño del cobre (para la malla): patas–línea en la «U»; en la bowtie no hay patas, y queda el de un brazo al siguiente."""
-    if int(p.get('forma', 0) or 0) == 1:
+    """Hueco más pequeño del cobre (para la malla): patas–línea en la «U»; en la bowtie no hay patas, y queda el de un brazo al siguiente;
+    en el Sierpinski, el del hueco triangular más pequeño (anchura = 4·área/perímetro)."""
+    forma = int(p.get('forma', 0) or 0)
+    if forma == 1:
         return round(max(Ls - p['largo_brazo'] - p['ancho_brazo'], 1.0), 2)
+    if forma == 2:
+        huecos = [h for pol in g.poligonos(unary_union(_brazo_colineal(p, 0.0, 1))) for h in pol.interiors]
+        entre_brazos = max(Ls - p['largo_brazo'] - p['ancho_brazo'], 1.0)
+        return round(min([4*Polygon(h).area/h.length for h in huecos] + [entre_brazos]), 2)
     return round(p['separacion_patas'] - p['ancho_brazo']/2 - wb/2, 2)
+
+
+def _pista_colineal(p, w50):
+    """Pista más fina del cobre: la línea, el ancho del brazo o, en el Sierpinski, el cuello entre triángulos."""
+    m = min(w50, p['ancho_brazo'])
+    return round(min(m, p.get('cuello_s', 1.0)) if int(p.get('forma', 0) or 0) == 2 else m, 3)
 
 
 def generar_colineal_dipolos(p, s, eps_impreso):
@@ -251,7 +272,7 @@ def generar_colineal_dipolos(p, s, eps_impreso):
                   puerto={'borde': (0.0, 0.0), 'direccion': (0, 1), 'alimentacion': (0.0, y_prim), 'ancho_linea': w50},
                   info=_info_placa(contorno, {'radiador_mm': [round(x1 - x0, 2), round(y1_, 2)],
                                               'hueco_minimo_mm': _hueco_colineal(p, w50, wb, Ls),
-                                              'pista_minima_mm': round(min(w50, wa), 3),
+                                              'pista_minima_mm': _pista_colineal(p, w50),
                                               'longitud_linea_mm': round(Ls, 1), 'avisos': avisos,
                                               'f_sin_cortar_MHz': None, 'ajuste': None}))
 
@@ -322,7 +343,7 @@ def _colineal_modular(p, s, w50, wb, Lm, avisos):
                    radiador=unary_union([sup, inf]), contorno=contorno, zona_libre=contorno, puerto=puerto,
                    info=_info_placa(contorno, {'radiador_mm': [round(x1 - x0, 2), round(y1_, 2)],
                                                'hueco_minimo_mm': _hueco_colineal(p, w50, wb, Lm),
-                                               'pista_minima_mm': round(min(w50, wa), 3),
+                                               'pista_minima_mm': _pista_colineal(p, w50),
                                                'longitud_linea_mm': round(Lm, 1), 'avisos': list(avisos),
                                                'f_sin_cortar_MHz': None, 'ajuste': None}))
         for y0 in abiertas:                 # y0 = el canto de la unión (0 o el largo); la apertura entra VENTANA_UNION en la placa

@@ -544,6 +544,10 @@ archivos modificados después de la última revisión. La marca de esa revisión
     mismo ancho que la U (2·(`separacion_patas` + `ancho_brazo`/2)) en el extremo, en vez de barra y dos patas; sirve en una placa y en modular. `estimar_f_colineal_dipolos` multiplica por
     `K_BOWTIE_COLINEAL` = 0,9 (sin calibrar, como el 0,79 del dipolo bowtie con 70°: este triángulo es de ~41°); el largo por defecto sale ~10 % más corto (25,0 frente a 27,8 mm a 2,4 GHz en FR4)
     y hay que centrar con `--centrar`. DRC de KiCad limpio a 868 MHz y 2,4 GHz, en una placa y modular. Simulado: ver `docs/desarrollo/colineal_modular.md`.
+    `forma` = 2 es el Sierpinski (`g.sierpinski(iteracion_s, 2·ancho, largo, cuello_s)`, vértice en la línea; `K_SIERPINSKI_COLINEAL` = 0,85 sin calibrar): huecos triangulares en el brazo; a 5,8 GHz con
+    iteración ≥ 2 los huecos bajan de 0,6 mm. **Topología**: en las tres formas los dipolos van en SERIE sobre la línea (el vivo F.Cu sigue por todos y tramos de λg los ponen en fase), no alternados: la
+    versión «vivo de uno a masa del siguiente» (tramos de λg/2 con cruce por vías en cada unión, como `colineal_coco`) es otra topología, la mitad de larga, y no está hecha (COCO dio η 24–35 %).
+    `herramientas/imagen_colineal.py` dibuja las tres formas (`salidas/_vistas/colineal_formas.png`).
 81. **MATLAB como segundo motor (16-11)**: `antenas/simular_matlab.py` lleva la placa (cobre de F.Cu y B.Cu como anillos, contorno, FR4, alimentación vertical de 0,5 mm en el
     arranque de la línea) a un `pcbStack` y lanza `matlab -batch "verdad_caso(...)"` (`herramientas/verdad_caso.m`; resultados en caché `%TEMP%\antenas_matlab\<hash>`).
     `disponible()` solo mira que exista `toolbox\antenna\antenna\dipole.m` (arrancar MATLAB tarda ~20 s); `no_soporta` rechaza modulares, reflector, entorno, vías, puerto

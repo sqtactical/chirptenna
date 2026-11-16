@@ -389,6 +389,29 @@ def test_colineal_modular_encaje(tmp_path):
     assert open(ruta, encoding='utf-8').read().count('Edge.Cuts') >= 1
 
 
+def test_colineal_sierpinski(tmp_path):
+    # forma = 2: el triángulo del brazo tiene huecos fractales; ocupa el mismo ancho, cumple las reglas y exporta sin errores del DRC
+    from antenas import exportar
+    from antenas.geometria import poligonos
+    for f in BANDAS:
+        for it in (1, 2):
+            for modular in (0, 1):
+                p = tipos.dimensionar('colineal_dipolos', f, {'forma': 2, 'iteracion_s': it, 'modular': modular, 'elementos': 3})
+                b = tipos.dimensionar('colineal_dipolos', f, {'forma': 1, 'modular': modular, 'elementos': 3})
+                a = tipos.generar('colineal_dipolos', p)
+                assert p['largo_brazo'] < b['largo_brazo']                # los huecos alargan el brazo: el Sierpinski se acorta más que el bowtie
+                assert a.cobre('F.Cu').is_valid
+                huecos = sum(len(pol.interiors) for pol in poligonos(a.cobre('F.Cu')))
+                assert huecos >= 3*it                                   # cada dipolo tiene huecos triangulares en su brazo de arriba
+                assert a.info['pista_minima_mm'] <= 1.0 and a.info['hueco_minimo_mm'] > 0
+                x0, _, x1, _ = a.cobre('F.Cu').bounds
+                assert x1 - x0 == pytest.approx(2*(p['separacion_patas'] + p['ancho_brazo']/2), abs=0.01)
+    a = tipos.generar('colineal_dipolos', tipos.dimensionar('colineal_dipolos', 2441.75e6, {'forma': 2, 'modular': 1, 'elementos': 4}))
+    ruta = str(tmp_path / 's.kicad_pcb')
+    exportar.placa_kicad(a.modulos[1]['antena'], ruta, 's')
+    assert not [e for e in exportar.drc(ruta) if e[1] == 'error']
+
+
 def test_colineal_bowtie(tmp_path):
     # forma = 1: cada brazo es un triángulo del mismo ancho que la U; la cadena modular sigue siendo la suma de sus placas
     from shapely import affinity
