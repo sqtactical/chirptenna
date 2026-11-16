@@ -533,6 +533,10 @@ archivos modificados después de la última revisión. La marca de esa revisión
     («Personalizado (εr 2,65; tanδ 0,0019; 1,65 mm)», `materiales.nombre_personalizado`) y `tipos.sustrato` → `materiales.sustrato_por_nombre` lo reconstruye, así que viaja igual por
     `diseno.json`, el trabajo de simulación y la web sin tocar nada más. Rangos: εr 1–20, tanδ 0–0,2, grosor 0,02–6 mm (`LIMITES_PERSONALIZADO`); siempre 2 capas. El formato del nombre
     tiene que ser idéntico en `web/app.js` (`nombrePers`/`RE_PERS`). `Sustrato.er_tol` (5 % por defecto, 1,5–1,7 % en los PTFE de JLC por su datasheet) manda en «Analizar tolerancias».
+83. **Colineal con bowtie (16-11)**: `colineal_dipolos` con `forma` = 1 (`dipolos._brazo_colineal`): cada brazo es un triángulo con la punta (ancho `ancho_brazo`) en la línea y el
+    mismo ancho que la U (2·(`separacion_patas` + `ancho_brazo`/2)) en el extremo, en vez de barra y dos patas; sirve en una placa y en modular. `estimar_f_colineal_dipolos` multiplica por
+    `K_BOWTIE_COLINEAL` = 0,9 (sin calibrar, como el 0,79 del dipolo bowtie con 70°: este triángulo es de ~41°); el largo por defecto sale ~10 % más corto (25,0 frente a 27,8 mm a 2,4 GHz en FR4)
+    y hay que centrar con `--centrar`. DRC de KiCad limpio a 868 MHz y 2,4 GHz, en una placa y modular. Simulado: ver `docs/desarrollo/colineal_modular.md`.
 81. **MATLAB como segundo motor (16-11)**: `antenas/simular_matlab.py` lleva la placa (cobre de F.Cu y B.Cu como anillos, contorno, FR4, alimentación vertical de 0,5 mm en el
     arranque de la línea) a un `pcbStack` y lanza `matlab -batch "verdad_caso(...)"` (`herramientas/verdad_caso.m`; resultados en caché `%TEMP%\antenas_matlab\<hash>`).
     `disponible()` solo mira que exista `toolbox\antenna\antenna\dipole.m` (arrancar MATLAB tarda ~20 s); `no_soporta` rechaza modulares, reflector, entorno, vías, puerto

@@ -224,6 +224,8 @@ AYUDAS_TIPO = {
                                       'En FR4, más de 4 no suben la ganancia (las pérdidas de la línea se la comen).',
                          'modular': 'Una placa por dipolo, todas iguales: se piden tantas placas como dipolos (la primera con el SMA) y se sueldan por el canto '
                                     'sobre las aperturas de máscara. Sirve para fabricar a 868 MHz, donde la placa entera pasa de 80 cm.',
+                         'forma': 'U: cada brazo son dos patas finas a los lados de la línea. Bowtie: un triángulo que ocupa el mismo ancho, con la punta en la línea; '
+                                  'más banda por dipolo. La frecuencia del tamaño inicial no está calibrada para la bowtie: usa «Ajustar tamaño a la frecuencia».',
                          'encaje': 'Muescas en el canto de los módulos. Lengüetas y ranuras: alinean las placas (no se desplazan ni giran al soldar). '
                                    'Cola de milano: además impiden que se separen tirando de ellas; se montan juntándolas en el plano de la placa y bajando una sobre otra. '
                                    'La ranura de JLC va fresada: ancho mínimo 1 mm.'},

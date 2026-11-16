@@ -388,3 +388,38 @@ def test_colineal_modular_encaje(tmp_path):
     exportar.placa_kicad(a.modulos[1]['antena'], ruta, 'c')
     assert open(ruta, encoding='utf-8').read().count('Edge.Cuts') >= 1
 
+
+def test_colineal_bowtie(tmp_path):
+    # forma = 1: cada brazo es un triángulo del mismo ancho que la U; la cadena modular sigue siendo la suma de sus placas
+    from shapely import affinity
+    from shapely.ops import unary_union
+    from antenas import exportar
+    for f in BANDAS:
+        for modular in (0, 1):
+            pu = tipos.dimensionar('colineal_dipolos', f, {'forma': 0, 'modular': modular, 'elementos': 4})
+            pb = tipos.dimensionar('colineal_dipolos', f, {'forma': 1, 'modular': modular, 'elementos': 4})
+            u, b = tipos.generar('colineal_dipolos', pu), tipos.generar('colineal_dipolos', pb)
+            assert pb['largo_brazo'] < pu['largo_brazo']                     # el brazo ancho resuena más bajo: se acorta
+            assert b.info['f_estimada_MHz'] == pytest.approx(f/1e6, rel=0.02)
+            ancho_u = 2*(pu['separacion_patas'] + pu['ancho_brazo']/2)
+            x0, _, x1, _ = b.cobre('F.Cu').bounds
+            assert x1 - x0 == pytest.approx(2*(pb['separacion_patas'] + pb['ancho_brazo']/2), abs=0.01)
+            assert b.cobre('F.Cu').area > 0 and b.cobre('F.Cu').is_valid and b.cobre('B.Cu').is_valid
+            for capa in ('F.Cu', 'B.Cu'):
+                assert b.contorno.exterior.distance(b.cobre(capa)) >= 0.5 - 1e-6
+            assert b.info['hueco_minimo_mm'] >= 1.0                          # sin patas finas junto a la línea
+    a = tipos.generar('colineal_dipolos', tipos.dimensionar('colineal_dipolos', 2441.75e6, {'forma': 1, 'modular': 1, 'elementos': 4}))
+    assert [m['nombre'] for m in a.modulos] == ['inicio', 'modulo', 'final']
+    Lm = a.info['largo_modulo_mm']
+    unidas = {'F.Cu': [], 'B.Cu': []}
+    y0 = 0.0
+    for m, k in zip(a.modulos, (1, 2, 1)):
+        for _ in range(k):
+            for capa in unidas:
+                unidas[capa].append(affinity.translate(m['antena'].cobre(capa), 0, y0))
+            y0 += Lm if m['nombre'] != 'final' else m['antena'].contorno.bounds[3]
+    for capa in unidas:
+        assert a.cobre(capa).difference(unary_union(unidas[capa]).buffer(0.01)).area < 4*3.0*(2*0.5 + 0.1)*10
+    exportar.placa_kicad(a.modulos[1]['antena'], str(tmp_path / 'b.kicad_pcb'), 'b')
+
+

@@ -19,6 +19,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 - `pruebas/test_verdad.py` (22 pruebas, sin simular): microstrip de Hammerstad, largo del dipolo y del monopolo en λ, parche contra el modelo de la cavidad y coherencia de `dimensionar` con `estimar_f`.
 - `herramientas/verdad.py`: simula con openEMS un dipolo, un monopolo y un parche a 2441,75 MHz y los compara con el libro (fuera de la CI: tarda minutos).
 
+### Colineal de dipolos con brazos bowtie
+- `colineal_dipolos` tiene el parámetro **Forma de los brazos**: «U (dos patas)» (la de siempre) o «Bowtie (triángulo)», que ocupa el mismo ancho y da más banda por dipolo. Funciona en una placa y en modular; el DRC de KiCad sale limpio a 868 MHz y 2,4 GHz. El tamaño inicial de la bowtie no está calibrado (~10 % más corto): se afina con «Ajustar tamaño a la frecuencia». Sin validar en simulación todavía.
+
 ### Sustrato personalizado y PTFE de JLC
 - Opción **Personalizado…** en el selector de sustrato (escritorio y web): εr, tanδ y grosor del material que se vaya a usar (un PTFE o un Rogers que no está en la lista). Se guarda en el nombre del sustrato, así que funciona con guardar, simular y exportar como cualquier otro.
 - Los cuatro PTFE de JLC (ZYF255DA, ZYF265D, ZYF300CA-C y ZYF300CA-P) tienen ahora cinco grosores (se añaden 0,76 y 1,52 mm) y la tolerancia de εr del datasheet (±0,04 / ±0,05, un 1,5–1,7 %): «Analizar tolerancias» la usa en vez del ±5 % del FR4.

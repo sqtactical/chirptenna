@@ -182,9 +182,34 @@ def generar_vivaldi(p, s, eps_impreso):
 
 
 # ------------------------------------------------------------------ colineal de dipolos en serie (microstrip)
+K_BOWTIE_COLINEAL = 0.9   # bowtie de la colineal (triángulo de ~41° de apertura, más estrecho que el del dipolo): sin calibrar; `--centrar` lo afina
+
+
 def estimar_f_colineal_dipolos(p, eps_impreso):
-    """Cada dipolo mide 2 brazos de `largo_brazo`: resuena donde esos dos brazos son λ/2 (efectiva)."""
-    return C0/(2*2*p['largo_brazo']*1e-3*math.sqrt(eps_impreso))
+    """Cada dipolo mide 2 brazos de `largo_brazo`: resuena donde esos dos brazos son λ/2 (efectiva). Con la bowtie (`forma` = 1) el
+    brazo ancho resuena más bajo que la pata fina: como en el dipolo bowtie, f = K·f_recto."""
+    f = C0/(2*2*p['largo_brazo']*1e-3*math.sqrt(eps_impreso))
+    return f*K_BOWTIE_COLINEAL if int(p.get('forma', 0) or 0) == 1 else f
+
+
+def _brazo_colineal(p, yk, sentido):
+    """Cobre de un brazo del dipolo colineal centrado en y = yk (sentido +1 hacia arriba, −1 hacia abajo): una «U» (barra y dos patas,
+    `forma` = 0) o un triángulo bowtie (`forma` = 1) que ocupa el mismo ancho, de la punta (`ancho_brazo`) en la línea al extremo."""
+    La, wa, xs = p['largo_brazo'], p['ancho_brazo'], p['separacion_patas']
+    if int(p.get('forma', 0) or 0) == 1:
+        w = xs + wa/2
+        return [Polygon([(-wa/2, yk), (wa/2, yk), (w, yk + sentido*La), (-w, yk + sentido*La)])]
+    piezas = [g.rectangulo(-xs - wa/2, yk - wa/2, xs + wa/2, yk + wa/2)]          # barra en el eje
+    for x in (-xs, xs):
+        piezas.append(g.rectangulo(x - wa/2, min(yk, yk + sentido*La), x + wa/2, max(yk, yk + sentido*La)))
+    return piezas
+
+
+def _hueco_colineal(p, w50, wb, Ls):
+    """Hueco más pequeño del cobre (para la malla): patas–línea en la «U»; en la bowtie no hay patas, y queda el de un brazo al siguiente."""
+    if int(p.get('forma', 0) or 0) == 1:
+        return round(max(Ls - p['largo_brazo'] - p['ancho_brazo'], 1.0), 2)
+    return round(p['separacion_patas'] - p['ancho_brazo']/2 - wb/2, 2)
 
 
 def generar_colineal_dipolos(p, s, eps_impreso):
@@ -208,10 +233,8 @@ def generar_colineal_dipolos(p, s, eps_impreso):
     ys = [y_prim + k*Ls for k in range(n)]
     F, B = [], []
     for k, yk in enumerate(ys):
-        for cara, sentido in ((F, 1), (B, -1)):          # U arriba (vivo) y U invertida abajo (malla)
-            cara.append(g.rectangulo(-xs - wa/2, yk - wa/2, xs + wa/2, yk + wa/2))          # barra en el eje
-            for x in (-xs, xs):
-                cara.append(g.rectangulo(x - wa/2, min(yk, yk + sentido*La), x + wa/2, max(yk, yk + sentido*La)))
+        for cara, sentido in ((F, 1), (B, -1)):          # U (o bowtie) arriba (vivo) y su espejo abajo (malla)
+            cara.extend(_brazo_colineal(p, yk, sentido))
     y_fin = ys[-1] + wa/2
     F.append(g.rectangulo(-w50/2, BORDE_COBRE, w50/2, y_fin))
     B.append(g.rectangulo(-wb/2, BORDE_COBRE, wb/2, y_fin))
@@ -227,7 +250,7 @@ def generar_colineal_dipolos(p, s, eps_impreso):
                   radiador=unary_union([sup, inf]), contorno=contorno, zona_libre=contorno,
                   puerto={'borde': (0.0, 0.0), 'direccion': (0, 1), 'alimentacion': (0.0, y_prim), 'ancho_linea': w50},
                   info=_info_placa(contorno, {'radiador_mm': [round(x1 - x0, 2), round(y1_, 2)],
-                                              'hueco_minimo_mm': round(xs - wa/2 - wb/2, 2),
+                                              'hueco_minimo_mm': _hueco_colineal(p, w50, wb, Ls),
                                               'pista_minima_mm': round(min(w50, wa), 3),
                                               'longitud_linea_mm': round(Ls, 1), 'avisos': avisos,
                                               'f_sin_cortar_MHz': None, 'ajuste': None}))
@@ -255,9 +278,7 @@ def _cobre_colineal_modular(p, w50, wb, ys, y_ini, y_fin):
     F, B = [g.rectangulo(-w50/2, y_ini, w50/2, y_fin)], [g.rectangulo(-wb/2, y_ini, wb/2, y_fin)]
     for yk in ys:
         for cara, sentido in ((F, 1), (B, -1)):
-            cara.append(g.rectangulo(-xs - wa/2, yk - wa/2, xs + wa/2, yk + wa/2))
-            for x in (-xs, xs):
-                cara.append(g.rectangulo(x - wa/2, min(yk, yk + sentido*La), x + wa/2, max(yk, yk + sentido*La)))
+            cara.extend(_brazo_colineal(p, yk, sentido))
     return unary_union(F), unary_union(B)
 
 
@@ -300,7 +321,7 @@ def _colineal_modular(p, s, w50, wb, Lm, avisos):
         a = Antena(tipo='colineal_dipolos', parametros=dict(p), capas={'F.Cu': sup, 'B.Cu': inf}, ajuste=ajuste.vacio(),
                    radiador=unary_union([sup, inf]), contorno=contorno, zona_libre=contorno, puerto=puerto,
                    info=_info_placa(contorno, {'radiador_mm': [round(x1 - x0, 2), round(y1_, 2)],
-                                               'hueco_minimo_mm': round(xs - wa/2 - wb/2, 2),
+                                               'hueco_minimo_mm': _hueco_colineal(p, w50, wb, Lm),
                                                'pista_minima_mm': round(min(w50, wa), 3),
                                                'longitud_linea_mm': round(Lm, 1), 'avisos': list(avisos),
                                                'f_sin_cortar_MHz': None, 'ajuste': None}))
