@@ -546,11 +546,13 @@ archivos modificados después de la última revisión. La marca de esa revisión
     y hay que centrar con `--centrar`. DRC de KiCad limpio a 868 MHz y 2,4 GHz, en una placa y modular. Simulado: ver `docs/desarrollo/colineal_modular.md`.
     `forma` = 2 es el Sierpinski (`g.sierpinski(iteracion_s, 2·ancho, largo, cuello_s)`, vértice en la línea; `K_SIERPINSKI_COLINEAL` = 0,85 sin calibrar): huecos triangulares en el brazo; a 5,8 GHz con
     iteración ≥ 2 los huecos bajan de 0,6 mm. **Topología**: con `conexion` = 0 (por defecto) los dipolos van en SERIE sobre la línea (el vivo F.Cu sigue por todos y tramos de λg los ponen en fase).
-    `conexion` = 1 es la **ALTERNADA** (`dipolos._colineal_alternada`, pedida por el usuario el 16-11): dipolos a λg/2 (a la frecuencia que da el tamaño de los brazos, `tipos.estimar_f`, no la fórmula cruda)
-    con la polaridad cambiada en cada uno: el brazo de arriba de un dipolo está en la cara en que el del anterior tiene el de abajo, así que el vivo (F.Cu) y la masa (B.Cu) siguen siendo dos tiras continuas,
-    **sin vías**, y los brazos de dos dipolos vecinos forman un rombo (hexágono, porque los brazos de `dimensionar` miden 25 mm y λg/2 son 33 mm: se solapan ~17 mm) que alterna de cara. Solo con bowtie o Sierpinski
-    (con `forma` = 0 dibuja bowtie y avisa) y en una placa (sin módulos todavía): mide la mitad (160 frente a 291 mm a 2,4 GHz, 4 dipolos). **Sin simular**: la separación λg/2 con brazos de ~λg/2 es justo lo que
-    la hace dudosa (COCO, la otra con λg/2 y cruce por vías, dio η 24–35 %); las simulaciones 0017b1–3 de la cola (`colineal_alt_*_c`) lo dirán.
+    `conexion` = 1 es la **ALTERNADA** (`dipolos._colineal_alternada`, pedida por el usuario el 16-11): array de dipolos bowtie con los brazos **transversales** a la línea (cada uno es el `dipolo_bowtie`
+    antipodal: un triángulo a cada lado, en cada cara; `_brazo_transversal`, `apertura` 50°), a λg/2 (a la frecuencia que da el tamaño de los brazos, `tipos.estimar_f` → la del `dipolo_bowtie`, no la fórmula
+    cruda) y con los brazos cambiados de cara en cada dipolo (el derecho en F.Cu y el izquierdo en B.Cu, y en el siguiente al revés): el siguiente es el espejo respecto al eje, la corriente del dipolo se invierte, y el
+    retardo de λg/2 lo compensa. El vivo (F.Cu) y la masa (B.Cu) son tiras continuas: **sin vías**. Es un array de dipolos en paralelo: el haz sale perpendicular a la placa (±Z), no omnidireccional.
+    La primera versión (brazos a lo largo de la línea, que se solapaban con los del vecino y quedaban como una estrella) se descartó. Solo con bowtie o Sierpinski (con `forma` = 0 dibuja bowtie y avisa) y en una
+    placa (sin módulos todavía): 21 × 128 mm a 2,4 GHz con 4 dipolos. **Sin simular**: las simulaciones 0017b1–3 de la cola (`colineal_alt_*_c`) lo dirán. Variantes posibles con vías (no hechas): cruzar la línea en
+    cada nodo (como COCO) con dipolos idénticos, eléctricamente equivalente a esta; o brazos coplanares con una vía a masa que alterna de lado.
     `herramientas/imagen_colineal.py` dibuja las tres formas (`salidas/_vistas/colineal_formas.png`).
 81. **MATLAB como segundo motor (16-11)**: `antenas/simular_matlab.py` lleva la placa (cobre de F.Cu y B.Cu como anillos, contorno, FR4, alimentación vertical de 0,5 mm en el
     arranque de la línea) a un `pcbStack` y lanza `matlab -batch "verdad_caso(...)"` (`herramientas/verdad_caso.m`; resultados en caché `%TEMP%\antenas_matlab\<hash>`).

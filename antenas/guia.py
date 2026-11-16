@@ -229,10 +229,12 @@ AYUDAS_TIPO = {
                                   'para la bowtie ni el Sierpinski: usa «Ajustar tamaño a la frecuencia».',
                          'iteracion_s': 'Nivel del Sierpinski de cada brazo (solo con «Bowtie de Sierpinski»). Más iteración: huecos más pequeños (cuidado con las reglas de '
                                         'fabricación) y un brazo eléctricamente más largo.',
-                         'conexion': 'En serie: todos los dipolos con el vivo arriba y la masa abajo, separados una longitud de onda en la línea. Alternada: cada dipolo con la '
-                                     'polaridad cambiada (el vivo de uno queda junto a la masa del siguiente) y separados media longitud de onda: la inversión y el retardo '
-                                     'se compensan y radian en fase. La placa mide la mitad y no lleva vías; los brazos de dos dipolos vecinos forman un rombo que alterna de cara. '
-                                     'Solo con brazos bowtie o de Sierpinski y en una sola placa. Sin validar.',
+                         'conexion': 'En serie: dipolos a lo largo de la línea, todos con el vivo arriba y la masa abajo, separados una longitud de onda. Alternada: array de dipolos '
+                                     'bowtie (como el del dipolo bowtie) con los brazos a los lados de la línea, separados media longitud de onda y cada uno con los brazos cambiados de cara '
+                                     '(el vivo de uno queda junto a la masa del siguiente): la inversión y el retardo se compensan y radian en fase. La placa es más corta, no lleva vías y '
+                                     'el haz sale perpendicular a la placa, no omnidireccional. Solo con brazos bowtie o de Sierpinski y en una sola placa. Sin validar.',
+                         'apertura': 'Ángulo total de cada triángulo de la bowtie (solo con la conexión alternada). Más apertura: brazo más ancho y más alto; si pasa de la '
+                                     'separación entre dipolos, se tocan.',
                          'encaje': 'Muescas en el canto de los módulos. Lengüetas y ranuras: alinean las placas (no se desplazan ni giran al soldar). '
                                    'Cola de milano: además impiden que se separen tirando de ellas; se montan juntándolas en el plano de la placa y bajando una sobre otra. '
                                    'La ranura de JLC va fresada: ancho mínimo 1 mm.'},

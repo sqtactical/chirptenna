@@ -189,6 +189,10 @@ K_SIERPINSKI_COLINEAL = 0.85   # Sierpinski (iteración 2): los huecos alargan e
 def estimar_f_colineal_dipolos(p, eps_impreso):
     """Cada dipolo mide 2 brazos de `largo_brazo`: resuena donde esos dos brazos son λ/2 (efectiva). Con la bowtie (`forma` = 1) el
     brazo ancho resuena más bajo que la pata fina: como en el dipolo bowtie, f = K·f_recto."""
+    if int(p.get('conexion', 0) or 0) == 1:
+        # alternada: cada dipolo es un bowtie transversal a la línea, como el del `dipolo_bowtie` (sin balun)
+        return estimar_f_dipolo({'forma': max(int(p.get('forma', 0) or 0), 1), 'largo_brazo': p['largo_brazo'], 'alimentacion': 0,
+                                 'hueco': 0.0, 'iteracion_s': p.get('iteracion_s', 2)}, eps_impreso)
     f = C0/(2*2*p['largo_brazo']*1e-3*math.sqrt(eps_impreso))
     forma = int(p.get('forma', 0) or 0)
     return f*(K_BOWTIE_COLINEAL if forma == 1 else K_SIERPINSKI_COLINEAL if forma == 2 else 1.0)
@@ -279,33 +283,41 @@ def generar_colineal_dipolos(p, s, eps_impreso):
                                               'f_sin_cortar_MHz': None, 'ajuste': None}))
 
 
+def _brazo_transversal(p, yk, lado):
+    """Brazo de un dipolo bowtie (o de Sierpinski) a un lado de la línea (lado = +1 derecho, −1 izquierdo): el vértice en el eje, a la altura yk, y
+    el triángulo abriéndose hacia el lado, como en `generar_dipolo` (`largo_brazo` de largo y `apertura` de ángulo total)."""
+    forma = max(int(p.get('forma', 0) or 0), 1)
+    a = g.brazo_bowtie(p['largo_brazo'], p.get('apertura', 50), p['ancho_brazo'],
+                       int(p.get('iteracion_s', 2)) if forma == 2 else 0, p.get('cuello_s', 1.0))
+    return affinity.translate(affinity.scale(a, xfact=lado, yfact=1, origin=(0, 0)), 0, yk)
+
+
 def _colineal_alternada(p, s, w50, wb, avisos):
-    """Colineal con la polaridad alternada: los dipolos están separados Ls2 = λg/2 (no λg) y cada uno lleva el vivo y la masa al revés que el
-    anterior (su brazo de arriba está en la cara que el del anterior tiene abajo y viceversa), así que el retardo de media longitud de onda y la
-    inversión se compensan y todos radian en fase. No hace falta ninguna vía: el vivo (F.Cu) y la masa (B.Cu) siguen siendo dos tiras continuas y
-    los brazos se reparten entre las dos caras. Con λg/2 de separación el brazo de un dipolo y el del siguiente que quedan en la misma cara se
-    encuentran base con base y forman un rombo; los rombos van alternando de cara a lo largo de la línea. Solo con brazos bowtie o de Sierpinski."""
+    """Array de dipolos bowtie con la polaridad alternada, alimentado por una sola línea microstrip (vivo en F.Cu, masa en B.Cu, tiras continuas).
+    Cada dipolo es el del `dipolo_bowtie` antipodal: sus dos brazos salen a los lados de la línea (perpendiculares a ella), uno en cada cara. Los
+    dipolos están separados Ls2 = λg/2 y cada uno lleva los brazos al revés que el anterior (el derecho en F.Cu y el izquierdo en B.Cu, y en el
+    siguiente el derecho en B.Cu y el izquierdo en F.Cu): la inversión de polaridad compensa el retardo de media longitud de onda y todos radian en
+    fase, sin vías. Es un array de dipolos en paralelo (haz perpendicular a la placa, polarización a lo largo de los brazos), no una colineal omni.
+    La primera versión (brazos a lo largo de la línea) quedaba como una estrella: los brazos de dipolos vecinos se solapaban."""
     from . import tipos                    # (import local: `tipos` importa este módulo)
-    La, wa, n = p['largo_brazo'], p['ancho_brazo'], int(p['elementos'])
+    La, n = p['largo_brazo'], int(p['elementos'])
     # media longitud de onda de la microstrip a la frecuencia que da el tamaño de los brazos (la estimación calibrada, no la fórmula cruda)
     Ls2 = p['factor_linea']*C0/tipos.estimar_f('colineal_dipolos', p, s.nombre)*1e3/math.sqrt(eps_eff_microstrip(s.er, s.h, w50))/2
-    pa = dict(p)
     if int(p.get('forma', 0) or 0) == 0:
-        pa['forma'] = 1
         avisos.append(tr('La conexión alternada usa brazos en triángulo (bowtie): la forma «U» no se puede alternar.'))
     if int(p.get('modular', 0) or 0) == 1:
         avisos.append(tr('La conexión alternada se hace de momento en una sola placa: sin módulos.'))
-    hueco = Ls2 - 2*La                                  # ranura entre la base de un brazo y la del siguiente de su misma cara (< 0: se solapan)
-    if 0 < hueco < 1.0:
-        avisos.append(tr('Los brazos de dos dipolos vecinos casi se tocan (ranura de {0:.2f} mm): alarga un poco los brazos o acórtalos.', hueco))
-    y0 = BORDE_COBRE + p['largo_entrada'] + La
+    medio = La*math.tan(math.radians(p.get('apertura', 50))/2)          # semialtura de la base de un brazo, a lo largo de la línea
+    if 2*medio > Ls2 - 1.0:
+        avisos.append(tr('Los brazos de dos dipolos vecinos se tocan o casi (altura {0:.1f} mm para {1:.1f} mm entre dipolos): reduce la apertura.', 2*medio, Ls2))
+    y0 = BORDE_COBRE + p['largo_entrada'] + medio
     ys = [y0 + k*Ls2 for k in range(n)]
     F, B = [], []
     for k, yk in enumerate(ys):
-        arriba, abajo = (F, B) if k % 2 == 0 else (B, F)                # cada dipolo, con la polaridad cambiada
-        arriba.extend(_brazo_colineal(pa, yk, 1))
-        abajo.extend(_brazo_colineal(pa, yk, -1))
-    y_fin = ys[-1] + wa/2
+        der, izq = (F, B) if k % 2 == 0 else (B, F)                      # cada dipolo, con los brazos cambiados de cara
+        der.append(_brazo_transversal(p, yk, 1))
+        izq.append(_brazo_transversal(p, yk, -1))
+    y_fin = ys[-1] + p['ancho_brazo']/2
     F.append(g.rectangulo(-w50/2, BORDE_COBRE, w50/2, y_fin))
     B.append(g.rectangulo(-wb/2, BORDE_COBRE, wb/2, y_fin))
     sup, inf = unary_union(F), unary_union(B)
@@ -316,15 +328,14 @@ def _colineal_alternada(p, s, w50, wb, avisos):
     interior = contorno.buffer(-BORDE_COBRE, join_style='mitre')
     sup, inf = sup.intersection(interior), inf.intersection(interior)
     x0, _, x1, y1_ = unary_union([sup, inf]).bounds
-    huecos = [4*Polygon(h).area/h.length for pol in g.poligonos(unary_union(_brazo_colineal(pa, 0.0, 1))) for h in pol.interiors]
-    if hueco > 0:
-        huecos.append(hueco)
+    huecos = [4*Polygon(h).area/h.length for pol in g.poligonos(unary_union(_brazo_transversal(p, 0.0, 1))) for h in pol.interiors]
+    huecos.append(max(Ls2 - 2*medio, 0.5))                              # entre las bases de los brazos de dipolos vecinos (de caras distintas)
     return Antena(tipo='colineal_dipolos', parametros=dict(p), capas={'F.Cu': sup, 'B.Cu': inf}, ajuste=ajuste.vacio(),
                   radiador=unary_union([sup, inf]), contorno=contorno, zona_libre=contorno,
                   puerto={'borde': (0.0, 0.0), 'direccion': (0, 1), 'alimentacion': (0.0, y0), 'ancho_linea': w50},
                   info=_info_placa(contorno, {'radiador_mm': [round(x1 - x0, 2), round(y1_, 2)],
-                                              'hueco_minimo_mm': round(min(huecos), 2) if huecos else None,
-                                              'pista_minima_mm': _pista_colineal(pa, w50),
+                                              'hueco_minimo_mm': round(min(huecos), 2),
+                                              'pista_minima_mm': round(min(w50, p['ancho_brazo'], p.get('cuello_s', 1.0) if int(p.get('forma', 0) or 0) == 2 else 99), 3),
                                               'longitud_linea_mm': round(Ls2, 1), 'avisos': avisos,
                                               'f_sin_cortar_MHz': None, 'ajuste': None}))
 

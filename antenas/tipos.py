@@ -787,7 +787,9 @@ for _td in [
                           ayuda='Solo con «Bowtie de Sierpinski»: nivel de los huecos triangulares del brazo (más iteración, huecos más pequeños y brazo eléctricamente más largo)'),
                 Parametro('conexion', 'Conexión de los dipolos', 0, 0, 1, 1, True,
                           opciones={0: 'En serie (misma polaridad, λg entre dipolos)', 1: 'Alternada (vivo de uno a masa del siguiente, λg/2)'},
-                          ayuda='Alternada: cada dipolo lleva la polaridad cambiada y van a media longitud de onda: la placa mide la mitad y no hay vías. Solo con brazos bowtie o de Sierpinski, en una placa'),
+                          ayuda='Alternada: array de dipolos bowtie transversales a la línea, cada uno con los brazos cambiados de cara y a media longitud de onda: placa más corta, sin vías, haz perpendicular a la placa. Solo con bowtie o Sierpinski, en una placa'),
+                Parametro('apertura', 'Apertura de la bowtie [°]', 50, 20, 100, 1,
+                          ayuda='Solo con la conexión alternada: ángulo total de cada triángulo (más apertura, más ancho y más alto, hasta tocar al dipolo vecino)'),
                 Parametro('separacion_patas', 'Distancia de las patas de la U al eje [mm]', 7, 2, 40, 0.1),
                 Parametro('ancho_brazo', 'Ancho de las patas de la U [mm]', 2.5, 0.5, 15, 0.1),
                 Parametro('factor_linea', 'Corrección del largo de los tramos de línea', 1.0, 0.7, 1.3, 0.01,
@@ -1184,6 +1186,10 @@ def estimar_f(clave, parametros, nombre_sustrato=None, calibrada=True):
     p = tipo.defectos()
     p.update(parametros or {})
     s = sustrato(nombre_sustrato)
+    if clave == 'colineal_dipolos' and int(p.get('conexion', 0) or 0) == 1:
+        # alternada: dipolos bowtie transversales: la estimación (y la calibración) del dipolo bowtie, no la de la colineal en serie
+        return estimar_f('dipolo_bowtie', {'largo_brazo': p['largo_brazo'], 'forma': max(int(p.get('forma', 0) or 0), 1),
+                                           'iteracion_s': p.get('iteracion_s', 2), 'alimentacion': 0}, nombre_sustrato, calibrada)
     if clave in ('jpole', 'ifa') and int(p.get('multibanda', 0) or 0) == 1:
         # dos bandas: la banda baja sale de las simulaciones de antenas/bibanda.py (con la calibración de una banda saldría
         # un 10 % alta en la J-pole y un 11 % baja en la IFA, que lleva el brazo alargado)

@@ -14,7 +14,7 @@ os.chdir(RAIZ)
 sys.path.insert(0, RAIZ)
 
 FORMAS = ((0, 0, 'U (dos patas), en serie'), (1, 0, 'Bowtie, en serie'), (2, 0, 'Bowtie de Sierpinski (it. 2), en serie'),
-          (1, 1, 'Bowtie ALTERNADA (vivo de uno a masa del siguiente, λg/2)'), (2, 1, 'Sierpinski ALTERNADA (λg/2)'))
+          (1, 1, 'Bowtie ALTERNADA (brazos transversales, λg/2)'), (2, 1, 'Sierpinski ALTERNADA (brazos transversales, λg/2)'))
 
 
 def _giro(geom):
@@ -65,10 +65,16 @@ def main():
         # (2) un dipolo ampliado (el segundo), con el cobre de las dos caras y el contorno
         ax = ejes[fila][1]
         ys = a.info.get('longitud_linea_mm', 80)                                       # separación entre dipolos (λg en serie, λg/2 alternada)
-        yc = p['largo_brazo'] + p.get('largo_entrada', 8) + 0.5 + ys                  # centro del 2.º dipolo
+        if conexion:                                                                   # alternada: brazos transversales, el nodo 0 a `medio` de la entrada
+            import math
+            medio = p['largo_brazo']*math.tan(math.radians(p.get('apertura', 50))/2)
+            yc = p.get('largo_entrada', 8) + 0.5 + medio + ys
+            ancho = max(2.6*2*medio, 45)
+        else:
+            yc = p['largo_brazo'] + p.get('largo_entrada', 8) + 0.5 + ys              # centro del 2.º dipolo
+            ancho = max(2.4*p['largo_brazo'], 40)
         pintar(ax, inf, '#7f9ed6', 0.55)
         pintar(ax, sup, '#c8892b', 0.95)
-        ancho = max(2.4*p['largo_brazo'], 40)
         ax.set_xlim(yc - ancho/2, yc + ancho/2); ax.set_ylim(y0, y1); ax.set_aspect('equal')
         ax.set_title('un dipolo ampliado', loc='left', fontsize=10); ax.set_yticks([])
     fig.suptitle(f'Colineal de dipolos a {f_MHz:g} MHz (FR4 de 1,6 mm): formas de brazo · cara superior (vivo) en naranja, inferior (masa) en azul', fontsize=12)
