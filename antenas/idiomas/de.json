@@ -737,6 +737,7 @@
   "No se ha podido cargar el motor: {0}": "Die Engine konnte nicht geladen werden: {0}",
   "No se ha podido conectar.": "Verbindung nicht möglich.",
   "No se pudo analizar las tolerancias: {0}": "Die Toleranzen konnten nicht analysiert werden: {0}",
+  "No se pudo calcular la polarización ({0}): los datos de razón axial y sentido de giro faltan.": "Die Polarisation konnte nicht berechnet werden ({0}): Achsenverhältnis und Drehsinn fehlen.",
   "No se pudo calcular la red: {0}": "Das Netzwerk konnte nicht berechnet werden: {0}",
   "No se pudo crear el informe: {0}": "Der Bericht konnte nicht erstellt werden: {0}",
   "No se pudo exportar el diagrama: {0}": "Das Diagramm konnte nicht exportiert werden: {0}",

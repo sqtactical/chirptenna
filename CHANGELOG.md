@@ -5,6 +5,24 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ## [Sin publicar]
 
+*English summary: ideas taken from the open-source antenna-forge project: Bayesian optimisation for the sweeps, a minimal thin-wire method of moments to pre-select dipoles and Yagis in seconds, textbook checks of the generator (unit tests and a real openEMS run) and a generated one-page status. Nothing here changes a design; everything is still simulation-only.*
+
+### Optimización bayesiana en los barridos
+- `antenas/optimizacion.py`: proceso gaussiano y mejora esperada en numpy (sin scipy ni dependencias nuevas; no va en la web). Determinista: con la misma semilla, un barrido cortado repite los mismos puntos y recupera los ya simulados.
+- `herramientas/barrido.py --modo bayes [--evals N] [--iniciales N] [--semilla N]`: en un parámetro continuo se dan el mínimo y el máximo (`alto=x0.8,x1.2`); en uno discreto, la lista de valores. Cada punto nuevo sale de lo ya simulado, en vez de recorrer la rejilla entera (N^d simulaciones).
+
+### Preselección con hilos (método de momentos)
+- `antenas/hilos.py`: Pocklington con base triangular y Galerkin para hilos finos paralelos en el aire (impedancia, corrientes, diagrama, directividad). Dipolo de λ/2: 86 + j46 Ω con radio 0,001 λ y resonancia a 0,476 λ; Yagi de 3 elementos de Balanis: 8–9 dBi y delante/atrás > 8 dB.
+- `herramientas/preseleccion_hilos.py dipolo|yagi`: largo resonante del dipolo y rango de `factor_reflector`, `separacion_reflector`, `factor_director` y `separacion_director` de una Yagi (unos 10 s) para acotar el barrido `yagi_boom` de openEMS. No modela el FR4 ni la pista de alimentación: acota, no sustituye.
+
+### Comprobaciones contra la teoría
+- `pruebas/test_verdad.py` (22 pruebas, sin simular): microstrip de Hammerstad, largo del dipolo y del monopolo en λ, parche contra el modelo de la cavidad y coherencia de `dimensionar` con `estimar_f`.
+- `herramientas/verdad.py`: simula con openEMS un dipolo, un monopolo y un parche a 2441,75 MHz y los compara con el libro (fuera de la CI: tarda minutos).
+
+### Estado real y fallos mudos
+- `docs/ESTADO_REAL.md`, generado por `herramientas/estado_real.py` desde `problemas.ESTADO`: qué está medido (nada), qué solo simulado, límites y comprobaciones. `pruebas/test_estado_real.py` falla si se desfasa.
+- `simulacion.simular` ya no se traga el fallo del cálculo de la polarización: lo anota en los avisos. Revisado el resto de `antenas/`: no hay otro `except` que oculte un resultado.
+
 ## [0.4.1-alpha] · 2026-11-16
 
 *English summary: modular collinear (one board per dipole, start / module / end boards joined edge to edge, with optional tabs-and-slots or dovetail fit, solder-mask openings and per-board Gerber and DRC, also in the web version); new README screenshots and manual (getting-started chapter, screenshots, language/theme/GPU/web chapter). Simulated only: the soldered junction between boards is neither simulated nor measured, and nothing has been measured on a manufactured board.*

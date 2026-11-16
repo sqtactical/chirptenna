@@ -15,7 +15,13 @@ Opciones:
                     `simulacion.ajustar`) y barre alrededor de ese diseño centrado; guarda su diagrama
   --modo M          cruz (recomendado con --centrar): la base, cada parámetro por separado y, al final, la
                     combinación de los mejores valores; grid (por defecto): todas las combinaciones;
-                    uno: solo la base y cada parámetro por separado
+                    uno: solo la base y cada parámetro por separado; bayes: optimización bayesiana
+                    (`antenas/optimizacion.py`): en un parámetro continuo los valores dados son su mínimo y
+                    su máximo (`alto=x0.8,x1.2`), en uno discreto (iteración, opciones) la lista de
+                    valores posibles; simula --evals puntos (20) y cada uno sale de lo ya simulado
+  --evals N         (modo bayes) simulaciones en total, las iniciales incluidas (20)
+  --iniciales N     (modo bayes) puntos iniciales en hipercubo latino (el mayor de 4 y 2 × parámetros)
+  --semilla N       (modo bayes) semilla; con la misma, un barrido cortado repite los mismos puntos (1)
   --corte N         se para si las N primeras configuraciones salen todas peor de −3 dB (por defecto 3; 0 = nunca)
   --bw MHz          ancho de la banda objetivo (por defecto el de la banda; 5 MHz si f es un número suelto)
   --sustrato S      por defecto «FR4 JLC 1,6 mm»
@@ -42,6 +48,8 @@ import math
 import time
 import itertools
 import datetime
+
+import numpy as np
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(RAIZ)
@@ -215,7 +223,24 @@ def main():
         fijos = {k: sp[0] for k, sp in espec.items() if len(sp) == 1}
         barridos = {k: sp for k, sp in espec.items() if len(sp) > 1}
         modo = opt['modo']
-        if modo in ('uno', 'cruz'):
+        espacio, n_evals = None, 0
+        if modo == 'bayes':
+            from antenas import optimizacion
+            dims = {}
+            for k, sp in barridos.items():
+                clases = {c for c, _ in sp}
+                if len(clases) > 1:
+                    sys.exit(f'«{k}»: en el modo bayes todos los valores deben ser absolutos o todos factores (x…)')
+                vals = [v for _, v in sp]
+                dims[k] = (clases.pop(), list(vals) if discreto(k) else (min(vals), max(vals)))
+            if not dims:
+                sys.exit('El modo bayes necesita al menos un parámetro con varios valores (mín y máx si es continuo).')
+            espacio = optimizacion.Espacio(dims)
+            n_evals = int(opt.get('evals', 20))
+            n0 = min(n_evals, int(opt.get('iniciales', max(4, 2*espacio.dimension))))
+            semilla = int(opt.get('semilla', 1))
+            crudos = [espacio.decodificar(u) for u in optimizacion.diseno_inicial(n0, espacio.dimension, semilla)]
+        elif modo in ('uno', 'cruz'):
             base_sp = {k: sp[0] for k, sp in barridos.items()}
             crudos = [dict(base_sp)]
             for k, sp in barridos.items():
@@ -327,6 +352,35 @@ def main():
                 print(f'  (cortado: las {corte} primeras configuraciones salen peor de −3 dB)', flush=True)
                 cortada = True
                 break
+
+        if modo == 'bayes' and not cortada:
+            # Optimización bayesiana: cada punto nuevo sale del proceso gaussiano ajustado a todo lo simulado
+            vistos = {json.dumps(cr, sort_keys=True) for cr, _ in filas_cr}
+            reservas = 0
+            while len(filas_cr) < n_evals:
+                X = np.array([espacio.codificar(cr) for cr, _ in filas_cr])
+                y = np.array([f.get('peor_banda_dB', 0.0) for _, f in filas_cr])       # fallos: 0 dB (el peor caso)
+                nuevo = None
+                for u in optimizacion.proponer(X, y, semilla):
+                    cr = espacio.decodificar(u)
+                    if json.dumps(cr, sort_keys=True) not in vistos:
+                        nuevo = cr
+                        break
+                if nuevo is None:
+                    print('  (sin puntos nuevos que proponer: el espacio discreto está agotado)', flush=True)
+                    break
+                vistos.add(json.dumps(nuevo, sort_keys=True))
+                c, q, a, err = preparar(nuevo)
+                print(f'  bayes {len(filas_cr) + 1}/{n_evals}: {json.dumps(c, ensure_ascii=False)}', flush=True)
+                if a is None:
+                    filas_cr.append((nuevo, {'peor_banda_dB': 0.0, 'error': err}))     # no se genera: se anota como malo
+                    continue
+                fila = simular_una(c, q, a)
+                if fila is None:
+                    filas_cr.append((nuevo, {'peor_banda_dB': 0.0}))
+                    continue
+                filas.append(fila)
+                filas_cr.append((nuevo, fila))
 
         if modo == 'cruz' and not cortada and barridos and len(filas_cr) > 1:
             # combinación de los mejores valores de cada parámetro

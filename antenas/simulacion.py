@@ -479,8 +479,8 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
             res_out['ar_dB_theta0'] = float(ar[0, 0])
             res_out['pol_max'] = 'RHCP' if er[it, ip] > el[it, ip] else 'LHCP'
             res_out['pol_theta0'] = 'RHCP' if er[0, 0] > el[0, 0] else 'LHCP'
-        except Exception:
-            pass
+        except Exception as ex:                  # sin polarización no se inventa: se dice que falta
+            avisos.append(tr('No se pudo calcular la polarización ({0}): los datos de razón axial y sentido de giro faltan.', type(ex).__name__))
     if os.environ.get('ANTENAS_BORRAR_SIM') == '1':
         # campañas largas: los volcados de campos ocupan GB por simulación y la caché no se reutiliza
         shutil.rmtree(sim_path, ignore_errors=True)

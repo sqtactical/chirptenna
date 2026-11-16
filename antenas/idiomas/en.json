@@ -737,6 +737,7 @@
   "No se ha podido cargar el motor: {0}": "The engine could not be loaded: {0}",
   "No se ha podido conectar.": "Could not connect.",
   "No se pudo analizar las tolerancias: {0}": "The tolerances could not be analyzed: {0}",
+  "No se pudo calcular la polarización ({0}): los datos de razón axial y sentido de giro faltan.": "Could not compute the polarization ({0}): the axial ratio and sense of rotation data are missing.",
   "No se pudo calcular la red: {0}": "The network could not be calculated: {0}",
   "No se pudo crear el informe: {0}": "The report could not be created: {0}",
   "No se pudo exportar el diagrama: {0}": "The pattern could not be exported: {0}",

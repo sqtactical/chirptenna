@@ -737,6 +737,7 @@
   "No se ha podido cargar el motor: {0}": "Impossible de charger le moteur : {0}",
   "No se ha podido conectar.": "Connexion impossible.",
   "No se pudo analizar las tolerancias: {0}": "Impossible d'analyser les tolérances : {0}",
+  "No se pudo calcular la polarización ({0}): los datos de razón axial y sentido de giro faltan.": "Impossible de calculer la polarisation ({0}) : les données de rapport axial et de sens de rotation manquent.",
   "No se pudo calcular la red: {0}": "Impossible de calculer le réseau : {0}",
   "No se pudo crear el informe: {0}": "Impossible de créer le rapport : {0}",
   "No se pudo exportar el diagrama: {0}": "Impossible d'exporter le diagramme : {0}",
