@@ -56,7 +56,7 @@ TIPOS = {
     'vivaldi': ('directiva', 'Vivaldi antipodal: banda ancha y directiva hacia la boca.',
                 ['ancho_apertura', 'largo_aleta', 'conector']),
     'colineal_dipolos': ('sin_masa', 'Dipolos en serie (U al vivo, U invertida a la malla) unidos por microstrip de λg: más ganancia omni.',
-                         ['largo_brazo', 'elementos', 'modular', 'encaje', 'conector']),
+                         ['largo_brazo', 'elementos', 'inclinacion', 'modular', 'encaje', 'conector']),
     'parche_ranura': ('experimental', 'Parche con ranura en U: más banda que el rectangular. Sin validar.',
                       ['largo', 'ancho', 'ranura_ancho', 'ranura_largo', 'alimentacion', 'conector']),
     'parche_apilado': ('experimental', 'Parche con parásito acoplado (más banda), en la misma cara. En simulación no adapta.',

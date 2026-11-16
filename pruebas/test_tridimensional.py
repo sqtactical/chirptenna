@@ -80,3 +80,16 @@ def test_vista3d_dibuja_las_placas_y_los_hilos(clave):
     fig = vista3d.figura(a, 1.6)
     assert len(fig.data) > 4
     assert len(vista3d.figura(a, 1.6, explosionada=True).data) >= 3
+
+
+def test_inclinacion_alarga_o_acorta_los_tramos():
+    # array alimentado en serie con inclinación fija: más inclinación hacia el extremo lejano = tramos de línea más largos
+    def tramo(conexion, tau):
+        p = tipos.dimensionar('colineal_dipolos', F, {'forma': 1, 'conexion': conexion, 'elementos': 4, 'inclinacion': tau})
+        p['largo_brazo'] = 12.3 if conexion else 25.0                        # el mismo brazo en todos los casos
+        return tipos.generar('colineal_dipolos', p).info['longitud_linea_mm']
+    for conexion in (0, 1):
+        l_menos, l_cero, l_mas = tramo(conexion, -10), tramo(conexion, 0), tramo(conexion, 10)
+        assert l_menos < l_cero < l_mas
+        # d = λ0/(√εeff − sen τ): el cociente entre tramos es el del factor
+        assert abs(l_mas/l_cero - 1) > 0.05

@@ -47,6 +47,7 @@ integrar antenas en la PCB de un producto (v0.5). Las ideas pendientes de abajo 
 ## Siguientes pasos
 
 1. **Alpha abierto** (el usuario no quiere esperar a las medidas):
+   - **Pendiente (16-11): estudio de la inclinación del haz** (`inclinacion` de la colineal; lección 86), encolado como `0018b1–6` detrás de las alternadas corregidas `0018a1–3`: comprobar que el máximo (`direccion_max`) se mueve con τ, apuntarlo en `docs/desarrollo/colineal_modular.md` y, si va, calibrar el factor.
    - **Hecho el 16-11, sin commit:** los cuatro tipos de varias placas (`diedro`, `reflector_esquina`, `helice_normal`, `helice_cuadrifilar`; `docs/desarrollo/tridimensional.md`, lección 85 de CLAUDE.md). Probados a 2,4 GHz con CPU y malla gruesa; falta centrarlos y simularlos en GPU con malla fina (nada en la cola), probar la V según el ángulo y medir. La web no tiene vista 3D.
    - **Pendiente (16-11, cola de GPU):** colineal alternada con la separación corregida ( 018a1–3 en %LOCALAPPDATA%\antenas\cola: bowtie FR4, bowtie PTFE, Sierpinski FR4, centradas): ver si el haz sale perpendicular a la placa y con cuánta ganancia (antes 2,5–2,8 dBi en FR4, 6,5 dBi en PTFE). Detrás van las cadenas en serie centradas ( 018– 023). Resultados a docs/desarrollo/colineal_modular.md. Cambios sin commit: dipolos.py, 	ipos.py, docs. La entrada  008_array_parches lleva desde el 02-11 en en_curso (colgada).
 

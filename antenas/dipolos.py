@@ -225,6 +225,19 @@ def _brazo_colineal(p, yk, sentido):
     return piezas
 
 
+def _factor_inclinacion(p, s, w50):
+    """Factor que alarga (o acorta) el tramo de línea entre dipolos para inclinar el haz `inclinacion` grados respecto a la perpendicular a la
+    colineal (array alimentado en serie con inclinación fija). Con N elementos separados d y una línea de índice √εeff (sin las barras de los
+    brazos), el máximo está donde k0·d·cos ψ = k·d·√εeff − 2π·m (serie, m = 1) o − π (alternada): con la separación d = λ0/(√εeff − sen τ)
+    (λ0/2 en la alternada) el haz queda τ grados hacia el extremo lejano (τ > 0) o hacia el conector (τ < 0). Sin calibrar: la línea real
+    no es una microstrip ideal y los dipolos se acoplan."""
+    tau = float(p.get('inclinacion', 0) or 0)
+    if not tau:
+        return 1.0
+    ee = math.sqrt(eps_eff_microstrip(s.er, s.h, w50))
+    return ee/(ee - math.sin(math.radians(tau)))
+
+
 def _hueco_colineal(p, w50, wb, Ls):
     """Hueco más pequeño del cobre (para la malla): patas–línea en la «U»; en la bowtie no hay patas, y queda el de un brazo al siguiente;
     en el Sierpinski, el del hueco triangular más pequeño (anchura = 4·área/perímetro)."""
@@ -256,7 +269,7 @@ def generar_colineal_dipolos(p, s, eps_impreso):
     La, n = p['largo_brazo'], int(p['elementos'])
     avisos = []
     f_est = estimar_f_colineal_dipolos(p, eps_impreso)
-    Ls = p['factor_linea']*C0/f_est*1e3/math.sqrt(eps_eff_microstrip(s.er, s.h, w50))
+    Ls = p['factor_linea']*C0/f_est*1e3/math.sqrt(eps_eff_microstrip(s.er, s.h, w50))*_factor_inclinacion(p, s, w50)
     if int(p.get('conexion', 0) or 0) == 1:
         return _colineal_alternada(p, s, w50, wb, avisos)
     if Ls < 2*La + 2.0:
@@ -309,7 +322,7 @@ def _colineal_alternada(p, s, w50, wb, avisos):
     from . import tipos                    # (import local: `tipos` importa este módulo)
     La, n = p['largo_brazo'], int(p['elementos'])
     # media longitud de onda de la microstrip a la frecuencia que da el tamaño de los brazos (la estimación calibrada, no la fórmula cruda)
-    Ls2 = p['factor_linea']*C0/tipos.estimar_f('colineal_dipolos', p, s.nombre)*1e3/math.sqrt(eps_eff_microstrip(s.er, s.h, w50))/2
+    Ls2 = p['factor_linea']*C0/tipos.estimar_f('colineal_dipolos', p, s.nombre)*1e3/math.sqrt(eps_eff_microstrip(s.er, s.h, w50))/2*_factor_inclinacion(p, s, w50)
     if int(p.get('forma', 0) or 0) == 0:
         avisos.append(tr('La conexión alternada usa brazos en triángulo (bowtie): la forma «U» no se puede alternar.'))
     if int(p.get('modular', 0) or 0) == 1:
