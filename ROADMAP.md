@@ -144,6 +144,11 @@ diseñar la antena **dentro** de otra placa.
 | Arrays 2×1, 3×3 y 1×N, con y sin reflector | Más ganancia a medida | Medio |
 | Colineal con elementos bowtie y colineales acortadas con fractales | Menos largo a 868 MHz | Medio |
 | Más antenas modulares como la colineal (CLAUDE.md lección 79): **Yagi con boom** (cada director = un módulo con su trozo de boom), panel por teselas de 2×2 (hay que partir la red de alimentación) y Franklin (solo después de validarla) | Antenas largas que no caben en una placa o salen caras, sobre todo a 868 MHz; más ganancia añadiendo módulos. Sin medir la unión soldada de la colineal, esperar a la fase 1 | Medio |
+| **Colineal modular con elementos bowtie** (o dipolos acortados) | Más banda por módulo; casi gratis: reutiliza `colineal_dipolos` con `modular` = 1 | Bajo |
+| **Antena de cuerda larga para 868 MHz en tramos** (J-pole o monopolo alargado cortado y soldado de canto) | Radiadores de más de 80 mm que no caben cómodos en una placa; sale de dividir una pista, no de repetir celdas | Bajo |
+| **Array lineal 1×N de parches o dipolos, una placa por elemento** | Más ganancia a medida con una red de alimentación en árbol (más simple que la teselada del panel) | Medio |
+| **Antena en diedro / «V»**: dos placas unidas formando un ángulo | Haz más ancho o polarización cruzada; módulo = placa, lo que cambia es el ángulo de unión (hay que simularlo) | Medio |
+| **Reflector de esquina de dos placas** (dipolo o Yagi pequeña delante, reflector a 90°) | ~10 dBi sin red de alimentación; radiador y reflector se fabrican por separado y se encajan | Medio |
 | Hélice de modo normal a 868 MHz y Yagi plana de una capa en flex | Sacar partido al flex | Bajo |
 | Hélice cuadrifilar con su red de 90° | GPS en flex | Alto |
 | Bandas nuevas: 433 MHz, LTE-M/NB-IoT (700–960 MHz), UWB (6–8 GHz) | Más productos | Medio |

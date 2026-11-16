@@ -63,11 +63,34 @@ borde también junto a las ranuras. La simulación no incluye las muescas (despr
 Exportación: una carpeta por placa (`modulos/<inicio|modulo|final>`) con Gerber, KiCad y DRC (limpio), más la cadena entera en una sola placa.
 Aperturas de máscara de 3 mm en cada canto de unión y un pad GND sobre la tira de masa de las placas sin conector (evita `isolated_copper`).
 
+## Cadena de módulos en PTFE ZYF265D 1,65 mm (16-11, sin centrar)
+
+Mismas cadenas (`barrido.py colineal_dipolos … modular=1 elementos=N --sustrato "PTFE ZYF265D 1,65 mm" --radiacion`, GPU, malla fija de
+0,367 mm a 2,4 GHz y de 1,08 mm a 868 MHz) con los tamaños de `dimensionar` **sin centrar**: la resonancia sale un 10–12 % fuera de la
+banda (los factores de calibración son de FR4), así que el S11 no es comparable con el de FR4; la ganancia y la eficiencia sí lo son.
+Resultados en `salidas/_barridos/colineal_ptfe_24_N4`, `colineal_ptfe_24_N8` y `colineal_ptfe_868_N4`.
+
+| Cadena | Placa (mm) | Resonancia | D (dBi) | G (dBi) | η | G en FR4 con la misma N |
+|---|---|---|---|---|---|---|
+| 4 módulos, 2,4 GHz | 20,5 × 362 | 2165 MHz (−11 %) | 6,6 | 6,4 | 96 % | 4,0–4,1 dBi, η 59–61 % |
+| 8 módulos, 2,4 GHz | 20,5 × 752 | 2747 MHz (+12 %) | 9,0 | 8,8 | 95 % | 5,3 dBi, η 38 % |
+| 4 módulos, 868 MHz | 50,5 × 1008 | 781 MHz (−10 %) | 7,3 | 7,5 (η 105 %: artefacto) | — | 4,6 dBi, η 69 % |
+
+- **El PTFE quita el tope de 4 módulos del FR4**: con 4 y 8 módulos η se queda en el 95 % y la ganancia sube +2,4 dB al duplicar (6,4 → 8,8 dBi),
+  la misma que con RO4350B (8,9 dBi con 8). En FR4, 8 módulos daban 5,3 dBi.
+- A 868 MHz la η sale de 105 % (G > D): es un error numérico de la normalización del NF2FF (malla gruesa, placa de 1 m), así que la ganancia
+  de 7,5 dBi es orientativa; la directividad de 7,3 dBi sí es creíble (FR4: 4,6 dBi de ganancia con η 69 %).
+- El haz sale inclinado (θ 156–165° del eje de la placa, es decir, 15–24° de la normal) y con polarización circular de razón axial
+  baja (RHCP a 2,4 GHz, LHCP a 868 MHz): hay que mirar si es real o un efecto de la alimentación por un extremo.
+- Pendiente para dar los números por buenos: **centrar** cada cadena (acortar los tramos un 10 %: a 2,4 GHz N=4 resuena a 2165 MHz y
+  N=8 a 2747 MHz, cambian en sentidos opuestos) y repetir con el tamaño centrado.
+
 ## Conclusiones
 
 - Modularizar es viable geométricamente, y a 868 MHz resuelve un problema real (placa de 0,4–0,8 m).
 - **En FR4 el tope útil es N = 4 (~4 dBi a 2,4 GHz; ~4,6 dBi a 868 MHz).** Más módulos no dan ganancia (η cae al 38–48 %).
 - Con sustrato de bajas pérdidas (RO4350B, PTFE) la ganancia escala (~+2 dB por duplicación, η > 90 % hasta N = 8), a costa de precio.
+  Confirmado en PTFE de JLC (16-11): 6,4 dBi con 4 módulos y 8,8 dBi con 8, η 95 % (sección anterior), sin centrar.
 - Faltan: (a) centrar la frecuencia por N (el largo de tramo cambia con N), (b) modelar la unión entre módulos (discontinuidad
   y masa B.Cu), (c) el haz sale inclinado ~25° de la normal a la placa (alimentación por un extremo), (d) comprobar el
   efecto del conector/mástil. Sin medir, como todo lo demás.
