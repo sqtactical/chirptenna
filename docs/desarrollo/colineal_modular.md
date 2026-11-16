@@ -102,6 +102,29 @@ el lado del conector (end-fire). En PTFE el error era menor (×0,79) y el haz sa
 Corrección: `dipolos.f_alternada` = 0,85·c/(4·L·√εr), ajustada con los puntos del centrado (FR4: L 10,5–18,8 mm; PTFE: 16,7–21 mm; ±5 %). Con ella el brazo
 por defecto sale de 12,3 mm (FR4) y 16,0 mm (PTFE) y la separación de 33,3 y 41,6 mm. Repetidas en la cola (`0018a1–3`); resultados pendientes.
 La razón axial de 6–13 dB y el «RHCP/LHCP» no son una polarización real: con dipolos lineales son ruido de la medida.
+### Alternada con la separación corregida (16-11)
+
+Repetidas con `dipolos.f_alternada` (`salidas/_barridos/colineal_alt_*_24_N4_c2`), 4 dipolos, centradas:
+
+| Caso | Brazo | Peor S11 | f res. | G (dBi) | η | Haz (θ, φ) |
+|---|---|---|---|---|---|---|
+| Bowtie, FR4 | 13,7 mm | −8,5 dB | 2420 MHz | 2,8 | 64 % | 33°, 102° (33° hacia +y) |
+| Bowtie, PTFE | 14,3 mm | −4,4 dB | 2395 MHz | 5,4 | ~100 % (ruido) | 3°, 198° (perpendicular) |
+| Sierpinski, FR4 | 13,8 mm | −7,8 dB | 2464 MHz | 2,4 | 58 % | 150°, 96° (casi horizontal) |
+
+El haz de FR4 ya no sale tumbado (antes θ 105–117°) pero tampoco perpendicular, y ninguno adapta a −10 dB tras centrar. En PTFE el haz sale perpendicular.
+
+### Inclinación del haz (16-11, `inclinacion`, lección 86 de CLAUDE.md)
+
+Primer estudio (`incl_*`, centrado solo en τ = 0, así que **desadaptado al inclinar**: la resonancia se mueve hasta +11 % y el S11 cae a −1…−5 dB). Haz (θ, φ) por τ:
+
+- **Alternada bowtie PTFE N = 4:** τ = −15° → θ 177° (perpendicular por detrás); −7° → 6°; 0° → 3°; +7° → 3°; **+15° → θ 15°, φ 96° (15° hacia +y: el ángulo pedido)**. Con τ = +7° debería salir 7° y sale 3°.
+- **Alternada bowtie FR4 N = 4:** −15° → θ 3° (perpendicular), −7° → 21°, 0° → 33°, +7° → 39°, +15° → 126°. En FR4 el haz sale perpendicular con τ ≈ −15°: la separación real es ~12 % más corta que la de la microstrip ideal (el índice efectivo real es mayor: arcos de brazos y acoplo).
+- **Sierpinski FR4 N = 4:** confuso (−15° → θ 3°, −7° → 9°, 0° → 150°, +7° → 36°, +15° → 48°).
+- **Bowtie FR4 N = 8:** τ = −10° → G −1,0 dBi, η 14 %; 0° → G 3,7 dBi, θ 18°; +10° → θ 27°. No concluyente.
+- **En serie (U y bowtie, N = 4):** los máximos caen en lóbulos del plano de la placa y se mueven sin un sentido claro (la inclinación hay que medirla desde el eje de la colineal, no desde Z: `direccion_max` da un solo máximo). Con τ = ±10° baja la ganancia (U: 4,1 → 2,5 y 2,9 dBi; bowtie: 3,4 → −1,8 y 0,2 dBi).
+
+Conclusiones provisionales: la fórmula acierta el sentido y, en PTFE, el ángulo (+15°); en FR4 el índice efectivo hay que calibrarlo (probar `factor_linea` ≈ 0,88). **Hay que centrar cada τ por separado** (el tamaño del brazo y la separación se acoplan) y medir el ángulo desde el eje de la colineal. Encoladas (`0018c1–8`, sin simular): PTFE con τ = −10, −5, 5, 10, 15° y FR4 con `factor_linea` 0,88 y τ = 0, 8, −8°, cada una con su propio centrado.
 ## Conclusiones
 
 - Modularizar es viable geométricamente, y a 868 MHz resuelve un problema real (placa de 0,4–0,8 m).
