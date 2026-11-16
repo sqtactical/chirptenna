@@ -207,26 +207,39 @@ botón **?**: púlsalo para ver qué hace. Los más habituales:
 
 ## 5. Pestaña Simulación
 
-Simula la antena con **openEMS** (un simulador electromagnético de onda completa, FDTD).
+Simula la antena con **openEMS** (un simulador electromagnético de onda completa, FDTD) y, si tienes MATLAB con la
+Antenna Toolbox, también con MATLAB.
 
 ![Pestaña Simulación de una Yagi de 2450 MHz, con S11, ROE, Smith y diagramas](docs/capturas/simulacion.png)
 
-1. **Precisión:**
+1. **Motor:** *openEMS* (el de siempre), *MATLAB (Antenna Toolbox)* u *openEMS + MATLAB*. El selector solo se
+   activa si el programa encuentra MATLAB con la Antenna Toolbox instalada (o la ruta de `matlab.exe` en la variable
+   `MATLAB_EXE`); si no, queda desactivado y su ayuda dice por qué.
+   - **MATLAB** usa el método de momentos de la Antenna Toolbox: es más aproximado que openEMS, no ajusta la frecuencia,
+     no calcula ganancia ni eficiencia y no usa la GPU. Con él quedan desactivadas las demás opciones. Tarda de uno a unos
+     minutos (el dipolo, 1 min) y solo vale para placas sencillas: cobre en las dos caras, FR4 de dos capas y alimentación en
+     el borde. No sirve para paneles, antenas con reflector, vías, entorno ni la colineal modular, y lo avisa.
+   - **openEMS + MATLAB** simula con openEMS (con su ajuste, si lo marcas) y luego con MATLAB la antena ya ajustada. La
+     gráfica de S11 superpone las dos curvas y debajo sale la diferencia de frecuencia y de directividad: dentro de un 5 % y
+     1 dB se considera que coinciden. **Es un contraste independiente, no una medida**: si los dos motores discrepan, desconfía
+     de los dos y mide la placa. Con la malla por defecto MATLAB sale entre un 3 y un 9 % alto en frecuencia en el dipolo y
+     el monopolo; en un parche la directividad de MATLAB no es fiable.
+2. **Precisión:**
    - **rápida** para tantear (±3 %);
    - **normal** para diseñar;
    - **fina** para la comprobación final, más lenta.
-2. **Ajustar a la frecuencia simulando:** si está marcado, simula, corrige el tamaño y repite (2–5
+3. **Ajustar a la frecuencia simulando:** si está marcado, simula, corrige el tamaño y repite (2–5
    simulaciones) hasta que el centro de la banda a −10 dB cae en el objetivo. Si no, hace una sola.
-3. **Verificar con otra malla:** repite la simulación final con el paso de malla un 15 % menor y un 15 % mayor
+4. **Verificar con otra malla:** repite la simulación final con el paso de malla un 15 % menor y un 15 % mayor
    (tarda el triple) y avisa si el resultado cambia: más de un 5 % de frecuencia, o más de 5 dB de S11 cuando
    alguno de los dos queda por encima de −10 dB. Un aviso significa que **un solo punto no es de fiar** y hay que
    medir la antena. Se hace siempre con dos bandas, paneles y arrays, que son los que más dependen de la malla.
-4. **Analizar tolerancias:** simula además con la εr un ±5 %, el grosor del FR4 un ±10 % y el cobre ±0,05 mm
+5. **Analizar tolerancias:** simula además con la εr un ±5 %, el grosor del FR4 un ±10 % y el cobre ±0,05 mm
    (6 simulaciones más) y dice si la banda sigue cubierta: «cubre con margen», «justo» o «no cubre: necesita
    ajuste tras fabricar». Un monopolo de banda ancha cubre; un parche rectangular (~36 MHz de banda) no.
-5. **Entorno:** simula también con una carcasa de ABS, una batería metálica o una mano cerca (2 simulaciones más)
+6. **Entorno:** simula también con una carcasa de ABS, una batería metálica o una mano cerca (2 simulaciones más)
    y dice cuánto cambian la frecuencia y la eficiencia.
-6. **Simular.** El registro muestra el progreso. Puedes seguir usando el resto de la interfaz.
+7. **Simular.** El registro muestra el progreso. Puedes seguir usando el resto de la interfaz.
 
 **Cuánto tarda:** de 1 a 15 minutos cada simulación en un monopolo de 2,4 GHz. A 868 MHz, con pistas finas,
 o en arrays y paneles, puede llegar a horas. Los resultados quedan en caché: repetir la misma geometría es

@@ -27,7 +27,7 @@ from nicegui import app, ui, run, background_tasks   # noqa: E402
 
 from antenas import tipos, vista, fabricacion, exportar, consejos, graficas, ajuste, biblioteca, problemas   # noqa: E402
 from antenas import guia, gpu, entorno, importar_kicad, informe, diagrama   # noqa: E402
-from antenas import i18n   # noqa: E402
+from antenas import i18n, simular_matlab   # noqa: E402
 from antenas.i18n import tr   # noqa: E402
 from antenas import __version__   # noqa: E402
 from antenas.materiales import ancho_microstrip, eps_eff_microstrip   # noqa: E402
@@ -401,8 +401,18 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
         # -------------------------------------------------------------- 2. Simulación
         with ui.tab_panel(t_sim).classes('q-pa-sm'):
             with ui.card().classes('w-full'):
-                _titulo_card(tr('Simulación con openEMS'), 'insights')
+                _titulo_card(tr('Simulación'), 'insights')
                 with ui.row().classes('w-full items-center wrap gap-2'):
+                    matlab_ok, matlab_motivo = simular_matlab.disponible()
+                    sel_motor = ui.select({'openems': 'openEMS', 'matlab': tr('MATLAB (Antenna Toolbox)'), 'ambos': tr('openEMS + MATLAB')},
+                                          value='openems', label=tr('Motor')).classes('w-52')
+                    if matlab_ok:
+                        sel_motor.tooltip(tr('openEMS: el motor del proyecto (FDTD, con ajuste y GPU). MATLAB: método de momentos de la Antenna '
+                                             'Toolbox, más aproximado, sin ajuste ni eficiencia; solo placas sencillas con alimentación en el borde. '
+                                             'Ambos: simula con openEMS y luego con MATLAB la antena ajustada, y superpone los dos S11.'))
+                    else:
+                        sel_motor.props('disable')
+                        sel_motor.tooltip(tr('MATLAB no disponible: {0}.', matlab_motivo))
                     sel_prec = ui.select(list(PRECISIONES), value='normal', label=tr('Precisión')).classes('w-32')
                     chk_ajustar = ui.checkbox(tr('Ajustar a la frecuencia simulando'), value=True)
                     gpu_ok, gpu_motivo = gpu.disponible()
@@ -425,6 +435,15 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                         chk_gpu.tooltip(tr('No disponible: {0}. Hay que compilar openEMS con GPU (ver RETOMAR.md).',
                                            gpu_motivo))
                     btn_sim = ui.button(tr('Simular'), icon='play_arrow').props('color=deep-purple no-caps')
+
+                    def cambiar_motor():
+                        """Con solo MATLAB no hay precisión, ajuste, verificación de malla, tolerancias, entorno ni GPU."""
+                        solo_matlab = sel_motor.value == 'matlab'
+                        for c in (sel_prec, chk_ajustar, chk_malla, chk_tol, sel_entorno):
+                            c.set_enabled(not solo_matlab)
+                        if gpu_ok:
+                            chk_gpu.set_enabled(not solo_matlab)
+                    sel_motor.on_value_change(lambda _: cambiar_motor())
                 ui.label(tr('Rápida: para tantear (±3 %). Normal: diseño. Fina: comprobación final (más lenta). '
                          'Cada simulación tarda de 1 a 15 min según el tamaño; el ajuste hace 2–5. '
                          'Si el diseño está guardado, el resultado se guarda con él.')
@@ -1012,6 +1031,12 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
         if sim['proc'] is not None:
             ui.notify(tr('Ya hay una simulación en marcha'), type='warning')
             return
+        motor = sel_motor.value if matlab_ok else 'openems'
+        if motor != 'openems':
+            motivo = simular_matlab.no_soporta(estado['antena'], tipos.sustrato(estado['sustrato']))
+            if motivo:
+                ui.notify(tr('MATLAB no puede simular esta antena: {0}.', motivo), type='warning', multi_line=True)
+                return
         carpeta = os.path.join(DIR_SALIDAS, '_simulaciones', time.strftime('%Y%m%d_%H%M%S'))
         os.makedirs(carpeta, exist_ok=True)
         # los resultados que se sabe que dependen de la malla (dos bandas, paneles, arrays) se verifican siempre
@@ -1020,14 +1045,17 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
         trabajo = {'clave': estado['clave'], 'parametros': estado['params'], 'sustrato': estado['sustrato'],
                    'f_obj_Hz': estado['f_MHz']*1e6, 'precision': sel_prec.value, 'ajustar': chk_ajustar.value,
                    'verificar_malla': bool(chk_malla.value or sensible), 'entorno': list(sel_entorno.value or []), 'tolerancias': bool(chk_tol.value),
-                   'banda_MHz': list(banda_actual()), 'salida': carpeta}
+                   'banda_MHz': list(banda_actual()), 'salida': carpeta, 'motor': motor}
         ruta = os.path.join(carpeta, 'trabajo.json')
         with open(ruta, 'w', encoding='utf-8') as fh:
             json.dump(trabajo, fh, ensure_ascii=False, default=float)
         registro.clear()
-        registro.push(tr('Simulando {0} a {1:g} MHz ({2}{3}{4})…', tr(tipos.CATALOGO[estado["clave"]].nombre),
-                         estado["f_MHz"], sel_prec.value, tr(', con ajuste') if chk_ajustar.value else '',
-                         ', GPU' if chk_gpu.value else ''))
+        if motor == 'matlab':
+            registro.push(tr('Simulando {0} a {1:g} MHz con MATLAB…', tr(tipos.CATALOGO[estado["clave"]].nombre), estado["f_MHz"]))
+        else:
+            registro.push(tr('Simulando {0} a {1:g} MHz ({2}{3}{4})…', tr(tipos.CATALOGO[estado["clave"]].nombre),
+                             estado["f_MHz"], sel_prec.value, tr(', con ajuste') if chk_ajustar.value else '',
+                             ', GPU' if chk_gpu.value else '') + (tr(' y después con MATLAB') if motor == 'ambos' else ''))
         entorno = dict(os.environ, PYTHONIOENCODING='utf-8', CHIRPTENNA_IDIOMA=i18n.idioma(),
                        ANTENAS_GPU='1' if chk_gpu.value else '0')
         proc = subprocess.Popen([sys.executable, '-u', '-m', 'antenas.simular_cli', ruta], cwd=RAIZ, env=entorno,
@@ -1124,6 +1152,10 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                             tr('{0:g}–{1:g} MHz', *sol['banda_peor_MHz']) if sol['banda_peor_MHz'] else tr('ninguna'))
                          ).classes('text-caption')
 
+    def _g(x):
+        """Número de un resultado, o «—» si el motor no lo da (MATLAB no calcula ganancia ni eficiencia)."""
+        return '—' if x is None else f'{x:g}'
+
     def pintar_simulacion(r, d):
         sim['mostrada'] = (r, d)            # para repintarla al cambiar de tema
         lo, hi = banda_actual()
@@ -1139,10 +1171,32 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                           tr('{0:g}–{1:g} MHz ({2:g} MHz)', r['banda_MHz'][0], r['banda_MHz'][1], r['ancho_banda_MHz'])),
                          (tr('Banda necesaria'), tr('{0:g}–{1:g} MHz', lo, hi)),
                          (tr('S11 mínimo'), tr('{0:g} dB a {1:g} MHz', r['s11_min_dB'], r['f_min_s11_MHz'])),
-                         (tr('Directividad / ganancia'), tr('{0:g} / {1:g} dBi', r['directividad_dBi'], r['ganancia_dBi'])),
+                         (tr('Directividad / ganancia'), tr('{0} / {1} dBi', _g(r['directividad_dBi']), _g(r['ganancia_dBi']))),
                          (tr('Eficiencia de radiación / total'),
-                          f"{r['eficiencia_radiacion_%']:g} % / {r['eficiencia_total_%']:g} %"),
-                         (tr('Malla / tiempo'), tr('{0:.2f} M celdas, paso {1} mm, {2:g} s', r['celdas']/1e6, r['paso_malla_mm'], r['tiempo_s']))]
+                          f"{_g(r['eficiencia_radiacion_%'])} % / {_g(r['eficiencia_total_%'])} %"),
+                         (tr('Malla / tiempo'), tr('{0:.2f} M celdas, paso {1} mm, {2:g} s', r['celdas']/1e6, r['paso_malla_mm'], r['tiempo_s'])
+                          if r.get('motor') != 'matlab' else tr('paso {0:g} mm, {1:g} s', r['paso_malla_mm'], r['tiempo_s']))]
+                if r.get('motor') == 'matlab':
+                    filas.insert(0, (tr('Motor'), tr('MATLAB (Antenna Toolbox, método de momentos)')))
+                mt = r.get('matlab')
+                if mt and mt.get('error'):
+                    with ui.row().classes('items-start no-wrap'):
+                        ui.icon('warning', color='warning')
+                        ui.label(tr('No se pudo simular con MATLAB: {0}', mt['error'])).classes('text-caption')
+                elif mt:
+                    df = 100*(mt['f_resonancia_MHz']/r['f_resonancia_MHz'] - 1)
+                    dd = None if mt['directividad_dBi'] is None or r['directividad_dBi'] is None else mt['directividad_dBi'] - r['directividad_dBi']
+                    ok_m = abs(df) <= 5 and (dd is None or abs(dd) <= 1.0)
+                    with ui.row().classes('items-start no-wrap'):
+                        ui.icon('check_circle' if ok_m else 'warning', color='positive' if ok_m else 'warning')
+                        ui.label(tr('MATLAB (momentos) frente a openEMS (FDTD): resonancia {0:g} frente a {1:g} MHz ({2:+.1f} %), S11 mínimo {3:g} frente a '
+                                    '{4:g} dB, directividad {5} frente a {6} dBi{7}. {8}',
+                                    mt['f_resonancia_MHz'], r['f_resonancia_MHz'], df, mt['s11_min_dB'], r['s11_min_dB'], _g(mt['directividad_dBi']),
+                                    _g(r['directividad_dBi']), '' if dd is None else tr(' (Δ {0:+.2f} dB)', dd),
+                                    tr('Los dos motores coinciden dentro del margen esperado (5 % en frecuencia, 1 dB en directividad).') if ok_m else
+                                    tr('Difieren más de lo esperado (5 % o 1 dB): MATLAB con malla gruesa sale hasta un 5–9 % alto en frecuencia; '
+                                       'si la diferencia es mayor, desconfía de los dos y mide la placa.'))
+                                 ).classes('text-caption' + ('' if ok_m else ' texto-aviso'))
                 if len(d.get('theta', [])) and len(d.get('phi', [])):
                     ui.button(tr('Exportar diagrama (CSV)'), icon='file_download', on_click=lambda: exportar_diagrama(r, d)) \
                         .props('outline dense no-caps')
@@ -1229,7 +1283,11 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
             with ui.row().classes('w-full wrap gap-2'):
                 banda = (lo*1e6, hi*1e6)
                 f_obj = estado['f_MHz']*1e6
-                ui.plotly(T(graficas.s11(d['f'], d['s11'], banda))).classes('grow basis-[300px] h-[300px]')
+                if 'f_matlab' in d:
+                    ui.plotly(T(graficas.s11_motores(d['f'], d['s11'], d['f_matlab'], d['s11_matlab'], banda))
+                              ).classes('grow basis-[300px] h-[300px]')
+                else:
+                    ui.plotly(T(graficas.s11(d['f'], d['s11'], banda))).classes('grow basis-[300px] h-[300px]')
                 ui.plotly(T(graficas.roe(d['f'], d['s11'], banda, f_obj))).classes('grow basis-[300px] h-[300px]')
                 ui.plotly(T(graficas.smith(d['f'], d['s11'], banda, f_obj))).classes('grow basis-[300px] h-[300px]')
             if d['d'].size:

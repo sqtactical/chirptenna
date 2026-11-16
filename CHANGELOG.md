@@ -5,7 +5,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ## [Sin publicar]
 
-*English summary: ideas taken from the open-source antenna-forge project: Bayesian optimisation for the sweeps, a minimal thin-wire method of moments to pre-select dipoles and Yagis in seconds, textbook checks of the generator (unit tests and a real openEMS run) and a generated one-page status. Nothing here changes a design; everything is still simulation-only.*
+*English summary: ideas taken from the open-source antenna-forge project: Bayesian optimisation for the sweeps, a minimal thin-wire method of moments to pre-select dipoles and Yagis in seconds, textbook checks of the generator (unit tests and a real openEMS run), a generated one-page status, and MATLAB (Antenna Toolbox, method of moments) as an optional second simulation engine in the interface, shown next to openEMS. Nothing here changes a design; everything is still simulation-only.*
 
 ### Optimización bayesiana en los barridos
 - `antenas/optimizacion.py`: proceso gaussiano y mejora esperada en numpy (sin scipy ni dependencias nuevas; no va en la web). Determinista: con la misma semilla, un barrido cortado repite los mismos puntos y recupera los ya simulados.
@@ -18,6 +18,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 ### Comprobaciones contra la teoría
 - `pruebas/test_verdad.py` (22 pruebas, sin simular): microstrip de Hammerstad, largo del dipolo y del monopolo en λ, parche contra el modelo de la cavidad y coherencia de `dimensionar` con `estimar_f`.
 - `herramientas/verdad.py`: simula con openEMS un dipolo, un monopolo y un parche a 2441,75 MHz y los compara con el libro (fuera de la CI: tarda minutos).
+
+### MATLAB como segundo motor de simulación
+- Selector **Motor** en la pestaña Simulación: *openEMS*, *MATLAB (Antenna Toolbox)* u *openEMS + MATLAB* (aparece activo solo si hay MATLAB con la Antenna Toolbox). Con los dos, el S11 de ambos va superpuesto y se informa de la diferencia de frecuencia y directividad (coinciden si ≤ 5 % y ≤ 1 dB).
+- `antenas/simular_matlab.py` y `herramientas/verdad_caso.m`: la placa del proyecto se simula con el método de momentos de MATLAB (`pcbStack`). Sin ajuste, ganancia ni eficiencia; solo placas sencillas con alimentación en el borde; resultados en caché. `simular_cli` acepta `motor`.
+- `herramientas/verdad_matlab.py`: compara dipolo, monopolo y parche entre MATLAB y `herramientas/verdad.py`. Dipolo y monopolo coinciden en directividad (≤ 0,3 dB) con la frecuencia 3–9 % más alta en MATLAB; el parche no concuerda (2,6 frente a 6,2 dBi): su directividad en MATLAB no es fiable.
+- 9 pruebas nuevas (sin MATLAB, con su salida simulada) y 34 textos traducidos a en/fr/de.
 
 ### Estado real y fallos mudos
 - `docs/ESTADO_REAL.md`, generado por `herramientas/estado_real.py` desde `problemas.ESTADO`: qué está medido (nada), qué solo simulado, límites y comprobaciones. `pruebas/test_estado_real.py` falla si se desfasa.
