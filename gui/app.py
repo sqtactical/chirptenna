@@ -36,6 +36,7 @@ sys.path.insert(0, os.path.join(RAIZ, 'vna'))   # driver del NanoVNA y calibraci
 from antenas.simulacion import PRECISIONES   # noqa: E402
 from antenas import simulacion   # noqa: E402
 from antenas.materiales import SUSTRATOS, SUSTRATO_POR_DEFECTO   # noqa: E402
+from antenas import materiales   # noqa: E402
 
 DIR_SALIDAS = os.path.join(RAIZ, 'salidas')
 URL_PROYECTO = 'https://github.com/sqtactical/chirptenna'
@@ -64,6 +65,19 @@ _banda_de = presentacion.banda_de
 ICONOS_CONSEJO = {'banda': ('podcasts', 'deep-orange'), 'diseño': ('lightbulb', 'amber-8'),
                   'montaje': ('construction', 'blue-grey'), 'medida': ('straighten', 'teal'),
                   'integración': ('developer_board', 'indigo-5')}
+
+
+def _opcion_sustrato(nombre):
+    """Opción del selector de sustrato: el propio nombre, o «Personalizado» si lo es."""
+    from antenas import materiales
+    return materiales.PERSONALIZADO if materiales.es_personalizado(nombre) else nombre
+
+
+def _pers_inicial(nombre, i, defecto):
+    """Valor inicial (0 εr, 1 tanδ, 2 grosor) de los campos del sustrato personalizado: el del diseño abierto o el de un PTFE típico."""
+    from antenas import materiales
+    v = materiales.valores_personalizado(nombre)
+    return v[i] if v else defecto
 
 
 def _titulo_card(texto, icono=None):
@@ -378,7 +392,22 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                 with ui.column().classes('w-full sm:w-[380px] gap-2'):
                     with ui.card().classes('w-full'):
                         _titulo_card(tr('Tamaño y material'), 'straighten')
-                        sel_sus = ui.select({k: tr(k) for k in SUSTRATOS}, value=estado['sustrato'], label=tr('Sustrato')).classes('w-full')
+                        sel_sus = ui.select({**{k: tr(k) for k in SUSTRATOS}, materiales.PERSONALIZADO: tr('Personalizado…')},
+                                            value=_opcion_sustrato(estado['sustrato']), label=tr('Sustrato')).classes('w-full')
+                        # material propio (un PTFE o un Rogers que no está en la lista): los tres valores del laminador
+                        fila_pers = ui.column().classes('w-full gap-1')
+                        with fila_pers:
+                            with ui.row().classes('w-full no-wrap gap-2'):
+                                num_er = ui.number(tr('εr'), value=_pers_inicial(estado['sustrato'], 0, 2.65), min=1.0, max=20.0, step=0.01,
+                                                   format='%.3g').classes('grow')
+                                num_tand = ui.number(tr('tanδ'), value=_pers_inicial(estado['sustrato'], 1, 0.0019), min=0.0, max=0.2, step=0.0001,
+                                                     format='%.4g').classes('grow')
+                                num_h = ui.number(tr('Grosor [mm]'), value=_pers_inicial(estado['sustrato'], 2, 1.65), min=0.02, max=6.0, step=0.01,
+                                                  format='%.3g').classes('grow')
+                            ui.label(tr('Pon εr y tanδ que da el fabricante a la frecuencia de uso. Sin medir un cupón, la frecuencia real puede '
+                                        'desviarse un par de por ciento; con PTFE las pistas salen más anchas.')
+                                     ).classes('text-caption texto-sec')
+                        fila_pers.set_visibility(sel_sus.value == materiales.PERSONALIZADO)
                         btn_ajustar = ui.button(tr('Ajustar tamaño a la frecuencia'), icon='tune') \
                             .props('color=primary no-caps').classes('w-full')
                         btn_bw = ui.button(tr('Ampliar ancho de banda'), icon='open_in_full') \
@@ -422,7 +451,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                         tr('Repite la simulación con el paso de malla un 15 % menor y un 15 % mayor y avisa si el resultado '
                            'cambia mucho (tarda el triple). Se hace siempre con dos bandas, paneles y arrays.'))
                     chk_tol = ui.checkbox(tr('Analizar tolerancias'), value=False).tooltip(
-                        tr('Simula la antena con la εr un ±5 %, el grosor del FR4 un ±10 % y el cobre ±0,05 mm (6 simulaciones más) y dice si la banda '
+                        tr('Simula la antena con la εr dentro de su tolerancia (±5 % en FR4, ±1,5 % en los PTFE de JLC), el grosor un ±10 % y el cobre ±0,05 mm (6 simulaciones más) y dice si la banda '
                            'sigue cubierta con esas tolerancias de fabricación.'))
                     sel_entorno = ui.select({k: tr(v) for k, v in entorno.PREDEFINIDOS.items()}, value=[], multiple=True, clearable=True,
                                             label=tr('Entorno')).classes('w-64').tooltip(
@@ -927,7 +956,11 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
             f_in.value = estado['f_MHz']
             bw_in.value = estado['bw_MHz']
             banda.value = _banda_de(estado['f_MHz'], estado['bw_MHz'])
-            sel_sus.value = estado['sustrato']
+            sel_sus.value = _opcion_sustrato(estado['sustrato'])
+            v = materiales.valores_personalizado(estado['sustrato'])
+            if v:
+                num_er.value, num_tand.value, num_h.value = v
+            fila_pers.set_visibility(v is not None)
             sel_reg.value = estado['reglas']
             nombre_in.value = nombre
         finally:
@@ -1842,8 +1875,27 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
     bw_in.on_value_change(cambiar_bw)
     btn_bw.on_click(ampliar_bw)
     btn_sim.on_click(simular_click)
-    sel_sus.on_value_change(lambda e: None if estado.get('silencio') else
-                            (estado.update(sustrato=e.value), marcar_cambio(), regenerar()))
+    def cambiar_sustrato():
+        """Aplica el sustrato elegido o el personalizado (si los campos no valen, avisa y deja el anterior)."""
+        if estado.get('silencio'):
+            return
+        fila_pers.set_visibility(sel_sus.value == materiales.PERSONALIZADO)
+        if sel_sus.value == materiales.PERSONALIZADO:
+            try:
+                nombre = materiales.nombre_personalizado(num_er.value, num_tand.value, num_h.value)
+            except (ValueError, TypeError) as ex:
+                ui.notify(tr('Sustrato personalizado no válido: {0}', ex), type='warning')
+                return
+        else:
+            nombre = sel_sus.value
+        if nombre == estado['sustrato']:
+            return
+        estado.update(sustrato=nombre)
+        marcar_cambio()
+        regenerar()
+    sel_sus.on_value_change(lambda e: cambiar_sustrato())
+    for _n in (num_er, num_tand, num_h):
+        _n.on_value_change(lambda e: cambiar_sustrato())
     sel_reg.on_value_change(lambda e: None if estado.get('silencio') else
                             (estado.update(reglas=e.value), marcar_cambio(), mostrar_drc()))
     btn_ajustar.on_click(lambda: (marcar_cambio(), ajustar()))

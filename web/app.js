@@ -456,6 +456,29 @@ function marcarBanda() {
   const actual = bandaDe();
   for (const b of $('bandas').children) b.classList.toggle('activa', b.dataset.banda === actual);
 }
+// Sustrato personalizado: su nombre lleva los valores («Personalizado (εr 2,65; tanδ 0,0019; 1,65 mm)») y Python lo reconstruye
+// (antenas/materiales.py: `nombre_personalizado` / `sustrato_por_nombre`); aquí el formato tiene que ser idéntico.
+const PERS = 'Personalizado';
+const RE_PERS = /^Personalizado \(εr (\d+(?:,\d+)?); tanδ (\d+(?:,\d+)?); (\d+(?:,\d+)?) mm\)$/;
+const numTexto = (x) => x.toFixed(6).replace(/0+$/, '').replace(/\.$/, '').replace('.', ',');
+function nombrePers() {
+  const er = Number($('sus-er').value), tand = Number($('sus-tand').value), h = Number($('sus-h').value);
+  if (!(er >= 1 && er <= 20 && tand >= 0 && tand <= 0.2 && h >= 0.02 && h <= 6)) return null;
+  return `${PERS} (εr ${numTexto(er)}; tanδ ${numTexto(tand)}; ${numTexto(h)} mm)`;
+}
+function ponerSustrato() {
+  const m = RE_PERS.exec(estado.sustrato || '');
+  $('sustrato').value = m ? PERS : estado.sustrato;
+  $('sustrato-pers').hidden = !m && $('sustrato').value !== PERS;
+  if (m) { $('sus-er').value = m[1].replace(',', '.'); $('sus-tand').value = m[2].replace(',', '.'); $('sus-h').value = m[3].replace(',', '.'); }
+}
+function cambiarSustrato() {
+  const v = $('sustrato').value;
+  $('sustrato-pers').hidden = v !== PERS;
+  const nombre = v === PERS ? nombrePers() : v;
+  if (!nombre) { avisar(T('Sustrato personalizado no válido: revisa εr (1–20), tanδ (0–0,2) y el grosor (0,02–6 mm).'), true); return; }
+  if (nombre !== estado.sustrato) { estado.sustrato = nombre; regenerar(); }
+}
 function ponerBarra() {
   const t = tipoActual();
   $('nombre').value = estado.nombre;
@@ -463,7 +486,7 @@ function ponerBarra() {
   if (t.estado !== 'validada') $('tipo-nombre').append(' ', chapa(t));
   $('f').value = estado.f_MHz;
   $('bw').value = estado.bw_MHz;
-  $('sustrato').value = estado.sustrato;
+  ponerSustrato();
   $('reglas').value = estado.reglas;
   mostrarRango();
   marcarBanda();
@@ -498,7 +521,7 @@ function cargarDiseno(d) {
   estado.nombre = d.nombre || 'antena';
   estado.f_MHz = Number(d.f_MHz ?? d.f_objetivo_MHz ?? estado.f_MHz);
   estado.bw_MHz = Number(d.bw_MHz ?? d.ancho_banda_MHz ?? estado.bw_MHz);
-  estado.sustrato = cat.sustratos.includes(d.sustrato) ? d.sustrato : cat.sustrato_defecto;
+  estado.sustrato = cat.sustratos.includes(d.sustrato) || RE_PERS.test(d.sustrato || '') ? d.sustrato : cat.sustrato_defecto;
   estado.reglas = cat.reglas.includes(d.reglas) ? d.reglas : cat.reglas_defecto;
   estado.parametros = { ...defectos(clave), ...(d.parametros || {}) };
   const s = { ...cat.serigrafia_defecto, ...(d.serigrafia || {}) };
@@ -556,7 +579,7 @@ function construirControles() {
     c.replaceChildren(...valores.map((x) => new Option(texto(x), x)));
     if (v) c.value = v;
   };
-  sel('sustrato', cat.sustratos, (s) => T(s));
+  sel('sustrato', [...cat.sustratos, PERS], (s) => (s === PERS ? T('Personalizado…') : T(s)));
   sel('reglas', cat.reglas, (r) => T(r));
   sel('logo', Object.keys(cat.logo_opciones), (k) => T(cat.logo_opciones[k]));
   $('aviso-logo').textContent = T(cat.aviso_sin_logo);
@@ -660,7 +683,8 @@ async function iniciar() {
     if (v > 0) { estado.f_MHz = v; mostrarRango(); marcarBanda(); regenerar(); $('aviso-ajuste').textContent = T('Frecuencia cambiada: pulsa «Ajustar tamaño a la frecuencia».'); }
   };
   $('bw').onchange = () => { const v = Number($('bw').value); if (v > 0) { estado.bw_MHz = v; mostrarRango(); marcarBanda(); regenerar(); } };
-  $('sustrato').onchange = () => { estado.sustrato = $('sustrato').value; regenerar(); };
+  $('sustrato').onchange = cambiarSustrato;
+  for (const id of ['sus-er', 'sus-tand', 'sus-h']) $(id).onchange = cambiarSustrato;
   $('reglas').onchange = () => { estado.reglas = $('reglas').value; regenerar(); };
   $('btn-ajustar').onclick = () => dimensionar();
   $('btn-banda').onclick = () => dimensionar(true);

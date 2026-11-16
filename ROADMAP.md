@@ -143,6 +143,7 @@ diseñar la antena **dentro** de otra placa.
 | Diversidad y MIMO: dos antenas en la misma placa, aislamiento (S21) y correlación | Wi-Fi, LTE | Alto |
 | Arrays 2×1, 3×3 y 1×N, con y sin reflector | Más ganancia a medida | Medio |
 | Colineal con elementos bowtie y colineales acortadas con fractales | Menos largo a 868 MHz | Medio |
+| Más antenas modulares como la colineal (CLAUDE.md lección 79): **Yagi con boom** (cada director = un módulo con su trozo de boom), panel por teselas de 2×2 (hay que partir la red de alimentación) y Franklin (solo después de validarla) | Antenas largas que no caben en una placa o salen caras, sobre todo a 868 MHz; más ganancia añadiendo módulos. Sin medir la unión soldada de la colineal, esperar a la fase 1 | Medio |
 | Hélice de modo normal a 868 MHz y Yagi plana de una capa en flex | Sacar partido al flex | Bajo |
 | Hélice cuadrifilar con su red de 90° | GPS en flex | Alto |
 | Bandas nuevas: 433 MHz, LTE-M/NB-IoT (700–960 MHz), UWB (6–8 GHz) | Más productos | Medio |

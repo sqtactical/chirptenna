@@ -19,6 +19,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 - `pruebas/test_verdad.py` (22 pruebas, sin simular): microstrip de Hammerstad, largo del dipolo y del monopolo en λ, parche contra el modelo de la cavidad y coherencia de `dimensionar` con `estimar_f`.
 - `herramientas/verdad.py`: simula con openEMS un dipolo, un monopolo y un parche a 2441,75 MHz y los compara con el libro (fuera de la CI: tarda minutos).
 
+### Sustrato personalizado y PTFE de JLC
+- Opción **Personalizado…** en el selector de sustrato (escritorio y web): εr, tanδ y grosor del material que se vaya a usar (un PTFE o un Rogers que no está en la lista). Se guarda en el nombre del sustrato, así que funciona con guardar, simular y exportar como cualquier otro.
+- Los cuatro PTFE de JLC (ZYF255DA, ZYF265D, ZYF300CA-C y ZYF300CA-P) tienen ahora cinco grosores (se añaden 0,76 y 1,52 mm) y la tolerancia de εr del datasheet (±0,04 / ±0,05, un 1,5–1,7 %): «Analizar tolerancias» la usa en vez del ±5 % del FR4.
+- 22 pruebas nuevas y 10 textos traducidos.
+
 ### MATLAB como segundo motor de simulación
 - Selector **Motor** en la pestaña Simulación: *openEMS*, *MATLAB (Antenna Toolbox)* u *openEMS + MATLAB* (aparece activo solo si hay MATLAB con la Antenna Toolbox). Con los dos, el S11 de ambos va superpuesto y se informa de la diferencia de frecuencia y directividad (coinciden si ≤ 5 % y ≤ 1 dB).
 - `antenas/simular_matlab.py` y `herramientas/verdad_caso.m`: la placa del proyecto se simula con el método de momentos de MATLAB (`pcbStack`). Sin ajuste, ganancia ni eficiencia; solo placas sencillas con alimentación en el borde; resultados en caché. `simular_cli` acepta `motor`.

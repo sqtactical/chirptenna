@@ -148,7 +148,10 @@ La pestaña tiene tres zonas: a la izquierda el **tamaño y el material** y los 
 ### Tamaño y material
 
 - **Sustrato.** El material y el grosor de la placa: FR4 de JLC de 1,6 / 1,2 / 1,0 / 0,8 mm, Rogers
-  RO4350B, cuatro PTFE («teflón») de 0,65 / 0,9 / 1,65 mm o poliimida flex de 25 / 50 µm. El FR4 de 1,6 mm es el más
+  RO4350B, cuatro PTFE («teflón») de 0,65 / 0,76 / 0,9 / 1,52 / 1,65 mm (ZYF255DA, ZYF265D, ZYF300CA-C y ZYF300CA-P; los
+  grosores de 0,76 y 1,52 mm están sin confirmar en JLC), poliimida flex de 25 / 50 µm, o **Personalizado…** para cualquier otro
+  material: eliges esa opción y escribes la εr, la tanδ y el grosor que da el fabricante (εr de 1 a 20, tanδ hasta 0,2 y grosor
+  de 0,02 a 6 mm). Sirve para un Rogers o un PTFE que no esté en la lista; el diseño guarda esos valores. El FR4 de 1,6 mm es el más
   barato y el que se ha usado para validar. El RO4350B y el PTFE pierden mucho menos (más eficiencia, sobre todo en parches y
   arrays), pero son más caros y no ensanchan la banda por sí solos. El **flex** no tiene impedancia controlada y una línea de
   50 Ω saldría de ~0,1 mm: úsalo con los tipos que llevan el coaxial soldado en la antena (dipolo, bowtie, J-pole). Con PTFE o flex
@@ -234,7 +237,7 @@ Antenna Toolbox, también con MATLAB.
    (tarda el triple) y avisa si el resultado cambia: más de un 5 % de frecuencia, o más de 5 dB de S11 cuando
    alguno de los dos queda por encima de −10 dB. Un aviso significa que **un solo punto no es de fiar** y hay que
    medir la antena. Se hace siempre con dos bandas, paneles y arrays, que son los que más dependen de la malla.
-5. **Analizar tolerancias:** simula además con la εr un ±5 %, el grosor del FR4 un ±10 % y el cobre ±0,05 mm
+5. **Analizar tolerancias:** simula además con la εr dentro de su tolerancia (±5 % en FR4, ±1,5 % en los PTFE de JLC), el grosor un ±10 % y el cobre ±0,05 mm
    (6 simulaciones más) y dice si la banda sigue cubierta: «cubre con margen», «justo» o «no cubre: necesita
    ajuste tras fabricar». Un monopolo de banda ancha cubre; un parche rectangular (~36 MHz de banda) no.
 6. **Entorno:** simula también con una carcasa de ABS, una batería metálica o una mano cerca (2 simulaciones más)

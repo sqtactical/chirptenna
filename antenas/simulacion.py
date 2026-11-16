@@ -832,7 +832,8 @@ TOLERANCIAS = (('er', 0.05, N_('εr ±5 %')), ('h', 0.10, N_('grosor ±10 %')), 
 def tolerancias(antena, sustrato, f_obj, banda, base, precision='normal', malla='uniforme', rango=(0.6, 1.4), progreso=print):
     """Cómo cambia la resonancia con las tolerancias de fabricación (una variable cada vez, malla fija, sin diagrama de radiación).
 
-    Simula la antena con la εr un ±5 %, el grosor del FR4 un ±10 % y el cobre ±0,05 mm (`buffer` de las dos caras): 6 simulaciones.
+    Simula la antena con la εr dentro de su tolerancia (`sustrato.er_tol`: ±5 % en FR4, ±1,5 % en los PTFE de JLC), el grosor un ±10 % y el
+    cobre ±0,05 mm (`buffer` de las dos caras): 6 simulaciones.
     banda: (f_inf, f_sup) en Hz que hay que cubrir. base: resultado de la antena nominal (da el paso de malla y la referencia).
     Devuelve el desplazamiento por variable, la suma cuadrática, la banda que sobrevive (intersección de las bandas a −10 dB de los 7 casos)
     y un veredicto: 'cubre' (la banda que sobrevive contiene la objetivo), 'justo' (la nominal la cubre, la que sobrevive no) o 'no_cubre'.
@@ -844,6 +845,9 @@ def tolerancias(antena, sustrato, f_obj, banda, base, precision='normal', malla=
     bandas = [base['banda_Hz']]
     filas = []
     for var, frac, etq in TOLERANCIAS:
+        if var == 'er' and abs(sustrato.er_tol - frac) > 1e-9:
+            # la tolerancia de εr del material (p. ej. PTFE ±0,04 sobre 2,65: 1,5 %) en vez del ±5 % supuesto para el FR4
+            frac, etq = sustrato.er_tol, f'εr ±{100*sustrato.er_tol:.2g} %'.replace('.', ',')
         fila = {'variable': var, 'etiqueta': etq, 'df_pct': [], 'f_MHz': [], 'banda_MHz': []}
         for signo in (-1, 1):
             a, s = antena, sustrato

@@ -34,7 +34,7 @@ from . import ajuste
 from . import conector
 from . import integracion
 from .tipos_base import Parametro
-from .materiales import SUSTRATOS, SUSTRATO_POR_DEFECTO, ancho_microstrip, eps_eff_microstrip, lambda0_mm, C0
+from .materiales import SUSTRATOS, SUSTRATO_POR_DEFECTO, sustrato_por_nombre, ancho_microstrip, eps_eff_microstrip, lambda0_mm, C0
 from .modelo import Antena
 from .i18n import tr
 
@@ -970,7 +970,8 @@ def _aligerar(a, p):
 
 
 def sustrato(nombre=None):
-    return SUSTRATOS[nombre or SUSTRATO_POR_DEFECTO]
+    """Sustrato por nombre: uno de la tabla o uno personalizado (`materiales.nombre_personalizado`)."""
+    return sustrato_por_nombre(nombre or SUSTRATO_POR_DEFECTO)
 
 
 def generar(clave, parametros=None, nombre_sustrato=None):
