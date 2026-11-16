@@ -407,9 +407,11 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                     sel_motor = ui.select({'openems': 'openEMS', 'matlab': tr('MATLAB (Antenna Toolbox)'), 'ambos': tr('openEMS + MATLAB')},
                                           value='openems', label=tr('Motor')).classes('w-52')
                     if matlab_ok:
-                        sel_motor.tooltip(tr('openEMS: el motor del proyecto (FDTD, con ajuste y GPU). MATLAB: método de momentos de la Antenna '
-                                             'Toolbox, más aproximado, sin ajuste ni eficiencia; solo placas sencillas con alimentación en el borde. '
-                                             'Ambos: simula con openEMS y luego con MATLAB la antena ajustada, y superpone los dos S11.'))
+                        # la ayuda va en un icono aparte: como tooltip del selector tapaba las opciones del menú desplegable
+                        ui.icon('help_outline', size='sm').classes('texto-sec cursor-help').tooltip(
+                            tr('openEMS: el motor del proyecto (FDTD, con ajuste y GPU). MATLAB: método de momentos de la Antenna '
+                               'Toolbox, más aproximado, sin ajuste ni eficiencia; solo placas sencillas con alimentación en el borde. '
+                               'Ambos: simula con openEMS y luego con MATLAB la antena ajustada, y superpone los dos S11.'))
                     else:
                         sel_motor.props('disable')
                         sel_motor.tooltip(tr('MATLAB no disponible: {0}.', matlab_motivo))
