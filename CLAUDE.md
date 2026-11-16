@@ -551,9 +551,14 @@ archivos modificados después de la última revisión. La marca de esa revisión
     cruda) y con los brazos cambiados de cara en cada dipolo (el derecho en F.Cu y el izquierdo en B.Cu, y en el siguiente al revés): el siguiente es el espejo respecto al eje, la corriente del dipolo se invierte, y el
     retardo de λg/2 lo compensa. El vivo (F.Cu) y la masa (B.Cu) son tiras continuas: **sin vías**. Es un array de dipolos en paralelo: el haz sale perpendicular a la placa (±Z), no omnidireccional.
     La primera versión (brazos a lo largo de la línea, que se solapaban con los del vecino y quedaban como una estrella) se descartó. Solo con bowtie o Sierpinski (con `forma` = 0 dibuja bowtie y avisa) y en una
-    placa (sin módulos todavía): 21 × 128 mm a 2,4 GHz con 4 dipolos. **Sin simular**: las simulaciones 0017b1–3 de la cola (`colineal_alt_*_c`) lo dirán. Variantes posibles con vías (no hechas): cruzar la línea en
+    placa (sin módulos todavía): 21 × 128 mm a 2,4 GHz con 4 dipolos. Simulada el 16-11: adapta en FR4 y PTFE, pero la estimación del dipolo bowtie daba λg/2 un 40 % corto (haz tumbado en FR4); corregida con `dipolos.f_alternada` (0,85·c/(4·L·√εr)); repetidas en la cola `0018a1–3` (`docs/desarrollo/colineal_modular.md`). Variantes posibles con vías (no hechas): cruzar la línea en
     cada nodo (como COCO) con dipolos idénticos, eléctricamente equivalente a esta; o brazos coplanares con una vía a masa que alterna de lado.
     `herramientas/imagen_colineal.py` dibuja las tres formas (`salidas/_vistas/colineal_formas.png`).
+85. **Antenas de varias placas no coplanares y hélices (16-11, sin validar)**: `antenas/tridimensional.py` (`diedro`, `reflector_esquina`, `helice_normal`, `helice_cuadrifilar`),
+    `antenas/pose.py`, `Antena.placas3d` (placas con pose), `Antena.hilos3d` (hilos) y `Antena.cobre_sim` (cobre continuo en la simulación y con 0,5 mm al fabricar); las placas a fabricar van en
+    `Antena.modulos` y se exportan una a una. **Una lámina PEC de grosor cero girada desaparece de la malla de openEMS sin avisar** (V a 5°: −1 dB en vez de −25): el cobre de una placa girada es una
+    losa de una celda (`simulacion.simular`, clave de caché `placa3d_losa`). Giros de CSXCAD: `AddTransform('RotateAxis', eje, grados)`, mano derecha, grados (no `Rotate_X`). La cuadrifilar no se simula
+    desde la interfaz (`info['sin_simulacion']`). Detalle y resultados en `docs/desarrollo/tridimensional.md`; hay que centrar, simular en GPU y medir.
 81. **MATLAB como segundo motor (16-11)**: `antenas/simular_matlab.py` lleva la placa (cobre de F.Cu y B.Cu como anillos, contorno, FR4, alimentación vertical de 0,5 mm en el
     arranque de la línea) a un `pcbStack` y lanza `matlab -batch "verdad_caso(...)"` (`herramientas/verdad_caso.m`; resultados en caché `%TEMP%\antenas_matlab\<hash>`).
     `disponible()` solo mira que exista `toolbox\antenna\antenna\dipole.m` (arrancar MATLAB tarda ~20 s); `no_soporta` rechaza modulares, reflector, entorno, vías, puerto

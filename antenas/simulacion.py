@@ -24,7 +24,7 @@ import numpy as np
 from shapely.geometry import box
 from shapely.ops import unary_union
 
-from . import gpu
+from . import gpu, pose
 from .geometria import poligonos, sin_agujeros
 from .materiales import C0, eps_eff_microstrip
 from .i18n import tr, N_
@@ -126,10 +126,15 @@ def centro_banda(f, s11_db, umbral=-10.0, ventana=None):
     return math.sqrt(f[lo]*f[hi]), f[lo], f[hi], f_min, s_min
 
 
+def _cobre_sim(antena, capa):
+    """Cobre de la capa que se simula: `Antena.cobre_sim` si lo hay (uniones entre placas continuas); si no, el de la placa."""
+    return antena.cobre_sim[capa] if antena.cobre_sim else antena.cobre(capa)
+
+
 def _clave_cache(antena, sustrato, fmin, fmax, precision):
     h = hashlib.sha1()
-    h.update(antena.cobre('F.Cu').wkb)
-    h.update(antena.cobre('B.Cu').wkb)
+    h.update(_cobre_sim(antena, 'F.Cu').wkb)
+    h.update(_cobre_sim(antena, 'B.Cu').wkb)
     h.update(antena.contorno.wkb)
     # 'en_malla': las cachés de antes de llevar los hilos a la malla los tenían desconectados
     if antena.vias:
@@ -138,6 +143,12 @@ def _clave_cache(antena, sustrato, fmin, fmax, precision):
         r = antena.reflector
         h.update(r['contorno'].wkb)
         h.update(json.dumps([round(r['separacion_mm'], 4), r.get('hilos', []), 'en_malla']).encode())
+    for pl in antena.placas3d or []:
+        h.update(pl['antena'].cobre('F.Cu').wkb + pl['antena'].cobre('B.Cu').wkb + pl['antena'].contorno.wkb)
+        h.update(json.dumps(['placa3d_losa', [round(float(v), 4) for v in pl['origen']], [[int(e), round(float(a), 4)] for e, a in pl['giros']],
+                             bool(pl.get('fina'))]).encode())
+    for hl in antena.hilos3d or []:
+        h.update(json.dumps(['hilo3d', np.round(np.asarray(hl['puntos'], float), 3).tolist(), hl.get('ancho')]).encode())
     if antena.ajuste and (antena.ajuste.get('condensadores') or antena.ajuste.get('puentes_sim')):
         # elementos concentrados (C o L con su Q) y relleno del serie: el cobre es el mismo con valores distintos
         h.update(json.dumps(['elementos', antena.ajuste.get('condensadores', []),
@@ -180,6 +191,8 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
     from CSXCAD import ContinuousStructure
     from openEMS import openEMS
 
+    if antena.info.get('sin_simulacion'):
+        raise ValueError(tr('Esta antena no se simula desde la interfaz: {0}.', antena.info['sin_simulacion']))
     cfg = PRECISIONES[precision]
     fmin, fmax = rango[0]*f_centro, rango[1]*f_centro
     f0, fc = (fmin + fmax)/2, (fmax - fmin)/2
@@ -189,7 +202,7 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
     sim_path = os.path.join(tempfile.gettempdir(), 'antenas_sim', clave)
     os.makedirs(sim_path, exist_ok=True)
 
-    sup, inf = antena.cobre('F.Cu'), antena.cobre('B.Cu')
+    sup, inf = _cobre_sim(antena, 'F.Cu'), _cobre_sim(antena, 'B.Cu')
     if antena.ajuste and antena.ajuste.get('puentes_sim'):
         # el componente en serie de la red en π se da por montado (0 Ω): se rellena su hueco
         sup = unary_union([sup] + antena.ajuste['puentes_sim'])
@@ -259,6 +272,29 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
         xs, ys = np.array(refl['contorno'].exterior.coords[:-1]).T
         cobre.AddPolygon([xs, ys], norm_dir='z', elevation=z_ref, priority=10)
 
+    # Placas fuera del plano (diedro, reflector de esquina): mismo FR4 y cobre, girados y colocados con una transformación de CSXCAD.
+    # Hilos 3D (hélices): hilos PEC (AddCurve) que se rasterizan sobre la malla.
+    def _colocar(prim, pieza):
+        for eje, grados in pieza['giros']:
+            prim.AddTransform('RotateAxis', int(eje), float(grados))
+        prim.AddTransform('Translate', [float(v) for v in pieza['origen']])
+
+    for pl in antena.placas3d or []:
+        pa = pl['antena']
+        px, py = pa.contorno.exterior.xy
+        _colocar(fr4.AddLinPoly(points=[np.array(px[:-1]), np.array(py[:-1])], norm_dir='z', elevation=0, length=h, priority=0), pl)
+        # Una lámina PEC de grosor cero girada no toca ninguna arista de la malla y desaparece sin avisar (lo probó el dipolo en V: S11 de −1 dB
+        # con solo 5° de giro): el cobre de una placa girada es una losa de una celda de grosor (la del paso fino, o la del aire en un reflector grande)
+        t_pec = res if pl.get('fina') else res_aire
+        for geom, z in ((pa.cobre('B.Cu'), 0.0), (pa.cobre('F.Cu'), h)):
+            for pol in poligonos(geom):
+                for t in sin_agujeros(pol):
+                    xs, ys = np.array(t.exterior.coords[:-1]).T
+                    _colocar(cobre.AddLinPoly(points=[xs, ys], norm_dir='z', elevation=z - t_pec/2, length=t_pec, priority=10), pl)
+    caja3d = pose.caja_conjunto(antena, h)
+    fina3d = [pose.caja(pl, h) for pl in (antena.placas3d or []) if pl.get('fina')]
+    fina3d += [(np.asarray(hl['puntos'], float).min(axis=0), np.asarray(hl['puntos'], float).max(axis=0)) for hl in (antena.hilos3d or [])]
+
     # Entorno (carcasa, batería, mano): bloques por debajo del cobre en prioridad; los metálicos son PEC
     for k, b in enumerate(antena.entorno or []):
         bx0, by0, bz0, bx1, by1, bz1 = b['caja']
@@ -297,6 +333,11 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
     # Malla
     x0, y0, x1, y1 = antena.contorno.bounds
     margen = max(C0/fmin*1e3/4, 20.0)
+    if fina3d:
+        # placas e hilos fuera del plano con malla fina (el dipolo plegado, la hélice): la rejilla uniforme cubre también su proyección
+        x0, y0 = min([x0] + [c[0][0] for c in fina3d]), min([y0] + [c[0][1] for c in fina3d])
+        x1, y1 = max([x1] + [c[1][0] for c in fina3d]), max([y1] + [c[1][1] for c in fina3d])
+        malla = 'uniforme'
     if malla == 'adaptada':
         bordes = [sup, inf, antena.contorno]
         rejilla = {'x': lineas_adaptadas(bordes, 0, res, max(res, res_lam), x0, x1),
@@ -316,6 +357,10 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
     if ent:
         ex0, ey0 = min([ex0] + xs_ent), min([ey0] + ys_ent)
         ex1, ey1 = max([ex1] + xs_ent), max([ey1] + ys_ent)
+    if caja3d is not None:
+        ex0, ey0 = min(ex0, caja3d[0][0]), min(ey0, caja3d[0][1])
+        ex1, ey1 = max(ex1, caja3d[1][0]), max(ey1, caja3d[1][1])
+        zs_ent = list(zs_ent) + [float(caja3d[0][2]), float(caja3d[1][2])]
     xs_caps = [v for c in caps for v in (c['caja'][0], c['caja'][2])]
     ys_caps = [v for c in caps for v in (c['caja'][1], c['caja'][3])]
     mesh.AddLine('x', [ex0 - margen, ex1 + margen, ini[0], fin[0], ex0, ex1] + xs_caps + xs_ent)
@@ -326,6 +371,9 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
         mesh.AddLine('z', np.r_[np.linspace(0, zm, 4), np.linspace(zm, h, 3)])
     else:
         mesh.AddLine('z', np.linspace(0, h, 5 if h >= 0.4 else 3))
+    for c in fina3d:
+        # zona con malla fina también en altura: de la placa al punto más alto/bajo de la pieza
+        mesh.AddLine('z', np.arange(min(0.0, float(c[0][2])), max(h, float(c[1][2])) + res/2, res))
     mesh.AddLine('z', [min([z_ref] + zs_ent) - margen, max([h] + zs_ent) + margen, z_ref] + zs_ent)
     mesh.SmoothMeshLines('all', res_aire, 1.3)
     # Las líneas del puerto y de los bordes no caen en la rejilla: si quedan a micras de otra, la celda
@@ -377,6 +425,8 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
     for vx, vy in (refl.get('hilos', []) if refl else []):
         mx, my = en_malla(vx, vy)
         cobre.AddBox([mx, my, z_ref], [mx, my, 0.0], priority=10)
+    for hl in antena.hilos3d or []:
+        cobre.AddCurve(np.asarray(hl['puntos'], float).T, priority=10)
     celdas = [len(mesh.GetLines(d)) for d in 'xyz']
     n_celdas = int(np.prod(celdas))
     progreso(tr('Malla {0}×{1}×{2} = {3:.2f} M celdas (paso en la placa {4:.2f} mm; pista mín. {5:.2f} mm, hueco mín. {6:.2f} mm)', celdas[0], celdas[1], celdas[2], n_celdas/1e6, res, w_min, s_min))

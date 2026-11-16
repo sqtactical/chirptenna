@@ -41,6 +41,10 @@ ESTADO = {
     'jpole': ('validada', 'Validada en simulación (de 868 MHz a 2,4 GHz)'),
     'bucle': ('pendiente', 'Simulado (868 MHz y 2,4 GHz): adapta con la red en L calculada; η ~40–50 %, banda estrecha'),
     'jpole_koch': ('validada', 'Validada en simulación (868 MHz y 1,2 GHz; 2,4 GHz casi)'),
+    'diedro': ('pendiente', 'Sin simular ni validar (tres placas; modelo de placas giradas)'),
+    'reflector_esquina': ('pendiente', 'Sin simular ni validar (tres placas; modelo de placas giradas)'),
+    'helice_normal': ('pendiente', 'Sin simular ni validar (hilo helicoidal; tira de flex)'),
+    'helice_cuadrifilar': ('pendiente', 'Solo geometría, vista 3D y tira de flex: no se simula desde la interfaz'),
 }
 ESTADO_TEXTO = {'validada': 'Validada', 'pendiente': 'Pendiente de validación', 'no_funciona': 'No funciona'}
 
@@ -51,6 +55,22 @@ def estado(clave):
 
 # Problemas que no dependen de los parámetros
 FIJOS = {
+    'diedro': [
+        ('aviso', 'Tres placas que se sueldan en las bisagras y se sujetan con una escuadra: sin simular ni medir. La unión soldada no está modelada '
+                  '(la simulación la toma como cobre continuo).'),
+    ],
+    'reflector_esquina': [
+        ('aviso', 'Tres placas (el dipolo y dos reflectores) que se montan a mano con una escuadra: sin simular ni medir. Las placas reflectoras se '
+                  'simulan como láminas de cobre; el vértice va truncado para dejar pasar la línea de alimentación.'),
+    ],
+    'helice_normal': [
+        ('aviso', 'Hélice de flex enrollada: sin simular ni medir. El flex se simula como un hilo en el aire (sin su dieléctrico) y el largo de hilo '
+                  'para resonar sale de una fórmula sin calibrar.'),
+    ],
+    'helice_cuadrifilar': [
+        ('aviso', 'Solo geometría: la alimentación en cuadratura y la red de 90° no están hechas y no se simula desde la interfaz '
+                  '(herramientas/helice_flex.py la simula con dos puertos).'),
+    ],
     'monopolo_recto': [
         ('info', 'Con el conector IPEX a 2,4 GHz la masa automática da −6,9 dB; con la masa manual (largo 25 mm, ancho 40 mm) '
                  'adapta (−14,6 dB, η 95 %).'),

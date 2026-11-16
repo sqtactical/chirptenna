@@ -96,6 +96,10 @@ The resulting board (KiCad render): top side and bottom side with the logo and l
 | Antipodal Vivaldi | vivaldi | ✅ validated in simulation (2.4 GHz −18 dB and 5.8 GHz −12.3 dB; very wide band) |
 | Series dipole collinear (microstrip line) | collinear | ✅ validated in simulation at 2.4 GHz (−12.7 dB, 4.1 dBi, η 59 %) and 5.8 GHz (−13.8 dB, 3.5 dBi, η 50 %); on FR4 the gain falls short; **modular** construction (identical boards joined edge to edge, simulated at 2.4 GHz: −12.9 dB, 4.0 dBi, η 61 % with 4 modules), soldered junction not measured |
 | Printed dipole (straight or Koch; printed balun or centre-fed coax) | dipole | ✅ validated (868 MHz to 5.8 GHz) |
+| V dipole (bowtie with folded arms, three soldered boards) | diedro | ⚠️ not validated: simulated at 2.4 GHz with 0° wings (identical to the flat bowtie, −23.9 dB) and 25° (−36 dB, coarse mesh); not measured |
+| Corner reflector (bowtie dipole + two reflector plates, three boards) | reflector_esquina | ⚠️ not validated: simulated at 2.4 GHz with 90°, S11 −48 dB, D 10.3 dBi, beam straight ahead (coarse mesh, uncentred); not measured |
+| Normal-mode helix on flex (helical monopole over a ground board) | helice_normal | ⚠️ not validated: simulated at 2.4 GHz uncentred, −6.4 dB; not measured |
+| Quadrifilar helix on flex (GPS L1) | helice_cuadrifilar | ⚠️ geometry, 3D view and flex strip only: not simulated from the interface (`herramientas/helice_flex.py` simulates it with two ports) |
 | Bowtie dipole or Sierpinski bowtie | dipole_bowtie | ✅ validated (868 MHz to 5.8 GHz; marginal at 5.8 GHz); twice the bandwidth of the straight one |
 | J-pole and Koch J-pole | jpole | ✅ Koch validated (868 MHz and 1.2 GHz; 2.4 GHz almost, −9 dB); the straight one from 868 MHz to 2.4 GHz (−15 dB at 868 MHz and −12 dB at 2.4 GHz; now the default) |
 | Dual-band J-pole (two joined J-poles) and dual-band IFA (868 MHz + 2.4 GHz) | J-pole and IFA, “Bands” option | 🧪 in the interface since 0.3.0; simulation −11 dB in both bands with a 1 mm mesh, but with another mesh the high band drops (−3 to −7 dB): fragile, unmeasured (`antenas/bibanda.py`) |

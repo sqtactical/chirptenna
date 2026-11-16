@@ -36,6 +36,14 @@ class Antena:
     # Colineal modular: placas que se fabrican y se unen para formar esta antena: [{'nombre', 'cantidad', 'antena'}]
     # (el cobre de la antena entera es el de todas ellas unidas). Ver dipolos.generar_colineal_dipolos
     modulos: list = field(default_factory=list)
+    # Antenas de varias placas no coplanares (diedro, reflector de esquina): placas colocadas en el espacio respecto a esta, que es la
+    # principal (la que lleva el conector y el puerto): [{'nombre', 'antena': placa plana, 'origen': (x, y, z), 'giros': [(eje, grados)],
+    # 'fina': bool (malla fina en su zona)}]. Ver pose.py. Las placas a fabricar van en `modulos`
+    placas3d: list = field(default_factory=list)
+    # Cobre que se simula si no es el que se fabrica: {'F.Cu', 'B.Cu'} (una unión soldada entre placas se simula continua y se fabrica a 0,5 mm del canto)
+    cobre_sim: dict = None
+    # Hilos en el espacio (hélices): [{'puntos': (n, 3), 'ancho': mm}]; en la simulación son hilos PEC (`AddCurve`)
+    hilos3d: list = field(default_factory=list)
     # Aperturas de la máscara de soldadura para unir placas con estaño: [(capa 'F'|'B', polígono)] en coordenadas del modelo
     mascara_abierta: list = field(default_factory=list)
 

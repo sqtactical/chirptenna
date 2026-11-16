@@ -11,7 +11,7 @@ en orden y con su cantidad; si no, la antena armada con las uniones marcadas.
 import numpy as np
 import plotly.graph_objects as go
 
-from . import conector
+from . import conector, pose
 from .geometria import poligonos
 from .graficas import _malla_poligono
 from .i18n import tr, N_
@@ -23,7 +23,9 @@ NOMBRES_MODULO = {'inicio': N_('inicio'), 'modulo': N_('módulo'), 'final': N_('
 
 def _dim(antena):
     x0, y0, x1, y1 = antena.contorno.bounds
-    return max(x1 - x0, y1 - y0)
+    d = max(x1 - x0, y1 - y0)
+    c = pose.caja_conjunto(antena, 1.6)
+    return d if c is None else max(d, float(max(c[1] - c[0])))
 
 
 def _paredes(contorno, z0, z1):
@@ -53,35 +55,49 @@ def _unir(partes):
     return np.concatenate(xs), np.concatenate(ys), np.concatenate(zs), ii, jj, kk
 
 
-def _placa(fig, antena, h, dy=0.0, etiqueta=None, primera=True):
-    """Dibuja una placa (FR4 con grosor `h`, cobre arriba y abajo, contorno, vías y conector) desplazada `dy` en Y."""
+def _mover(x, y, z, dy, pieza):
+    """Coordenadas locales de la placa → las de la escena: desplazada `dy` en Y y, si lleva pose (antenas de varias placas), girada y colocada.
+    Admite listas con None (separadores de líneas) y devuelve del mismo tipo."""
+    x, y, z = (np.array(v, dtype=float) for v in (x, y, z))
+    if pieza is None:
+        return x, y + dy, z
+    q = pose.aplicar(np.column_stack([x, y, z]), pieza)
+    return q[:, 0], q[:, 1], q[:, 2]
+
+
+def _placa(fig, antena, h, dy=0.0, etiqueta=None, primera=True, pieza=None):
+    """Dibuja una placa (FR4 con grosor `h`, cobre arriba y abajo, contorno, vías y conector) desplazada `dy` en Y, o con la pose de `pieza`."""
     e = 0.02*h
     losa = _unir([_malla_poligono(antena.contorno, 0.0), _malla_poligono(antena.contorno, h), _paredes(antena.contorno, 0.0, h)])
     if losa is not None:
         x, y, z, i, j, k = losa
-        fig.add_trace(go.Mesh3d(x=x, y=y + dy, z=z, i=i, j=j, k=k, color=COL_FR4, opacity=0.35, flatshading=True,
+        x, y, z = _mover(x, y, z, dy, pieza)
+        fig.add_trace(go.Mesh3d(x=x, y=y, z=z, i=i, j=j, k=k, color=COL_FR4, opacity=0.35, flatshading=True,
                                 name='FR4', hoverinfo='name', showlegend=primera and etiqueta is None))
     for capa, z0, color, nombre, op in (('B.Cu', -e, COL_INF, tr('Cara inferior'), 0.95), ('F.Cu', h + e, COL_SUP, tr('Cara superior'), 1.0)):
         cobre = antena.cobre(capa)
         m = _malla_poligono(cobre, z0) if cobre is not None and not cobre.is_empty else None
         if m is not None and len(m[3]):
             x, y, z, i, j, k = m
-            fig.add_trace(go.Mesh3d(x=x, y=y + dy, z=z, i=i, j=j, k=k, color=color, opacity=op, flatshading=True,
+            x, y, z = _mover(x, y, z, dy, pieza)
+            fig.add_trace(go.Mesh3d(x=x, y=y, z=z, i=i, j=j, k=k, color=color, opacity=op, flatshading=True,
                                     name=nombre, hoverinfo='name', showlegend=False))
     xs, ys, zs = [], [], []
     for pol in poligonos(antena.contorno):
         for anillo in [pol.exterior] + list(pol.interiors):
             c = np.array(anillo.coords)
-            xs += list(c[:, 0]) + [None]; ys += list(c[:, 1] + dy) + [None]; zs += [h] * len(c) + [None]
+            xs += list(c[:, 0]) + [np.nan]; ys += list(c[:, 1]) + [np.nan]; zs += [h] * len(c) + [np.nan]
+    xs, ys, zs = _mover(xs, ys, zs, dy, pieza)
     fig.add_trace(go.Scatter3d(x=xs, y=ys, z=zs, mode='lines', line=dict(color='#444', width=2), hoverinfo='skip', showlegend=False))
     if antena.vias:
         vx, vy, vz = [], [], []
         for x, y in antena.vias:
-            vx += [x, x, None]; vy += [y + dy, y + dy, None]; vz += [-e, h + e, None]
+            vx += [x, x, np.nan]; vy += [y, y, np.nan]; vz += [-e, h + e, np.nan]
+        vx, vy, vz = _mover(vx, vy, vz, dy, pieza)
         fig.add_trace(go.Scatter3d(x=vx, y=vy, z=vz, mode='lines', line=dict(color='#b71c1c', width=5), name=tr('Vías'),
                                    hoverinfo='name', showlegend=False))
     bx, by = antena.puerto['borde']
-    if antena.puerto.get('conector') != conector.SIN:                  # los módulos intermedios no llevan conector
+    if antena.puerto.get('conector') != conector.SIN and pieza is None:      # los módulos intermedios no llevan conector
         fig.add_trace(go.Scatter3d(x=[bx], y=[by + dy], z=[h + e], mode='markers', marker=dict(size=5, color='red'),
                                    name=tr('Conector'), hoverinfo='name', showlegend=False))
     if etiqueta:
@@ -89,6 +105,14 @@ def _placa(fig, antena, h, dy=0.0, etiqueta=None, primera=True):
         fig.add_trace(go.Scatter3d(x=[(x0 + x1)/2], y=[(y0 + y1)/2 + dy], z=[h*3], mode='text', text=[etiqueta], textposition='top center',
                                    textfont=dict(size=11), hoverinfo='skip', showlegend=False))
 
+
+def _placas3d(fig, antena, h):
+    """Placas fuera del plano de la principal (diedro, reflector de esquina) y hilos 3D (hélices)."""
+    for pl in antena.placas3d or []:
+        _placa(fig, pl['antena'], h, pieza=pl)
+    for hl in antena.hilos3d or []:
+        p = np.asarray(hl['puntos'], float)
+        fig.add_trace(go.Scatter3d(x=p[:, 0], y=p[:, 1], z=p[:, 2], mode='lines', line=dict(color=COL_SUP, width=5), hoverinfo='skip', showlegend=False))
 
 def _reflector(fig, antena, h):
     r = antena.reflector
@@ -162,6 +186,7 @@ def figura(antena, h_mm=1.6, explosionada=False, diagrama=None):
     else:
         _placa(fig, antena, h)
         _reflector(fig, antena, h)
+        _placas3d(fig, antena, h)
         if antena.modulos:
             _uniones(fig, antena, h)
         if diagrama is not None:

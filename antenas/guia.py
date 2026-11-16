@@ -77,6 +77,14 @@ TIPOS = {
               ['lado', 'capacidad_pF', 'forma', 'ancho_placa', 'largo_masa', 'conector', 'ajuste']),
     'yagi_koch': ('experimental', 'Quasi-Yagi con dipolo de Koch: radia hacia atrás en simulación.',
                   ['largo_brazo', 'iteracion', 'directores', 'conector', 'ajuste', 'aligerado']),
+    'diedro': ('experimental', 'Dipolo bowtie con los brazos doblados en V (tres placas soldadas). Sin validar.',
+               ['largo_brazo', 'angulo_v', 'forma', 'conector']),
+    'reflector_esquina': ('experimental', 'Dipolo delante de dos placas reflectoras en esquina: ~9–11 dBi sin red de alimentación. Tres placas; sin validar.',
+                          ['largo_brazo', 'apertura_diedro', 'separacion', 'ancho_reflector', 'largo_reflector', 'conector']),
+    'helice_normal': ('experimental', 'Hélice de modo normal en flex enrollado sobre una placa de masa: monopolo compacto. Sin validar.',
+                      ['diametro', 'vueltas', 'altura', 'ancho_placa', 'largo_placa', 'conector']),
+    'helice_cuadrifilar': ('experimental', 'Hélice cuadrifilar en flex enrollado para GPS (circular): geometría y tira, sin simulación aquí.',
+                           ['diametro', 'vueltas', 'altura', 'sentido']),
 }
 
 # Con «Ajuste tras fabricar» activado, estas opciones también son básicas
@@ -85,6 +93,12 @@ BASICOS_AJUSTE = ['red_pi', 'sobrelargo', 'tramos']
 # Ayuda de cada parámetro (por nombre). AYUDAS_TIPO la cambia para un tipo concreto cuando el mismo nombre
 # significa otra cosa. Sin entrada aquí se usa `Parametro.ayuda`.
 AYUDAS = {
+    'bisagra': 'Distancia del centro del dipolo a la unión de cada ala con la placa central. 0 la deja automática (el ancho del boom más 2 mm).',
+    'ancho_reflector': 'Lado de cada placa reflectora paralelo al dipolo. Cuanto más ancha, menos radiación hacia atrás; ~1,2–1,5 λ.',
+    'largo_reflector': 'Lado de cada placa reflectora que se aleja del vértice. ~1 λ en el aire.',
+    'diametro': 'Diámetro del tubo sobre el que se enrolla la tira de flex. La tira mide π·D de ancho.',
+    'sentido': 'Sentido de giro de la hélice (a derechas o a izquierdas). En la cuadrifilar decide el sentido de la polarización circular.',
+    'largo_placa': 'Largo de la placa de masa y del conector SMA bajo la hélice.',
     'altura': 'Altura del brazo horizontal sobre el borde de la masa. Más alto: más banda, algo más grande.',
     'separacion_toma': 'Distancia entre el cortocircuito a masa y la toma de alimentación. Fija la impedancia.',
     'ancho_corto': 'Ancho de la tira que une el brazo a la masa (con una vía).',

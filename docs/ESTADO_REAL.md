@@ -9,7 +9,7 @@
 
 ## Tipos de antena
 
-27 tipos: **17 validados en simulación**, 5 pendientes de validación y 5 que no funcionan. «Validada» significa que openEMS la da adaptada (S11 ≤ −10 dB en la banda) y radiando; no significa medida.
+31 tipos: **17 validados en simulación**, 9 pendientes de validación y 5 que no funcionan. «Validada» significa que openEMS la da adaptada (S11 ≤ −10 dB en la banda) y radiando; no significa medida.
 
 ### Validados en simulación
 
@@ -40,8 +40,12 @@
 | Array de parches 2×2 / 4×4 (directivo) | `array_parches` | Pendiente de validación |
 | Bucle impreso (pequeño, con condensador y red en π) | `bucle` | Simulado (868 MHz y 2,4 GHz): adapta con la red en L calculada; η ~40–50 %, banda estrecha |
 | Colineal Franklin (horquillas) | `colineal_franklin` | Adapta, pero con poca banda y poca ganancia |
+| Dipolo en V (dos alas) | `diedro` | Sin simular ni validar (tres placas; modelo de placas giradas) |
+| Hélice cuadrifilar en flex (GPS) | `helice_cuadrifilar` | Solo geometría, vista 3D y tira de flex: no se simula desde la interfaz |
+| Hélice de modo normal en flex | `helice_normal` | Sin simular ni validar (hilo helicoidal; tira de flex) |
 | Parche con ranura en U | `parche_ranura` | Sin testear ni validar |
 | Parche de Minkowski | `parche_minkowski` | Pendiente de validación (eficiencia baja en FR4) |
+| Reflector de esquina (dipolo + 2 placas) | `reflector_esquina` | Sin simular ni validar (tres placas; modelo de placas giradas) |
 
 ### No funcionan
 

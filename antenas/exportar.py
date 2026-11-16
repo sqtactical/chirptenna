@@ -265,6 +265,8 @@ def placa_kicad(antena, ruta, titulo='', etiqueta=None, logo=True):
 
     def pieza_en(lista, x, y):
         pt = Point(x, y)
+        if not lista:                                  # una placa con cobre solo en una cara (el ala de un dipolo en V)
+            return None
         k = min(range(len(lista)), key=lambda j: lista[j].distance(pt))
         return k if lista[k].distance(pt) < 1e-3 else None
 

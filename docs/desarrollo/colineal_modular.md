@@ -85,6 +85,23 @@ Resultados en `salidas/_barridos/colineal_ptfe_24_N4`, `colineal_ptfe_24_N8` y `
 - Pendiente para dar los números por buenos: **centrar** cada cadena (acortar los tramos un 10 %: a 2,4 GHz N=4 resuena a 2165 MHz y
   N=8 a 2747 MHz, cambian en sentidos opuestos) y repetir con el tamaño centrado.
 
+## Alternada: array de dipolos bowtie transversales (16-11, centrada, 4 dipolos, 2,4 GHz)
+
+`barrido.py colineal_dipolos forma=1|2 conexion=1 elementos=4 --centrar --radiacion` (GPU). Resultados en `salidas/_barridos/colineal_alt_*_24_N4_c`.
+
+| Caso | Brazo | Peor S11 en la banda | Banda a −10 dB | G (dBi) | η | Haz (θ, φ) |
+|---|---|---|---|---|---|---|
+| Bowtie, FR4 | 11,8 mm | −13,4 dB | 2362–2505 MHz | 2,8 | 72 % | 105°, 306° |
+| Bowtie, PTFE ZYF265D 1,65 mm | 16,7 mm | −9,9 dB | 2367–2482 MHz | 6,5 | ~100 % (ruido) | 6°, 276° |
+| Sierpinski it. 2, FR4 | 11,5 mm | −11,1 dB | 2388–2505 MHz | 2,5 | 71 % | 117°, 306° |
+
+Adaptan las tres, pero solo el PTFE da el haz esperado (perpendicular a la placa). **Causa del haz casi horizontal en FR4: la separación entre dipolos.**
+`tipos.estimar_f` delegaba en el dipolo bowtie, que da 3895 MHz para un brazo de 11,8 mm que en la alternada resuena a 2432 MHz (en PTFE 3086 frente a
+2424). La separación λg/2 se calculaba con esa frecuencia y salía ~20 mm en vez de ~33 mm: cada dipolo quedaba desfasado ~0,37π y el haz se tumbaba hacia
+el lado del conector (end-fire). En PTFE el error era menor (×0,79) y el haz salió casi bien.
+Corrección: `dipolos.f_alternada` = 0,85·c/(4·L·√εr), ajustada con los puntos del centrado (FR4: L 10,5–18,8 mm; PTFE: 16,7–21 mm; ±5 %). Con ella el brazo
+por defecto sale de 12,3 mm (FR4) y 16,0 mm (PTFE) y la separación de 33,3 y 41,6 mm. Repetidas en la cola (`0018a1–3`); resultados pendientes.
+La razón axial de 6–13 dB y el «RHCP/LHCP» no son una polarización real: con dipolos lineales son ruido de la medida.
 ## Conclusiones
 
 - Modularizar es viable geométricamente, y a 868 MHz resuelve un problema real (placa de 0,4–0,8 m).

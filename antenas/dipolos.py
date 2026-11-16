@@ -186,13 +186,20 @@ K_BOWTIE_COLINEAL = 0.9   # bowtie de la colineal (triángulo de ~41° de apertu
 K_SIERPINSKI_COLINEAL = 0.85   # Sierpinski (iteración 2): los huecos alargan el brazo; 0,9·0,75/0,79 como en el dipolo, sin calibrar
 
 
+K_ALTERNADA = 0.85      # alternada: f = K·c/(4·L·√εr) (simulado el 16-11: FR4 con L 10,5–18,8 mm y PTFE con 16,7–21 mm, ±5 %; sin ella la del dipolo bowtie daba 3895 MHz para un brazo que resuena a 2432)
+
+
+def f_alternada(largo_brazo, er):
+    """Frecuencia de resonancia estimada del array alternado (bowtie o Sierpinski) con brazos de `largo_brazo` mm."""
+    return K_ALTERNADA*C0/(4*largo_brazo*1e-3*math.sqrt(er))
+
+
 def estimar_f_colineal_dipolos(p, eps_impreso):
     """Cada dipolo mide 2 brazos de `largo_brazo`: resuena donde esos dos brazos son λ/2 (efectiva). Con la bowtie (`forma` = 1) el
     brazo ancho resuena más bajo que la pata fina: como en el dipolo bowtie, f = K·f_recto."""
     if int(p.get('conexion', 0) or 0) == 1:
         # alternada: cada dipolo es un bowtie transversal a la línea, como el del `dipolo_bowtie` (sin balun)
-        return estimar_f_dipolo({'forma': max(int(p.get('forma', 0) or 0), 1), 'largo_brazo': p['largo_brazo'], 'alimentacion': 0,
-                                 'hueco': 0.0, 'iteracion_s': p.get('iteracion_s', 2)}, eps_impreso)
+        return f_alternada(p['largo_brazo'], 2*eps_impreso - 1)                # (eps_impreso = (εr + 1)/2)
     f = C0/(2*2*p['largo_brazo']*1e-3*math.sqrt(eps_impreso))
     forma = int(p.get('forma', 0) or 0)
     return f*(K_BOWTIE_COLINEAL if forma == 1 else K_SIERPINSKI_COLINEAL if forma == 2 else 1.0)

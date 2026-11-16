@@ -30,6 +30,7 @@ from . import jpole
 from . import bibanda
 from . import bucle
 from . import dipolos
+from . import tridimensional
 from . import ajuste
 from . import conector
 from . import integracion
@@ -861,7 +862,61 @@ for _tj in [
     CATALOGO[_tj.clave] = _tj
 
 
-GRUPO_AJUSTE = {'monopolo_recto': 'monopolo_pista', 'monopolo_meandro': 'monopolo_pista',
+# Antenas de varias placas no coplanares y hélices de flex (tridimensional.py): sin validar
+_PARAMS_DIPOLO_3D = [
+    Parametro('largo_brazo', 'Largo de cada brazo del dipolo [mm]', 22, 3, 300, 0.1),
+    Parametro('forma', 'Forma de los brazos', 1, 1, 2, 1, True, opciones={1: 'Bowtie (pajarita)', 2: 'Bowtie de Sierpinski'},
+              ayuda='Bowtie: brazos triangulares; Sierpinski: triángulos con huecos fractales'),
+    Parametro('apertura', 'Apertura de la bowtie [°]', 70, 30, 120, 1, ayuda='Ángulo total de cada triángulo'),
+    Parametro('iteracion_s', 'Iteración de Sierpinski', 2, 1, 5, 1, True, ayuda='Solo con «Bowtie de Sierpinski»'),
+    Parametro('ancho_pista', 'Ancho de la línea de alimentación [mm]', 1.5, 0.15, 15, 0.05),
+    Parametro('largo_alimentacion', 'Largo del boom (balun) [mm]', 20, 4, 200, 0.5),
+    Parametro('ancho_boom', 'Ancho de la tira de masa del boom [mm]', 8, 4, 30, 0.5)]
+_PARAMS_HELICE = [
+    Parametro('diametro', 'Diámetro del cilindro [mm]', 8, 2, 60, 0.5),
+    Parametro('vueltas', 'Vueltas', 6, 0.25, 40, 0.25),
+    Parametro('sentido', 'Sentido de giro', 1, -1, 1, 2, True, opciones={1: 'A derechas', -1: 'A izquierdas'}),
+    Parametro('ancho_pista', 'Ancho de la raya de flex [mm]', 0.8, 0.15, 5, 0.05),
+    Parametro('ancho_placa', 'Ancho de la placa de masa [mm]', 40, 10, 400, 1),
+    Parametro('largo_placa', 'Largo de la placa de masa [mm]', 40, 10, 400, 1)]
+for _t3 in [
+    TipoAntena('diedro', 'Dipolo en V (dos alas)',
+               'Dipolo bowtie con los dos brazos doblados hacia arriba (tres placas soldadas en las bisagras): cambia el diagrama del dipolo. Sin validar.',
+               'tridimensional',
+               _PARAMS_DIPOLO_3D + [Parametro('angulo_v', 'Ángulo de cada ala respecto a la placa central [°]', 25, 0, 80, 1,
+                                              ayuda='0 = dipolo plano; más ángulo, V más cerrada'),
+                                    Parametro('bisagra', 'Distancia del centro a la bisagra [mm] (0 = automática)', 0, 0, 100, 0.5)],
+               'largo_brazo', precision='±25 % (sin calibrar)'),
+    TipoAntena('reflector_esquina', 'Reflector de esquina (dipolo + 2 placas)',
+               'Dipolo bowtie delante de dos placas reflectoras unidas por el vértice: ~9–11 dBi sin red de alimentación. Tres placas; sin validar.',
+               'tridimensional',
+               _PARAMS_DIPOLO_3D + [Parametro('apertura_diedro', 'Ángulo entre las placas reflectoras [°]', 90, 45, 150, 1,
+                                              ayuda='90° es el clásico; menos ángulo, más ganancia y más ancho de reflector'),
+                                    Parametro('separacion', 'Distancia del dipolo al vértice [mm]', 55, 10, 400, 0.5,
+                                              ayuda='~0,5 λ en el aire con 90°'),
+                                    Parametro('ancho_reflector', 'Ancho de cada placa reflectora (paralelo al dipolo) [mm]', 150, 20, 800, 1),
+                                    Parametro('largo_reflector', 'Largo de cada placa reflectora [mm]', 110, 20, 800, 1)],
+               'largo_brazo', precision='±25 % (sin calibrar)'),
+    TipoAntena('helice_normal', 'Hélice de modo normal en flex',
+               'Monopolo helicoidal de λ/4 de hilo sobre una placa de masa: una tira de flex enrollada en un tubo. Compacta a 868 MHz. Sin validar.',
+               'tridimensional', _PARAMS_HELICE + [Parametro('altura', 'Altura de la hélice [mm]', 30, 3, 300, 0.5)],
+               'altura', precision='±30 % (sin calibrar)'),
+    TipoAntena('helice_cuadrifilar', 'Hélice cuadrifilar en flex (GPS)',
+               'Cuatro brazos helicoidales de λ/4 en una tira de flex enrollada: polarización circular para GPS L1. Solo geometría, 3D y tira; no se simula aquí.',
+               'tridimensional', [q for q in _PARAMS_HELICE if q.nombre != 'vueltas'] +
+               [Parametro('vueltas', 'Vueltas de cada brazo', 0.5, 0.25, 4, 0.25), Parametro('altura', 'Altura de la hélice [mm]', 30, 3, 300, 0.5)],
+               'altura', precision='±30 % (sin calibrar)'),
+]:
+    CATALOGO[_t3.clave] = _t3
+# valores por defecto: hélice normal para 2,4 GHz (el cable de 31 mm da 2,4 GHz: 2 vueltas de 4 mm y 18 mm de alto); cuadrifilar para GPS L1 (14 mm y 42 mm)
+CATALOGO['helice_normal'].parametros = [replace(q, defecto={'diametro': 4, 'vueltas': 2, 'altura': 18}[q.nombre]) if q.nombre in ('diametro', 'vueltas', 'altura') else q
+                                        for q in CATALOGO['helice_normal'].parametros]
+CATALOGO['helice_cuadrifilar'].parametros = [replace(q, defecto={'diametro': 14, 'altura': 42}[q.nombre]) if q.nombre in ('diametro', 'altura') else q
+                                             for q in CATALOGO['helice_cuadrifilar'].parametros]
+
+
+GRUPO_AJUSTE = {'diedro': 'sin_ajuste', 'reflector_esquina': 'sin_ajuste', 'helice_normal': 'sin_ajuste', 'helice_cuadrifilar': 'sin_ajuste',
+                'monopolo_recto': 'monopolo_pista', 'monopolo_meandro': 'monopolo_pista',
                 'monopolo_koch': 'monopolo_pista', 'monopolo_hilbert': 'monopolo_pista', 'monopolo_flecha': 'sin_ajuste',
                 'monopolo_sierpinski': 'monopolo', 'jpole': 'jpole', 'jpole_koch': 'jpole', 'yagi_koch': 'yagi',
                 'yagi_boom': 'sin_ajuste',
@@ -1015,6 +1070,14 @@ def generar(clave, parametros=None, nombre_sustrato=None):
             bibanda.jpole_unida(a, p)
     elif clave in ('dipolo', 'dipolo_bowtie'):
         a = dipolos.generar_dipolo(p, s, eps_eff_monopolo(s.er))
+    elif clave == 'diedro':
+        a = tridimensional.generar_diedro(p, s, eps_eff_monopolo(s.er))
+    elif clave == 'reflector_esquina':
+        a = tridimensional.generar_reflector_esquina(p, s, eps_eff_monopolo(s.er))
+    elif clave == 'helice_normal':
+        a = tridimensional.generar_helice_normal(p, s, eps_eff_monopolo(s.er))
+    elif clave == 'helice_cuadrifilar':
+        a = tridimensional.generar_helice_cuadrifilar(p, s, eps_eff_monopolo(s.er))
     elif clave == 'vivaldi':
         a = dipolos.generar_vivaldi(p, s, eps_eff_monopolo(s.er))
     elif clave == 'colineal_dipolos':
@@ -1188,8 +1251,7 @@ def estimar_f(clave, parametros, nombre_sustrato=None, calibrada=True):
     s = sustrato(nombre_sustrato)
     if clave == 'colineal_dipolos' and int(p.get('conexion', 0) or 0) == 1:
         # alternada: dipolos bowtie transversales: la estimación (y la calibración) del dipolo bowtie, no la de la colineal en serie
-        return estimar_f('dipolo_bowtie', {'largo_brazo': p['largo_brazo'], 'forma': max(int(p.get('forma', 0) or 0), 1),
-                                           'iteracion_s': p.get('iteracion_s', 2), 'alimentacion': 0}, nombre_sustrato, calibrada)
+        return dipolos.f_alternada(p['largo_brazo'], s.er)                      # ajustada con las simulaciones del 16-11 (la del dipolo bowtie sobreestimaba ~1,5×)
     if clave in ('jpole', 'ifa') and int(p.get('multibanda', 0) or 0) == 1:
         # dos bandas: la banda baja sale de las simulaciones de antenas/bibanda.py (con la calibración de una banda saldría
         # un 10 % alta en la J-pole y un 11 % baja en la IFA, que lleva el brazo alargado)
@@ -1210,6 +1272,14 @@ def estimar_f(clave, parametros, nombre_sustrato=None, calibrada=True):
         f = jpole.estimar_f(p, eps_eff_monopolo(s.er))
     elif clave in ('dipolo', 'dipolo_bowtie'):
         f = dipolos.estimar_f_dipolo(p, eps_eff_monopolo(s.er))
+    elif clave == 'diedro':
+        f = tridimensional.estimar_f_diedro(p, eps_eff_monopolo(s.er))
+    elif clave == 'reflector_esquina':
+        f = tridimensional.estimar_f_reflector(p, eps_eff_monopolo(s.er))
+    elif clave == 'helice_normal':
+        f = tridimensional.estimar_f_helice_normal(p)
+    elif clave == 'helice_cuadrifilar':
+        f = tridimensional.estimar_f_helice_cuadrifilar(p)
     elif clave == 'vivaldi':
         f = dipolos.estimar_f_vivaldi(p, eps_eff_monopolo(s.er))
     elif clave == 'colineal_dipolos':
