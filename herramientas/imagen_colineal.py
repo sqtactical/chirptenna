@@ -13,7 +13,8 @@ RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(RAIZ)
 sys.path.insert(0, RAIZ)
 
-FORMAS = ((0, 'U (dos patas)'), (1, 'Bowtie (triángulo)'), (2, 'Bowtie de Sierpinski (iteración 2)'))
+FORMAS = ((0, 0, 'U (dos patas), en serie'), (1, 0, 'Bowtie, en serie'), (2, 0, 'Bowtie de Sierpinski (it. 2), en serie'),
+          (1, 1, 'Bowtie ALTERNADA (vivo de uno a masa del siguiente, λg/2)'), (2, 1, 'Sierpinski ALTERNADA (λg/2)'))
 
 
 def _giro(geom):
@@ -45,8 +46,8 @@ def main():
             ax.add_patch(PathPatch(Path(verts, codigos), fc=color, ec=ec, lw=0.4, alpha=alfa))
 
     fig, ejes = plt.subplots(len(FORMAS), 2, figsize=(15, 2.7*len(FORMAS)), gridspec_kw={'width_ratios': [3.2, 1]})
-    for fila, (forma, nombre) in enumerate(FORMAS):
-        p = tipos.dimensionar('colineal_dipolos', f_MHz*1e6, {'forma': forma, 'elementos': n, 'modular': 0})
+    for fila, (forma, conexion, nombre) in enumerate(FORMAS):
+        p = tipos.dimensionar('colineal_dipolos', f_MHz*1e6, {'forma': forma, 'conexion': conexion, 'elementos': n, 'modular': 0})
         p.pop('_aviso', None)
         a = tipos.generar('colineal_dipolos', p)
         sup, inf, cont = _giro(a.cobre('F.Cu')), _giro(a.cobre('B.Cu')), _giro(a.contorno)
@@ -63,7 +64,7 @@ def main():
         ax.set_yticks([]); ax.set_xlabel('mm' if fila == len(FORMAS) - 1 else '')
         # (2) un dipolo ampliado (el segundo), con el cobre de las dos caras y el contorno
         ax = ejes[fila][1]
-        ys = a.info.get('longitud_linea_mm', 80)
+        ys = a.info.get('longitud_linea_mm', 80)                                       # separación entre dipolos (λg en serie, λg/2 alternada)
         yc = p['largo_brazo'] + p.get('largo_entrada', 8) + 0.5 + ys                  # centro del 2.º dipolo
         pintar(ax, inf, '#7f9ed6', 0.55)
         pintar(ax, sup, '#c8892b', 0.95)

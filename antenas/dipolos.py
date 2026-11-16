@@ -246,6 +246,8 @@ def generar_colineal_dipolos(p, s, eps_impreso):
     avisos = []
     f_est = estimar_f_colineal_dipolos(p, eps_impreso)
     Ls = p['factor_linea']*C0/f_est*1e3/math.sqrt(eps_eff_microstrip(s.er, s.h, w50))
+    if int(p.get('conexion', 0) or 0) == 1:
+        return _colineal_alternada(p, s, w50, wb, avisos)
     if Ls < 2*La + 2.0:
         avisos.append(tr('Los dipolos se tocan: el tramo de línea es más corto que los dos brazos. Alarga el tramo o acorta los brazos.'))
     if int(p.get('modular', 0) or 0) == 1:
@@ -274,6 +276,56 @@ def generar_colineal_dipolos(p, s, eps_impreso):
                                               'hueco_minimo_mm': _hueco_colineal(p, w50, wb, Ls),
                                               'pista_minima_mm': _pista_colineal(p, w50),
                                               'longitud_linea_mm': round(Ls, 1), 'avisos': avisos,
+                                              'f_sin_cortar_MHz': None, 'ajuste': None}))
+
+
+def _colineal_alternada(p, s, w50, wb, avisos):
+    """Colineal con la polaridad alternada: los dipolos están separados Ls2 = λg/2 (no λg) y cada uno lleva el vivo y la masa al revés que el
+    anterior (su brazo de arriba está en la cara que el del anterior tiene abajo y viceversa), así que el retardo de media longitud de onda y la
+    inversión se compensan y todos radian en fase. No hace falta ninguna vía: el vivo (F.Cu) y la masa (B.Cu) siguen siendo dos tiras continuas y
+    los brazos se reparten entre las dos caras. Con λg/2 de separación el brazo de un dipolo y el del siguiente que quedan en la misma cara se
+    encuentran base con base y forman un rombo; los rombos van alternando de cara a lo largo de la línea. Solo con brazos bowtie o de Sierpinski."""
+    from . import tipos                    # (import local: `tipos` importa este módulo)
+    La, wa, n = p['largo_brazo'], p['ancho_brazo'], int(p['elementos'])
+    # media longitud de onda de la microstrip a la frecuencia que da el tamaño de los brazos (la estimación calibrada, no la fórmula cruda)
+    Ls2 = p['factor_linea']*C0/tipos.estimar_f('colineal_dipolos', p, s.nombre)*1e3/math.sqrt(eps_eff_microstrip(s.er, s.h, w50))/2
+    pa = dict(p)
+    if int(p.get('forma', 0) or 0) == 0:
+        pa['forma'] = 1
+        avisos.append(tr('La conexión alternada usa brazos en triángulo (bowtie): la forma «U» no se puede alternar.'))
+    if int(p.get('modular', 0) or 0) == 1:
+        avisos.append(tr('La conexión alternada se hace de momento en una sola placa: sin módulos.'))
+    hueco = Ls2 - 2*La                                  # ranura entre la base de un brazo y la del siguiente de su misma cara (< 0: se solapan)
+    if 0 < hueco < 1.0:
+        avisos.append(tr('Los brazos de dos dipolos vecinos casi se tocan (ranura de {0:.2f} mm): alarga un poco los brazos o acórtalos.', hueco))
+    y0 = BORDE_COBRE + p['largo_entrada'] + La
+    ys = [y0 + k*Ls2 for k in range(n)]
+    F, B = [], []
+    for k, yk in enumerate(ys):
+        arriba, abajo = (F, B) if k % 2 == 0 else (B, F)                # cada dipolo, con la polaridad cambiada
+        arriba.extend(_brazo_colineal(pa, yk, 1))
+        abajo.extend(_brazo_colineal(pa, yk, -1))
+    y_fin = ys[-1] + wa/2
+    F.append(g.rectangulo(-w50/2, BORDE_COBRE, w50/2, y_fin))
+    B.append(g.rectangulo(-wb/2, BORDE_COBRE, wb/2, y_fin))
+    sup, inf = unary_union(F), unary_union(B)
+    margen = p.get('margen_borde', 2.0)
+    a_min = conector.ANCHO_MINIMO[conector.tipo(p)]
+    contorno = g.contorno_placa([unary_union([sup, inf]).buffer(margen), g.rectangulo(-a_min/2, 0, a_min/2, 6.0)],
+                                int(p.get('contorno', 1)), recorte=(-1e4, 0, 1e4, 1e4))
+    interior = contorno.buffer(-BORDE_COBRE, join_style='mitre')
+    sup, inf = sup.intersection(interior), inf.intersection(interior)
+    x0, _, x1, y1_ = unary_union([sup, inf]).bounds
+    huecos = [4*Polygon(h).area/h.length for pol in g.poligonos(unary_union(_brazo_colineal(pa, 0.0, 1))) for h in pol.interiors]
+    if hueco > 0:
+        huecos.append(hueco)
+    return Antena(tipo='colineal_dipolos', parametros=dict(p), capas={'F.Cu': sup, 'B.Cu': inf}, ajuste=ajuste.vacio(),
+                  radiador=unary_union([sup, inf]), contorno=contorno, zona_libre=contorno,
+                  puerto={'borde': (0.0, 0.0), 'direccion': (0, 1), 'alimentacion': (0.0, y0), 'ancho_linea': w50},
+                  info=_info_placa(contorno, {'radiador_mm': [round(x1 - x0, 2), round(y1_, 2)],
+                                              'hueco_minimo_mm': round(min(huecos), 2) if huecos else None,
+                                              'pista_minima_mm': _pista_colineal(pa, w50),
+                                              'longitud_linea_mm': round(Ls2, 1), 'avisos': avisos,
                                               'f_sin_cortar_MHz': None, 'ajuste': None}))
 
 

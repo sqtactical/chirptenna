@@ -229,6 +229,10 @@ AYUDAS_TIPO = {
                                   'para la bowtie ni el Sierpinski: usa «Ajustar tamaño a la frecuencia».',
                          'iteracion_s': 'Nivel del Sierpinski de cada brazo (solo con «Bowtie de Sierpinski»). Más iteración: huecos más pequeños (cuidado con las reglas de '
                                         'fabricación) y un brazo eléctricamente más largo.',
+                         'conexion': 'En serie: todos los dipolos con el vivo arriba y la masa abajo, separados una longitud de onda en la línea. Alternada: cada dipolo con la '
+                                     'polaridad cambiada (el vivo de uno queda junto a la masa del siguiente) y separados media longitud de onda: la inversión y el retardo '
+                                     'se compensan y radian en fase. La placa mide la mitad y no lleva vías; los brazos de dos dipolos vecinos forman un rombo que alterna de cara. '
+                                     'Solo con brazos bowtie o de Sierpinski y en una sola placa. Sin validar.',
                          'encaje': 'Muescas en el canto de los módulos. Lengüetas y ranuras: alinean las placas (no se desplazan ni giran al soldar). '
                                    'Cola de milano: además impiden que se separen tirando de ellas; se montan juntándolas en el plano de la placa y bajando una sobre otra. '
                                    'La ranura de JLC va fresada: ancho mínimo 1 mm.'},

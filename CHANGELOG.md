@@ -25,6 +25,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 - `antenas/vista3d.py`; 32 pruebas nuevas (todos los tipos se dibujan) y 11 textos traducidos. Sin versión web todavía.
 
 ### Colineal de dipolos con brazos bowtie
+- **Conexión alternada**: parámetro nuevo «Conexión de los dipolos» (`conexion`): «En serie» (la de siempre) o «Alternada (vivo de uno a masa del siguiente, λg/2)». En la alternada cada dipolo lleva la polaridad cambiada y van a media longitud de onda: los brazos pasan de una cara a la otra en cada dipolo (sin vías) y la placa mide la mitad (160 frente a 291 mm a 2,4 GHz con 4 dipolos). Solo con bowtie o Sierpinski y en una placa; sin simular todavía.
 - La forma «Bowtie de Sierpinski» (triángulo con huecos fractales, con su iteración) también está disponible en la colineal; `herramientas/imagen_colineal.py` dibuja las tres formas.
 - `colineal_dipolos` tiene el parámetro **Forma de los brazos**: «U (dos patas)» (la de siempre) o «Bowtie (triángulo)», que ocupa el mismo ancho y da más banda por dipolo. Funciona en una placa y en modular; el DRC de KiCad sale limpio a 868 MHz y 2,4 GHz. El tamaño inicial de la bowtie no está calibrado (~10 % más corto): se afina con «Ajustar tamaño a la frecuencia». Sin validar en simulación todavía.
 

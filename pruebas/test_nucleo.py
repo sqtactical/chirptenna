@@ -412,6 +412,38 @@ def test_colineal_sierpinski(tmp_path):
     assert not [e for e in exportar.drc(ruta) if e[1] == 'error']
 
 
+def test_colineal_alternada(tmp_path):
+    # conexion = 1: dipolos a λg/2 con la polaridad cambiada en cada uno (brazos repartidos entre las dos caras), sin vías y la mitad de larga
+    from antenas import exportar
+    from antenas.geometria import poligonos
+    for f in BANDAS:
+        for forma in (1, 2):
+            p_s = tipos.dimensionar('colineal_dipolos', f, {'forma': forma, 'conexion': 0, 'elementos': 4})
+            p_a = tipos.dimensionar('colineal_dipolos', f, {'forma': forma, 'conexion': 1, 'elementos': 4})
+            serie, alt = tipos.generar('colineal_dipolos', p_s), tipos.generar('colineal_dipolos', p_a)
+            assert alt.vias == [] and alt.modulos == []
+            assert alt.contorno.bounds[3] < 0.65*serie.contorno.bounds[3]            # ~la mitad de larga
+            sep = alt.info['longitud_linea_mm']                                       # separación entre dipolos: λg/2 de la microstrip
+            assert sep == pytest.approx(serie.info['longitud_linea_mm']/2, rel=0.25)
+            # los brazos se reparten entre las dos caras: la superior y la inferior tienen cobre ancho en alturas distintas
+            ancho_sup = [pol.bounds for pol in poligonos(alt.cobre('F.Cu'))]
+            assert alt.cobre('F.Cu').area > 0 and alt.cobre('B.Cu').area > 0
+            y_arm_sup = sorted(b[1] for b in ancho_sup)
+            for capa, otra in (('F.Cu', 'B.Cu'), ('B.Cu', 'F.Cu')):
+                c = alt.cobre(capa)
+                # la zona ancha (brazos) de una cara no coincide con la de la otra: un dipolo de cada dos
+                assert c.difference(alt.cobre(otra).buffer(0.01)).area > 50
+            for capa in ('F.Cu', 'B.Cu'):
+                assert alt.contorno.exterior.distance(alt.cobre(capa)) >= 0.5 - 1e-6
+    # la forma U no se puede alternar: se dibuja con triángulos y se avisa
+    u = tipos.generar('colineal_dipolos', tipos.dimensionar('colineal_dipolos', 2441.75e6, {'forma': 0, 'conexion': 1}))
+    assert any('triángulo' in a for a in u.info['avisos'])
+    a = tipos.generar('colineal_dipolos', tipos.dimensionar('colineal_dipolos', 2441.75e6, {'forma': 1, 'conexion': 1, 'elementos': 4}))
+    ruta = str(tmp_path / 'a.kicad_pcb')
+    exportar.placa_kicad(a, ruta, 'a')
+    assert not [e for e in exportar.drc(ruta) if e[1] == 'error']
+
+
 def test_colineal_bowtie(tmp_path):
     # forma = 1: cada brazo es un triángulo del mismo ancho que la U; la cadena modular sigue siendo la suma de sus placas
     from shapely import affinity
