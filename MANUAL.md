@@ -145,6 +145,13 @@ La pestaña tiene tres zonas: a la izquierda el **tamaño y el material** y los 
 
 ![Pestaña Diseño](docs/capturas/diseno.png)
 
+Sobre el dibujo hay un conmutador **2D / 3D**. La vista **3D** muestra la placa con su grosor (FR4 translúcido), el cobre de la cara superior
+en naranja y el de la inferior en azul, las vías, el conector y, en las antenas con reflector, el reflector a su distancia real. Se gira y se
+acerca con el ratón. Si la placa es muy larga el grosor se dibuja **exagerado** (el título lo dice) para que se vea. En las antenas **modulares**
+(la colineal) aparece la casilla **Explosionada**: dibuja cada placa a fabricar por separado, en orden y con su cantidad («módulo 1/2»,
+«módulo 2/2»…), con las lengüetas de encaje; sin marcarla, la antena armada con las uniones señaladas en rojo. En **Simulación**, el diagrama
+de radiación se dibuja también en 3D sobre la placa, con la dirección del máximo.
+
 ### Tamaño y material
 
 - **Sustrato.** El material y el grosor de la placa: FR4 de JLC de 1,6 / 1,2 / 1,0 / 0,8 mm, Rogers

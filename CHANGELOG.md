@@ -19,6 +19,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 - `pruebas/test_verdad.py` (22 pruebas, sin simular): microstrip de Hammerstad, largo del dipolo y del monopolo en λ, parche contra el modelo de la cavidad y coherencia de `dimensionar` con `estimar_f`.
 - `herramientas/verdad.py`: simula con openEMS un dipolo, un monopolo y un parche a 2441,75 MHz y los compara con el libro (fuera de la CI: tarda minutos).
 
+### Vista 3D de la antena
+- Pestaña **Diseño**: conmutador **2D / 3D** sobre el dibujo. La vista 3D muestra la placa con su grosor (el grosor se exagera en placas largas y se avisa), el cobre de las dos caras, las vías, el conector y el reflector a su distancia real. En antenas modulares, la casilla **Explosionada** dibuja cada placa a fabricar por separado, en orden y con su cantidad; sin ella, la antena armada con las uniones marcadas.
+- Pestaña **Simulación**: el diagrama de radiación 3D se dibuja sobre la placa en sus proporciones reales (también modular o con reflector), con la dirección del máximo.
+- `antenas/vista3d.py`; 32 pruebas nuevas (todos los tipos se dibujan) y 11 textos traducidos. Sin versión web todavía.
+
 ### Colineal de dipolos con brazos bowtie
 - `colineal_dipolos` tiene el parámetro **Forma de los brazos**: «U (dos patas)» (la de siempre) o «Bowtie (triángulo)», que ocupa el mismo ancho y da más banda por dipolo. Funciona en una placa y en modular; el DRC de KiCad sale limpio a 868 MHz y 2,4 GHz. El tamaño inicial de la bowtie no está calibrado (~10 % más corto): se afina con «Ajustar tamaño a la frecuencia». Sin validar en simulación todavía.
 

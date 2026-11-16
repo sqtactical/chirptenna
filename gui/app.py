@@ -27,7 +27,7 @@ from nicegui import app, ui, run, background_tasks   # noqa: E402
 
 from antenas import tipos, vista, fabricacion, exportar, consejos, graficas, ajuste, biblioteca, problemas   # noqa: E402
 from antenas import guia, gpu, entorno, importar_kicad, informe, diagrama   # noqa: E402
-from antenas import i18n, simular_matlab   # noqa: E402
+from antenas import i18n, simular_matlab, vista3d   # noqa: E402
 from antenas.i18n import tr   # noqa: E402
 from antenas import __version__   # noqa: E402
 from antenas.materiales import ancho_microstrip, eps_eff_microstrip   # noqa: E402
@@ -418,6 +418,11 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                         cont_params = ui.column().classes('w-full gap-0')
                 with ui.column().classes('grow basis-[320px] min-w-0 gap-2'):
                     with ui.card().classes('w-full'):
+                        with ui.row().classes('w-full items-center gap-3'):
+                            tog_vista = ui.toggle({'2d': '2D', '3d': '3D'}, value='2d').props('dense no-caps')
+                            chk_expl = ui.checkbox(tr('Explosionada'), value=False).tooltip(
+                                tr('Dibuja cada placa a fabricar por separado, en orden y con su cantidad (solo en antenas modulares).'))
+                            chk_expl.set_visibility(False)
                         grafico = ui.plotly({}).classes('w-full h-[560px]')
                     with ui.row().classes('w-full wrap items-start gap-2'):
                         with ui.card().classes('grow basis-[280px]'):
@@ -746,6 +751,22 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
             construir_params()
         regenerar()
 
+    def pintar_diseno():
+        """Dibuja la antena actual en 2D o en 3D (con la casilla «Explosionada» si es modular)."""
+        a = estado.get('antena')
+        if a is None:
+            return
+        en_3d = tog_vista.value == '3d'
+        chk_expl.set_visibility(en_3d and bool(a.modulos))
+        if en_3d:
+            try:
+                grafico.update_figure(T(vista3d.figura(a, tipos.sustrato(estado['sustrato']).h,
+                                                       explosionada=bool(chk_expl.value and a.modulos))))
+                return
+            except Exception as ex:                      # la vista 3D nunca debe impedir ver el diseño
+                ui.notify(tr('No se pudo dibujar la vista 3D: {0}', ex), type='warning')
+        grafico.update_figure(T(vista.figura_plotly(a)))
+
     def regenerar():
         try:
             a = tipos.generar(estado['clave'], estado['params'], estado['sustrato'])
@@ -753,7 +774,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
             ui.notify(tr('No se puede generar: {0}', ex), type='negative')
             return
         estado['antena'] = a
-        grafico.update_figure(T(vista.figura_plotly(a)))
+        pintar_diseno()
         lo, hi = banda_actual()
         tabla_info.clear()
         with tabla_info:
@@ -1328,14 +1349,14 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
             if d['d'].size:
                 with ui.row().classes('w-full wrap gap-2'):
                     ui.plotly(T(graficas.cortes_polares(d['theta'], d['phi'], d['d']))).classes('grow basis-[320px] h-[420px]')
-                    ui.plotly(T(graficas.diagrama_3d(d['theta'], d['phi'], d['d'], antena=antena_simulada(r),
-                                                     h_mm=tipos.sustrato(estado['sustrato']).h))
+                    ui.plotly(T(vista3d.figura(antena_simulada(r), tipos.sustrato(estado['sustrato']).h,
+                                               diagrama=(d['theta'], d['phi'], d['d'])))
                               ).classes('grow basis-[420px] h-[420px]')
 
     def repintar_graficas():
         """Vuelve a dibujar las gráficas visibles con el tema actual."""
         if estado['antena'] is not None:
-            grafico.update_figure(T(vista.figura_plotly(estado['antena'])))
+            pintar_diseno()
         if sim.get('mostrada'):
             pintar_simulacion(*sim['mostrada'])
         pintar_comparacion()
@@ -1930,8 +1951,10 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
         # Plotly no se inicializa si la figura se pone con la pestaña oculta (el programa arranca en la galería):
         # se vuelve a enviar al entrar
         if e.value == 'Diseño' and estado.get('antena') is not None:
-            grafico.update_figure(T(vista.figura_plotly(estado['antena'])))
+            pintar_diseno()
     pestanas.on_value_change(al_entrar_en_diseno)
+    tog_vista.on_value_change(lambda e: pintar_diseno())
+    chk_expl.on_value_change(lambda e: pintar_diseno())
     btn_abrir.on_click(lambda: (n := seleccionado()) and abrir_diseno(n))
     btn_carpeta.on_click(lambda: (n := seleccionado()) and os.startfile(biblioteca.carpeta(n)))
     btn_renombrar.on_click(renombrar_click)

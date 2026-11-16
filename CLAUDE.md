@@ -533,6 +533,13 @@ archivos modificados después de la última revisión. La marca de esa revisión
     («Personalizado (εr 2,65; tanδ 0,0019; 1,65 mm)», `materiales.nombre_personalizado`) y `tipos.sustrato` → `materiales.sustrato_por_nombre` lo reconstruye, así que viaja igual por
     `diseno.json`, el trabajo de simulación y la web sin tocar nada más. Rangos: εr 1–20, tanδ 0–0,2, grosor 0,02–6 mm (`LIMITES_PERSONALIZADO`); siempre 2 capas. El formato del nombre
     tiene que ser idéntico en `web/app.js` (`nombrePers`/`RE_PERS`). `Sustrato.er_tol` (5 % por defecto, 1,5–1,7 % en los PTFE de JLC por su datasheet) manda en «Analizar tolerancias».
+84. **Vista 3D (16-11)**: `antenas/vista3d.py`, `figura(antena, h_mm, explosionada=False, diagrama=None)` (Plotly `Mesh3d`): FR4 con grosor y cantos, cobre F.Cu/B.Cu, vías, conector, reflector con sus hilos,
+    uniones de una antena modular (líneas rojas) y, explosionada, cada placa de `Antena.modulos` por separado con su cantidad. Con `diagrama=(theta, phi, d)` añade la superficie del diagrama centrada en la placa
+    (mismas coordenadas que la simulación: θ desde +Z, φ desde +X) y la flecha del máximo; es lo que se ve en Simulación (sustituye a `graficas.diagrama_3d`, que queda sin uso en la interfaz).
+    El grosor se exagera a ≥ 1,2 % del lado mayor (se dice en el título) y la cámara se aleja con la relación de aspecto. En Diseño: conmutador 2D/3D y casilla «Explosionada» (`gui/app.py` → `pintar_diseno`, que sustituye
+    a las tres llamadas a `vista.figura_plotly`). **Un generador nuevo con placas no coplanares (diedro, esquina) tendría que devolver cada placa con su posición y giro**: hoy `_placa` solo desplaza en Y. Sin web todavía
+    (la web dibuja en SVG propio). Verificado en el navegador con figuras HTML sueltas, porque en la sesión de Claude Plotly no carga dentro de NiceGUI (lección 49: 403 a los módulos ESM; el envoltorio de la lección 49 ya no existe
+    y la comparación con `is_relative_to` no bastó).
 83. **Colineal con bowtie (16-11)**: `colineal_dipolos` con `forma` = 1 (`dipolos._brazo_colineal`): cada brazo es un triángulo con la punta (ancho `ancho_brazo`) en la línea y el
     mismo ancho que la U (2·(`separacion_patas` + `ancho_brazo`/2)) en el extremo, en vez de barra y dos patas; sirve en una placa y en modular. `estimar_f_colineal_dipolos` multiplica por
     `K_BOWTIE_COLINEAL` = 0,9 (sin calibrar, como el 0,79 del dipolo bowtie con 70°: este triángulo es de ~41°); el largo por defecto sale ~10 % más corto (25,0 frente a 27,8 mm a 2,4 GHz en FR4)
