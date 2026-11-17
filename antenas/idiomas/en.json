@@ -701,6 +701,7 @@
   "Largo resonante del parche: fija la frecuencia (más largo, más baja). Lo calcula «Ajustar».": "Resonant length of the patch: it sets the frequency (longer means lower). «Resize» computes it.",
   "Largo total unidos [mm]": "Total length when joined [mm]",
   "Las bowtie casi se tocan en vertical: sube la separación o cierra la apertura.": "The bowties almost touch vertically: increase the spacing or close the aperture.",
+  "Las muescas de Koch ({0:.1f} mm) son casi tan finas como la pata ({1:.1f} mm) y se funden (DRC de distancia y bloque macizo): baja la iteración o estrecha las patas.": "The Koch notches ({0:.1f} mm) are almost as thin as the leg ({1:.1f} mm) and merge (clearance DRC and a solid block): lower the iteration or make the legs narrower.",
   "Las muescas de Minkowski reducen el parche un 10–25 % a costa de banda; la profundidad de la muesca es el parámetro que más influye.": "The Minkowski notches shrink the patch by 10–25 % at the cost of bandwidth; the notch depth is the parameter with the most influence.",
   "Las pérdidas de la red crecen con el tamaño: en FR4, un 4×4 a 2,4 GHz pierde ~3,5 dB. Para arrays grandes o a 5,8 GHz, considera RO4350B.": "Network losses grow with size: on FR4, a 4×4 at 2.4 GHz loses ~3.5 dB. For large arrays or at 5.8 GHz, consider RO4350B.",
   "Las ramas de la red son más cortas que el λ/4 de 70,7 Ω: sube la separación.": "The network branches are shorter than the 70.7 Ω λ/4: increase the spacing.",

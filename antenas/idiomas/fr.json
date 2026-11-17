@@ -701,6 +701,7 @@
   "Largo resonante del parche: fija la frecuencia (más largo, más baja). Lo calcula «Ajustar».": "Longueur résonante du patch : elle fixe la fréquence (plus long, plus bas). « Ajuster » la calcule.",
   "Largo total unidos [mm]": "Longueur totale assemblée [mm]",
   "Las bowtie casi se tocan en vertical: sube la separación o cierra la apertura.": "Les bowtie se touchent presque à la verticale : augmentez l'espacement ou fermez l'ouverture.",
+  "Las muescas de Koch ({0:.1f} mm) son casi tan finas como la pata ({1:.1f} mm) y se funden (DRC de distancia y bloque macizo): baja la iteración o estrecha las patas.": "Les encoches de Koch ({0:.1f} mm) sont presque aussi fines que la patte ({1:.1f} mm) et fusionnent (DRC de distance et bloc plein) : baisse l’itération ou rétrécis les pattes.",
   "Las muescas de Minkowski reducen el parche un 10–25 % a costa de banda; la profundidad de la muesca es el parámetro que más influye.": "Les encoches de Minkowski réduisent le patch de 10–25 % au détriment de la bande ; la profondeur de l'encoche est le paramètre le plus influent.",
   "Las pérdidas de la red crecen con el tamaño: en FR4, un 4×4 a 2,4 GHz pierde ~3,5 dB. Para arrays grandes o a 5,8 GHz, considera RO4350B.": "Les pertes du réseau croissent avec la taille : sur FR4, un 4×4 à 2,4 GHz perd ~3,5 dB. Pour de grands réseaux ou à 5,8 GHz, envisagez le RO4350B.",
   "Las ramas de la red son más cortas que el λ/4 de 70,7 Ω: sube la separación.": "Les branches du réseau sont plus courtes que le λ/4 de 70,7 Ω : augmentez l'espacement.",
