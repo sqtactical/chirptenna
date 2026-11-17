@@ -562,6 +562,9 @@ archivos modificados después de la última revisión. La marca de esa revisión
     común y al cambiar la separación se descentra todo (S11 −1…−8 dB, ángulos que no siguen la fórmula). Aquí cada dipolo bowtie (el antipodal de `dipolos.generar_dipolo` girado 90°, eje Y, colineales) cuelga de su propia línea
     de 50 Ω: conector → línea → transformador λ/4 de 35,4 Ω → T → dos ramas iguales; la rama con retardo lleva un meandro de ΔL = |desfase|/360·λg. Desfase > 0 retarda al dipolo de arriba y el haz va hacia +y
     (sen τ = Δφ·λ0/(2π·d)). La estimación de f es la del `dipolo_bowtie` suelto (hay que centrar con `--centrar`). Solo 2 elementos. Simulaciones encoladas (`0030`/`0031`: FR4 y PTFE, desfase 0, 40, −40, 80°).
+88. **Retardo de fase en el panel 2×2 (`panel_dipolos`, `desfase` y `plano_desfase`, 17-11, sin validar)**: un meandro de PSL (la misma tira en las dos caras) en el tramo vertical de 100 Ω de los dos dipolos de un lado
+    (`directivas.generar_panel_dipolos`, `stub`); ΔL = |desfase|/360·λg(100 Ω sobre h/2). `plano_desfase` 0 = columnas (+x con desfase positivo; plano de los brazos, como la elevación de una sectorial vertical), 1 = filas
+    (+y). `info['inclinacion_estimada_grados']` da sen τ = Δφ·λ/(2π·d). Solo en el 2×2 (el 4×4 avisa). Se simula con `herramientas/barrido_panel.py 2 2 18.2 <etiqueta> desfase=40,plano_desfase=0` (cola `0032`–`0035`).
 85. **Antenas de varias placas no coplanares y hélices (16-11, sin validar)**: `antenas/tridimensional.py` (`diedro`, `reflector_esquina`, `helice_normal`, `helice_cuadrifilar`),
     `antenas/pose.py`, `Antena.placas3d` (placas con pose), `Antena.hilos3d` (hilos) y `Antena.cobre_sim` (cobre continuo en la simulación y con 0,5 mm al fabricar); las placas a fabricar van en
     `Antena.modulos` y se exportan una a una. **Una lámina PEC de grosor cero girada desaparece de la malla de openEMS sin avisar** (V a 5°: −1 dB en vez de −25): el cobre de una placa girada es una

@@ -691,6 +691,12 @@ CATALOGO = {t.clave: t for t in [
                 Parametro('simetrico', 'Disposición de los dipolos', 1, 0, 1, 1, True,
                           opciones={0: 'Todos iguales (sin vías)', 1: 'Simétrica con cruce (2 vías por bloque)'},
                           ayuda='Todos iguales: el haz sale inclinado ~9° en el plano de los dipolos (2×2)'),
+                Parametro('desfase', 'Desfase con línea de retardo [°]', 0, -120, 120, 1,
+                          ayuda='Solo en el 2×2: añade un meandro de retardo a los dos dipolos de un lado (el del lado positivo si el desfase es positivo) y el haz se inclina '
+                                'hacia ese lado: sen(inclinación) = desfase·λ/(360·separación entre ellos). 0 = sin retardo. Sin validar'),
+                Parametro('plano_desfase', 'Plano de la inclinación', 0, 0, 1, 1, True,
+                          opciones={0: 'A lo largo de los brazos (entre columnas, como la elevación de una sectorial vertical)', 1: 'Entre filas (en el plano perpendicular a los brazos)'},
+                          ayuda='Con «A lo largo de los brazos» se retardan las columnas (+x con desfase positivo); con «Entre filas», las filas de arriba (+y)'),
                 Parametro('largo_brazo', 'Largo de cada brazo del dipolo [mm]', 23, 3, 300, 0.1),
                 Parametro('ancho_dipolo', 'Ancho de los brazos [mm]', 3.0, 0.5, 30, 0.1,
                           ayuda='Más ancho: más ancho de banda (y dipolo algo más corto)'),

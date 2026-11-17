@@ -431,6 +431,38 @@ def generar_panel_dipolos(p, s, eps_eff_impreso):
         tira(desde, medio, w70)
         (cruce if cruzada else tira)(medio, hacia, w100)
 
+    # Retardo (solo 2×2): meandro en el tramo vertical de 100 Ω de los dipolos de un lado. Cada tramo es una PSL (la misma tira en las dos caras)
+    desfase = float(p.get('desfase', 0) or 0) if n == 2 else 0.0
+    plano_d = int(p.get('plano_desfase', 0) or 0)
+    lam_g100 = lambda0_mm(f_est)/math.sqrt(eps_eff_microstrip(s.er, h2, w100))
+    dL = abs(desfase)/360*lam_g100                                      # largo extra de cada tramo retardado
+    lado_d = 1 if desfase > 0 else -1                                   # lado retardado: +x/+y (desfase > 0) o −x/−y
+
+    def retardado(sx, sy):
+        return dL > 0 and ((sx if plano_d == 0 else sy) == lado_d)
+
+    def stub(a, b, w, extra, hacia_x):
+        """Tramo vertical de PSL de a (nodo, y = cy) a b (centro del dipolo). Con `extra` > 0 lleva un meandro que añade ese largo y sobresale
+        `extra/2` hacia `hacia_x` (±1, hacia fuera del bloque) a media altura del tramo."""
+        if extra <= 0:
+            tira(a, b, w)
+            return
+        (xa, ya), (xb, yb) = a, b
+        sgn = 1 if yb > ya else -1
+        largo = abs(yb - ya)
+        wm = w + HUECO_CRUCE
+        s0 = max(2*w, (largo - wm)/2)
+        if s0 + wm + w > largo:
+            avisos.append(tr('El meandro del retardo no cabe en el tramo de la rama: sube la separación o reduce el desfase.'))
+        u = extra/2
+        pts = [a, (xa, ya + sgn*s0), (xa + hacia_x*u, ya + sgn*s0), (xa + hacia_x*u, ya + sgn*(s0 + wm)), (xa, ya + sgn*(s0 + wm)), b]
+        tira_pol(pts, w)
+
+    def tira_pol(pts, w):
+        t = g.engordar(pts, w)
+        sup.append(t)
+        inf.append(t)
+
     def bloque(cx, cy):
         """2×2 centrado en (cx, cy): dipolos → 100 Ω en vertical; uniones en (cx ± dx/2, cy). Simétrico:
         el brazo de arriba de cada columna mira hacia fuera del bloque y la rama izquierda va cruzada."""
@@ -442,7 +474,7 @@ def generar_panel_dipolos(p, s, eps_eff_impreso):
                 arriba, abajo = brazos(xc, yc, o)
                 sup.append(arriba)
                 inf.append(abajo)
-                tira((xc, cy), (xc, yc), w100)
+                stub((xc, cy), (xc, yc), w100, dL if retardado(sx, sy) else 0.0, sx)
             rama((xc, cy), (cx, cy), cruzada=simetrico and sx < 0)
 
     camino = {'100': dy/2 + dx/2 - l70, '70': l70}         # raíz -> dipolo (2×2)
@@ -499,6 +531,12 @@ def generar_panel_dipolos(p, s, eps_eff_impreso):
         avisos.append(tr('Los dipolos casi se tocan en la dirección de sus brazos: sube la separación.'))
     if con_reflector and max(rx1 - rx0, ry1 - ry0) > 400:
         avisos.append(tr('Reflector de más de 400 mm: mejor una chapa de aluminio que una PCB.'))
+    if n != 2 and float(p.get('desfase', 0) or 0):
+        avisos.append(tr('El retardo de fase solo se aplica al panel 2×2.'))
+    inclinacion = None
+    if dL > 0:
+        d_par = dx if plano_d == 0 else dy
+        inclinacion = round(math.degrees(math.asin(max(-1.0, min(1.0, desfase*math.pi/180*lam0/(2*math.pi*d_par))))), 1)
     return Antena(tipo='panel_dipolos', parametros=dict(p), capas={'F.Cu': cobre_sup, 'B.Cu': cobre_inf},
                   ajuste=ajuste.vacio(), radiador=cobre_sup, contorno=contorno, zona_libre=None,
                   puerto={'tipo': 'pasante', 'borde': (0.0, 0.0), 'direccion': (0, 1), 'alimentacion': (0.0, 0.0),
@@ -519,7 +557,8 @@ def generar_panel_dipolos(p, s, eps_eff_impreso):
                         'perdida_red_estimada_dB': round(float(perdida), 2),
                         'directividad_ideal_dBi': round(d_est, 1),
                         'ganancia_estimada_dBi': round(float(d_est - perdida), 1),
-                        'hueco_minimo_mm': HUECO_CRUCE if vias else None, 'pista_minima_mm': round(w100, 3),
+                        'hueco_minimo_mm': HUECO_CRUCE if (vias or dL > 0) else None, 'pista_minima_mm': round(w100, 3),
+                        'largo_extra_retardo_mm': round(dL, 2) if dL > 0 else None, 'inclinacion_estimada_grados': inclinacion,
                         'avisos': avisos, 'f_sin_cortar_MHz': None, 'ajuste': None})
 
 

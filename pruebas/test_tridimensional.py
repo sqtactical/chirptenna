@@ -111,3 +111,22 @@ def test_array_fase_retardo_y_simetria():
     assert abs(tipos.estimar_f('array_fase', p0) - F)/F < 0.02
     # el meandro va en la rama del dipolo de arriba con desfase positivo y en la del de abajo con negativo: la placa cambia
     assert a1.cobre('F.Cu').symmetric_difference(a2.cobre('F.Cu')).area > 10
+
+
+def test_panel_con_retardo():
+    base = tipos.dimensionar('panel_dipolos', F, {'tamano': 2, 'elemento': 2})
+    base.pop('_aviso', None)
+    a0 = tipos.generar('panel_dipolos', dict(base, desfase=0))
+    a1 = tipos.generar('panel_dipolos', dict(base, desfase=60, plano_desfase=0))
+    a2 = tipos.generar('panel_dipolos', dict(base, desfase=60, plano_desfase=1))
+    b1 = tipos.generar('panel_dipolos', dict(base, desfase=-60, plano_desfase=0))
+    assert a0.info['largo_extra_retardo_mm'] is None and a1.info['largo_extra_retardo_mm'] > 5
+    assert a1.info['inclinacion_estimada_grados'] > 0 > b1.info['inclinacion_estimada_grados']
+    # el meandro está en un lado u otro, y entre columnas o entre filas
+    assert a0.cobre('F.Cu').symmetric_difference(a1.cobre('F.Cu')).area > 10
+    assert a1.cobre('F.Cu').symmetric_difference(a2.cobre('F.Cu')).area > 10
+    assert a1.cobre('F.Cu').symmetric_difference(b1.cobre('F.Cu')).area > 10
+    # sin retardo es la placa de siempre; con 4×4 el retardo no se aplica y avisa
+    assert a0.cobre('F.Cu').symmetric_difference(tipos.generar('panel_dipolos', base).cobre('F.Cu')).area < 1e-6
+    a4 = tipos.generar('panel_dipolos', dict(tipos.dimensionar('panel_dipolos', F, {'tamano': 4, 'elemento': 2}), desfase=60))
+    assert a4.info['largo_extra_retardo_mm'] is None and a4.info['avisos']

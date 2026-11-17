@@ -36,7 +36,7 @@ TIPOS = {
                   ['largo_brazo', 'directores', 'iteracion', 'alimentacion', 'conector', 'aligerado']),
     'panel_dipolos': ('directiva', 'Dipolos o bowtie sobre un reflector (segunda placa): 1 elemento o 2×2 / 4×4, '
                       'hasta 17 dBi para enlaces largos.',
-                      ['tamano', 'elemento', 'largo_brazo', 'simetrico', 'aligerado']),
+                      ['tamano', 'elemento', 'largo_brazo', 'simetrico', 'desfase', 'plano_desfase', 'aligerado']),
     'dipolo': ('sin_masa', 'Dipolo impreso (recto o de Koch) con balun: no necesita masa, radiación simétrica.',
                ['largo_brazo', 'iteracion', 'alimentacion', 'conector']),
     'dipolo_bowtie': ('sin_masa', 'Dipolo de brazos triangulares (bowtie): más banda que el recto, sin masa y simétrica.',
