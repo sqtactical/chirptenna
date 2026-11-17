@@ -188,3 +188,17 @@ Cada pata de la U es una curva de Koch de cuerda `largo_brazo` con las muescas h
 ### Línea plegada entre dipolos: cuenta previa (17-11, sin implementar)
 
 Idea: acortar la colineal plegando en meandro el tramo de λg entre dipolos. Con 4 dipolos a 2,4 GHz en FR4 (tamaño por defecto): tramo entre dipolos Ls = 66,6 mm, dos brazos 2·La = 47,4 mm (U recta) o 42,4 mm (U de Koch 1). Los brazos de un dipolo y los del siguiente no pueden solaparse en Y, así que **solo se puede plegar el tramo libre: 19–24 mm** por hueco (3 huecos). Un meandro de microstrip necesita ~3–5 mm entre tramos (3·h para no acoplarse), con lo que 19 mm de línea caben en ~10 mm de largo como mucho: ahorro de ~5–9 mm por hueco, **unos 15–27 mm de 258 (6–10 %)**, con riesgo de radiación y acoplo con los dipolos vecinos. **No compensa**: lo que ocupa el largo son los propios dipolos (2·La ≈ 70 % del tramo), no la línea. (Mi estimación previa de que «el tramo de línea ocupa casi todo el largo» era errónea.) Para acortar más habría que reducir el dipolo (Koch, ya probado: −9 a −18 %) o ir a una conexión alternada (λg/2, placa de 128 mm con 4 dipolos).
+
+### Línea plegada entre dipolos: resultado (17-11, GPU, 2,4 GHz, FR4, 4 dipolos, centradas) — corrige la cuenta previa
+
+Se implementó (`linea_plegada` = 1: un bucle en «C» de la línea en el tramo libre entre dipolos, con un parche de masa más ancho debajo; solo en una placa y en serie) y **sí compensa**, más de lo calculado antes (que daba un 6–10 %): al acercar los dipolos baja también la pérdida de la línea de FR4.
+
+| Antena | Placa | Peor S11 | f res. (MHz) | D (dBi) | G (dBi) | η | Separación entre dipolos |
+|---|---|---|---|---|---|---|---|
+| U recta | 20,5 × 300,6 mm | −12,1 dB | 2444 | 6,4 | 4,05 | 58 % | ~78 mm (0,64 λ0) |
+| U recta plegada | 20,5 × 216,1 mm (−28 %) | −19,7 dB | 2440 | 6,0 | 4,82 | 76 % | ~55 mm (0,45 λ0) |
+| U de Koch 1 plegada | 34,2 × 194,1 mm (−35 %) | −20,6 dB | 2368 | 5,6 | 4,34 | 75 % | ~52 mm |
+
+**Diagrama** (cortes y vista 3D con `herramientas/patrones_colineal.py` y `herramientas/patrones_colineal_3d.py`, figuras en `salidas/_vistas/colineal_patrones*.png`): la U recta y la de Koch sin plegar tienen 6–8 lóbulos casi iguales (lóbulos de rejilla: dipolos a 0,64 λ0 > λ0/2), y el máximo del barrido caía en θ 156–165°. La plegada (0,45 λ0) no los tiene: queda un anillo ancho alrededor del eje largo, con nulos a lo largo de él, como se espera de una colineal; el lóbulo principal queda a ~12° de la normal de la placa. Con el tamaño por defecto las placas miden 229 mm (U recta, −11 %) y 209 mm (Koch, −17 %): el centrado acorta el brazo y suma otro ahorro.
+
+Lo que se aprendió: el tramo plegable es solo el libre entre brazos (19–24 mm), pero acercar los dipolos por debajo de media longitud de onda es lo que limpia el diagrama. Sin medir; el bucle no está probado con placa real.

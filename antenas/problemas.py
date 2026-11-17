@@ -137,6 +137,8 @@ FIJOS = {
         ('aviso', 'EXPERIMENTAL · «U de Koch (patas fractales)»: las patas de la U son curvas de Koch. En una placa, 4 dipolos a 2,4 GHz en FR4, la iteración 1 acorta la placa un 9–18 % '
                   '(301 → 248–275 mm) pero la ensancha de 20 a ~36 mm y adapta peor que la U recta (−8 a −11 dB frente a −12 dB; 4,1–5,7 dBi frente a 4,0 dBi). '
                   'Con patas de 2,5 mm las iteraciones 2 y 3 se funden en un bloque macizo; en módulos no funciona (−1,4 dB). Es una curiosidad: no la recomendamos para una placa real.'),
+        ('aviso', 'Línea plegada entre dipolos (linea_plegada = 1, simulada a 2,4 GHz en FR4, 4 dipolos, centrada): un bucle en «C» en el tramo libre acerca los dipolos de 78 a 55 mm. La U recta pasa de 301 a 216 mm (−28 %), de −12,1 a −19,7 dB de S11 y de 4,05 a 4,8 dBi (η 58 → 76 %); con U de Koch 194 mm (−35 %), −20,6 dB y 4,3 dBi. '
+                  'El diagrama también mejora: con menos de media longitud de onda entre dipolos (0,45 λ0) desaparecen los lóbulos de rejilla (6–8 lóbulos con 0,64 λ0) y queda un anillo alrededor del eje largo, con nulos a lo largo de él. Solo en una placa y en serie; sin medir.'),
     ],
     'parche_ranura': [
         ('aviso', 'Sin testear ni validar: no se ha simulado ni medido. La ranura en U ensancha la banda, pero su '
