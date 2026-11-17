@@ -31,6 +31,7 @@ from . import bibanda
 from . import bucle
 from . import dipolos
 from . import tridimensional
+from . import arrays_fase
 from . import ajuste
 from . import conector
 from . import integracion
@@ -900,6 +901,24 @@ for _t3 in [
                                     Parametro('ancho_reflector', 'Ancho de cada placa reflectora (paralelo al dipolo) [mm]', 150, 20, 800, 1),
                                     Parametro('largo_reflector', 'Largo de cada placa reflectora [mm]', 110, 20, 800, 1)],
                'largo_brazo', precision='±25 % (sin calibrar)'),
+    TipoAntena('array_fase', 'Array de 2 dipolos bowtie con línea de retardo',
+               'Dos dipolos bowtie en el mismo eje, cada uno con su línea de 50 Ω desde un solo conector (T con transformador λ/4); una rama lleva un meandro '
+               'de retardo y el haz se inclina hacia ese dipolo, como una sectorial con inclinación fija. Sin validar.', 'dipolo',
+               [Parametro('largo_brazo', 'Largo de cada brazo de los dipolos [mm]', 25, 3, 300, 0.1),
+                Parametro('forma', 'Forma de los brazos', 1, 1, 2, 1, True, opciones={1: 'Bowtie (pajarita)', 2: 'Bowtie de Sierpinski'},
+                          ayuda='Bowtie: brazos triangulares; Sierpinski: triángulos con huecos fractales'),
+                Parametro('apertura', 'Apertura de la bowtie [°]', 50, 20, 100, 1, ayuda='Ángulo total de cada triángulo'),
+                Parametro('iteracion_s', 'Iteración de Sierpinski', 2, 1, 5, 1, True, ayuda='Solo con «Bowtie de Sierpinski»'),
+                Parametro('separacion', 'Distancia entre los centros de los dos dipolos [mm]', 70, 10, 600, 0.5,
+                          ayuda='~0,5–0,7 λ en el aire. Con menos, los brazos se tocan; con más, aparecen lóbulos laterales'),
+                Parametro('desfase', 'Desfase entre los dos dipolos [°]', 40, -120, 120, 1,
+                          ayuda='Positivo: retarda al dipolo de arriba (el más lejano al conector) y el haz se inclina hacia él; negativo: hacia el otro. 0 = en fase, haz perpendicular al eje. '
+                                'sen(inclinación) = desfase·λ/(360·separación)'),
+                Parametro('ancho_pista', 'Ancho de la punta de los brazos [mm]', 1.5, 0.15, 15, 0.05),
+                Parametro('largo_alimentacion', 'Largo de la línea con tira de masa hasta cada dipolo [mm]', 30, 10, 200, 0.5,
+                          ayuda='Hace de boom/balun de cada dipolo; el meandro del retardo va en este tramo'),
+                Parametro('ancho_boom', 'Ancho de la tira de masa [mm]', 8, 4, 30, 0.5)],
+               'largo_brazo', precision='±25 % (sin calibrar)'),
     TipoAntena('helice_normal', 'Hélice de modo normal en flex',
                'Monopolo helicoidal de λ/4 de hilo sobre una placa de masa: una tira de flex enrollada en un tubo. Compacta a 868 MHz. Sin validar.',
                'tridimensional', _PARAMS_HELICE + [Parametro('altura', 'Altura de la hélice [mm]', 30, 3, 300, 0.5)],
@@ -918,7 +937,7 @@ CATALOGO['helice_cuadrifilar'].parametros = [replace(q, defecto={'diametro': 14,
                                              for q in CATALOGO['helice_cuadrifilar'].parametros]
 
 
-GRUPO_AJUSTE = {'diedro': 'sin_ajuste', 'reflector_esquina': 'sin_ajuste', 'helice_normal': 'sin_ajuste', 'helice_cuadrifilar': 'sin_ajuste',
+GRUPO_AJUSTE = {'array_fase': 'sin_ajuste', 'diedro': 'sin_ajuste', 'reflector_esquina': 'sin_ajuste', 'helice_normal': 'sin_ajuste', 'helice_cuadrifilar': 'sin_ajuste',
                 'monopolo_recto': 'monopolo_pista', 'monopolo_meandro': 'monopolo_pista',
                 'monopolo_koch': 'monopolo_pista', 'monopolo_hilbert': 'monopolo_pista', 'monopolo_flecha': 'sin_ajuste',
                 'monopolo_sierpinski': 'monopolo', 'jpole': 'jpole', 'jpole_koch': 'jpole', 'yagi_koch': 'yagi',
@@ -963,6 +982,7 @@ ESCALABLES = {
     # el boom del dipolo es su balun (~λg/4); su ancho y las tiras del COCO van con el grosor del FR4
     'dipolo': ('ancho_pista', 'hueco', 'largo_alimentacion'),
     'dipolo_bowtie': ('ancho_pista', 'hueco', 'largo_alimentacion', 'ancho_flecha'),
+    'array_fase': ('separacion', 'largo_alimentacion', 'ancho_pista'),
     'colineal_franklin': ('ancho_pista', 'hueco_horquilla') + _MASA,
     'bucle': ('lado', 'ancho_pista') + _MASA,
 }
@@ -1073,6 +1093,8 @@ def generar(clave, parametros=None, nombre_sustrato=None):
             bibanda.jpole_unida(a, p)
     elif clave in ('dipolo', 'dipolo_bowtie'):
         a = dipolos.generar_dipolo(p, s, eps_eff_monopolo(s.er))
+    elif clave == 'array_fase':
+        a = arrays_fase.generar_array_fase(p, s, eps_eff_monopolo(s.er))
     elif clave == 'diedro':
         a = tridimensional.generar_diedro(p, s, eps_eff_monopolo(s.er))
     elif clave == 'reflector_esquina':
@@ -1275,6 +1297,8 @@ def estimar_f(clave, parametros, nombre_sustrato=None, calibrada=True):
         f = jpole.estimar_f(p, eps_eff_monopolo(s.er))
     elif clave in ('dipolo', 'dipolo_bowtie'):
         f = dipolos.estimar_f_dipolo(p, eps_eff_monopolo(s.er))
+    elif clave == 'array_fase':
+        f = arrays_fase.estimar_f_array_fase(p, nombre_sustrato)
     elif clave == 'diedro':
         f = tridimensional.estimar_f_diedro(p, eps_eff_monopolo(s.er))
     elif clave == 'reflector_esquina':

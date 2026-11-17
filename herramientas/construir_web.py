@@ -15,7 +15,7 @@ import importlib.util
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Módulos del núcleo que usa la web (si un tipo nuevo necesita otro módulo, añadirlo aquí)
-NUCLEO = ['__init__', 'ajuste', 'ancho_banda', 'bibanda', 'bucle', 'conector', 'consejos', 'dipolos', 'directivas', 'exportar',
+NUCLEO = ['__init__', 'arrays_fase', 'ajuste', 'ancho_banda', 'bibanda', 'bucle', 'conector', 'consejos', 'dipolos', 'directivas', 'exportar',
           'fabricacion', 'geometria', 'guia', 'i18n', 'importar_kicad', 'integracion', 'jpole', 'logo', 'materiales', 'modelo', 'pose', 'presentacion', 'problemas',
           'robusto', 'sexp', 'tipos', 'tipos_base', 'tridimensional', 'web_api']
 DATOS = ['calibracion_estimaciones.json', 'logo_texto.json']

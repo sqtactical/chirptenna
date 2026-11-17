@@ -41,6 +41,7 @@ ESTADO = {
     'jpole': ('validada', 'Validada en simulación (de 868 MHz a 2,4 GHz)'),
     'bucle': ('pendiente', 'Simulado (868 MHz y 2,4 GHz): adapta con la red en L calculada; η ~40–50 %, banda estrecha'),
     'jpole_koch': ('validada', 'Validada en simulación (868 MHz y 1,2 GHz; 2,4 GHz casi)'),
+    'array_fase': ('pendiente', 'Sin simular ni validar (dos dipolos con línea de retardo)'),
     'diedro': ('pendiente', 'Sin simular ni validar (tres placas; modelo de placas giradas)'),
     'reflector_esquina': ('pendiente', 'Sin simular ni validar (tres placas; modelo de placas giradas)'),
     'helice_normal': ('pendiente', 'Sin simular ni validar (hilo helicoidal; tira de flex)'),
@@ -55,6 +56,10 @@ def estado(clave):
 
 # Problemas que no dependen de los parámetros
 FIJOS = {
+    'array_fase': [
+        ('aviso', 'Sin simular ni medir. La estimación del tamaño de los dipolos es la del bowtie suelto: el acoplo entre los dos la mueve, hay que centrar simulando. '
+                  'La colineal en serie con la separación cambiada no servía para inclinar el haz (los dipolos se acoplan por la línea común): aquí cada dipolo tiene su línea.'),
+    ],
     'diedro': [
         ('aviso', 'Tres placas que se sueldan en las bisagras y se sujetan con una escuadra: sin simular ni medir. La unión soldada no está modelada '
                   '(la simulación la toma como cobre continuo).'),

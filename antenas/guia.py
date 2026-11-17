@@ -77,6 +77,8 @@ TIPOS = {
               ['lado', 'capacidad_pF', 'forma', 'ancho_placa', 'largo_masa', 'conector', 'ajuste']),
     'yagi_koch': ('experimental', 'Quasi-Yagi con dipolo de Koch: radia hacia atrás en simulación.',
                   ['largo_brazo', 'iteracion', 'directores', 'conector', 'ajuste', 'aligerado']),
+    'array_fase': ('experimental', 'Dos dipolos bowtie con una línea de retardo en una rama: el haz se inclina como en una sectorial. Un solo conector. Sin validar.',
+                   ['largo_brazo', 'separacion', 'desfase', 'conector']),
     'diedro': ('experimental', 'Dipolo bowtie con los brazos doblados en V (tres placas soldadas). Sin validar.',
                ['largo_brazo', 'angulo_v', 'forma', 'conector']),
     'reflector_esquina': ('experimental', 'Dipolo delante de dos placas reflectoras en esquina: ~9–11 dBi sin red de alimentación. Tres placas; sin validar.',

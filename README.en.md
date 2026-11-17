@@ -96,6 +96,7 @@ The resulting board (KiCad render): top side and bottom side with the logo and l
 | Antipodal Vivaldi | vivaldi | ✅ validated in simulation (2.4 GHz −18 dB and 5.8 GHz −12.3 dB; very wide band) |
 | Series dipole collinear (microstrip line) | collinear | ✅ validated in simulation at 2.4 GHz (−12.7 dB, 4.1 dBi, η 59 %) and 5.8 GHz (−13.8 dB, 3.5 dBi, η 50 %); on FR4 the gain falls short; **modular** construction (identical boards joined edge to edge, simulated at 2.4 GHz: −12.9 dB, 4.0 dBi, η 61 % with 4 modules), soldered junction not measured |
 | Printed dipole (straight or Koch; printed balun or centre-fed coax) | dipole | ✅ validated (868 MHz to 5.8 GHz) |
+| Array of 2 bowtie dipoles with a delay line (one connector, beam tilt like a sector antenna) | array_fase | ⚠️ not simulated or validated; the series collinear array with `inclinacion` was inconclusive (the dipoles couple through the common line) |
 | V dipole (bowtie with folded arms, three soldered boards) | diedro | ⚠️ not validated: simulated at 2.4 GHz with 0° wings (identical to the flat bowtie, −23.9 dB) and 25° (−36 dB, coarse mesh); not measured |
 | Corner reflector (bowtie dipole + two reflector plates, three boards) | reflector_esquina | ⚠️ not validated: simulated at 2.4 GHz with 90°, S11 −48 dB, D 10.3 dBi, beam straight ahead (coarse mesh, uncentred); not measured |
 | Normal-mode helix on flex (helical monopole over a ground board) | helice_normal | ⚠️ not validated: simulated at 2.4 GHz uncentred, −6.4 dB; not measured |

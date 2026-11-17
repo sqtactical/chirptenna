@@ -93,3 +93,21 @@ def test_inclinacion_alarga_o_acorta_los_tramos():
         assert l_menos < l_cero < l_mas
         # d = λ0/(√εeff − sen τ): el cociente entre tramos es el del factor
         assert abs(l_mas/l_cero - 1) > 0.05
+
+
+def test_array_fase_retardo_y_simetria():
+    # dos dipolos con su propia línea: desfase 0 = ramas iguales; el desfase alarga solo la rama de un dipolo (ΔL = |φ|/360·λg)
+    def gen(des):
+        p = tipos.dimensionar('array_fase', F, {'desfase': des})
+        p.pop('_aviso', None)
+        return p, tipos.generar('array_fase', p)
+    p0, a0 = gen(0)
+    p1, a1 = gen(60)
+    p2, a2 = gen(-60)
+    assert a0.info['largo_extra_retardo_mm'] == 0 and a1.info['largo_extra_retardo_mm'] > 5
+    assert abs(a1.info['largo_extra_retardo_mm'] - a2.info['largo_extra_retardo_mm']) < 1e-6
+    assert a1.info['inclinacion_estimada_grados'] > 0 > a2.info['inclinacion_estimada_grados']
+    assert not a0.cobre('F.Cu').is_empty and not a0.cobre('B.Cu').is_empty
+    assert abs(tipos.estimar_f('array_fase', p0) - F)/F < 0.02
+    # el meandro va en la rama del dipolo de arriba con desfase positivo y en la del de abajo con negativo: la placa cambia
+    assert a1.cobre('F.Cu').symmetric_difference(a2.cobre('F.Cu')).area > 10

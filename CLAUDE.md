@@ -558,6 +558,10 @@ archivos modificados después de la última revisión. La marca de esa revisión
     los tramos de línea con `dipolos._factor_inclinacion` = √εeff/(√εeff − sen τ) (separación d = λ0/(√εeff − sen τ), λ0/2 en la alternada; `εeff` de la microstrip, **sin calibrar**: los dipolos se
     acoplan y la línea real no es ideal). Sirve en serie, alternada y modular. Estudio encolado el 16-11 (`0018b1–6`: alternada bowtie/Sierpinski en FR4 y PTFE, N = 4 y 8, y en serie con U y bowtie): mirar si
     `direccion_max` se mueve con τ y cuánto pierde la ganancia; resultados en `docs/desarrollo/colineal_modular.md`.
+87. **Array de dos dipolos con línea de retardo (`array_fase`, 17-11, sin validar)**: `antenas/arrays_fase.py`. Motivo: el estudio de `inclinacion` (lección 86) salió mal porque los dipolos de la colineal se acoplan por la línea
+    común y al cambiar la separación se descentra todo (S11 −1…−8 dB, ángulos que no siguen la fórmula). Aquí cada dipolo bowtie (el antipodal de `dipolos.generar_dipolo` girado 90°, eje Y, colineales) cuelga de su propia línea
+    de 50 Ω: conector → línea → transformador λ/4 de 35,4 Ω → T → dos ramas iguales; la rama con retardo lleva un meandro de ΔL = |desfase|/360·λg. Desfase > 0 retarda al dipolo de arriba y el haz va hacia +y
+    (sen τ = Δφ·λ0/(2π·d)). La estimación de f es la del `dipolo_bowtie` suelto (hay que centrar con `--centrar`). Solo 2 elementos. Simulaciones encoladas (`0030`/`0031`: FR4 y PTFE, desfase 0, 40, −40, 80°).
 85. **Antenas de varias placas no coplanares y hélices (16-11, sin validar)**: `antenas/tridimensional.py` (`diedro`, `reflector_esquina`, `helice_normal`, `helice_cuadrifilar`),
     `antenas/pose.py`, `Antena.placas3d` (placas con pose), `Antena.hilos3d` (hilos) y `Antena.cobre_sim` (cobre continuo en la simulación y con 0,5 mm al fabricar); las placas a fabricar van en
     `Antena.modulos` y se exportan una a una. **Una lámina PEC de grosor cero girada desaparece de la malla de openEMS sin avisar** (V a 5°: −1 dB en vez de −25): el cobre de una placa girada es una

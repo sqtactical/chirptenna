@@ -94,6 +94,7 @@ La placa resultante (render de KiCad): cara superior y cara inferior con el logo
 | Vivaldi antipodal | vivaldi | ✅ validado en simulación (2,4 GHz −18 dB y 5,8 GHz −12,3 dB; banda muy ancha) |
 | Colineal de dipolos en serie (línea microstrip) | colineal | ✅ validada en simulación a 2,4 GHz (−12,7 dB, 4,1 dBi, η 59 %) y a 5,8 GHz (−13,8 dB, 3,5 dBi, η 50 %); con FR4 la ganancia queda corta; construcción **modular** (placas iguales unidas por el canto, simulada a 2,4 GHz: −12,9 dB, 4,0 dBi, η 61 % con 4 módulos), unión soldada sin medir |
 | Dipolo impreso (recto o de Koch; balun impreso o coaxial al centro) | dipolo | ✅ validado (de 868 MHz a 5,8 GHz; a 1,2 GHz −14,4 dB con la pista de 2,9 mm) |
+| Array de 2 dipolos bowtie con línea de retardo (un conector, inclinación del haz como una sectorial) | array_fase | ⚠️ sin validar ni simular; la colineal en serie con `inclinacion` no concluyó (los dipolos se acoplan por la línea común) |
 | Dipolo en V (bowtie con los brazos doblados, tres placas soldadas) | diedro | ⚠️ sin validar: probado en simulación a 2,4 GHz con ala de 0° (idéntico al bowtie plano, −23,9 dB) y de 25° (−36 dB, malla gruesa); sin medir |
 | Reflector de esquina (dipolo bowtie + dos placas reflectoras, tres placas) | reflector_esquina | ⚠️ sin validar: simulado a 2,4 GHz con 90°, S11 −48 dB, D 10,3 dBi, haz de frente (malla gruesa, sin centrar); sin medir |
 | Hélice de modo normal en flex (monopolo helicoidal sobre masa) | helice_normal | ⚠️ sin validar: simulada a 2,4 GHz sin centrar, −6,4 dB; sin medir |
