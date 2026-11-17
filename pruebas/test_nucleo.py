@@ -409,6 +409,8 @@ def test_colineal_sierpinski(tmp_path):
     a = tipos.generar('colineal_dipolos', tipos.dimensionar('colineal_dipolos', 2441.75e6, {'forma': 2, 'modular': 1, 'elementos': 4}))
     ruta = str(tmp_path / 's.kicad_pcb')
     exportar.placa_kicad(a.modulos[1]['antena'], ruta, 's')
+    if not os.path.exists(exportar.KICAD_CLI):                  # en la CI KiCad se instala después de pytest: ahí lo cubre comprobar_tipos
+        pytest.skip('KiCad no instalado')
     assert not [e for e in exportar.drc(ruta) if e[1] == 'error']
 
 
@@ -441,6 +443,8 @@ def test_colineal_alternada(tmp_path):
     a = tipos.generar('colineal_dipolos', tipos.dimensionar('colineal_dipolos', 2441.75e6, {'forma': 1, 'conexion': 1, 'elementos': 4}))
     ruta = str(tmp_path / 'a.kicad_pcb')
     exportar.placa_kicad(a, ruta, 'a')
+    if not os.path.exists(exportar.KICAD_CLI):
+        pytest.skip('KiCad no instalado')
     assert not [e for e in exportar.drc(ruta) if e[1] == 'error']
 
 
