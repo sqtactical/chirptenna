@@ -155,3 +155,21 @@ Con 0° y +40° el haz no se mueve (φ 6°), cuando +40° debería dar ~19° hac
 **Panel 2×2 con retardo** (`barrido_panel.py 2 2 18.2 … desfase=…`, FR4): la disposición sin cruce ni vías (`simetrico=0`) adapta 2,5–3,6 dB mejor que la que cruza con vías (0°: −10,3 frente a −7,8 dB; −40° entre columnas: −13,0 frente a −9,4 dB). Ganancia 12,6–12,8 dBi con cualquier desfase y haz a 0–9° del frente (esperado ~20° con ±40°). El meandro no inclina el haz ni con vías ni sin ellas.
 
 Conclusión: el retardo de una rama, tal como está modelado, no da dirección controlada. Posibles causas aún sin separar: el meandro radia o acopla con los brazos, el retardo real difiere del de la fórmula (λg de la línea cargada), o el haz de dos elementos es demasiado ancho para que ±40° se note.
+
+## U de Koch en la colineal (`forma = 3`, 17-11, GPU, 2,4 GHz, FR4, 4 dipolos, centrada)
+
+Cada pata de la U es una curva de Koch de cuerda `largo_brazo` con las muescas hacia fuera (`iteracion` 1–3, estimación con la longitud equivalente `_eq_koch`, sin calibrar). Idea del usuario: acortar la colineal con patas fractales.
+
+| Variante | Brazo (cuerda) | Placa (mm) | Peor S11 en banda | f res. (MHz) | G (dBi) | η |
+|---|---|---|---|---|---|---|
+| U recta (referencia) | 27,8 | 20,5 × 300,6 | −12,1 dB | 2444 | 4,05 | 58 % |
+| U de Koch, iteración 1 | 20,8 | 35,0 × 247,8 | −9,8 dB | 2360 | 5,72 | 70 % |
+| U de Koch, iteración 2, patas de 2,5 mm | 18,2 | — | −6,1 dB | 2817 | 5,51 | 77 % |
+| U de Koch, iteración 3, patas de 2,5 mm | 15,7 | — | −3,0 dB | 2788 | 3,57 | 69 % |
+| U de Koch, iteración 2, patas de 1 mm | 22,3 | 32,9 × 294,2 | −9,4 dB | 2434 | 3,59 | 55 % |
+
+- **Iteración 1 acorta de verdad**: la placa pasa de 300,6 a 247,8 mm (−18 %) a cambio de ensancharse de 20,5 a 35 mm, con más ganancia (5,7 frente a 4,0 dBi) y η 70 %, pero con S11 de −9,8 dB (la U recta da −12,1) y la resonancia 3,5 % baja. Sin la calibración del Koch la frecuencia sale algo corta; hay que afinar con «Ajustar tamaño».
+- **Iteraciones 2 y 3 con patas de 2,5 mm no valen**: la muesca (largo/3^it = 2,0 y 0,7 mm) es más fina que la pata y se funde en un bloque macizo; desadapta y el DRC de distancia falla en el módulo. El generador lo avisa (`Las muescas de Koch… se funden`).
+- **Iteración 2 con patas de 1 mm** adapta (−9,4 dB) pero ya no acorta la placa (294 mm) y baja η a 55 %: la pata fina pierde más.
+- La línea de λg entre dipolos es lo que más largo ocupa (la placa mide ~250–300 mm con 4 dipolos); el Koch solo acorta lo que depende del brazo, y lo que se ve aquí en la placa viene de que el brazo más corto sube la frecuencia estimada y con ella acorta los tramos. Para acortar más haría falta plegar la línea de λg (meandro), que no está hecho.
+- El haz de la U recta sale a θ 156° y el de la iteración 1 a θ 3° (casi en el eje z): hay que mirar el diagrama completo antes de dar por buena la forma.
