@@ -202,6 +202,8 @@ def estimar_f_colineal_dipolos(p, eps_impreso):
         return f_alternada(p['largo_brazo'], 2*eps_impreso - 1)                # (eps_impreso = (εr + 1)/2)
     f = C0/(2*2*p['largo_brazo']*1e-3*math.sqrt(eps_impreso))
     forma = int(p.get('forma', 0) or 0)
+    if forma == 3:                                                              # U de Koch: pata de cuerda La y largo equivalente _eq_koch (sin calibrar)
+        return f*p['largo_brazo']/_eq_koch(p['largo_brazo'], p.get('iteracion', 1))
     return f*(K_BOWTIE_COLINEAL if forma == 1 else K_SIERPINSKI_COLINEAL if forma == 2 else 1.0)
 
 
@@ -220,6 +222,14 @@ def _brazo_colineal(p, yk, sentido):
         w = xs + wa/2
         return [Polygon([(-wa/2, yk), (wa/2, yk), (w, yk + sentido*La), (-w, yk + sentido*La)])]
     piezas = [g.rectangulo(-xs - wa/2, yk - wa/2, xs + wa/2, yk + wa/2)]          # barra en el eje
+    if forma == 3:
+        # U de Koch: cada pata es una curva de Koch de cuerda `largo_brazo` con las muescas hacia fuera (hacia dentro tocarían la línea)
+        for x in (-xs, xs):
+            pts = g.koch(int(p.get('iteracion', 1)), (0, 0), (0, sentido*La), 60.0)
+            if pts[:, 0].mean()*x < 0:                                          # que las muescas apunten hacia fuera en las dos patas
+                pts = pts*[-1, 1]
+            piezas.append(g.engordar(pts + [x, yk], wa))
+        return piezas
     for x in (-xs, xs):
         piezas.append(g.rectangulo(x - wa/2, min(yk, yk + sentido*La), x + wa/2, max(yk, yk + sentido*La)))
     return piezas
@@ -248,7 +258,10 @@ def _hueco_colineal(p, w50, wb, Ls):
         huecos = [h for pol in g.poligonos(unary_union(_brazo_colineal(p, 0.0, 1))) for h in pol.interiors]
         entre_brazos = max(Ls - p['largo_brazo'] - p['ancho_brazo'], 1.0)
         return round(min([4*Polygon(h).area/h.length for h in huecos] + [entre_brazos]), 2)
-    return round(p['separacion_patas'] - p['ancho_brazo']/2 - wb/2, 2)
+    h = p['separacion_patas'] - p['ancho_brazo']/2 - wb/2
+    if forma == 3:                                                              # las muescas de Koch cierran el hueco más que la pata recta
+        h = min(h, p['ancho_brazo'])
+    return round(h, 2)
 
 
 def _pista_colineal(p, w50):
@@ -274,6 +287,10 @@ def generar_colineal_dipolos(p, s, eps_impreso):
         return _colineal_alternada(p, s, w50, wb, avisos)
     if Ls < 2*La + 2.0:
         avisos.append(tr('Los dipolos se tocan: el tramo de línea es más corto que los dos brazos. Alarga el tramo o acorta los brazos.'))
+    if int(p.get('forma', 0) or 0) == 3:
+        seg = La/3**int(p.get('iteracion', 1))
+        if seg < wa + 0.6:
+            avisos.append(tr('Las muescas de Koch ({0:.1f} mm) son casi tan finas como la pata ({1:.1f} mm) y se funden (DRC de distancia y bloque macizo): baja la iteración o estrecha las patas.', seg, wa))
     if int(p.get('modular', 0) or 0) == 1:
         return _colineal_modular(p, s, w50, wb, Ls, avisos)
     y_prim = BORDE_COBRE + p['largo_entrada'] + La

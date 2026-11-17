@@ -138,6 +138,7 @@ diseñar la antena **dentro** de otra placa.
 | Idea | Para qué | Coste |
 |---|---|---|
 | Optimizador automático de varios parámetros (S11 + ganancia + tamaño) con GPU | Dejar de barrer a mano | Alto |
+| Antena UWB plana de 50 × 50 mm (2,4–10,5 GHz) como las de Amazon: dos triángulos grandes (bowtie plano) alimentados por línea paralela, valla de vías en el borde y SMA de canto | Banda ancha para NanoVNA, UWB y varias bandas con una sola placa; estudiar si encaja como tipo nuevo (bowtie de borde a borde, `vias`, CPS a SMA) y qué ancho de banda da en FR4 | Medio |
 | Parche de GPS de verdad: sonda coaxial con posición variable y razón axial en los resultados | GPS/Iridium con polarización circular | Medio |
 | Diplexor impreso 868 MHz / 2,4 GHz | Dos antenas buenas en un solo conector, en vez de una bibanda frágil | Medio |
 | Diversidad y MIMO: dos antenas en la misma placa, aislamiento (S21) y correlación | Wi-Fi, LTE | Alto |
