@@ -57,3 +57,13 @@ Todo está simulado a 2,4 GHz con malla gruesa (paso 1,2 mm, precisión «rápid
 - **`diedro`**: adapta con todos los ángulos, pero cerrar la V sube la resonancia (2421 → 2641 MHz): hay que alargar los brazos. El haz y la ganancia casi no cambian con el ángulo (η > 100 % es ruido de la simulación).
 - **`reflector_esquina`**: la de 90° es la mejor (−13 dB, 10,9 dBi, haz hacia +y). El −48,8 dB de la malla gruesa en CPU no era fiable.
 - **`helice_normal`**: no adapta (−1 a −1,6 dB); falta calibrar `K_HELICE_NORMAL` o cambiar la alimentación.
+
+## Calibración de las estimaciones (17-11, GPU, tamaño por defecto sin centrar)
+
+| Tipo | Antes | Después |
+|---|---|---|
+| `reflector_esquina` 90° | brazo 22 mm (estimación 2675 MHz frente a 2403 simulados) | brazo 16,8 mm: 2446 MHz, −14,1 dB, 10,95 dBi (`K_REFLECTOR` 0,898) |
+| `diedro` 15° / 25° / 40° | brazo 22 mm | brazo 19,8 mm: 2263 / 2296 / 2386 MHz, −10,7 / −11,6 / −14,3 dB (`K_DIEDRO_V` 0,093); sigue 2–7 % bajo: afinar con «Ajustar tamaño» |
+| `helice_normal` | 2114 MHz estimados frente a 2375 | altura 23 mm: 2435 MHz, pero −2,1 dB |
+
+La hélice normal resuena donde toca pero no adapta: su resistencia de entrada es de 3–6 Ω. Haría falta una red de adaptación (la red en L del bucle sirve de modelo) o una toma intermedia. La tira de flex de la cuadrifilar ya no deja astillas de cobre a 868 MHz (DRC limpio en los 98 casos de `comprobar_tipos.py`).

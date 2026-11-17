@@ -5,6 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ## [Sin publicar]
 
+## [0.5.0-alpha] · 2026-11-17
+
+*English summary (0.5.0-alpha): five new antenna types (V dipole, corner reflector, normal-mode helix, quadrifilar helix geometry, two-dipole array with a delay line), multi-board antennas with 3D poses, a beam-tilt study (series-fed tilt, delay-line array and delay-line 2×2 panel: none steers the beam in simulation), the alternating colinear array, a 3D view, Bayesian sweeps, thin-wire method-of-moments preselection, MATLAB as a second engine and custom substrates. GPU-centred results at 2.4 GHz: corner reflector −14 dB and 10.9 dBi, V dipole −15 to −20 dB, normal helix does not match (low radiation resistance). Still simulation-only: no manufactured board has been measured.*
+
+- **Calibración de las estimaciones 3D (17-11, GPU):** el reflector de esquina de 90° sale centrado con el tamaño por defecto (brazo 16,8 mm: 2446 MHz, −14,1 dB, 10,95 dBi; `K_REFLECTOR` 0,898). El dipolo en V sube la frecuencia al cerrar la V (+6 % a 15°, +9 % a 40°) y la estimación lo compensa (`K_DIEDRO_V`); con el brazo por defecto queda a ≤ 7 % (−10,7…−14,3 dB). La hélice normal queda a 2435 MHz pero no adapta (−2 dB: su resistencia de entrada es de 3–6 Ω, hace falta una red de adaptación).
+
 *English summary: ideas taken from the open-source antenna-forge project: Bayesian optimisation for the sweeps, a minimal thin-wire method of moments to pre-select dipoles and Yagis in seconds, textbook checks of the generator (unit tests and a real openEMS run), a generated one-page status, and MATLAB (Antenna Toolbox, method of moments) as an optional second simulation engine in the interface, shown next to openEMS. Nothing here changes a design; everything is still simulation-only.*
 
 - **Antenas 3D simuladas y centradas en GPU (17-11):** `diedro` adapta de 0° a 40° (−15…−20 dB, la resonancia sube con el ángulo), `reflector_esquina` a 90° da −13 dB y 10,9 dBi, `helice_normal` no adapta (−1 dB). Detalle en `docs/desarrollo/tridimensional.md`.

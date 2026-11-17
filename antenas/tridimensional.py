@@ -32,7 +32,9 @@ from .i18n import tr
 BORDE_COBRE = 0.5
 INSET_UNION = 0.5          # el cobre se queda a esta distancia de un canto de unión al fabricar (mínimo de KiCad)
 K_HELICE_NORMAL = 1.0      # f = K·c/(4·L hilo): sin calibrar
-K_QHA = 1.0                # f = K·c/(4·L brazo): sin calibrar
+K_DIEDRO_V = 0.093          # subida de la frecuencia al cerrar la V (ver estimar_f_diedro)
+K_REFLECTOR = 0.898        # f simulada / f del dipolo bowtie suelto con el reflector de 90° (GPU, 17-11)
+K_QHA = 1.0               # f = K·c/(4·L brazo): sin calibrar
 
 
 # ------------------------------------------------------------------ utilidades
@@ -88,10 +90,13 @@ def _antena_tramo(base, cont, capas, tipo, sin_conector):
 
 # ------------------------------------------------------------------ dipolo en V
 def estimar_f_diedro(p, eps):
-    """El dipolo bowtie con los brazos doblados: la V acorta un poco la extensión horizontal pero el brazo es el mismo (sin calibrar)."""
+    """El dipolo bowtie con los brazos doblados. Al cerrar la V la resonancia sube (GPU, 17-11, FR4 2,4 GHz, mismo brazo: 0° 2421, 15° 2547, 25° 2616,
+    40° 2641 MHz): factor 1 + 0,093·(1 − e^(−β/15)) (+6 %, +7,5 %, +8,7 %)."""
     from . import dipolos
-    return dipolos.estimar_f_dipolo({'forma': 1, 'largo_brazo': p['largo_brazo'], 'alimentacion': 0, 'hueco': 0.0,
-                                     'iteracion_s': p.get('iteracion_s', 2)}, eps)
+    beta = abs(float(p.get('angulo_v', 0) or 0))
+    f = dipolos.estimar_f_dipolo({'forma': 1, 'largo_brazo': p['largo_brazo'], 'alimentacion': 0, 'hueco': 0.0,
+                                  'iteracion_s': p.get('iteracion_s', 2)}, eps)
+    return f*(1 + K_DIEDRO_V*(1 - math.exp(-beta/15.0)))
 
 
 def generar_diedro(p, s, eps):
@@ -126,10 +131,11 @@ def generar_diedro(p, s, eps):
 
 # ------------------------------------------------------------------ reflector de esquina
 def estimar_f_reflector(p, eps):
-    """El dipolo bowtie manda; las placas lo desplazan poco (sin calibrar)."""
+    """El dipolo bowtie manda; las placas lo bajan ~10 % (GPU, 17-11, FR4 2,4 GHz, apertura 90°: brazo 17,09 mm → 2403 MHz frente a 2675 estimados).
+    Solo calibrado con 90°; 60° sube ~2 % y 120° desadapta."""
     from . import dipolos
-    return dipolos.estimar_f_dipolo({'forma': 1, 'largo_brazo': p['largo_brazo'], 'alimentacion': 0, 'hueco': 0.0,
-                                     'iteracion_s': p.get('iteracion_s', 2)}, eps)
+    return K_REFLECTOR*dipolos.estimar_f_dipolo({'forma': 1, 'largo_brazo': p['largo_brazo'], 'alimentacion': 0, 'hueco': 0.0,
+                                                 'iteracion_s': p.get('iteracion_s', 2)}, eps)
 
 
 def generar_reflector_esquina(p, s, eps):
@@ -195,6 +201,8 @@ def _tira(tipo, p, trazas, ancho_tira, alto):
     cont = g.rectangulo(0, 0, ancho_tira, alto)
     interior = g.rectangulo(BORDE_COBRE, BORDE_COBRE, ancho_tira - BORDE_COBRE, alto - BORDE_COBRE)
     cu = unary_union([g.engordar(t, p['ancho_pista']) for t in trazas]).intersection(interior)
+    # al recortar las trazas oblicuas contra el borde quedan puntas más finas que la pista mínima (DRC `copper_sliver`): abrir y volver a cerrar
+    cu = cu.buffer(-0.11, join_style='mitre').buffer(0.11, join_style='mitre').intersection(interior)
     return _placa_plana(tipo, p, cont, cu, Polygon(), (ancho_tira/2, 0.0), True)
 
 
@@ -205,7 +213,10 @@ def longitud_hilo_normal(p):
 
 
 def estimar_f_helice_normal(p):
-    return K_HELICE_NORMAL*C0/(4*longitud_hilo_normal(p)*1e-3)
+    """c/(4·L) por un factor que crece con el hilo (GPU, 17-11, FR4 2,4 GHz, D 4 mm, 2 vueltas: L 35,4/39,1/43,1 mm → ×1,12/1,16/1,22).
+    Solo calibrado con ese diámetro y esas vueltas."""
+    L = longitud_hilo_normal(p)
+    return max(K_HELICE_NORMAL, K_HELICE_NORMAL*(1.11 + 0.0083*(L - 34.0)))*C0/(4*L*1e-3)
 
 
 def generar_helice_normal(p, s, eps):
