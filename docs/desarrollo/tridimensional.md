@@ -67,3 +67,7 @@ Todo está simulado a 2,4 GHz con malla gruesa (paso 1,2 mm, precisión «rápid
 | `helice_normal` | 2114 MHz estimados frente a 2375 | altura 23 mm: 2435 MHz, pero −2,1 dB |
 
 La hélice normal resuena donde toca pero no adapta: su resistencia de entrada es de 3–6 Ω. Haría falta una red de adaptación (la red en L del bucle sirve de modelo) o una toma intermedia. La tira de flex de la cuadrifilar ya no deja astillas de cobre a 868 MHz (DRC limpio en los 98 casos de `comprobar_tipos.py`).
+
+### Dipolo en V a 25°, centrado (17-11, GPU, `--centrar`)
+
+Peor S11 −15,3 dB, resonancia 2405 MHz (1,5 % baja), 2,0 dBi, η 96 %. Con la corrección de frecuencia de `estimar_f_diedro` el tamaño por defecto queda a menos del 7 % y con «Ajustar tamaño» a menos del 2 %.

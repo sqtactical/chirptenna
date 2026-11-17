@@ -173,3 +173,14 @@ Cada pata de la U es una curva de Koch de cuerda `largo_brazo` con las muescas h
 - **Iteración 2 con patas de 1 mm** adapta (−9,4 dB) pero ya no acorta la placa (294 mm) y baja η a 55 %: la pata fina pierde más.
 - La línea de λg entre dipolos es lo que más largo ocupa (la placa mide ~250–300 mm con 4 dipolos); el Koch solo acorta lo que depende del brazo, y lo que se ve aquí en la placa viene de que el brazo más corto sube la frecuencia estimada y con ella acorta los tramos. Para acortar más haría falta plegar la línea de λg (meandro), que no está hecho.
 - El haz de la U recta sale a θ 156° y el de la iteración 1 a θ 3° (casi en el eje z): hay que mirar el diagrama completo antes de dar por buena la forma.
+
+### U de Koch, iteración 1: ajuste de la línea y módulos (17-11, GPU)
+
+| `factor_linea` | Peor S11 | f res. (MHz) | G (dBi) | η |
+|---|---|---|---|---|
+| 0,92 | −12,2 dB | 2293 | 5,6 | 73 % |
+| 1,00 | −9,4 dB | 2257 | 5,3 | 65 % |
+| 1,08 | −15,9 dB | 2548 | 5,2 | 65 % |
+
+- Con el tamaño por defecto (sin centrar) el S11 no es monótono con el tramo de línea (0,92: −12,2; 1,00: −9,4; 1,08: −15,9), la misma sensibilidad a la malla de la lección 74. Hay que centrar cada punto.
+- **En módulos no funciona**: 4 placas con `forma = 3`, iteración 1, centrada: S11 −1,4 dB, 0,5 dBi y η 43 %. La U de Koch solo vale hoy en una placa.
