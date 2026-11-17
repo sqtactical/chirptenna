@@ -184,3 +184,7 @@ Cada pata de la U es una curva de Koch de cuerda `largo_brazo` con las muescas h
 
 - Con el tamaño por defecto (sin centrar) el S11 no es monótono con el tramo de línea (0,92: −12,2; 1,00: −9,4; 1,08: −15,9), la misma sensibilidad a la malla de la lección 74. Hay que centrar cada punto.
 - **En módulos no funciona**: 4 placas con `forma = 3`, iteración 1, centrada: S11 −1,4 dB, 0,5 dBi y η 43 %. La U de Koch solo vale hoy en una placa.
+
+### Línea plegada entre dipolos: cuenta previa (17-11, sin implementar)
+
+Idea: acortar la colineal plegando en meandro el tramo de λg entre dipolos. Con 4 dipolos a 2,4 GHz en FR4 (tamaño por defecto): tramo entre dipolos Ls = 66,6 mm, dos brazos 2·La = 47,4 mm (U recta) o 42,4 mm (U de Koch 1). Los brazos de un dipolo y los del siguiente no pueden solaparse en Y, así que **solo se puede plegar el tramo libre: 19–24 mm** por hueco (3 huecos). Un meandro de microstrip necesita ~3–5 mm entre tramos (3·h para no acoplarse), con lo que 19 mm de línea caben en ~10 mm de largo como mucho: ahorro de ~5–9 mm por hueco, **unos 15–27 mm de 258 (6–10 %)**, con riesgo de radiación y acoplo con los dipolos vecinos. **No compensa**: lo que ocupa el largo son los propios dipolos (2·La ≈ 70 % del tramo), no la línea. (Mi estimación previa de que «el tramo de línea ocupa casi todo el largo» era errónea.) Para acortar más habría que reducir el dipolo (Koch, ya probado: −9 a −18 %) o ir a una conexión alternada (λg/2, placa de 128 mm con 4 dipolos).

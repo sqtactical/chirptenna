@@ -134,6 +134,9 @@ FIJOS = {
         ('aviso', 'Construcción modular (módulos iguales unidos por el canto): la cadena simulada de 4 módulos en FR4 da −12,9 dB (banda 2342–2541 MHz), 4,0 dBi y η 61 % a 2,4 GHz. '
                   'Más módulos no suben la ganancia en FR4 (6: 4,0 dBi, η 48 %; 8: 5,3 dBi, η 38 %); con RO4350B sí (4: 6,0 dBi; 8: 8,9 dBi, η > 90 %, sin centrar). '
                   'Solo está centrada a 2,4 GHz; a 868 MHz, sin centrar, da 3,9 dBi (η 69 %) pero resuena a 1034 MHz: hay que centrarla simulando (la placa entera mide 84 cm). La unión soldada entre placas NO está simulada ni medida.'),
+        ('aviso', 'EXPERIMENTAL · «U de Koch (patas fractales)»: las patas de la U son curvas de Koch. En una placa, 4 dipolos a 2,4 GHz en FR4, la iteración 1 acorta la placa un 9–18 % '
+                  '(301 → 248–275 mm) pero la ensancha de 20 a ~36 mm y adapta peor que la U recta (−8 a −11 dB frente a −12 dB; 4,1–5,7 dBi frente a 4,0 dBi). '
+                  'Con patas de 2,5 mm las iteraciones 2 y 3 se funden en un bloque macizo; en módulos no funciona (−1,4 dB). Es una curiosidad: no la recomendamos para una placa real.'),
     ],
     'parche_ranura': [
         ('aviso', 'Sin testear ni validar: no se ha simulado ni medido. La ranura en U ensancha la banda, pero su '
