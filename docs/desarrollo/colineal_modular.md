@@ -135,3 +135,23 @@ Conclusiones provisionales: la fórmula acierta el sentido y, en PTFE, el ángul
   y masa B.Cu), (c) el haz sale inclinado ~25° de la normal a la placa (alimentación por un extremo), (d) comprobar el
   efecto del conector/mástil. Sin medir, como todo lo demás.
 - Antes de hacer el tipo, decidir con el usuario si el módulo se hace en FR4 (N ≤ 4) o también con sustratos de bajas pérdidas.
+
+
+## Retardo de fase con alimentación separada (17-11, simulado en GPU, 2,4 GHz)
+
+Resultados de `array_fase` (2 dipolos bowtie, línea de retardo en una rama) y del panel 2×2 con meandro de retardo. Ninguno inclina el haz.
+
+**`array_fase`, FR4, tramo de 20 mm** (`0040`): el 30 mm de la primera versión era el fallo (S11 −3 dB). Ahora:
+
+| Desfase | Peor S11 en banda | G (dBi) | η | Haz (θ, φ) |
+|---|---|---|---|---|
+| 0° | −12,2 dB | 3,3 | 74 % | 93°, 6° |
+| +40° | −5,3 dB | 3,3 | 68 % | 99°, 6° |
+| −40° | −9,6 dB | 1,8 | 74 % | 165°, 12° |
+| +80° | −3,2 dB | 1,6 | 56 % | 153°, 60° |
+
+Con 0° y +40° el haz no se mueve (φ 6°), cuando +40° debería dar ~19° hacia +y. PTFE (`0041`) no adapta (−3,6 a −6,5 dB): falta calibrar `K_ARRAY_FASE` para ese sustrato.
+
+**Panel 2×2 con retardo** (`barrido_panel.py 2 2 18.2 … desfase=…`, FR4): la disposición sin cruce ni vías (`simetrico=0`) adapta 2,5–3,6 dB mejor que la que cruza con vías (0°: −10,3 frente a −7,8 dB; −40° entre columnas: −13,0 frente a −9,4 dB). Ganancia 12,6–12,8 dBi con cualquier desfase y haz a 0–9° del frente (esperado ~20° con ±40°). El meandro no inclina el haz ni con vías ni sin ellas.
+
+Conclusión: el retardo de una rama, tal como está modelado, no da dirección controlada. Posibles causas aún sin separar: el meandro radia o acopla con los brazos, el retardo real difiere del de la fórmula (λg de la línea cargada), o el haz de dos elementos es demasiado ancho para que ±40° se note.
