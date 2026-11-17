@@ -37,3 +37,23 @@ Todo está simulado a 2,4 GHz con malla gruesa (paso 1,2 mm, precisión «rápid
 - El reflector de esquina con una Yagi pequeña delante, el vértice sin truncar y con la línea por una ranura.
 - La red de 90° o el balun de la cuadrifilar y su simulación desde la interfaz; el flex de la hélice se simula sin su dieléctrico.
 - Web: la web lite genera las placas y la tira, pero no tiene vista 3D.
+
+
+## Barridos centrados en GPU (17-11, 2,4 GHz, FR4, `--centrar --radiacion`)
+
+| Tipo | Parámetro | Peor S11 en banda | f res. (MHz) | G (dBi) | η | Haz (θ, φ) |
+|---|---|---|---|---|---|---|
+| `diedro` | ala 0° | −15,5 dB | 2421 | 2,5 | 99 % | 177°, 228° |
+| `diedro` | ala 15° | −16,0 dB | 2547 | 2,4 | 98 % | 177°, 204° |
+| `diedro` | ala 25° | −20,5 dB | 2616 | 2,8 | ~100 % | 3°, 252° |
+| `diedro` | ala 40° | −18,2 dB | 2641 | 2,7 | ~100 % | 3°, 264° |
+| `reflector_esquina` | 60° | −8,8 dB | 2458 | 9,9 | 91 % | 90°, 90° |
+| `reflector_esquina` | 90° | −13,0 dB | 2403 | 10,9 | 95 % | 90°, 96° |
+| `reflector_esquina` | 120° | −10,2 dB | 2854 | 10,7 | 95 % | 90°, 96° |
+| `helice_normal` | altura 25 mm | −1,6 dB | 2375 | 1,8 | 84 % | 93°, 90° |
+| `helice_normal` | altura 30 mm | −1,0 dB | 2219 | 1,2 | 72 % | 90°, 90° |
+| `helice_normal` | altura 35 mm | −0,9 dB | 2127 | 0,9 | 67 % | 87°, 90° |
+
+- **`diedro`**: adapta con todos los ángulos, pero cerrar la V sube la resonancia (2421 → 2641 MHz): hay que alargar los brazos. El haz y la ganancia casi no cambian con el ángulo (η > 100 % es ruido de la simulación).
+- **`reflector_esquina`**: la de 90° es la mejor (−13 dB, 10,9 dBi, haz hacia +y). El −48,8 dB de la malla gruesa en CPU no era fiable.
+- **`helice_normal`**: no adapta (−1 a −1,6 dB); falta calibrar `K_HELICE_NORMAL` o cambiar la alimentación.
