@@ -26,13 +26,14 @@ from .modelo import Antena
 from .i18n import tr
 
 BORDE_COBRE = 0.5
-Z_TRANSFORMADOR = 35.4          # √(50 Ω · 25 Ω): de la línea de 50 Ω a dos ramas de 50 Ω en paralelo
+K_ARRAY_FASE = 0.75             # f simulada / f del dipolo_bowtie suelto: FR4, brazo 14 mm, apertura 50°, boom 20 mm → ~2440 MHz (CPU, 17-11; boom 17 mm: 2521, 22 mm: 2359 MHz); sin calibrar en otros sustratos
+Z_TRANSFORMADOR = 35.4         # √(50 Ω · 25 Ω): de la línea de 50 Ω a dos ramas de 50 Ω en paralelo
 
 
 def estimar_f_array_fase(p, nombre_sustrato=None):
     """Cada dipolo es un bowtie sin balun impreso largo: la estimación (calibrada) del `dipolo_bowtie`. El acoplo entre los dos elementos la mueve."""
     from . import tipos
-    return tipos.estimar_f('dipolo_bowtie', {'largo_brazo': p['largo_brazo'], 'forma': max(int(p.get('forma', 1) or 1), 1),
+    return K_ARRAY_FASE*tipos.estimar_f('dipolo_bowtie', {'largo_brazo': p['largo_brazo'], 'forma': max(int(p.get('forma', 1) or 1), 1),
                                              'iteracion_s': p.get('iteracion_s', 2), 'alimentacion': 0, 'apertura': p.get('apertura', 50)}, nombre_sustrato)
 
 
@@ -69,8 +70,8 @@ def generar_array_fase(p, s, eps):
     ys = (y_m - d/2, y_m + d/2)                                      # centros de los dipolos 1 y 2
     retardada = 1 if desfase > 0 else 0 if desfase < 0 else None     # rama con el meandro (índice del dipolo): desfase > 0 retarda al de arriba
     u = dL/2                                                         # el meandro sube (o baja) u, avanza wm y vuelve: añade 2u
-    wm = 2*w50 + 2.0
-    xb = x_v + 4.0
+    wm = w50 + 3.0                                                   # separación entre las patas del meandro: 3 mm
+    xb = x_v + 3.0
     if retardada is not None and xb + wm > x_d - semi - 2.0:
         avisos.append(tr('El meandro del retardo no cabe delante de los brazos: alarga el tramo hasta el dipolo.'))
     lineas = []                                                      # polilíneas de las ramas (línea de 50 Ω)

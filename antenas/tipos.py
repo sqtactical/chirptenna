@@ -921,8 +921,8 @@ for _t3 in [
                           ayuda='Positivo: retarda al dipolo de arriba (el más lejano al conector) y el haz se inclina hacia él; negativo: hacia el otro. 0 = en fase, haz perpendicular al eje. '
                                 'sen(inclinación) = desfase·λ/(360·separación)'),
                 Parametro('ancho_pista', 'Ancho de la punta de los brazos [mm]', 1.5, 0.15, 15, 0.05),
-                Parametro('largo_alimentacion', 'Largo de la línea con tira de masa hasta cada dipolo [mm]', 30, 10, 200, 0.5,
-                          ayuda='Hace de boom/balun de cada dipolo; el meandro del retardo va en este tramo'),
+                Parametro('largo_alimentacion', 'Largo de la línea con tira de masa hasta cada dipolo [mm]', 20, 10, 200, 0.5,
+                          ayuda='Hace de boom/balun de cada dipolo (~λg/4); el meandro del retardo va en este tramo. Con 30 mm no adaptaba (−3 dB): con 20 mm sí'),
                 Parametro('ancho_boom', 'Ancho de la tira de masa [mm]', 8, 4, 30, 0.5)],
                'largo_brazo', precision='±25 % (sin calibrar)'),
     TipoAntena('helice_normal', 'Hélice de modo normal en flex',

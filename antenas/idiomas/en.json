@@ -545,7 +545,7 @@
   "Guardar diseño": "Save design",
   "Guardar esta medida": "Save this measurement",
   "Guardar notas": "Save notes",
-  "Hace de boom/balun de cada dipolo; el meandro del retardo va en este tramo": "It acts as the boom/balun of each dipole; the delay meander goes in this section",
+  "Hace de boom/balun de cada dipolo (~λg/4); el meandro del retardo va en este tramo. Con 30 mm no adaptaba (−3 dB): con 20 mm sí": "It acts as the boom/balun of each dipole (~λg/4); the delay meander goes in this section. With 30 mm it did not match (−3 dB): with 20 mm it does",
   "Hasta [MHz]": "To [MHz]",
   "Hay pistas de {0:.2f} mm, más finas que la malla de {1:g} mm: el resultado es solo orientativo.": "There are traces of {0:.2f} mm, thinner than the {1:g} mm mesh: the result is only indicative.",
   "Hay zonas de cobre sin rellenar: abre la placa en KiCad y pulsa B (rellenar zonas) antes de importarla.": "There are unfilled copper zones: open the board in KiCad and press B (fill zones) before importing it.",

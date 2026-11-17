@@ -545,7 +545,7 @@
   "Guardar diseño": "Entwurf speichern",
   "Guardar esta medida": "Diese Messung speichern",
   "Guardar notas": "Notizen speichern",
-  "Hace de boom/balun de cada dipolo; el meandro del retardo va en este tramo": "Dient als Boom/Balun jedes Dipols; der Verzögerungsmäander liegt in diesem Abschnitt",
+  "Hace de boom/balun de cada dipolo (~λg/4); el meandro del retardo va en este tramo. Con 30 mm no adaptaba (−3 dB): con 20 mm sí": "Dient als Boom/Balun jedes Dipols (~λg/4); der Verzögerungsmäander liegt in diesem Abschnitt. Mit 30 mm passte er nicht an (−3 dB): mit 20 mm schon",
   "Hasta [MHz]": "Bis [MHz]",
   "Hay pistas de {0:.2f} mm, más finas que la malla de {1:g} mm: el resultado es solo orientativo.": "Es gibt Leiterbahnen von {0:.2f} mm, dünner als das Netz von {1:g} mm: das Ergebnis ist nur ein Anhaltspunkt.",
   "Hay zonas de cobre sin rellenar: abre la placa en KiCad y pulsa B (rellenar zonas) antes de importarla.": "Es gibt ungefüllte Kupferzonen: Öffne die Platine in KiCad und drücke B (Zonen füllen), bevor du sie importierst.",
