@@ -294,13 +294,32 @@ def generar_colineal_dipolos(p, s, eps_impreso):
     if int(p.get('modular', 0) or 0) == 1:
         return _colineal_modular(p, s, w50, wb, Ls, avisos)
     y_prim = BORDE_COBRE + p['largo_entrada'] + La
-    ys = [y_prim + k*Ls for k in range(n)]
+    # línea plegada: en el tramo libre entre los brazos de un dipolo y los del siguiente la línea hace un bucle en «C» (sale `A` hacia un lado,
+    # sube `gb` y vuelve) que consume `2A + gb` de camino en solo `gb` de largo; los dipolos se acercan lo que se ahorra
+    plegar, gb, A, m = False, w50 + 1.5, 0.0, 2.5
+    Lg = Ls
+    if int(p.get('linea_plegada', 0) or 0) == 1:
+        A = (Ls - 2*La - 2*m - gb)/2
+        if A >= 1.0:
+            plegar, Lg = True, 2*La + 2*m + gb
+        else:
+            avisos.append(tr('La línea plegada no cabe: el tramo libre entre los brazos de dos dipolos es muy corto. Se dibuja recta.'))
+    ys = [y_prim + k*Lg for k in range(n)]
     F, B = [], []
     for k, yk in enumerate(ys):
         for cara, sentido in ((F, 1), (B, -1)):          # U (o bowtie) arriba (vivo) y su espejo abajo (malla)
             cara.extend(_brazo_colineal(p, yk, sentido))
     y_fin = ys[-1] + wa/2
-    F.append(g.rectangulo(-w50/2, BORDE_COBRE, w50/2, y_fin))
+    if plegar:
+        pts = [(0.0, BORDE_COBRE)]
+        for yk in ys[:-1]:
+            ya = yk + La + m
+            pts += [(0.0, ya), (A, ya), (A, ya + gb), (0.0, ya + gb)]
+            B.append(g.rectangulo(-(A + w50/2 + 1.5), ya - 1.5, A + w50/2 + 1.5, ya + gb + 1.5))     # masa bajo el bucle
+        pts.append((0.0, y_fin))
+        F.append(g.engordar(pts, w50))
+    else:
+        F.append(g.rectangulo(-w50/2, BORDE_COBRE, w50/2, y_fin))
     B.append(g.rectangulo(-wb/2, BORDE_COBRE, wb/2, y_fin))
     sup, inf = unary_union(F), unary_union(B)
     margen = p.get('margen_borde', 2.0)
@@ -314,9 +333,9 @@ def generar_colineal_dipolos(p, s, eps_impreso):
                   radiador=unary_union([sup, inf]), contorno=contorno, zona_libre=contorno,
                   puerto={'borde': (0.0, 0.0), 'direccion': (0, 1), 'alimentacion': (0.0, y_prim), 'ancho_linea': w50},
                   info=_info_placa(contorno, {'radiador_mm': [round(x1 - x0, 2), round(y1_, 2)],
-                                              'hueco_minimo_mm': _hueco_colineal(p, w50, wb, Ls),
+                                              'hueco_minimo_mm': min(_hueco_colineal(p, w50, wb, Ls), round(gb - w50, 2)) if plegar else _hueco_colineal(p, w50, wb, Ls),
                                               'pista_minima_mm': _pista_colineal(p, w50),
-                                              'longitud_linea_mm': round(Ls, 1), 'avisos': avisos,
+                                              'longitud_linea_mm': round(Ls, 1), 'separacion_dipolos_mm': round(Lg, 1), 'avisos': avisos,
                                               'f_sin_cortar_MHz': None, 'ajuste': None}))
 
 

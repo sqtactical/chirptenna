@@ -800,6 +800,8 @@ for _td in [
                           ayuda='Alternada: array de dipolos bowtie transversales a la línea, cada uno con los brazos cambiados de cara y a media longitud de onda: placa más corta, sin vías, haz perpendicular a la placa. Solo con bowtie o Sierpinski, en una placa'),
                 Parametro('apertura', 'Apertura de la bowtie [°]', 50, 20, 100, 1,
                           ayuda='Solo con la conexión alternada: ángulo total de cada triángulo (más apertura, más ancho y más alto, hasta tocar al dipolo vecino)'),
+                Parametro('linea_plegada', 'Línea entre dipolos plegada', 0, 0, 1, 1, True, opciones={0: 'Recta', 1: 'Plegada en un bucle'},
+                          ayuda='Experimental: un bucle en «C» en el tramo libre entre dipolos acerca los dipolos y acorta la placa algo (~10 %); la línea sigue midiendo λg. Solo en una placa y en serie'),
                 Parametro('inclinacion', 'Inclinación del haz [°]', 0, -30, 30, 1,
                           ayuda='Alarga (o acorta) los tramos de línea para inclinar el haz respecto a la perpendicular a la colineal, como una sectorial con inclinación fija. '
                                 'Positivo: hacia el extremo lejano al conector; negativo: hacia el conector. Sin calibrar'),
