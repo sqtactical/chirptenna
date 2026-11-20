@@ -174,11 +174,20 @@ def archivar(nombre):
 
 
 # ---------------------------------------------------------------- simulación
+def escribir_s1p(ruta, f, s11, comentario=''):
+    """Touchstone de 1 puerto (RI, 50 Ω), el mismo formato que `vna/nanovna.guardar_s1p` y la web Chirptenna VNA."""
+    with open(ruta, 'w', encoding='utf-8') as fh:
+        for l in (comentario or '').splitlines():
+            fh.write(f'! {l}\n')
+        fh.write('# HZ S RI R 50\n')
+        fh.write('\n'.join(f'{fi:.0f} {z.real:.6e} {z.imag:.6e}' for fi, z in zip(f, s11)) + '\n')
+
+
 def guardar_simulacion(nombre, carpeta_sim):
-    """Copia el resultado de una simulación (resultado.json + datos.npz) al diseño."""
+    """Copia el resultado de una simulación (resultado.json + datos.npz + s11_simulado.s1p) al diseño."""
     dir_ = carpeta(nombre, 'simulacion')
     os.makedirs(dir_, exist_ok=True)
-    for f in ('resultado.json', 'datos.npz', 'trabajo.json'):
+    for f in ('resultado.json', 'datos.npz', 'trabajo.json', 's11_simulado.s1p'):
         origen = os.path.join(carpeta_sim, f)
         if os.path.exists(origen):
             shutil.copy2(origen, os.path.join(dir_, f))

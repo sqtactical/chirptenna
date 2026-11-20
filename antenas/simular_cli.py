@@ -92,6 +92,12 @@ def main():
         np.savez_compressed(os.path.join(salida, 'datos.npz'), f=r['f_Hz'], s11=r['s11'], zin=r['zin'],
                             theta=r.get('theta', []), phi=r.get('phi', []),
                             d=r.get('directividad_dBi_grid', np.zeros((0, 0))), **extra)
+        try:     # S11 simulado como Touchstone: lo lee Chirptenna VNA (el navegador no lee datos.npz)
+            from antenas import biblioteca
+            biblioteca.escribir_s1p(os.path.join(salida, 's11_simulado.s1p'), r['f_Hz'], r['s11'],
+                                    f"Chirptenna · simulación {clave} · {motor} · {resumen['f_resonancia_MHz']} MHz")
+        except Exception as ex:
+            progreso(f'AVISO: no se pudo escribir s11_simulado.s1p: {ex}')
         if trabajo.get('tolerancias') and motor != 'matlab':
             try:
                 resumen['tolerancias'] = simulacion.tolerancias(a, tipos.sustrato(sus), f_obj, tuple(x*1e6 for x in trabajo['banda_MHz']), r,

@@ -5,6 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ## [Sin publicar]
 
+### Conexión con Chirptenna VNA (20-11)
+- Cada simulación guarda también `s11_simulado.s1p` (Touchstone RI, 50 Ω): el navegador no lee `datos.npz`, y así la web Chirptenna VNA puede cargarlo como referencia y superponerlo a la medida.
+- Pestaña Medir: botón «.s1p simulado» (descarga) y «Abrir Chirptenna VNA» (abre la web con `?f=<MHz>&banda=<ini>-<fin>&nombre=<diseño>`; dirección en `CHIRPTENNA_VNA_URL`, por defecto `http://localhost:8765/`). Aviso: solo una de las dos aplicaciones puede tener el puerto del NanoVNA.
+- En Chirptenna-VNA, `leerObjetivoUrl` (`js/puente.js`) lee esos parámetros y fija el objetivo.
+- Pruebas de contrato en los dos repos (`pruebas/test_puente_vna.py`; `pruebas/expertos2.test.mjs`).
+
 ## [0.5.0-alpha] · 2026-11-17
 
 *English summary (0.5.0-alpha): five new antenna types (V dipole, corner reflector, normal-mode helix, quadrifilar helix geometry, two-dipole array with a delay line), multi-board antennas with 3D poses, a beam-tilt study (series-fed tilt, delay-line array and delay-line 2×2 panel: none steers the beam in simulation), the alternating colinear array, a 3D view, Bayesian sweeps, thin-wire method-of-moments preselection, MATLAB as a second engine and custom substrates. GPU-centred results at 2.4 GHz: corner reflector −14 dB and 10.9 dBi, V dipole −15 to −20 dB, normal helix does not match (low radiation resistance). Still simulation-only: no manufactured board has been measured.*

@@ -532,6 +532,14 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                 with ui.card().classes('w-full sm:w-[420px] q-pa-none'):
                     with ui.row().classes('items-center q-px-md q-pt-sm'):
                         _titulo_card(tr('Asistente del NanoVNA'), 'settings_input_antenna')
+                    with ui.row().classes('items-center q-px-md gap-1'):
+                        ui.button(tr('Abrir Chirptenna VNA'), icon='open_in_new', on_click=lambda: abrir_vna_web()) \
+                            .props('flat dense no-caps color=teal').tooltip(
+                                tr('La web Chirptenna VNA mide con Web Serial. Cierra aquí la conexión al NanoVNA antes: '
+                                   'solo una de las dos puede tener el puerto.'))
+                        ui.button(tr('.s1p simulado'), icon='download', on_click=lambda: bajar_s1p_simulado()) \
+                            .props('flat dense no-caps color=teal').tooltip(
+                                tr('S11 de la última simulación en Touchstone, para cargarlo como referencia en Chirptenna VNA'))
                     with ui.stepper().props('vertical flat header-nav').classes('w-full') as pasos_vna:
                         # ---- 1. conectar
                         with ui.step(tr('Conectar el NanoVNA'), icon='usb'):
@@ -1556,6 +1564,26 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
         marcar_cambio()
         construir_params()
         ajustar()
+
+    def abrir_vna_web():
+        """Abre la web Chirptenna VNA (CHIRPTENNA_VNA_URL; por defecto el servidor local) con el objetivo del diseño."""
+        from urllib.parse import urlencode
+        base = os.environ.get('CHIRPTENNA_VNA_URL', 'http://localhost:8765/')
+        q = {'f': f"{estado['f_MHz']:g}"}
+        lo, hi = banda_actual()
+        if lo and hi:
+            q['banda'] = f'{lo:g}-{hi:g}'
+        if estado['diseno']:
+            q['nombre'] = biblioteca.nombre_valido(estado['diseno'])
+        ui.navigate.to(base + ('&' if '?' in base else '?') + urlencode(q), new_tab=True)
+
+    def bajar_s1p_simulado():
+        n = estado['diseno']
+        ruta = os.path.join(biblioteca.carpeta(n, 'simulacion'), 's11_simulado.s1p') if n else ''
+        if not os.path.exists(ruta):
+            ui.notify(tr('Este diseño no tiene un .s1p simulado: guarda una simulación nueva.'), type='warning')
+            return
+        ui.download(ruta, f'{biblioteca.nombre_valido(n)}_s11_simulado.s1p')
 
     async def subir_s1p(e):
         try:
