@@ -27,7 +27,17 @@ Con latiguillos (sin ferrita confirmada), calibración amplia `completa_50k_2700
 | Y54 Yagi 2 directores | mínimo 2534 MHz, −12,1 dB; banda −10 dB 2489–2577 MHz (88 MHz) | 2447 MHz, −17,6 dB; banda 2365–2531 MHz (166 MHz) | +3,6 % en f; banda más estrecha y peor adaptación |
 | Y56 Sierpinski | mínimo 2502 MHz, −34,3 dB (ruido ±3 dB); banda −10 dB desde 2274 MHz hasta ≥ 2700 MHz | 2476 MHz (centro de banda); banda 2186–2803 MHz | +1,0 % en f |
 
-Las dos resuenan **por encima** de lo simulado con εr 4,5; por la sensibilidad de la simulación (−139 y −81 MHz por unidad de εr), eso corresponde a una εr de ~3,9 (Yagi) y ~4,2 (Sierpinski), no a 4,9.
+Las dos resuenan **por encima** de lo simulado con εr 4,5. Simulado en 3D con la geometría impresa (tanδ 0,02, `herramientas/sensibilidad_er.py`, `salidas/_barridos/SENS_er_medida`, centro de banda a −10 dB):
+
+| εr | Yagi (MHz) | Sierpinski (MHz) |
+|---|---|---|
+| 3,9 | **2537,8** (banda 2450–2629) | 2532,9 |
+| 4,2 | 2489,9 | **2501,1** |
+| 4,5 | 2446,9 | 2475,5 |
+| 4,9 | 2394,2 | 2446,2 |
+| medido | 2534 (banda 2489–2577) | 2502 (banda desde 2274) |
+
+La Yagi se reproduce con εr 3,9 y el Sierpinski con 4,2 (ambos al 0,2 % o mejor); con 4,9 quedan un 5,5 % y un 2,2 % por debajo de lo medido. Una εr ≈ 4,05 reproduce las dos a menos del 1 %. La banda de la Yagi medida (88 MHz) es la mitad de la simulada (179 MHz con εr 3,9) y su mínimo, menos profundo (−12,1 frente a −17,6 dB): eso no lo explica la εr.
 
 El meandro y el panel 2×2 estaban preparados en `pedido_2G4/` pero **no se pidieron**. Los diseños **bibanda** y los de 868 MHz de la
 campaña de GPU tampoco: la J-pole unida y la IFA bibanda son lo siguiente a fabricar.
