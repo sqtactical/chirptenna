@@ -37,7 +37,9 @@ Las dos resuenan **por encima** de lo simulado con εr 4,5. Simulado en 3D con l
 | 4,9 | 2394,2 | 2446,2 |
 | medido | 2534 (banda 2489–2577) | 2502 (banda desde 2274) |
 
-**Matiz posterior (ruido de malla)**: con el paso de malla ×0,85 y ×1,15 (εr 4,5) el Sierpinski da 2487 y 2479 MHz (estable) pero la Yagi cae a 2379 y 2364 MHz (−3 %): la simulación de la Yagi no es fiable a mejor de ~3 %, así que su «εr 3,9» no se sostiene; el Sierpinski sí (εr ≈ 4,2–4,4). Con εr 4,9 ambas quedan peor que con 4,5. El grosor (1,45–1,6 mm) mueve menos del 1,5 %. La banda de la Yagi medida (88 MHz) es la mitad de la simulada (179 MHz con εr 3,9) y su mínimo, menos profundo (−12,1 frente a −17,6 dB): eso no lo explica la εr.
+**Matiz posterior (ruido de malla)**: con el paso de malla ×0,85 y ×1,15 (εr 4,5) el Sierpinski da 2487 y 2479 MHz (estable) pero la Yagi cae a 2379 y 2364 MHz (−3 %): la simulación de la Yagi no es fiable a mejor de ~3 %, así que su «εr 3,9» no se sostiene; el Sierpinski sí (εr ≈ 4,2–4,4). Con εr 4,9 ambas quedan peor que con 4,5. El grosor (1,45–1,6 mm) mueve menos del 1,5 %.
+
+**Convergencia de la Yagi (εr 4,5, paso de malla 0,617 → 0,295 mm)**: 2364, 2447, 2379, 2404, 2421 MHz (no monótona con la malla gruesa; con las dos mallas más finas sube despacio, 2404 y 2421 MHz, banda −10 dB 2355–2489 MHz con la más fina). El valor convergido a εr 4,5 es ≈ 2420–2440 MHz, así que la medida (2534 MHz, banda 2489–2577) queda un ~4 % por encima y haría falta εr ≈ 3,7: no es creíble para FR4. La causa debe de estar en la medida (cable sin ferrita, SMA, corrientes en el cable) o en algo de la antena no modelado. Pendiente: medirla con y sin ferrita. La banda de la Yagi medida (88 MHz) es la mitad de la simulada (179 MHz con εr 3,9) y su mínimo, menos profundo (−12,1 frente a −17,6 dB): eso no lo explica la εr.
 
 El meandro y el panel 2×2 estaban preparados en `pedido_2G4/` pero **no se pidieron**. Los diseños **bibanda** y los de 868 MHz de la
 campaña de GPU tampoco: la J-pole unida y la IFA bibanda son lo siguiente a fabricar.
