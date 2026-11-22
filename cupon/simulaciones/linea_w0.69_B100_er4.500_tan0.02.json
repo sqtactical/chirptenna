@@ -1,0 +1,11 @@
+{
+  "ancho_mm": 0.69,
+  "largo_placa_mm": 100.0,
+  "er": 4.5,
+  "tand": 0.02,
+  "retardo_ns": 0.6731,
+  "s21_min_dB_hasta_1GHz": -1.79,
+  "s11_max_dB_hasta_1GHz": -5.9,
+  "min_s11_MHz_700_1100": 882.7,
+  "min_s11_MHz_1500_2100": 1755.2
+}

@@ -37,7 +37,7 @@ Las dos resuenan **por encima** de lo simulado con εr 4,5. Simulado en 3D con l
 | 4,9 | 2394,2 | 2446,2 |
 | medido | 2534 (banda 2489–2577) | 2502 (banda desde 2274) |
 
-La Yagi se reproduce con εr 3,9 y el Sierpinski con 4,2 (ambos al 0,2 % o mejor); con 4,9 quedan un 5,5 % y un 2,2 % por debajo de lo medido. Una εr ≈ 4,05 reproduce las dos a menos del 1 %. La banda de la Yagi medida (88 MHz) es la mitad de la simulada (179 MHz con εr 3,9) y su mínimo, menos profundo (−12,1 frente a −17,6 dB): eso no lo explica la εr.
+**Matiz posterior (ruido de malla)**: con el paso de malla ×0,85 y ×1,15 (εr 4,5) el Sierpinski da 2487 y 2479 MHz (estable) pero la Yagi cae a 2379 y 2364 MHz (−3 %): la simulación de la Yagi no es fiable a mejor de ~3 %, así que su «εr 3,9» no se sostiene; el Sierpinski sí (εr ≈ 4,2–4,4). Con εr 4,9 ambas quedan peor que con 4,5. El grosor (1,45–1,6 mm) mueve menos del 1,5 %. La banda de la Yagi medida (88 MHz) es la mitad de la simulada (179 MHz con εr 3,9) y su mínimo, menos profundo (−12,1 frente a −17,6 dB): eso no lo explica la εr.
 
 El meandro y el panel 2×2 estaban preparados en `pedido_2G4/` pero **no se pidieron**. Los diseños **bibanda** y los de 868 MHz de la
 campaña de GPU tampoco: la J-pole unida y la IFA bibanda son lo siguiente a fabricar.

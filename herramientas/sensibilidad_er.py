@@ -45,6 +45,7 @@ def main():
     spec.loader.exec_module(barrido)
     base = tipos.sustrato('FR4 JLC 1,6 mm')
     tand = float(opt.get('tand', base.tand))
+    hs = [float(x) for x in opt['h'].split(',')] if 'h' in opt else [base.h]     # grosores a simular [mm] (el real puede no ser 1,6)
     f_obj = 2441.75
     cfg = simulacion.PRECISIONES['normal']
     lam_min = simulacion.C0/(1.4*f_obj*1e6)*1e3
@@ -59,8 +60,8 @@ def main():
         sup = a.cobre('F.Cu')
         w_min = min(simulacion.ancho_minimo(sup, 3.0), a.info.get('pista_minima_mm') or 99)
         s_min = min(simulacion.hueco_minimo(sup, 3.0), a.info.get('hueco_minimo_mm') or 99)
-        paso = round(0.9*max(min(lam_min/math.sqrt(base.er)/cfg['lam_div'], cfg['factor_detalle']*w_min/2,
-                                 cfg['factor_detalle']*s_min/2), 0.08), 3)
+        paso = round(float(opt.get('paso-factor', 1))*0.9*max(min(lam_min/math.sqrt(base.er)/cfg['lam_div'], cfg['factor_detalle']*w_min/2,
+                                 cfg['factor_detalle']*s_min/2), 0.08), 3)       # --paso-factor: la frecuencia depende de la malla (lección 74)
         disenos.append((d, ficha, a, paso))
     if 'solo-lista' in opt:
         for d, ficha, a, paso in disenos:
@@ -76,7 +77,7 @@ def main():
             try:
                 x = json.loads(l)
                 if 'f_res_MHz' in x:
-                    hechos[(x['diseno'], x['er'])] = x
+                    hechos[(x['diseno'], x['er'], x.get('h', base.h))] = x
             except ValueError:
                 pass
     print(f'=== {etiqueta}: {len(disenos)} diseños × εr {ers}, tanδ {tand}', flush=True)
@@ -84,13 +85,13 @@ def main():
     filas = []
     try:
         for d, ficha, a, paso in disenos:
-            for er in ers:
-                if (d, er) in hechos:
-                    filas.append(hechos[(d, er)])
+          for er, h in [(e, g) for g in hs for e in ers]:
+                if (d, er, h) in hechos:
+                    filas.append(hechos[(d, er, h)])
                     continue
-                s = dataclasses.replace(base, nombre=f'FR4 εr {er}', er=er, tand=tand)
+                s = dataclasses.replace(base, nombre=f'FR4 εr {er}', er=er, tand=tand, h=h)
                 t0 = time.time()
-                fila = {'diseno': d, 'er': er, 'paso': paso}
+                fila = {'diseno': d, 'er': er, 'h': h, 'paso': paso}
                 try:
                     r = simulacion.simular(a, s, f_obj*1e6, 'normal', nf2ff=False, progreso=lambda m: None, paso=paso)
                     flo, fhi = r['banda_Hz']
@@ -106,7 +107,7 @@ def main():
         print('\n--- resonancia (MHz) por εr ---')
         for d, *_ in disenos:
             xs = [x for x in filas if x['diseno'] == d and 'f_res_MHz' in x]
-            print(f'  {d:30s}', '  '.join(f"εr {x['er']}: {x['f_res_MHz']} (S11 {x['S11_2441_dB']} dB)" for x in xs))
+            print(f'  {d:30s}', '  '.join(f"εr {x['er']} h {x.get('h', base.h)}: {x['f_res_MHz']} (S11 {x['S11_2441_dB']} dB)" for x in xs))
         json.dump({'ers': ers, 'tand': tand, 'filas': filas}, open(os.path.join(salida, 'resumen_sensibilidad.json'), 'w', encoding='utf-8'),
                   indent=1, ensure_ascii=False, default=float)
         print('TERMINADO ->', salida, flush=True)
