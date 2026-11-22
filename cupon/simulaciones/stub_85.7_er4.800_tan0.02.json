@@ -1,0 +1,24 @@
+{
+  "stub": "85.7",
+  "largo_mm": 85.7,
+  "er": 4.8,
+  "tand": 0.02,
+  "muestra": null,
+  "resonancias": [
+    {
+      "f_MHz": 438.626,
+      "R_ohm": 2.392,
+      "dXdf_ohm_MHz": 0.1638
+    },
+    {
+      "f_MHz": 1319.308,
+      "R_ohm": 2.71,
+      "dXdf_ohm_MHz": 0.162
+    },
+    {
+      "f_MHz": 2196.458,
+      "R_ohm": 3.123,
+      "dXdf_ohm_MHz": 0.1958
+    }
+  ]
+}

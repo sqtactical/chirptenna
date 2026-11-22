@@ -5,6 +5,33 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ## [Sin publicar]
 
+### Cupón C con stubs abiertos en S11, para NanoVNA normales (22-11)
+- Los NanoVNA normales llegan a 900 MHz y el anillo de 868 MHz no servía (su pico simulado era una joroba ancha entre dos ceros; la simulación paraba antes de tiempo con el criterio por defecto de openEMS). El cupón C pasa a **tres stubs abiertos de 43, 59 y 86 mm medidos en S11** (resonancias de 450 a 2625 MHz con los armónicos), con tiras de 24 mm de ancho y cuatro taladros M3 por stub. Ya no hace falta S21.
+- `cupon/simular_stub.py` (openEMS 3D, 12–25 s por caso en GPU); 42 casos con muestra: la εr se recupera a ±1,1 % rms (3,3 % máx) con una corrección de cuatro coeficientes. La tanδ (desde la R en la resonancia) queda sin validar: solo vale por encima de ~0,03.
+- `plastico.py`: `resonancias_stub`, `elegir_resonancia`, `medir_stub`, `tand_stub`, `er_fr4_stubs` (con varios stubs se elimina la longitud eléctrica del conector); solver con muestra de ancho finito. Los asistentes de Chirptenna y de Chirptenna VNA (que usa la última medida de S11 de la página) pasan a stubs. Detalle en `docs/desarrollo/plasticos.md`.
+
+### Frecuencia y aviso de materiales genéricos (22-11)
+- La carcasa usa la εr y la tanδ del material **a la frecuencia del diseño** (carcasa.propiedades(c, f_Hz)): la tabla es a 2,4 GHz y para otra frecuencia se aplica una tendencia genérica (εr +3 % por década hacia abajo, tanδ ∝ f^0,3; a 868 MHz, +1,3 % y −27 %), acotada a 0,3–6 GHz. Es una suposición: no hay medidas de estos filamentos a 868 MHz que se hayan encontrado. El material «Personalizado» no se escala.
+- Aviso permanente bajo el selector («valores GENÉRICOS … mide el tuyo») y tras cada simulación con material de tabla; la interfaz enseña la εr y la tanδ que se usan a la frecuencia del diseño.
+
+### Más materiales para la carcasa (22-11)
+- Materiales: PLA, PETG, ABS, ASA, PC, PA12, PA6 y con fibra de vidrio (PLA-GF, PETG-GF, ABS-GF, PA-GF), con εr y tanδ típicas de hoja técnica (sin medir) y un parámetro **Relleno (%)** que baja la εr efectiva (mezcla con aire por índices de refracción). Sin fibra de carbono, grafito ni filamentos conductores o ESD: son conductores y apantallan la antena. «Personalizado» sigue siendo lo medido (cupón C), sin corrección de relleno.
+
+### Medir las propiedades de un plástico (21-11)
+- **Cupón C** (`python cupon/generar_cupon.py C` → `cupon/cupon_C/`, DRC limpio): los anillos de 868 MHz y 2,4 GHz del cupón A con la zona de la muestra marcada en la serigrafía (66 × 66 y 30 × 30 mm) y cuatro agujeros M3 para sujetarla. Se mide el pico de S21 de un anillo sin muestra y con el plástico encima.
+- `antenas/plastico.py`: solver cuasiestático 2D de la sección (numpy; εeff dentro del 0,3 % de Hammerstad) y la inversión: εr de la muestra a partir del cociente de frecuencias y tanδ a partir de los Q, con incertidumbre (resolución de f, grosor, εr del FR4). `parametros_pico` saca f, pérdida, ancho a −3 dB y Q de una curva de S21.
+- Fabricar → Carcasa → «Medir el plástico con el cupón C»: calcula εr y tanδ y los lleva al material **Personalizado** (εr y tanδ propias) de la carcasa.
+- `cupon/simular_anillo.py --muestra εr,tanδ,grosor,lado` y GPU: simula el anillo con la muestra en openEMS para comparar.
+- **Asistente de materiales** (Medir): qué medir (un plástico o el FR4 del cupón), preparar (STL de las muestras de 2, 3 y 4 mm con cuatro taladros M3: `plastico.muestras_stl`), medir sin y con muestra (sube un `.s2p`/CSV de S21 y busca el pico y el Q, o se escriben) y resultado con incertidumbre, que se lleva a la carcasa o al sustrato del diseño.
+- **Validación en 3D**: el modelo 2D sobreestimaba la εr (+8 a +16 %); una corrección ajustada a 7 simulaciones de openEMS la deja a ≤ 1 % de la real, también en un caso que no entró en el ajuste. Solo para el anillo de 2,4 GHz, εr 2–10 y grosor 1,5–4,5 mm (fuera, avisa). Anillo de 868 MHz sin validar (docs/desarrollo/plasticos.md).
+- Chirptenna VNA: el mismo cálculo en JS (`js/plastico.js`, probado contra los números de Python) y su asistente (`js/materiales.js`). Mide solo S11: el S21 se sube de un archivo.
+
+### Carcasa 3D (21-11)
+- `antenas/carcasa.py`: STL de la base y la tapa (reborde de apoyo, labio, orejetas para tornillos, abertura del conector; tapa boca abajo) para antenas de una placa plana; material PLA/PETG/ABS.
+- Simulación: casilla «Ajustar y simular con la carcasa del diseño». `simulacion.ENTORNO_FIJO` (puesto por `simular_cli`) añade los bloques de la carcasa a toda simulación, también a las del ajuste; `resultado.json` guarda `carcasa` (frecuencia con y sin ella, con la misma malla).
+- El diseño guarda los parámetros de la carcasa (`diseno.json` → `carcasa`).
+- Cierre elegible: tornillo autorroscante, tornillo y tuerca (hexágono por debajo), tornillo e inserto de latón, o pegada; tornillos M2, M2,5 y M3. La simulación incluye las orejetas de plástico y el metal (cabeza, caña, tuerca o inserto) y da, además, la frecuencia con la carcasa sin su metal, para separar lo que pone el plástico de lo que ponen los tornillos.
+
 ### Conexión con Chirptenna VNA (20-11)
 - Cada simulación guarda también `s11_simulado.s1p` (Touchstone RI, 50 Ω): el navegador no lee `datos.npz`, y así la web Chirptenna VNA puede cargarlo como referencia y superponerlo a la medida.
 - Pestaña Medir: botón «.s1p simulado» (descarga) y «Abrir Chirptenna VNA» (abre la web con `?f=<MHz>&banda=<ini>-<fin>&nombre=<diseño>`; dirección en `CHIRPTENNA_VNA_URL`, por defecto `http://localhost:8765/`). Aviso: solo una de las dos aplicaciones puede tener el puerto del NanoVNA.

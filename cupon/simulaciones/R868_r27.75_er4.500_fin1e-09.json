@@ -1,0 +1,17 @@
+{
+  "anillo": "R868",
+  "er": 4.5,
+  "muestra": null,
+  "tuercas": null,
+  "picos": [
+    {
+      "f_GHz": 0.8906,
+      "S21_dB": -29.8
+    }
+  ],
+  "f_diseno_modos_GHz": [
+    0.868,
+    1.736,
+    2.604
+  ]
+}

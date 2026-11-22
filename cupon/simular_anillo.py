@@ -35,6 +35,10 @@ def main():
     ap.add_argument('--er', type=float, default=4.5)
     ap.add_argument('--fmin', type=float, default=None)
     ap.add_argument('--fmax', type=float, default=None)
+    ap.add_argument('--fin', type=float, default=1e-5, help='criterio de fin de openEMS (energía relativa): bajarlo si el anillo está poco acoplado y no da pico')
+    ap.add_argument('--pasos', type=int, default=600000)
+    ap.add_argument('--tuercas', default=None, help='arandelas y tuercas de nailon sobre la muestra: εr,tanδ,lado,alto,dx,dy (mm)')
+    ap.add_argument('--muestra', default=None, help='plástico encima del anillo: εr,tanδ,grosor_mm,lado_mm (p. ej. 2.8,0.01,3,30)')
     a = ap.parse_args()
     # el anillo puede estar en cualquiera de las placas (cupon_A, cupon_B)
     for placa in ('cupon_A', 'cupon_B'):
@@ -49,8 +53,14 @@ def main():
     f0, fc = (fmin + fmax)/2, (fmax - fmin)/2
 
     # el radio va en la clave: el anillo cambió de radio con la corrección ×0,93 de los cupones de 100 mm
-    sim_path = os.path.join(tempfile.gettempdir(), f'fase0_anillo_{a.anillo}_r{r:.3f}_er{a.er:.3f}')
-    FDTD = openEMS(NrTS=600000, EndCriteria=1e-5)
+    mu = [float(v) for v in a.muestra.split(',')] if a.muestra else None
+    sufijo = '' if not mu else '_mu' + '_'.join(f'{v:g}' for v in mu)
+    if a.tuercas:
+        sufijo += '_tu' + a.tuercas.replace(',', '_')
+    if a.fin != 1e-5:
+        sufijo += f'_fin{a.fin:g}'
+    sim_path = os.path.join(tempfile.gettempdir(), f'fase0_anillo_{a.anillo}_r{r:.3f}_er{a.er:.3f}{sufijo}')
+    FDTD = openEMS(NrTS=a.pasos, EndCriteria=a.fin)
     FDTD.SetGaussExcite(f0, fc)
     FDTD.SetBoundaryCond(['PML_8']*6)
     CSX = ContinuousStructure(); FDTD.SetCSX(CSX)
@@ -64,6 +74,16 @@ def main():
     X = R_ext + marg
     kappa = 2*np.pi*f0*EPS0*a.er*TAND
     CSX.AddMaterial('FR4', epsilon=a.er, kappa=kappa).AddBox([-X, yp_a, 0], [X, yp_b, h], priority=0)
+    if mu:        # muestra de plástico apoyada sobre el cobre, centrada en el anillo (prioridad por debajo del cobre)
+        er_m, tand_m, t_m, lado_m = mu
+        CSX.AddMaterial('muestra', epsilon=er_m, kappa=2*np.pi*f0*EPS0*er_m*tand_m).AddBox([-lado_m/2, -lado_m/2, h], [lado_m/2, lado_m/2, h + t_m], priority=1)
+    if a.tuercas:  # cuatro bloques de nailon (arandela + tuerca) sobre las esquinas de la muestra: εr,tanδ,lado,alto,dx,dy
+        er_n, tand_n, lado_n, alto_n, dx_n, dy_n = [float(v) for v in a.tuercas.split(',')]
+        mat_n = CSX.AddMaterial('tuercas', epsilon=er_n, kappa=2*np.pi*f0*EPS0*er_n*tand_n)
+        z_n = h + (mu[2] if mu else 0.0)
+        for sx in (-1, 1):
+            for sy in (-1, 1):
+                mat_n.AddBox([sx*dx_n - lado_n/2, sy*dy_n - lado_n/2, z_n], [sx*dx_n + lado_n/2, sy*dy_n + lado_n/2, z_n + alto_n], priority=1)
     masa = CSX.AddMetal('masa'); masa.AddBox([-X, yp_a, 0], [X, yp_b, 0], priority=10)
     cobre = CSX.AddMetal('cobre')
     # anillo como polígono (corona) aproximado por un polígono de muchos lados en dos mitades
@@ -82,7 +102,7 @@ def main():
                                       np.arange(y_a - 1, y_a + 1.01, fino), np.arange(y_b - 1, y_b + 1.01, fino),
                                       np.arange(-R_ext, R_ext + 0.01, 0.5), np.linspace(yp_a, yp_a + 6, 7),
                                       np.linspace(yp_b - 6, yp_b, 7)]))
-    mesh.AddLine('z', np.concatenate([np.linspace(0, h, 5), [-15, h + 20]]))
+    mesh.AddLine('z', np.concatenate([np.linspace(0, h, 5), [-15, h + 20] + ([] if not mu else list(np.linspace(h, h + mu[2], int(np.ceil(mu[2]/0.75)) + 1)))]))
     mesh.SmoothMeshLines('all', lam_min/20, 1.3)
     print('Malla:', [len(mesh.GetLines(d)) for d in 'xyz'])
     # puertos MSL (necesitan la malla ya hecha), con de-embedding hasta el hueco
@@ -93,7 +113,10 @@ def main():
 
     if not os.path.exists(os.path.join(sim_path, 'port_ut_2')):
         t0 = time.time()
-        FDTD.Run(sim_path, cleanup=True, verbose=0)
+        sys.path.insert(0, os.path.dirname(AQUI))
+        from antenas import gpu   # noqa: E402
+        if not (gpu.activa() and gpu.ejecutar(FDTD, sim_path)):
+            FDTD.Run(sim_path, cleanup=True, verbose=0)
         print(f'Tiempo: {time.time() - t0:.0f} s')
     f = np.linspace(fmin, fmax, 2001)
     for p in (p1, p2):
@@ -104,11 +127,11 @@ def main():
     # picos de S21
     picos = [i for i in range(1, len(f) - 1) if s21_db[i] > s21_db[i - 1] and s21_db[i] >= s21_db[i + 1]
              and s21_db[i] > s21_db.max() - 10]
-    res = {'anillo': a.anillo, 'er': a.er, 'picos': [{'f_GHz': round(f[i]/1e9, 4), 'S21_dB': round(float(s21_db[i]), 1)}
+    res = {'anillo': a.anillo, 'er': a.er, 'muestra': mu, 'tuercas': a.tuercas, 'picos': [{'f_GHz': round(f[i]/1e9, 4), 'S21_dB': round(float(s21_db[i]), 1)}
                                                      for i in picos],
            'f_diseno_modos_GHz': e['modos_en_rango_GHz']}
     os.makedirs(os.path.join(AQUI, 'simulaciones'), exist_ok=True)
-    base = os.path.join(AQUI, 'simulaciones', f'{a.anillo}_r{r:.2f}_er{a.er:.3f}')
+    base = os.path.join(AQUI, 'simulaciones', f'{a.anillo}_r{r:.2f}_er{a.er:.3f}{sufijo}')
     json.dump(res, open(base + '.json', 'w', encoding='utf-8'), indent=2, ensure_ascii=False)
     fig, ax = plt.subplots(figsize=(9, 4.5), tight_layout=True)
     ax.plot(f/1e9, s21_db, 'b-', label='S21'); ax.plot(f/1e9, 20*np.log10(np.abs(s11)), 'k--', lw=0.8, label='S11')

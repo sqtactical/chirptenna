@@ -126,6 +126,11 @@ def centro_banda(f, s11_db, umbral=-10.0, ventana=None):
     return math.sqrt(f[lo]*f[hi]), f[lo], f[hi], f_min, s_min
 
 
+#: función (antena, h, f_centro) → bloques del entorno que `simular` añade a toda antena que no traiga el suyo. La pone `simular_cli`
+#: (proceso aparte) cuando el trabajo lleva una carcasa, para que `ajustar` centre la antena DENTRO de ella.
+ENTORNO_FIJO = None
+
+
 def _cobre_sim(antena, capa):
     """Cobre de la capa que se simula: `Antena.cobre_sim` si lo hay (uniones entre placas continuas); si no, el de la placa."""
     return antena.cobre_sim[capa] if antena.cobre_sim else antena.cobre(capa)
@@ -188,6 +193,10 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
     malla: 'uniforme' (paso fino en toda la placa) o 'adaptada' (fino solo junto a los bordes del
     cobre y de la placa, ver lineas_adaptadas). La adaptada está pendiente de validar.
     """
+    if ENTORNO_FIJO is not None and not antena.entorno:
+        import copy
+        antena = copy.copy(antena)
+        antena.entorno = ENTORNO_FIJO(antena, sustrato.h, f_centro)      # carcasa del diseño: también al ajustar
     from CSXCAD import ContinuousStructure
     from openEMS import openEMS
 
@@ -938,7 +947,8 @@ def tolerancias(antena, sustrato, f_obj, banda, base, precision='normal', malla=
             'banda_objetivo_MHz': [round(lo/1e6, 2), round(hi/1e6, 2)], 'veredicto': veredicto, 'f_nominal_MHz': round(f0/1e6, 2)}
 
 
-def efecto_entorno(antena, sustrato, f_obj, nombres, base, precision='normal', malla='uniforme', rango=(0.6, 1.4), progreso=print):
+def efecto_entorno(antena, sustrato, f_obj, nombres, base, precision='normal', malla='uniforme', rango=(0.6, 1.4), progreso=print,
+                   bloques=None, variantes=None):
     """Cuánto cambian la frecuencia y la eficiencia al poner el entorno (carcasa, batería, mano: ver `entorno.py`).
 
     Se comparan dos simulaciones con la MISMA malla: una con los bloques de verdad y otra con ellos convertidos en aire
@@ -948,16 +958,19 @@ def efecto_entorno(antena, sustrato, f_obj, nombres, base, precision='normal', m
     """
     import copy
     from . import entorno as ent
-    bloques = ent.bloques(antena, sustrato.h, nombres)
+    bloques = bloques or ent.bloques(antena, sustrato.h, nombres)      # bloques propios: la carcasa del diseño
     paso = base.get('paso_malla_mm')
     res = {}
-    for etq, lista in (('aire', [ent.neutro(b) for b in bloques]), ('entorno', bloques)):
+    # variantes: {nombre: bloques} de más simulaciones con la misma malla (p. ej. la carcasa sin sus tornillos)
+    for etq, lista in (('aire', [ent.neutro(b) for b in bloques]), ('entorno', bloques), *(variantes or {}).items()):
         a = copy.copy(antena)
         a.entorno = lista
         progreso(tr('Entorno ({0}): simulando {1}…', ', '.join(nombres), tr('con los bloques') if etq == 'entorno' else tr('el control, sin material')))
         res[etq] = simular(a, sustrato, f_obj, precision, nf2ff=True, progreso=lambda m: None, rango=rango, paso=paso, malla=malla)
     c, e = res['aire'], res['entorno']
-    return {'nombres': list(nombres),
+    extra = {f'f_{k}_MHz': round(v['f_resonancia_Hz']/1e6, 2) for k, v in res.items() if k not in ('aire', 'entorno')}
+    extra.update({f'eta_{k}_%': round(100*v['eficiencia_radiacion'], 1) for k, v in res.items() if k not in ('aire', 'entorno')})
+    return {**extra, 'nombres': list(nombres),
             'f_sin_MHz': round(c['f_resonancia_Hz']/1e6, 2), 'f_con_MHz': round(e['f_resonancia_Hz']/1e6, 2),
             'df_pct': round(100*(e['f_resonancia_Hz']/c['f_resonancia_Hz'] - 1), 2),
             's11_sin_dB': round(c['s11_min_dB'], 1), 's11_con_dB': round(e['s11_min_dB'], 1),

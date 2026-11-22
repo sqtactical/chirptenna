@@ -320,9 +320,38 @@ def linea_cpwg(nombre, x):
                                      'longitud_entre_transiciones_mm': round(p_b[1] - p_a[1], 3)}
 
 
-def plano_masa():
-    m = 0.5
-    pts = [(m, m), (ANCHO_PLACA - m, m), (ANCHO_PLACA - m, ALTO_PLACA - m), (m, ALTO_PLACA - m)]
+def _con_puentes(poli):
+    """Anillo de puntos de un polígono con agujeros, unido por puentes de ancho cero (como los escribe KiCad en sus zonas rellenas)."""
+    from shapely.geometry import LineString
+    from shapely.ops import nearest_points
+    ext = list(poli.exterior.coords)[:-1]
+    for hueco in poli.interiors:
+        ph, pe = nearest_points(hueco, poli.exterior)
+        anillo_h = list(hueco.coords)[:-1]
+        k = min(range(len(anillo_h)), key=lambda i: (anillo_h[i][0] - ph.x)**2 + (anillo_h[i][1] - ph.y)**2)
+        anillo_h = anillo_h[k:] + anillo_h[:k]
+        # segmento del exterior donde cae el punto del puente
+        n = len(ext)
+        j = min(range(n), key=lambda i: LineString([ext[i], ext[(i + 1) % n]]).distance(pe))
+        nuevo = [(pe.x, pe.y)] + anillo_h + [anillo_h[0], (pe.x, pe.y)]
+        ext = ext[:j + 1] + nuevo + ext[j + 1:]
+    return ext
+
+
+def plano_masa(esquinas=0.0, agujeros=None, radio_libre=3.0):
+    """Plano de masa de la cara inferior; con `esquinas` > 0 se le quita un cuadrado de ese lado en cada esquina, y con `agujeros` [(x, y)]
+    un círculo de `radio_libre` mm alrededor de cada uno (NPTH: el DRC exige distancia al cobre)."""
+    m, c = 0.5, esquinas
+    if agujeros:
+        from shapely.geometry import Point
+        plano = box(m, m, ANCHO_PLACA - m, ALTO_PLACA - m).difference(unary_union([Point(x, y).buffer(radio_libre, quad_segs=16) for x, y in agujeros]))
+        pts = _con_puentes(plano)
+    elif c:
+        W_, H_ = ANCHO_PLACA, ALTO_PLACA
+        pts = [(m + c, m), (W_ - m - c, m), (W_ - m - c, m + c), (W_ - m, m + c), (W_ - m, H_ - m - c), (W_ - m - c, H_ - m - c),
+               (W_ - m - c, H_ - m), (m + c, H_ - m), (m + c, H_ - m - c), (m, H_ - m - c), (m, m + c), (m + c, m + c)]
+    else:
+        pts = [(m, m), (ANCHO_PLACA - m, m), (ANCHO_PLACA - m, ALTO_PLACA - m), (m, ALTO_PLACA - m)]
     xy = ' '.join(f'(xy {x} {y})' for x, y in pts)
     objetos.append(f'  (zone (net 1) (net_name "GND") (layer "B.Cu") (uuid "{u()}") (hatch edge 0.5)\n'
                    f'    (connect_pads yes (clearance 0)) (min_thickness 0.25) (filled_areas_thickness no)\n'
@@ -358,10 +387,10 @@ def escribir(nombre):
           f'| DRC: {len(diseno["drc"])} infracciones', diseno['drc'][:5])
 
 
-def comun_placa():
+def comun_placa(esquinas=0.0, agujeros=None):
     objetos.append(f'  (gr_rect (start 0 0) (end {ANCHO_PLACA} {ALTO_PLACA}) (stroke (width 0.1) (type default)) '
                    f'(fill none) (layer "Edge.Cuts") (uuid "{u()}"))')
-    plano_masa()
+    plano_masa(esquinas, agujeros)
 
 
 def placa_A():
@@ -415,9 +444,72 @@ def placa_B():
     escribir('cupon_B')
 
 
+AGUJERO_M3 = 3.2          # agujeros de sujeción de la muestra [mm]
+
+
+def marco_muestra(x0, y0, ancho, largo, rotulo):
+    """Contorno de serigrafía (F.SilkS) de la zona donde se apoya la muestra."""
+    for (xa, ya), (xb, yb) in (((x0, y0), (x0 + ancho, y0)), ((x0 + ancho, y0), (x0 + ancho, y0 + largo)),
+                               ((x0 + ancho, y0 + largo), (x0, y0 + largo)), ((x0, y0 + largo), (x0, y0))):
+        objetos.append(f'  (gr_line (start {xa:.3f} {ya:.3f}) (end {xb:.3f} {yb:.3f}) (stroke (width 0.2) (type dash)) '
+                       f'(layer "F.SilkS") (uuid "{u()}"))')
+    texto(rotulo, x0 + ancho/2, y0 + largo + 2.2, 1.0)
+
+
+def agujero(x, y, d=AGUJERO_M3):
+    """Agujero sin metalizar para un tornillo de nailon que sujete la muestra."""
+    objetos.append(f'  (footprint "Cupon:Agujero_M3" (layer "F.Cu") (uuid "{u()}") (at {x:.3f} {y:.3f})\n'
+                   f'    (property "Reference" "H" (at 0 -3 0) (layer "F.Fab") (uuid "{u()}") (effects (font (size 1 1) (thickness 0.15))))\n'
+                   f'    (property "Value" "M3" (at 0 3 0) (layer "F.Fab") (uuid "{u()}") (effects (font (size 1 1) (thickness 0.15))))\n'
+                   f'    (attr exclude_from_pos_files exclude_from_bom)\n'
+                   f'    (pad "" np_thru_hole circle (at 0 0) (size {d} {d}) (drill {d}) (layers "*.Cu" "*.Mask") (uuid "{u()}")))')
+
+
+def stub_c(nombre, x, largo_total):
+    """Stub abierto cuyo extremo está a `largo_total` mm del borde de arriba de la placa (el plano de medida del NanoVNA es el conector)."""
+    p, d, ns = sma(f'J_{nombre}', 'arriba', x, nombre)
+    tramo(p, (x, largo_total), ns)
+    diseno['estructuras'][nombre] = {'tipo': 'stub_abierto_S11', 'x_mm': x, 'largo_desde_el_borde_mm': largo_total,
+                                     'ancho_mm': W, 'f_n1_estimada_MHz': round(C0/(4*largo_total*1e-3*math.sqrt(EPS_EFF))/1e6, 1)}
+
+
+def placa_C():
+    """Cupón de plásticos: tres stubs abiertos medidos en S11 (modos de λ/4 a 450, 645 y 870 MHz y sus armónicos) con la zona de la muestra marcada. Se mide la
+    resonancia en vacío y con el plástico encima: el desplazamiento da la εr y el aumento de la resistencia en la resonancia, la tanδ (`antenas/plastico.py`)."""
+    from antenas import plastico
+    nueva_placa()
+    agujeros = {k: plastico.agujeros(k) for k in plastico.STUBS}
+    comun_placa(agujeros=[p for v in agujeros.values() for p in v])    # sin masa alrededor de los agujeros de sujeción
+    for k, s in plastico.STUBS.items():
+        stub_c(k, s['x'], s['L'])
+    emitir_zonas()
+    for k, s in plastico.STUBS.items():
+        m = plastico.muestra_de(k)
+        marco_muestra(m['origen'][0], m['origen'][1], m['ancho'], m['largo'], f'{k}: muestra {m["ancho"]:g}x{m["largo"]:g}')
+        for x, y in agujeros[k]:
+            agujero(x, y)
+    texto(f'CUPON C plasticos FR4 {H}', 50.0, 96.0, 1.2)
+    texto('2026-11', 50.0, 98.5, 1.0)
+    leyenda('CUPON C - medir er y tan d de un plastico', [
+        'Stubs abiertos de 50 ohm medidos en S11 (un puerto):',
+        '  S43 / S59 / S86 mm resuenan (X=0) a 870 / 645 / 450 MHz',
+        '  y en sus armonicos 3x, 5x (NanoVNA-H: hasta 2,7 GHz)',
+        'Muestra: tira de 24 mm con 4 taladros M3; los tornillos',
+        '  de nailon la CENTRAN y la sujetan. Nada sobre el stub',
+        '1) Medir S11 sin muestra: f de X=0 (pendiente +) y R',
+        '2) Poner la muestra, tuercas a mano, y repetir',
+        'Calibrar OSL en el conector; puertos sin usar al aire',
+        'Calculo: Medir > Asistente de materiales',
+    ], tam=1.0)
+    diseno['muestras_mm'] = {k: plastico.muestra_de(k) for k in plastico.STUBS}
+    diseno['agujeros_muestra_mm'] = {k: [list(p) for p in v] for k, v in agujeros.items()}
+    diseno['uso'] = 'plasticos'
+    escribir('cupon_C')
+
 def main():
-    placa_A()
-    placa_B()
+    elegidas = [a.upper() for a in sys.argv[1:]] or ['A', 'B']
+    for k in elegidas:
+        {'A': placa_A, 'B': placa_B, 'C': placa_C}[k]()
 
 
 if __name__ == '__main__':

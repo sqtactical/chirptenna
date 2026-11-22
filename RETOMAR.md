@@ -46,6 +46,8 @@ integrar antenas en la PCB de un producto (v0.5). Las ideas pendientes de abajo 
 
 ## Siguientes pasos
 
+**Carcasa 3D (21-11, sin commitear):** `antenas/carcasa.py` (STL base y tapa, bloques para simular), tarjeta «Carcasa 3D» en Fabricar y casilla «Ajustar y simular con la carcasa» en Simulación (`simulacion.ENTORNO_FIJO`, lección 91). Probado con un dipolo: ajusta a +0,9 % con carcasa de PLA (−4,6 % respecto a sin ella). Pendiente: imprimir una y medir dentro de ella; εr/tanδ de PLA/PETG sin medir; sin vista previa 3D en la interfaz; no hay versión web (shapely de Pyodide < 2.1).
+
 **Conexión con Chirptenna VNA (20-11, sin commitear):** `s11_simulado.s1p` por simulación, botones «.s1p simulado» y «Abrir Chirptenna VNA» en Medir, `?f=&banda=&nombre=` en la web VNA. Pendiente: pendiente de εr por placa en el puente (la hoja de medidas usa `SENS_er_pedido`, no (εr+1)/2), abrir `diseno.json` en la web VNA, aviso de puerto serie compartido ya puesto.
 
 1. **Alpha abierto** (el usuario no quiere esperar a las medidas):

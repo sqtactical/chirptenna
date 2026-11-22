@@ -1,0 +1,19 @@
+{
+  "stub": "S59",
+  "largo_mm": 59.0,
+  "er": 4.5,
+  "tand": 0.02,
+  "muestra": null,
+  "resonancias": [
+    {
+      "f_MHz": 646.167,
+      "R_ohm": 1.751,
+      "dXdf_ohm_MHz": 0.0918
+    },
+    {
+      "f_MHz": 1942.56,
+      "R_ohm": 2.061,
+      "dXdf_ohm_MHz": 0.13
+    }
+  ]
+}

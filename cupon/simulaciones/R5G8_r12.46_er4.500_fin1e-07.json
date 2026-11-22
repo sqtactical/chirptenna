@@ -1,0 +1,15 @@
+{
+  "anillo": "R5G8",
+  "er": 4.5,
+  "muestra": null,
+  "tuercas": null,
+  "picos": [
+    {
+      "f_GHz": 1.9376,
+      "S21_dB": -14.6
+    }
+  ],
+  "f_diseno_modos_GHz": [
+    1.933
+  ]
+}

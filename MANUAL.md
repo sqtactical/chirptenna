@@ -321,6 +321,49 @@ Van en la cara de abajo, espejadas para leerse al darle la vuelta. Puedes elegir
 Si no cabe todo, se mantienen el logo y la primera línea. Las **marcas de corte**, «vivo»/«malla» y las
 referencias de los componentes (Z1, Z2, Z3, JP…) se ponen siempre: hacen falta para ajustar.
 
+### Carcasa 3D (STL)
+
+La tarjeta **Carcasa 3D (STL)** genera la **base** y la **tapa** para imprimir, a la medida de la placa:
+reborde de apoyo bajo los cantos, labio de encaje, cuatro orejetas en las esquinas y una abertura
+para el conector. El **cierre** puede ser un tornillo autorroscante, tornillo y tuerca (la tuerca entra por debajo),
+tornillo e inserto roscado de latón, o sin tornillos (la tapa se pega); tornillos M2, M2,5 o M3.
+La simulación incluye las orejetas y el metal del tornillo (cabeza, caña, tuerca o inserto) y te dice cuánto mueve la
+frecuencia el metal frente al mismo plástico sin él. La tapa sale boca abajo, lista para imprimir sin soportes. Ajustas el material (PLA, PETG o ABS),
+la pared, la holgura lateral, el aire bajo y sobre la placa y el radio de las esquinas.
+Solo vale para antenas de **una placa plana** (no para módulos, reflector ni placas en 3D).
+
+**Un plástico cerca de la antena la baja de frecuencia** (un dipolo de 2,4 GHz resuena ~5 % más bajo dentro de una
+caja de PLA de 1,6 mm). Por eso, en Simulación, la casilla **Ajustar y simular con la carcasa del diseño** pone la
+carcasa alrededor de la placa y centra la antena con ella puesta; el resultado dice además cuánto habría resonado
+sin la carcasa. Los valores del material son típicos de impresión con 100 % de relleno; con menos relleno la εr
+efectiva baja. **Los valores de la lista son genéricos: mide cada plástico que uses** (cupón C, siguiente apartado). La tabla es a 2,4 GHz; para otra frecuencia (868 MHz) se aplica una tendencia genérica (la εr casi no cambia y la tanδ baja un ~27 % a 868 MHz) que es una suposición, no una medida; la interfaz muestra la εr y la tanδ que usa a la frecuencia de tu diseño. Hay PLA, PETG, ABS, ASA, PC, nailon (PA12 y PA6, secos; húmedos suben la εr y las pérdidas) y versiones con fibra de vidrio (GF), con valores típicos de hoja técnica (sin medir: la marca, el color y la humedad los mueven). El **Relleno (%)** baja la εr efectiva (una pared de 1,6 mm suele ser maciza). **No uses fibra de carbono (CF), grafito ni filamentos conductores o ESD**: son conductores y apantallan la antena. Si quieres los de **tu** plástico, elige «Personalizado» y escribe su εr y su tanδ, o mídelos
+con el cupón C (siguiente apartado).
+
+#### Medir el plástico con el cupón C
+
+El **cupón C** es una placa de 100 × 100 mm con **tres stubs abiertos** (líneas de 50 Ω que acaban en circuito abierto, de 43, 59 y 86 mm) que resuenan a unos 870, 645 y 450 MHz
+y en sus armónicos (hasta 2,6 GHz). Se genera con `python cupon/generar_cupon.py C` y se pide a JLC como cualquier otra. **Solo necesita S11** (un puerto), así que sirve cualquier NanoVNA,
+también los normales, que llegan a 900 MHz (miden los tres modos más bajos); los de 1,5 o 2,7 GHz miden también los armónicos. El método:
+
+1. Calibra el NanoVNA (OSL) en el conector del cupón y mide el **S11 de un stub sin muestra**: la frecuencia en que la reactancia cruza por cero hacia arriba (la resonancia) y la resistencia ahí.
+2. Pon encima el plástico (una **tira plana** de 24 mm de ancho y el largo del stub, de grosor conocido) y vuelve a medir. La tira lleva **cuatro taladros M3 en las esquinas** que coinciden con otros cuatro de la placa: pasa por ellos
+   tornillos de nailon (la cabeza debajo de la placa, la tuerca y una arandela de nailon encima) y apriétalos solo a mano. Así la muestra
+   queda **centrada y fija** (no se mueve al apretar) y **no hay nada de plástico encima del stub**: un pisador o una placa sobre la muestra
+   sube la εr aparente un 9–17 %, porque añade otro dieléctrico al campo. Nada de tornillos metálicos. Una rendija de aire de décimas de
+   milímetro entre muestra y placa también falsea la εr: usa tiras planas y repite la medida volviendo a montarla para ver cuánto varía.
+3. Usa el **Asistente de materiales (cupón C)** de la pestaña Medir (también desde Fabricar → Carcasa → «Medir mi plástico»).
+   Te guía en cinco pasos: *Qué medir* (un plástico o el FR4 del cupón, el stub y el modo), *Preparar* (aquí generas los STL de
+   las tiras de 2, 3 y 4 mm con sus cuatro taladros M3), *Medir sin muestra* y *Medir con la muestra* (sube el `.s1p` y se busca la resonancia y su resistencia,
+   o escribe los valores; añade el grosor real y la rendija estimada) y *Resultado*. Da la **εr con su incertidumbre** y, con las resistencias, una **tanδ aproximada**;
+   «Usar este material en la carcasa» los lleva al material Personalizado. Con «El FR4 del cupón» mides antes la εr de tu FR4 (con dos o tres stubs en el mismo modo) y la usas de base.
+   La εr está validada contra openEMS 3D a ±1 % (3 % máx) para εr 2–10 y grosor 1,5–4,5 mm; fuera de ahí la interfaz avisa. La misma herramienta está en la web **Chirptenna VNA** (modo Avanzado → Asistente de materiales), que
+   puede usar directamente la última medida de S11 de la página.
+La tanδ de los plásticos es muy pequeña y sale de unas décimas de ohmio en la resonancia: con un NanoVNA solo se distingue por encima de ~0,03, y si la
+incertidumbre es mayor que el valor, la interfaz lo dice (con plásticos de pérdidas bajas usa la de la literatura). Mide el FR4 de tu cupón antes y úsalo como referencia
+(εr del sustrato del diseño). Mide también una pieza conocida (PTFE, FR4) para ver que el método da lo esperado, y repite con varias
+muestras impresas: la impresión 3D es anisótropa y el valor depende del relleno y de la orientación de las capas. La simulación usa cajas de caras rectas (suelo, tapa y cuatro paredes con el hueco del conector):
+no incluye esquinas redondeadas, labio, reborde ni orejetas. Mide la antena dentro de la carcasa antes de darla por buena.
+
 ---
 
 ## 7. Montar la placa

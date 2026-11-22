@@ -25,10 +25,10 @@ DIR_IDIOMAS = os.path.join(RAIZ, 'antenas', 'idiomas')
 CARPETAS = [os.path.join(RAIZ, 'gui'), os.path.join(RAIZ, 'antenas')]
 # Módulos con textos de interfaz escritos como datos (no dentro de tr)
 DATOS = ['guia', 'tipos', 'problemas', 'presentacion', 'consejos', 'ajuste', 'materiales', 'miniaturas', 'conector',
-         'fabricacion', 'integracion', 'entorno', 'importar_kicad', 'web_api']
+         'fabricacion', 'integracion', 'entorno', 'carcasa', 'importar_kicad', 'web_api']
 # Textos que parecen de interfaz pero no lo son (claves internas, identificadores…)
 IGNORAR = {'Chirptenna', 'DejaVu Sans', 'F.Cu', 'B.Cu', 'GND', 'ANT', 'Antenas.pretty/', 'texto {0}',
-           'Personalizado', '; tanδ '}        # trozos del nombre de un sustrato personalizado (materiales.nombre_personalizado): son datos, no texto
+           'Personalizado', '; tanδ ', 'Polygon', ' · carcasa', 'ABS-GF', 'PA-GF', 'PETG-GF', 'PLA-GF'}        # trozos del nombre de un sustrato personalizado (materiales.nombre_personalizado): son datos, no texto
 # Textos cortos que el filtro descartaría (se muestran en la interfaz sin pasar por tr)
 EXTRA = {'Otra', 'vivo', 'malla'}
 # Mensajes solo para quien desarrolla (comprobaciones de guia.py) y trozos de plantillas no traducibles

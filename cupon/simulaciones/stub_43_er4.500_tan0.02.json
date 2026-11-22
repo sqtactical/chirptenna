@@ -1,0 +1,19 @@
+{
+  "stub": "S43",
+  "largo_mm": 43.0,
+  "er": 4.5,
+  "tand": 0.02,
+  "muestra": null,
+  "resonancias": [
+    {
+      "f_MHz": 869.678,
+      "R_ohm": 1.307,
+      "dXdf_ohm_MHz": 0.0762
+    },
+    {
+      "f_MHz": 2624.945,
+      "R_ohm": 1.825,
+      "dXdf_ohm_MHz": 0.1008
+    }
+  ]
+}

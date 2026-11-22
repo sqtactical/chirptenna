@@ -1,0 +1,124 @@
+{
+  "material": {
+    "er": 4.5,
+    "h_mm": 1.6,
+    "w_50ohm_mm": 3.01,
+    "w_100ohm_mm": 0.69,
+    "eps_eff_hammerstad": 3.3942
+  },
+  "estructuras": {
+    "S43": {
+      "tipo": "stub_abierto_S11",
+      "x_mm": 85.0,
+      "largo_desde_el_borde_mm": 43.0,
+      "ancho_mm": 3.01,
+      "f_n1_estimada_MHz": 946.1
+    },
+    "S59": {
+      "tipo": "stub_abierto_S11",
+      "x_mm": 50.0,
+      "largo_desde_el_borde_mm": 59.0,
+      "ancho_mm": 3.01,
+      "f_n1_estimada_MHz": 689.5
+    },
+    "S86": {
+      "tipo": "stub_abierto_S11",
+      "x_mm": 15.0,
+      "largo_desde_el_borde_mm": 86.0,
+      "ancho_mm": 3.01,
+      "f_n1_estimada_MHz": 473.0
+    }
+  },
+  "muestras_mm": {
+    "S43": {
+      "origen": [
+        73.0,
+        4.0
+      ],
+      "ancho": 24.0,
+      "largo": 42.0
+    },
+    "S59": {
+      "origen": [
+        38.0,
+        4.0
+      ],
+      "ancho": 24.0,
+      "largo": 58.0
+    },
+    "S86": {
+      "origen": [
+        3.0,
+        4.0
+      ],
+      "ancho": 24.0,
+      "largo": 85.0
+    }
+  },
+  "agujeros_muestra_mm": {
+    "S43": [
+      [
+        76.0,
+        7.0
+      ],
+      [
+        94.0,
+        7.0
+      ],
+      [
+        76.0,
+        43.0
+      ],
+      [
+        94.0,
+        43.0
+      ]
+    ],
+    "S59": [
+      [
+        41.0,
+        7.0
+      ],
+      [
+        59.0,
+        7.0
+      ],
+      [
+        41.0,
+        59.0
+      ],
+      [
+        59.0,
+        59.0
+      ]
+    ],
+    "S86": [
+      [
+        6.0,
+        7.0
+      ],
+      [
+        24.0,
+        7.0
+      ],
+      [
+        6.0,
+        86.0
+      ],
+      [
+        24.0,
+        86.0
+      ]
+    ]
+  },
+  "uso": "plasticos",
+  "placa_mm": [
+    100.0,
+    100.0
+  ],
+  "transicion_sma": {
+    "pad_mm": 1.27,
+    "taper_mm": 2.0
+  },
+  "drc": []
+}

@@ -26,7 +26,7 @@ sys.path.insert(0, RAIZ)
 from nicegui import app, ui, run, background_tasks   # noqa: E402
 
 from antenas import tipos, vista, fabricacion, exportar, consejos, graficas, ajuste, biblioteca, problemas   # noqa: E402
-from antenas import guia, gpu, entorno, importar_kicad, informe, diagrama   # noqa: E402
+from antenas import guia, gpu, entorno, importar_kicad, informe, diagrama, carcasa, plastico   # noqa: E402
 from antenas import i18n, simular_matlab, vista3d   # noqa: E402
 from antenas.i18n import tr   # noqa: E402
 from antenas import __version__   # noqa: E402
@@ -61,6 +61,7 @@ estado = {
 }
 
 estado['serigrafia'] = dict(SERIGRAFIA_DEFECTO)
+estado['carcasa'] = dict(carcasa.DEFECTO, simular=False)
 _banda_de = presentacion.banda_de
 ICONOS_CONSEJO = {'banda': ('podcasts', 'deep-orange'), 'diseño': ('lightbulb', 'amber-8'),
                   'montaje': ('construction', 'blue-grey'), 'medida': ('straighten', 'teal'),
@@ -462,6 +463,11 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                                             label=tr('Entorno')).classes('w-64').tooltip(
                         tr('Simula además con una carcasa de ABS, una batería metálica o una mano cerca y dice cuánto cambian la frecuencia y la '
                            'eficiencia (2 simulaciones más).'))
+                    chk_carcasa = ui.checkbox(tr('Ajustar y simular con la carcasa del diseño'),
+                                              value=bool(estado['carcasa'].get('simular'))).tooltip(
+                        tr('Pone la carcasa de la pestaña Fabricar (material, pared, holguras) alrededor de la placa y centra la antena con ella '
+                           'puesta. Dice además cuánto habría resonado sin la carcasa (2 simulaciones más). No vale con MATLAB, módulos ni reflector.'))
+                    chk_carcasa.on_value_change(lambda e: (estado['carcasa'].__setitem__('simular', bool(e.value)), marcar_cambio()))
                     chk_gpu = ui.checkbox(tr('Aceleración por GPU (experimental)'), value=gpu_ok)
                     if gpu_ok:
                         chk_gpu.tooltip(tr('Usa el openEMS compilado con motor GPU: en las pruebas, ~10× más rápido. '
@@ -475,7 +481,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                     def cambiar_motor():
                         """Con solo MATLAB no hay precisión, ajuste, verificación de malla, tolerancias, entorno ni GPU."""
                         solo_matlab = sel_motor.value == 'matlab'
-                        for c in (sel_prec, chk_ajustar, chk_malla, chk_tol, sel_entorno):
+                        for c in (sel_prec, chk_ajustar, chk_malla, chk_tol, sel_entorno, chk_carcasa):
                             c.set_enabled(not solo_matlab)
                         if gpu_ok:
                             chk_gpu.set_enabled(not solo_matlab)
@@ -525,7 +531,49 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                     ui.label(tr('Así quedará el texto:')).classes('text-caption texto-sec q-mt-sm')
                     seri_vista = ui.column().classes('w-full gap-0 q-pa-xs').style(
                         'font-family: monospace; border: 1px dashed #8a9aa3; border-radius: 4px')
-
+                with ui.card().classes('grow basis-[340px]'):
+                    _titulo_card(tr('Carcasa 3D (STL)'), 'view_in_ar')
+                    ui.label(tr('Base y tapa para imprimir en 3D, a la medida de la placa: reborde de apoyo, labio de encaje, '
+                                'cierre con tornillo (autorroscante, con tuerca o con inserto) o pegado, y abertura para el conector. La tapa sale boca abajo, lista para imprimir. '
+                                'En Simulación puedes ajustar y simular la antena con la carcasa puesta.')).classes('text-caption texto-sec')
+                    car_ctl = {}
+                    car_ctl['material'] = ui.select({**{k: tr(v) for k, v in carcasa.DESCRIPCIONES.items()}, carcasa.PERSONALIZADO: tr('Personalizado (εr y tanδ propias)')},
+                                                    value=estado['carcasa']['material'],
+                                                    label=tr('Material de impresión')).classes('w-full').tooltip(
+                        tr('Valores típicos de hoja técnica a ~2,4 GHz, sin medir: el color, la marca y la humedad los mueven. Mide el tuyo con el cupón C. Nada de fibra de carbono (CF), grafito ni filamentos conductores o ESD: son conductores y apantallan la antena.'))
+                    car_ctl['relleno'] = ui.number(tr('Relleno (%)'), value=estado['carcasa']['relleno'], step=5, format='%.0f', min=carcasa.LIMITES['relleno'][0], max=carcasa.LIMITES['relleno'][1]).classes('w-full').tooltip(
+                        tr('Una pared de 1,6 mm suele ser maciza (100 %). Con menos relleno la εr efectiva baja. No cuenta con el material Personalizado: se supone medido ya con tu relleno.'))
+                    aviso_material = ui.label(tr('Valores GENÉRICOS de hoja técnica y de la literatura, sin medir: cada filamento (marca, color, humedad, fibra de vidrio) es distinto. Mide el tuyo con el cupón C y úsalo como «Personalizado» antes de fiarte de una simulación con carcasa.')).classes('text-caption texto-aviso')
+                    prop_material = ui.label().classes('text-caption texto-sec')
+                    with ui.row().classes('w-full no-wrap gap-2') as fila_material:
+                        car_ctl['er'] = ui.number(tr('εr del plástico'), value=estado['carcasa']['er'], step=0.05, format='%.2f',
+                                                  min=carcasa.LIMITES['er'][0], max=carcasa.LIMITES['er'][1]).classes('grow')
+                        car_ctl['tand'] = ui.number(tr('tanδ del plástico'), value=estado['carcasa']['tand'], step=0.001, format='%.4f',
+                                                    min=carcasa.LIMITES['tand'][0], max=carcasa.LIMITES['tand'][1]).classes('grow')
+                    fila_material.set_visibility(estado['carcasa']['material'] == carcasa.PERSONALIZADO)
+                    car_ctl['relleno'].set_visibility(estado['carcasa']['material'] != carcasa.PERSONALIZADO)
+                    with ui.row().classes('w-full no-wrap gap-2'):
+                        for k_c, txt_c in (('pared', tr('Pared (mm)')), ('holgura', tr('Holgura lateral (mm)'))):
+                            car_ctl[k_c] = ui.number(txt_c, value=estado['carcasa'][k_c], step=0.1, format='%.1f',
+                                                     min=carcasa.LIMITES[k_c][0], max=carcasa.LIMITES[k_c][1]).classes('grow')
+                    with ui.row().classes('w-full no-wrap gap-2'):
+                        for k_c, txt_c in (('espacio_abajo', tr('Aire bajo la placa (mm)')), ('espacio_arriba', tr('Aire sobre la placa (mm)'))):
+                            car_ctl[k_c] = ui.number(txt_c, value=estado['carcasa'][k_c], step=0.5, format='%.1f',
+                                                     min=carcasa.LIMITES[k_c][0], max=carcasa.LIMITES[k_c][1]).classes('grow')
+                    car_ctl['radio'] = ui.number(tr('Radio de las esquinas (mm)'), value=estado['carcasa']['radio'], step=0.5, format='%.1f',
+                                                 min=carcasa.LIMITES['radio'][0], max=carcasa.LIMITES['radio'][1]).classes('w-full')
+                    car_ctl['fijacion'] = ui.select({k: tr(v) for k, v in carcasa.FIJACIONES.items()}, value=estado['carcasa']['fijacion'],
+                                                    label=tr('Cierre de la carcasa')).classes('w-full').tooltip(
+                        tr('Con tornillo hay cuatro orejetas en las esquinas, con un tornillo de metal junto a la placa: la simulación lo incluye (cabeza, caña, '
+                           'tuerca o inserto) y dice cuánto mueve la frecuencia. Pegada no lleva metal.'))
+                    car_ctl['tornillo'] = ui.select(list(carcasa.TORNILLOS), value=estado['carcasa']['tornillo'],
+                                                    label=tr('Tornillo')).classes('w-full')
+                    car_ctl['abertura'] = ui.checkbox(tr('Abertura para el conector'), value=bool(estado['carcasa']['abertura']))
+                    btn_stl = ui.button(tr('Generar STL (base y tapa)'), icon='view_in_ar').props('color=positive no-caps').classes('w-full q-mt-sm')
+                    res_carcasa = ui.column().classes('w-full gap-1')
+                    ui.button(tr('Medir mi plástico (asistente)'), icon='science', on_click=lambda: ir_asistente_materiales()) \
+                        .props('flat dense no-caps color=teal').classes('w-full q-mt-sm').tooltip(
+                        tr('El asistente de la pestaña Medir te guía para medir la εr y la tanδ de tu plástico con el cupón C y las lleva aquí.'))
         # -------------------------------------------------------------- 4. Medir
         with ui.tab_panel(t_medir).classes('q-pa-sm'):
             with ui.row().classes('w-full wrap items-start gap-4'):
@@ -625,7 +673,76 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                                  'poner en la red en π. Pulsa «Analizar» en una medida.')
                                  ).classes('text-caption texto-sec')
                         res_asist = ui.column().classes('w-full gap-1')
-
+                    with ui.card().classes('w-full') as tarjeta_materiales:
+                        _titulo_card(tr('Asistente de materiales (cupón C)'), 'science')
+                        ui.label(tr('Mide la εr del FR4 de tu cupón o la εr (y, aproximada, la tanδ) de un plástico (la carcasa, un radomo) con los stubs abiertos del cupón C. '
+                                    'Solo necesita S11: lo mide cualquier NanoVNA, también los normales de 900 MHz. Sube el .s1p (el del asistente del NanoVNA de arriba o de Chirptenna VNA) o escribe los valores.')).classes('text-caption texto-sec')
+                        with ui.stepper().props('vertical flat header-nav').classes('w-full') as pasos_mat:
+                            with ui.step(tr('Qué medir'), icon='help_outline'):
+                                mat_modo = ui.toggle({'plastico': tr('Un plástico'), 'fr4': tr('El FR4 del cupón')}, value='plastico').props('dense no-caps')
+                                mat_stub = ui.select({k: tr('Stub de {0:g} mm: λ/4 a unos {1:g} MHz', plastico.STUBS[k]['L'], round(plastico.REF_STUBS[k][0], -1)) for k in plastico.STUBS},
+                                                     value='S43', label=tr('Stub')).classes('w-full')
+                                mat_n = ui.select({1: tr('Modo 1: λ/4 (el más bajo)'), 2: tr('Modo 2: 3λ/4 (3× la frecuencia)'), 3: tr('Modo 3: 5λ/4 (5× la frecuencia)')},
+                                                  value=1, label=tr('Resonancia')).classes('w-full')
+                                mat_esperada = ui.label().classes('text-caption texto-sec')
+                                mat_aviso = ui.label().classes('text-caption texto-aviso')
+                                with ui.stepper_navigation():
+                                    ui.button(tr('Siguiente'), on_click=lambda: pasos_mat.next()).props('color=teal no-caps')
+                            with ui.step(tr('Preparar'), icon='construction'):
+                                ui.label(tr('1. Pide a JLC el cupón C (python cupon/generar_cupon.py C → cupon/cupon_C/cupon_C_JLC.zip). '
+                                            '2. Calibra el NanoVNA (OSL) al final del latiguillo, en el conector del cupón, y mide S11 de UN stub cada vez. '
+                                            'Un NanoVNA normal llega a 900 MHz (modo 1 de los tres stubs: 450, 645 y 870 MHz); los de 1,5 o 2,7 GHz miden también los armónicos.')).classes('text-caption texto-sec')
+                                ui.label(tr('Para un plástico: imprime tiras planas (cara de abajo sobre la cama), con el mismo material, relleno y orientación que '
+                                            'la carcasa, y mide su grosor con un calibre. Sin rendijas: los cuatro taladros de la muestra la centran sobre los tornillos de nailon M3 del cupón; aprieta las tuercas a mano.')).classes('text-caption texto-sec')
+                                ui.label(tr('Para precisión: mide sin y con muestra SIN recalibrar ni mover el cable (si recalibras entre medio, el error de la εr se triplica) y, si tu NanoVNA llega, usa el modo 2 o 3 (el error baja a un tercio). Barre unos ±10 % alrededor de la resonancia con el máximo de puntos.')).classes('text-caption texto-aviso')
+                                ui.button(tr('STL de las muestras'), icon='view_in_ar',
+                                          on_click=lambda: generar_muestras()).props('outline no-caps color=teal').classes('w-full').tooltip(
+                                    tr('Tiras de 24 mm de 2, 3 y 4 mm para los tres stubs, con cuatro taladros M3 en las esquinas para sujetarlas con tornillos de nailon al cupón. '
+                                       'Imprímelas planas, con el mismo material, relleno y orientación que tu carcasa.'))
+                                res_muestras = ui.column().classes('w-full gap-0')
+                                with ui.stepper_navigation():
+                                    ui.button(tr('Siguiente'), on_click=lambda: pasos_mat.next()).props('color=teal no-caps')
+                                    ui.button(tr('Atrás'), on_click=lambda: pasos_mat.previous()).props('flat no-caps')
+                            pl = {}
+                            with ui.step(tr('Medir sin muestra'), icon='looks_one'):
+                                ui.label(tr('Sube el S11 (.s1p) y se busca la resonancia (X = 0 con pendiente positiva) y su resistencia, o escribe la frecuencia y la R que da el NanoVNA.')
+                                         ).classes('text-caption texto-sec')
+                                with ui.column().classes('w-full gap-1') as bloque_sin_plastico:
+                                    ui.upload(label=tr('S11 (.s1p)'), auto_upload=True, max_files=1,
+                                              on_upload=lambda e: subir_s11(e, '0')).props('accept=.s1p,.S1P flat bordered').classes('w-full')
+                                    with ui.row().classes('w-full no-wrap gap-2'):
+                                        pl['f0'] = ui.number(tr('Frecuencia de la resonancia (MHz)'), value=None, format='%.3f').classes('grow')
+                                        pl['r0'] = ui.number(tr('R en la resonancia (Ω)'), value=None, format='%.2f').classes('grow')
+                                with ui.column().classes('w-full gap-1') as bloque_fr4:
+                                    ui.label(tr('Para el FR4 hacen falta al menos dos stubs distintos: sube o escribe la resonancia del modo elegido de cada uno.')).classes('text-caption texto-sec')
+                                    for k_s in plastico.STUBS:
+                                        with ui.row().classes('w-full no-wrap gap-2 items-center'):
+                                            ui.upload(label=tr('S11 de {0}', k_s), auto_upload=True, max_files=1,
+                                                      on_upload=lambda e, k=k_s: subir_s11(e, k)).props('accept=.s1p,.S1P flat bordered').classes('w-48')
+                                            pl['fr4_' + k_s] = ui.number(tr('Frecuencia de {0} (MHz)', k_s), value=None, format='%.3f').classes('grow')
+                                pl['txt0'] = ui.label().classes('text-caption')
+                                with ui.stepper_navigation():
+                                    ui.button(tr('Siguiente'), on_click=lambda: pasos_mat.next()).props('color=teal no-caps')
+                                    ui.button(tr('Atrás'), on_click=lambda: pasos_mat.previous()).props('flat no-caps')
+                            with ui.step(tr('Medir con la muestra'), icon='looks_two') as paso_muestra:
+                                with ui.row().classes('w-full no-wrap gap-2'):
+                                    pl['t'] = ui.number(tr('Grosor de la muestra (mm)'), value=3.0, step=0.1, format='%.2f', min=0.2, max=15).classes('grow')
+                                    pl['gap'] = ui.number(tr('Rendija de aire estimada (mm)'), value=0.05, step=0.01, format='%.2f', min=0, max=1).classes('grow')
+                                ui.upload(label=tr('S11 (.s1p)'), auto_upload=True, max_files=1,
+                                          on_upload=lambda e: subir_s11(e, '1')).props('accept=.s1p,.S1P flat bordered').classes('w-full')
+                                with ui.row().classes('w-full no-wrap gap-2'):
+                                    pl['f1'] = ui.number(tr('Frecuencia de la resonancia (MHz)'), value=None, format='%.3f').classes('grow')
+                                    pl['r1'] = ui.number(tr('R en la resonancia (Ω)'), value=None, format='%.2f').classes('grow')
+                                with ui.stepper_navigation():
+                                    ui.button(tr('Siguiente'), on_click=lambda: pasos_mat.next()).props('color=teal no-caps')
+                                    ui.button(tr('Atrás'), on_click=lambda: pasos_mat.previous()).props('flat no-caps')
+                            with ui.step(tr('Resultado'), icon='check_circle'):
+                                pl['er_fr4'] = ui.number(tr('εr del FR4 de tu placa'), value=None, step=0.01, format='%.3g', min=2.0, max=8.0).classes('w-full').tooltip(
+                                    tr('Déjalo vacío para usar la εr del sustrato del diseño; si mediste antes el FR4 del cupón, se rellena solo.'))
+                                btn_plastico = ui.button(tr('Calcular'), icon='calculate').props('color=teal no-caps').classes('w-full')
+                                res_plastico = ui.column().classes('w-full gap-1')
+                                with ui.stepper_navigation():
+                                    ui.button(tr('Atrás'), on_click=lambda: pasos_mat.previous()).props('flat no-caps')
         # -------------------------------------------------------------- 5. Mis diseños
         with ui.tab_panel(t_bib).classes('q-pa-sm'):
             with ui.card().classes('w-full'):
@@ -941,7 +1058,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
         a = estado['antena']
         biblioteca.guardar(nombre, estado['clave'], estado['params'], estado['sustrato'], estado['reglas'],
                            estado['f_MHz'], estado['bw_MHz'], info=a.info if a else None,
-                           serigrafia=estado['serigrafia'])
+                           serigrafia=estado['serigrafia'], carcasa=estado['carcasa'])
         estado['diseno'] = nombre
         estado['sucio'] = False
         actualizar_cabecera()
@@ -1000,6 +1117,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
         estado['diseno'] = nombre
         regenerar()                          # sin reajustar: se respeta la geometría guardada
         poner_serigrafia(d.get('serigrafia'))
+        poner_carcasa(d.get('carcasa'))
         estado['sucio'] = False
         actualizar_cabecera()
         mostrar_serigrafia()
@@ -1108,6 +1226,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                     or tipos.CATALOGO[estado['clave']].familia in ('panel', 'array'))
         trabajo = {'clave': estado['clave'], 'parametros': estado['params'], 'sustrato': estado['sustrato'],
                    'f_obj_Hz': estado['f_MHz']*1e6, 'precision': sel_prec.value, 'ajustar': chk_ajustar.value,
+                   'carcasa': carcasa.completar(estado['carcasa']) if chk_carcasa.value else None,
                    'verificar_malla': bool(chk_malla.value or sensible), 'entorno': list(sel_entorno.value or []), 'tolerancias': bool(chk_tol.value),
                    'banda_MHz': list(banda_actual()), 'salida': carpeta, 'motor': motor}
         ruta = os.path.join(carpeta, 'trabajo.json')
@@ -1297,6 +1416,30 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                                 '; '.join(tr('{0} {1:.1f} %', tr(f['etiqueta']), f['max_df_pct']) for f in tol['filas']), tol['df_total_pct'],
                                 tr('{0:g}–{1:g} MHz', *tol['banda_sobrevive_MHz']) if tol['banda_sobrevive_MHz'] else tr('ninguna'))
                              ).classes('text-caption')
+                ca = r.get('carcasa')
+                if ca and ca.get('error'):
+                    with ui.row().classes('items-start no-wrap'):
+                        ui.icon('warning', color='warning')
+                        ui.label(tr('No se pudo simular la carcasa: {0}', ca['error'])).classes('text-caption')
+                elif ca:
+                    with ui.row().classes('items-start no-wrap'):
+                        ui.icon('inventory_2', color='positive')
+                        ui.label(tr('Antena ajustada con la carcasa puesta ({0}, pared de {1:g} mm): resuena en {2:g} MHz; sin la carcasa lo haría en {3:g} MHz '
+                                    '({4:+.1f} %). Eficiencia de radiación {5:g} % con ella y {6:g} % sin ella. Si cambias el material o la pared, vuelve a ajustar.',
+                                    ca['parametros']['material'], ca['parametros']['pared'], ca['f_con_MHz'], ca['f_sin_MHz'], 100*(ca['f_sin_MHz']/ca['f_con_MHz'] - 1),
+                                    ca['eta_con_%'], ca['eta_sin_%'])).classes('text-caption')
+                    if ca['parametros']['material'] != carcasa.PERSONALIZADO:
+                        ui.label(tr('Material genérico: son valores de tabla sin medir. Mide el tuyo con el cupón C y vuelve a ajustar con él.')).classes('text-caption texto-aviso')
+                    if 'f_sin_metal_MHz' in ca:
+                        d_met = 100*(ca['f_con_MHz']/ca['f_sin_metal_MHz'] - 1)
+                        gr_met = abs(d_met) > 1.0 or abs(ca['eta_con_%'] - ca['eta_sin_metal_%']) > 5
+                        with ui.row().classes('items-start no-wrap'):
+                            ui.icon('warning' if gr_met else 'check_circle', color='warning' if gr_met else 'positive')
+                            ui.label(tr('Tornillos de metal ({0}, {1}): con ellos resuena en {2:g} MHz y sin ellos, con el mismo plástico, en {3:g} MHz ({4:+.1f} %); '
+                                        'eficiencia {5:g} % frente a {6:g} %. Si pesan, aleja la placa de las esquinas (más holgura), cambia el cierre o pega la tapa.',
+                                        tr(carcasa.FIJACIONES[ca['parametros']['fijacion']]).split(' (')[0], ca['parametros']['tornillo'],
+                                        ca['f_con_MHz'], ca['f_sin_metal_MHz'], d_met, ca['eta_con_%'], ca['eta_sin_metal_%'])
+                                     ).classes('text-caption' + (' texto-aviso' if gr_met else ''))
                 en = r.get('entorno')
                 if en and en.get('error'):
                     with ui.row().classes('items-start no-wrap'):
@@ -1820,6 +1963,213 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
         estado['serigrafia'][clave_s] = valor
         marcar_cambio()
         mostrar_serigrafia()
+
+    def cambiar_carcasa(clave_c, valor):
+        if estado['silencio'] or valor is None:
+            return
+        estado['carcasa'][clave_c] = int(bool(valor)) if clave_c == 'abertura' else (
+            valor if clave_c in ('material', 'fijacion', 'tornillo') else float(valor))
+        car_ctl['tornillo'].set_enabled(estado['carcasa']['fijacion'] != 'adhesivo')
+        fila_material.set_visibility(estado['carcasa']['material'] == carcasa.PERSONALIZADO)
+        car_ctl['relleno'].set_visibility(estado['carcasa']['material'] != carcasa.PERSONALIZADO)
+        mostrar_props_material()
+        marcar_cambio()
+
+    def mostrar_props_material():
+        pers = estado['carcasa']['material'] == carcasa.PERSONALIZADO
+        aviso_material.set_visibility(not pers)
+        er_m, tand_m = carcasa.propiedades(estado['carcasa'], estado['f_MHz']*1e6)
+        prop_material.text = '' if pers else tr('A {0:g} MHz (frecuencia del diseño; la de la tabla es 2,4 GHz, el resto es una tendencia genérica): εr {1:.2f}, tanδ {2:.4f}',
+                                                estado['f_MHz'], er_m, tand_m)
+
+    mostrar_props_material()
+    plastico_medido = {}
+
+    def ir_asistente_materiales():
+        pestanas.value = t_medir
+        tarjeta_materiales.run_method('scrollIntoView')
+
+    def _esperada():
+        ref = plastico.REF_STUBS[mat_stub.value]
+        n = int(mat_n.value)
+        return ref[n - 1] if n <= len(ref) else None
+
+    def _actualizar_asistente():
+        fr4 = mat_modo.value == 'fr4'
+        bloque_fr4.set_visibility(fr4)
+        bloque_sin_plastico.set_visibility(not fr4)
+        paso_muestra.set_visibility(not fr4)
+        mat_stub.set_enabled(not fr4)
+        ref = _esperada()
+        if fr4:
+            mat_esperada.text = tr('Con el FR4 se usan los stubs en el mismo modo (el elegido en «Resonancia»).')
+            mat_aviso.text = tr('El FR4 se mide con dos o tres stubs en el mismo modo: el largo eléctrico del conector, que no se conoce, sale de la recta 1/f frente al largo.')
+        else:
+            mat_esperada.text = (tr('Resonancia esperada con FR4 de εr 4,5 (simulación 3D, sin conector): {0:g} MHz; con una muestra baja entre un 5 y un 40 %.', ref)
+                                 if ref else tr('Ese stub no tiene ese modo dentro de lo simulado: elige otro.'))
+            mat_aviso.text = ''
+
+    for _c in (mat_modo, mat_stub, mat_n):
+        _c.on_value_change(lambda e: _actualizar_asistente())
+    _actualizar_asistente()
+
+    async def subir_s11(e, destino):
+        """destino: '0' (sin muestra), '1' (con muestra) o el nombre de un stub (modo FR4)."""
+        try:
+            datos = await e.file.read()          # NiceGUI 3
+        except AttributeError:
+            datos = e.content.read()             # NiceGUI 2
+        try:
+            f, s = ajuste.leer_s1p(datos.decode('utf-8', errors='replace'))
+        except Exception as ex:
+            ui.notify(tr('No se puede leer el archivo: {0}', ex), type='negative')
+            return
+        stub = destino if destino in plastico.STUBS else mat_stub.value
+        n = int(mat_n.value)
+        refs = plastico.REF_STUBS[stub]
+        if n > len(refs) or not len(f):
+            ui.notify(tr('Ese stub no tiene ese modo dentro de lo simulado: elige otro.'), type='warning')
+            return
+        if destino == '1':
+            f0 = pl['f0'].value or refs[n - 1]
+            r = plastico.elegir_resonancia(plastico.resonancias_stub(f, s), f0*0.8, 0.3)
+        else:
+            r = plastico.elegir_resonancia(plastico.resonancias_stub(f, s), refs[n - 1], 0.15)
+        if r is None:
+            ui.notify(tr('No se ve una resonancia (X = 0 con pendiente positiva) en el margen esperado: escribe los valores a mano o revisa el stub y el modo.'), type='warning')
+            return
+        if destino in plastico.STUBS:
+            pl['fr4_' + destino].value = r['f_MHz']
+        else:
+            pl['f' + destino].value, pl['r' + destino].value = r['f_MHz'], r['R_ohm']
+        ui.notify(tr('Resonancia en {0:g} MHz, R = {1:g} Ω.', r['f_MHz'], r['R_ohm']), type='positive')
+
+    async def calcular_plastico():
+        from nicegui import run
+        res_plastico.clear()
+        s = tipos.sustrato(estado['sustrato'])
+        n = int(mat_n.value)
+        btn_plastico.props('loading')
+        try:                 # resuelve la sección decenas de veces (unos segundos): fuera del hilo de la interfaz
+            if mat_modo.value == 'fr4':
+                fs = {k: pl['fr4_' + k].value for k in plastico.STUBS if pl['fr4_' + k].value}
+                r = await run.io_bound(plastico.er_fr4_stubs, fs, n)
+            else:
+                f0, f1, t = pl['f0'].value, pl['f1'].value, pl['t'].value
+                if not f0 or not f1 or not t:
+                    ui.notify(tr('Faltan las dos resonancias y el grosor.'), type='warning')
+                    return
+                er_sub = pl['er_fr4'].value or s.er
+                w = round(materiales.ancho_microstrip(50, er_sub, s.h), 2)
+                r = await run.io_bound(plastico.medir_stub, f0, f1, t, pl['r0'].value, pl['r1'].value, n, w_mm=w, h_mm=s.h, er_sustrato=er_sub,
+                                       gap_mm=pl['gap'].value or 0.0, tand_sustrato=s.tand)
+        finally:
+            btn_plastico.props(remove='loading')
+        with res_plastico:
+            if not r['ok']:
+                ui.label(r['motivo']).classes('text-caption texto-aviso')
+                return
+            if mat_modo.value == 'fr4':
+                ui.label(tr('FR4 del cupón: εr = {0:g} ± {1:g} (εeff {2:g}; el conector añade unos {3:g} mm de línea eléctrica)',
+                            r['er'], r['er_incertidumbre'], r['eps_eff'], r['lanzamiento_mm'])).classes('text-caption text-weight-medium')
+                ui.label(tr('La simulación 3D da +3 % de εr sobre el valor cuasiestático (la malla de FDTD): no te fíes de menos de ±3 % en el valor absoluto.')).classes('text-caption texto-sec')
+                estado['er_fr4_medido'] = r['er']
+                pl['er_fr4'].value = r['er']
+                ui.button(tr('Usar como sustrato del diseño'), icon='check', on_click=lambda e=r['er']: usar_er_fr4(e)).props('flat dense no-caps color=teal')
+                return
+            ui.label(tr('εr = {0:g} ± {1:g} (la resonancia baja un {2:.2f} %; la muestra lleva el {3:.0f} % de la energía)',
+                        r['er'], r['er_incertidumbre'], -r['desplazamiento_pct'], 100*r['fraccion_energia_muestra'])).classes('text-caption text-weight-medium')
+            if r.get('fuera_de_calibracion'):
+                ui.label(tr('Fuera del rango calibrado en 3D (εr de 2 a 10, grosor de 1,5 a 4,5 mm): menos fiable.')).classes('text-caption texto-aviso')
+            td = r.get('tand')
+            if td is not None:
+                ui.label(tr('tanδ ≈ {0:.4f} ± {1:.4f}', td, r['tand_incertidumbre']) + ('' if r.get('tand_fiable') else ' · ' + tr('no fiable: la incertidumbre es mayor que el valor'))
+                         ).classes('text-caption' + ('' if r.get('tand_fiable') else ' texto-aviso'))
+                ui.label(tr('La tanδ sale de la resistencia en la resonancia (unas décimas de ohmio): un NanoVNA solo la distingue si pasa de ~0,03. Con plásticos de pérdidas bajas, usa la de la literatura.')).classes('text-caption texto-sec')
+            ui.label(tr('Se parte del FR4 con εr {0:g}: mide antes el FR4 de tu cupón («El FR4 del cupón») para afinarlo. Es el valor efectivo de ese trozo, no del filamento.',
+                        pl['er_fr4'].value or s.er)).classes('text-caption texto-sec')
+            plastico_medido.clear()
+            plastico_medido.update(er=r['er'], tand=td if (td is not None and td > 0 and r.get('tand_fiable')) else carcasa.DEFECTO['tand'])
+            ui.button(tr('Usar este material en la carcasa'), icon='check', on_click=usar_plastico).props('flat dense no-caps color=teal')
+
+    btn_plastico.on_click(calcular_plastico)
+    def usar_er_fr4(er):
+        sel_sus.value = materiales.PERSONALIZADO
+        num_er.value = round(er, 3)
+        num_tand.value = num_tand.value or 0.02
+        num_h.value = num_h.value or 1.6
+        ui.notify(tr('Sustrato Personalizado con εr {0:g}. Vuelve a ajustar el tamaño y a simular.', er), type='positive')
+
+    def usar_plastico():
+        for k, v in (('material', carcasa.PERSONALIZADO), ('er', round(plastico_medido['er'], 3)), ('tand', round(plastico_medido['tand'], 4))):
+            car_ctl[k].value = v
+        ui.notify(tr('Material de la carcasa: εr {0:g}, tanδ {1:g}. Vuelve a ajustar con la carcasa.', plastico_medido['er'], plastico_medido['tand']),
+                  type='positive')
+
+
+    def generar_muestras():
+        carpeta_m = os.path.join(DIR_SALIDAS, 'muestras_cupon_C')
+        try:
+            r = plastico.muestras_stl(carpeta_m, nombre_material=estado['carcasa'].get('material', 'plastico'))
+        except Exception as ex:
+            ui.notify(tr('No se pudieron generar las muestras: {0}', ex), type='negative', multi_line=True)
+            return
+        res_muestras.clear()
+        with res_muestras:
+            with ui.row().classes('items-center no-wrap'):
+                ui.label(tr('Guardado en {0}', carpeta_m)).classes('text-caption')
+                ui.button(icon='folder_open', on_click=lambda: os.startfile(carpeta_m)).props('flat round dense')
+            for ruta, (fichero, texto) in zip(r['archivos'], r['lista']):
+                ui.button(f'{fichero} · {texto}', icon='file_download', on_click=lambda p=ruta: ui.download(p)) \
+                    .props('flat dense no-caps').classes('w-full justify-start')
+            ui.label(tr('Imprime todo plano, con el mismo material y relleno que la carcasa. Mide el grosor real con un calibre y úsalo en el cálculo.')
+                     ).classes('text-caption texto-aviso')
+
+    for _k, _c in car_ctl.items():
+        _c.on_value_change(lambda e, k=_k: cambiar_carcasa(k, e.value))
+
+    def poner_carcasa(c):
+        c = c or {}
+        estado['carcasa'] = dict(carcasa.completar(c), simular=bool(c.get('simular')))
+        estado['silencio'] = True
+        try:
+            for k, ctl in car_ctl.items():
+                ctl.value = bool(estado['carcasa'][k]) if k == 'abertura' else estado['carcasa'][k]
+            car_ctl['tornillo'].set_enabled(estado['carcasa']['fijacion'] != 'adhesivo')
+            fila_material.set_visibility(estado['carcasa']['material'] == carcasa.PERSONALIZADO)
+            car_ctl['relleno'].set_visibility(estado['carcasa']['material'] != carcasa.PERSONALIZADO)
+            mostrar_props_material()
+            chk_carcasa.value = bool(estado['carcasa'].get('simular'))
+        finally:
+            estado['silencio'] = False
+        res_carcasa.clear()
+
+    def generar_stl():
+        a = estado['antena']
+        if a is None or not asegurar_guardado():
+            return
+        motivo = carcasa.no_soporta(a)
+        if motivo:
+            ui.notify(motivo, type='warning', multi_line=True)
+            return
+        try:
+            nombre = estado['diseno']
+            rutas = carcasa.exportar_stl(a, tipos.sustrato(estado['sustrato']).h, biblioteca.carpeta(nombre, 'fabricacion'),
+                                         biblioteca.nombre_valido(nombre), estado['carcasa'])
+        except Exception as ex:
+            ui.notify(tr('No se pudo generar la carcasa: {0}', ex), type='negative', multi_line=True)
+            return
+        res_carcasa.clear()
+        with res_carcasa:
+            ui.label(tr('Medidas exteriores: {0:g} × {1:g} × {2:g} mm', *rutas['exterior_mm'])).classes('text-caption')
+            for pieza, texto in (('base', tr('Base (.stl)')), ('tapa', tr('Tapa, boca abajo (.stl)'))):
+                ui.button(texto, icon='file_download', on_click=lambda p=rutas[pieza]: ui.download(p)) \
+                    .props('flat dense no-caps').classes('w-full justify-start')
+            if not estado['carcasa'].get('simular'):
+                ui.label(tr('Antes de imprimir, simula la antena con la carcasa puesta (casilla en Simulación): un plástico de '
+                            'εr ~2,8 baja la frecuencia un 3–6 %.')).classes('text-caption texto-aviso')
+
+    btn_stl.on_click(generar_stl)
 
     def poner_serigrafia(s):
         estado['serigrafia'] = dict(SERIGRAFIA_DEFECTO, **(s or {}))

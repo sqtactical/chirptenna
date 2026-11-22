@@ -39,7 +39,15 @@ def main():
     salida = os.path.abspath(trabajo['salida'])   # openEMS cambia el directorio de trabajo al simular
     os.makedirs(salida, exist_ok=True)
     motor = trabajo.get('motor', 'openems')                # 'openems', 'matlab' o 'ambos' (openEMS y luego MATLAB con la antena resultante)
+    caja = trabajo.get('carcasa') if motor != 'matlab' else None      # carcasa del diseño: se simula y se ajusta DENTRO de ella
     try:
+        if caja:
+            from antenas import carcasa
+            motivo = carcasa.no_soporta(tipos.generar(clave, p, sus))
+            if motivo:
+                raise ValueError(motivo)
+            simulacion.ENTORNO_FIJO = lambda ant, h, f: carcasa.bloques(ant, h, caja, f)
+            progreso(tr('Con la carcasa del diseño ({0}, pared de {1:g} mm): se ajusta con ella puesta.', caja.get('material', 'PLA'), caja.get('pared', 1.6)))
         # con dos bandas la simulación cubre de 0,45 a 3,8 × f (como `ajustar`); sin ellas, de 0,6 a 1,4 ×
         multi = int(p.get('multibanda', 0) or 0) == 1
         rango = (0.45, 3.8) if multi else (0.6, 1.4)
@@ -105,6 +113,18 @@ def main():
             except Exception as ex:
                 resumen['tolerancias'] = {'error': f'{type(ex).__name__}: {ex}'}
                 progreso(f'ERROR en el análisis de tolerancias: {ex}')
+        if caja:
+            # cuánto mueve la carcasa la frecuencia: misma malla con los bloques de aire (control) y de material
+            try:
+                bl = carcasa.bloques(a, tipos.sustrato(sus).h, caja, f_obj)
+                # con tornillos, una simulación más con la carcasa sin su metal: separa lo que pone el plástico de lo que ponen los tornillos
+                var = {'sin_metal': carcasa.sin_metal(bl)} if any(b['tipo'] == 'metal' for b in bl) else None
+                resumen['carcasa'] = simulacion.efecto_entorno(a, tipos.sustrato(sus), f_obj, ['carcasa'], r, prec, malla, rango, progreso,
+                                                               bloques=bl, variantes=var)
+                resumen['carcasa']['parametros'] = carcasa.completar(caja)
+            except Exception as ex:
+                resumen['carcasa'] = {'error': f'{type(ex).__name__}: {ex}'}
+                progreso(f'ERROR en el efecto de la carcasa: {ex}')
         if trabajo.get('entorno') and motor != 'matlab':
             try:
                 resumen['entorno'] = simulacion.efecto_entorno(a, tipos.sustrato(sus), f_obj, trabajo['entorno'], r, prec, malla, rango, progreso)

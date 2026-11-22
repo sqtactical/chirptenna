@@ -86,7 +86,8 @@ def _leer_json(ruta, defecto=None):
         return defecto
 
 
-def guardar(nombre, clave, parametros, sustrato, reglas, f_MHz, bw_MHz, notas=None, info=None, serigrafia=None):
+def guardar(nombre, clave, parametros, sustrato, reglas, f_MHz, bw_MHz, notas=None, info=None, serigrafia=None,
+            carcasa=None):
     """Crea o actualiza un diseño. Conserva la fecha de creación (y las notas y la serigrafía si no se pasan).
 
     serigrafia: qué inscripciones lleva la placa ({'logo': bool, 'tipo': bool, …, 'libre': str})."""
@@ -106,6 +107,7 @@ def guardar(nombre, clave, parametros, sustrato, reglas, f_MHz, bw_MHz, notas=No
         'ancho_banda_MHz': float(bw_MHz),
         'notas': previo.get('notas', '') if notas is None else notas,
         'serigrafia': previo.get('serigrafia') if serigrafia is None else dict(serigrafia),
+        'carcasa': previo.get('carcasa') if carcasa is None else dict(carcasa),
         'creado': previo.get('creado', ahora),
         'modificado': ahora,
     }

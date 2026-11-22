@@ -10,9 +10,9 @@ el zip de JLC; `salidas/` es local y no va al repositorio). Se exportaron **ante
 |---|---|---|---|---|
 | Y52 | `cupon_A_JLC` | cupón de εr: anillos resonantes de 868 MHz y 2,4 GHz | — | — |
 | Y53 | `cupon_B_JLC` | cupón de εr: anillo de 5,8 GHz, líneas abiertas y en L, CPWG, microstrip de 100 Ω | — | — |
-| Y54 | `yagi_recta_2dir_2G4` | Yagi con boom, elementos rectos, 2 directores (49 × 100 mm) | 2445 MHz, S11 −19,7 dB, 7,2 dBi, η 75 % | — |
+| Y54 | `yagi_recta_2dir_2G4` | Yagi con boom, elementos rectos, 2 directores (49 × 100 mm) | 2445 MHz, S11 −19,7 dB, 7,2 dBi, η 75 % | 2534 MHz, −12,1 dB, banda −10 dB 2489–2577 MHz (22-11, `vna/medidas/yagi_recta_2dir_2G4_cal_*`; +3,6 % sobre la simulación) |
 | Y55 | `parche_rectangular_2G4` | parche rectangular (56 × 64 mm) | 2434 MHz, −12,6 dB, 2,9 dBi, η 47 % | 2438 MHz, banda 2417–2458 MHz, −13,1 dB |
-| Y56 | `monopolo_sierpinski_2G4` | monopolo de Sierpinski (25 × 43 mm) | 2462 MHz, −59 dB, 2,2 dBi, η 94 % | 2430 MHz, −22,9 dB |
+| Y56 | `monopolo_sierpinski_2G4` | monopolo de Sierpinski (25 × 43 mm) | 2462 MHz, −59 dB, 2,2 dBi, η 94 % | 2430 MHz, −22,9 dB; segunda medida 22-11: 2502 MHz, −34,3 dB, banda −10 dB desde 2274 MHz hasta el final del barrido (2700), `vna/medidas/sierpinski_2G4_cal_*` (la medida de 2430 MHz y esta de 2502 MHz difieren un 3 %: no sé si por el cable y la ferrita, el SMA o la unidad; sin resolver). Las dos calibraciones del 22-11 coinciden en Γ a 0,03 rms. Medidas con latiguillos, sin ferrita confirmada |
 | Y57 | `monopolo_koch_2G4_ajustable` | monopolo de Koch con marcas de corte (16 × 51 mm) | 2328 MHz (largo a propósito, se recorta), −28 dB, 2,0 dBi | 2343 MHz, −13,1 dB a 2441 MHz |
 | Y58 | `jpole_koch_2G4` | J-pole de Koch (21 × 79 mm) | 2460 MHz, −12,5 dB, 2,2 dBi, η 86 % | 2460 MHz, banda 2432–2489 MHz, −11,4 dB |
 | Y59 | `dipolo_coaxial_2G4` | dipolo con coaxial soldado al centro (48 × 9 mm) | 2464 MHz, −39 dB, 1,8 dBi, η 96 % | — |

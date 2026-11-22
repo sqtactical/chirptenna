@@ -1,0 +1,24 @@
+{
+  "stub": "S86",
+  "largo_mm": 86.0,
+  "er": 4.5,
+  "tand": 0.02,
+  "muestra": null,
+  "resonancias": [
+    {
+      "f_MHz": 450.3,
+      "R_ohm": 2.463,
+      "dXdf_ohm_MHz": 0.1346
+    },
+    {
+      "f_MHz": 1353.565,
+      "R_ohm": 2.635,
+      "dXdf_ohm_MHz": 0.1833
+    },
+    {
+      "f_MHz": 2253.05,
+      "R_ohm": 3.19,
+      "dXdf_ohm_MHz": 0.1947
+    }
+  ]
+}
