@@ -10,13 +10,24 @@ el zip de JLC; `salidas/` es local y no va al repositorio). Se exportaron **ante
 |---|---|---|---|---|
 | Y52 | `cupon_A_JLC` | cupón de εr: anillos resonantes de 868 MHz y 2,4 GHz | — | — |
 | Y53 | `cupon_B_JLC` | cupón de εr: anillo de 5,8 GHz, líneas abiertas y en L, CPWG, microstrip de 100 Ω | — | — |
-| Y54 | `yagi_recta_2dir_2G4` | Yagi con boom, elementos rectos, 2 directores (49 × 100 mm) | 2445 MHz, S11 −19,7 dB, 7,2 dBi, η 75 % | 2534 MHz, −12,1 dB, banda −10 dB 2489–2577 MHz (22-11, `vna/medidas/yagi_recta_2dir_2G4_cal_*`; +3,6 % sobre la simulación) |
+| Y54 | `yagi_recta_2dir_2G4` | Yagi con boom, elementos rectos, 2 directores (49 × 100 mm) | 2445 MHz, S11 −19,7 dB, 7,2 dBi, η 75 % | — |
 | Y55 | `parche_rectangular_2G4` | parche rectangular (56 × 64 mm) | 2434 MHz, −12,6 dB, 2,9 dBi, η 47 % | 2438 MHz, banda 2417–2458 MHz, −13,1 dB |
-| Y56 | `monopolo_sierpinski_2G4` | monopolo de Sierpinski (25 × 43 mm) | 2462 MHz, −59 dB, 2,2 dBi, η 94 % | 2430 MHz, −22,9 dB; segunda medida 22-11: 2502 MHz, −34,3 dB, banda −10 dB desde 2274 MHz hasta el final del barrido (2700), `vna/medidas/sierpinski_2G4_cal_*` (la medida de 2430 MHz y esta de 2502 MHz difieren un 3 %: no sé si por el cable y la ferrita, el SMA o la unidad; sin resolver). Las dos calibraciones del 22-11 coinciden en Γ a 0,03 rms. Medidas con latiguillos, sin ferrita confirmada |
+| Y56 | `monopolo_sierpinski_2G4` | monopolo de Sierpinski (25 × 43 mm) | 2462 MHz, −59 dB, 2,2 dBi, η 94 % | 2430 MHz, −22,9 dB |
 | Y57 | `monopolo_koch_2G4_ajustable` | monopolo de Koch con marcas de corte (16 × 51 mm) | 2328 MHz (largo a propósito, se recorta), −28 dB, 2,0 dBi | 2343 MHz, −13,1 dB a 2441 MHz |
 | Y58 | `jpole_koch_2G4` | J-pole de Koch (21 × 79 mm) | 2460 MHz, −12,5 dB, 2,2 dBi, η 86 % | 2460 MHz, banda 2432–2489 MHz, −11,4 dB |
 | Y59 | `dipolo_coaxial_2G4` | dipolo con coaxial soldado al centro (48 × 9 mm) | 2464 MHz, −39 dB, 1,8 dBi, η 96 % | — |
 | Y62 | `Albatastic_StickTracker` | no es de este proyecto (otra placa del usuario) | — | — |
+
+## Medidas con el NanoVNA (22-11-2026)
+
+Con latiguillos (sin ferrita confirmada), calibración amplia `completa_50k_2700M` (la del usuario de 2,35–2,5 GHz coincide en Γ a 0,03 rms). Datos en `vna/medidas/<diseño>_cal_*` (local).
+
+| Placa | Medido | Simulado (εr 4,5, `predicciones_2G4.md`) | Desvío |
+|---|---|---|---|
+| Y54 Yagi 2 directores | mínimo 2534 MHz, −12,1 dB; banda −10 dB 2489–2577 MHz (88 MHz) | 2447 MHz, −17,6 dB; banda 2365–2531 MHz (166 MHz) | +3,6 % en f; banda más estrecha y peor adaptación |
+| Y56 Sierpinski | mínimo 2502 MHz, −34,3 dB (ruido ±3 dB); banda −10 dB desde 2274 MHz hasta ≥ 2700 MHz | 2476 MHz (centro de banda); banda 2186–2803 MHz | +1,0 % en f |
+
+Las dos resuenan **por encima** de lo simulado con εr 4,5; por la sensibilidad de la simulación (−139 y −81 MHz por unidad de εr), eso corresponde a una εr de ~3,9 (Yagi) y ~4,2 (Sierpinski), no a 4,9.
 
 El meandro y el panel 2×2 estaban preparados en `pedido_2G4/` pero **no se pidieron**. Los diseños **bibanda** y los de 868 MHz de la
 campaña de GPU tampoco: la J-pole unida y la IFA bibanda son lo siguiente a fabricar.

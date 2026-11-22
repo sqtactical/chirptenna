@@ -238,14 +238,14 @@ def construir(L):
         '• Anillos: R5G8 1967,0 MHz (+1,5 % sobre la simulación), R2G4 2428,4 MHz (+1,3 %) y R868 882,3 MHz (−0,9 %). El R868 sí da un pico limpio con tres modos (n = 1, 2, 3), al contrario de lo que decía la simulación.\n'
         '• Antenas: Yagi 2,4 GHz de 2 directores, mínimo en 2534 MHz con −12,1 dB (+3,6 % sobre la simulación); monopolo de Sierpinski, mínimo en 2502 MHz con −34,3 dB y banda por debajo de −10 dB desde 2274 MHz.\n'
         '• Predicciones registradas antes de medir: 8 cumplen, 10 fallan y 2 no se han podido comprobar (ver la tabla).\n'
-        '• Un resultado conjunto: tanto los stubs como las líneas apuntan a un FR4 con εr ≈ 4,9–5,0, más alto que el 4,5 del diseño; los anillos, comparados con una simulación que podría estar sesgada por la malla, no lo confirman. Queda abierto.',
+        '• Dos lecturas de la εr que no se reconcilian: los stubs y las líneas (análisis cuasi-estático) dan εr ≈ 4,9–5,0, pero los resonadores medidos (S80, S30, anillos y las dos antenas) piden, en el simulador 3D, εr ≈ 3,9–4,5. Simular con 4,9 alejaría las antenas de lo medido. Queda abierto.',
         '• PC calibration (OSL + THRU) at the patch-cable ends, checked with the 50 Ω load at the start and four more times: median |S11| −38…−46 dB, with no jumps. No isolation (|S21| floor ≈ −50 dB).\n'
         '• Cupon B open stubs (S80 and S30): clean, repeatable resonances (0.03 % for S80), but the FR4 εr that two stubs give, 5.03, and the launch length, −0.3 mm, are not credible: two stubs are not enough for the method.\n'
         '• Cupon B lines: the L64 − L17 phase difference gives εeff 3.71 (εr ≈ 4.9). MS100 and CPWG agree on an FR4 that is «slower» than the model: the CPWG εeff is 9–17 % higher.\n'
         '• Rings: R5G8 1967.0 MHz (+1.5 % over simulation), R2G4 2428.4 MHz (+1.3 %) and R868 882.3 MHz (−0.9 %). R868 does show a clean peak with three modes (n = 1, 2, 3), contrary to what the simulation said.\n'
         '• Antennas: 2.4 GHz Yagi with 2 directors, minimum at 2534 MHz with −12.1 dB (+3.6 % over simulation); Sierpinski monopole, minimum at 2502 MHz with −34.3 dB and below −10 dB from 2274 MHz.\n'
         '• Predictions registered before measuring: 8 hold, 10 fail and 2 could not be checked (see the table).\n'
-        '• Joint result: both the stubs and the lines point to an FR4 with εr ≈ 4.9–5.0, higher than the 4.5 of the design; the rings, compared with a simulation that may be biased by its mesh, do not confirm it. Still open.'),
+        '• Two readings of εr that do not reconcile: the stubs and lines (quasi-static analysis) give εr ≈ 4.9–5.0, but the measured resonators (S80, S30, rings and both antennas) ask, in the 3D simulator, for εr ≈ 3.9–4.5. Simulating with 4.9 would move the antennas away from what was measured. Still open.'),
         size=9)
     tabla(fig, [0.07, 0.15, 0.86, 0.32], [
         [t('Resultado clave', 'Key result'), t('Valor medido', 'Measured value')],
@@ -321,11 +321,11 @@ def construir(L):
     bloque(fig, 0.44, t(
         '• Repetibilidad al reconectar: frecuencia ≤ 0,06 %; nivel ≤ 0,2 dB salvo una medida del R2G4 (−12,7 dB, probablemente un contacto peor).\n'
         '• El R868 muestra los tres modos con cocientes 1,998 y 2,986 respecto a n = 1. La simulación 3D lo daba como una joroba ancha de −30 dB, inservible como sensor; el hardware lo contradice. Falta medir su desplazamiento con una muestra puesta.\n'
-        '• Los tres anillos salen entre +1,3 y +1,5 % por encima de la simulación (el R868 n=1, −0,9 %). Un FR4 de εr ≈ 4,9 daría el signo contrario, así que esto apunta a un sesgo de la malla de la FDTD y queda sin resolver.\n'
+        '• Los tres anillos salen entre +1,3 y +1,5 % por encima de la simulación (el R868 n=1, −0,9 %). En el simulador, una εr ≈ 4,3–4,4 los reproduciría; con 4,9 saldrían más bajos (signo contrario). Queda sin resolver.\n'
         '• El pico de +49 dB en torno a 2100 MHz es un artefacto del THRU (mínimo muy profundo al dividir); se ignora esa banda.',
         '• Reconnection repeatability: frequency ≤ 0.06 %; level ≤ 0.2 dB except one R2G4 measurement (−12.7 dB, probably a worse contact).\n'
         '• R868 shows the three modes with ratios 1.998 and 2.986 relative to n = 1. The 3D simulation had it as a wide −30 dB hump, useless as a sensor; the hardware contradicts that. Its shift with a sample on top still has to be measured.\n'
-        '• All three rings come out between +1.3 and +1.5 % above the simulation (R868 n=1, −0.9 %). An FR4 with εr ≈ 4.9 would give the opposite sign, so this points to an FDTD mesh bias and remains unresolved.\n'
+        '• All three rings come out between +1.3 and +1.5 % above the simulation (R868 n=1, −0.9 %). In the simulator an εr ≈ 4.3–4.4 would reproduce them; with 4.9 they would come out lower (opposite sign). Still unresolved.\n'
         '• The +49 dB peak around 2100 MHz is a THRU artefact (a very deep minimum when dividing); that band is ignored.'),
         size=9)
     pags.append(fig)
@@ -407,10 +407,10 @@ def construir(L):
     ], [0.2, 0.25, 0.25, 0.3])
     bloque(fig, 0.28, t(
         '• Con la calibración del usuario y la amplia, las dos antenas coinciden dentro de |ΔΓ| = 0,03 rms (0,053 máximo), que es el error de la calibración del usuario (su suelo en la carga es −31…−36 dB). Por debajo de −25 dB no se distinguen: la profundidad del Sierpinski debe leerse como «mejor que −30 dB».\n'
-        '• La Yagi resuena un 3,6 % por encima de lo simulado, al contrario de lo que daría un FR4 de εr más alta. El Sierpinski, un 1,6 % por encima; una medida anterior de otra tanda dio 2430 MHz (−22,9 dB), un 3 % más baja, y no sé si es por el cable y la ferrita, el SMA o la unidad.\n'
+        '• La Yagi resuena un 3,6 % por encima de lo simulado con εr 4,5 (2447 MHz) y el Sierpinski un 1,0 % (centro de banda simulado, 2476 MHz). Con la sensibilidad de la simulación (−139 y −81 MHz por unidad de εr) eso corresponde a εr ≈ 3,9 y ≈ 4,2, no a 4,9. Con εr 4,9 resonarían a ≈ 2391 y ≈ 2444 MHz (−5,6 % y −2,3 % respecto a lo medido), peor que con 4,5. La Yagi además tiene la banda más estrecha (88 frente a 166 MHz) y peor adaptación (−12,1 frente a −17,6 dB): no todo es la εr (cable sin ferrita, SMA, tolerancias).\n'
         '• Se midieron con latiguillos; no consta si había ferrita en el cable (la hoja del pedido la pedía para masas pequeñas).',
         '• With the user\'s and the wide calibration, both antennas agree within |ΔΓ| = 0.03 rms (0.053 maximum), which is the error of the user\'s calibration (its floor on the load is −31…−36 dB). Below −25 dB they cannot be told apart: the Sierpinski depth should be read as «better than −30 dB».\n'
-        '• The Yagi resonates 3.6 % above simulation, the opposite of what a higher-εr FR4 would give. The Sierpinski is 1.6 % above; an earlier measurement from another session gave 2430 MHz (−22.9 dB), 3 % lower, and I do not know whether it is the cable and ferrite, the SMA or the unit.\n'
+        '• The Yagi resonates 3.6 % above the εr 4.5 simulation (2447 MHz) and the Sierpinski 1.0 % (simulated band centre, 2476 MHz). With the simulation sensitivity (−139 and −81 MHz per unit of εr) that corresponds to εr ≈ 3.9 and ≈ 4.2, not 4.9. With εr 4.9 they would resonate at ≈ 2391 and ≈ 2444 MHz (−5.6 % and −2.3 % relative to the measurement), worse than with 4.5. The Yagi also has a narrower band (88 vs 166 MHz) and worse matching (−12.1 vs −17.6 dB): not everything is εr (cable without ferrite, SMA, tolerances).\n'
         '• They were measured with patch cables; it is not recorded whether a ferrite was on the cable (the order sheet asked for one for small ground planes).'),
         size=8.5)
     pags.append(fig)
@@ -421,12 +421,12 @@ def construir(L):
     y = bloque(fig, y, t('Conclusiones', 'Conclusions'), size=11, negrita=True, color=AZUL)
     y = bloque(fig, y, t(
         '• El instrumento y la calibración funcionan: stubs, anillos y líneas son repetibles a 0,03–0,3 % en frecuencia.\n'
-        '• La εr del FR4 de esta placa parece ser ≈ 4,9–5,0 (stubs y líneas), no 4,5. Los anillos y las antenas no lo confirman por sí solos; una simulación con la εr corregida lo resolvería.\n'
+        '• La εr del FR4 sale ≈ 4,9–5,0 de los stubs y las líneas (cuasi-estático), pero los resonadores (S80, S30, anillos y antenas) piden en el simulador 3D εr ≈ 3,9–4,5. No se reconcilian y no se debe usar 4,9 en el simulador: empeoraría las antenas.\n'
         '• El método de los stubs con solo dos largos no separa la εr del conector; hace falta un tercer largo (cupón C) o resolver la reactancia del conector.\n'
         '• El R868 es utilizable como sensor de plásticos (pico limpio, tres modos); falta medir su desplazamiento con una muestra.\n'
         '• La CPWG real es más lenta que su modelo de diseño.',
         '• The instrument and calibration work: stubs, rings and lines are repeatable to 0.03–0.3 % in frequency.\n'
-        '• The FR4 εr of this board appears to be ≈ 4.9–5.0 (stubs and lines), not 4.5. The rings and antennas do not confirm it on their own; a simulation with the corrected εr would settle it.\n'
+        '• The FR4 εr comes out ≈ 4.9–5.0 from the stubs and lines (quasi-static), but the resonators (S80, S30, rings and antennas) ask for εr ≈ 3.9–4.5 in the 3D simulator. They do not reconcile and 4.9 should not be used in the simulator: it would make the antennas worse.\n'
         '• The stub method with only two lengths does not separate εr from the connector; a third length (coupon C) or a connector reactance model is needed.\n'
         '• R868 is usable as a plastics sensor (clean peak, three modes); its shift with a sample still has to be measured.\n'
         '• The real CPWG is slower than its design model.'), size=9)
@@ -449,12 +449,12 @@ def construir(L):
     y = bloque(fig, y, t('Siguientes pasos', 'Next steps'), size=11, negrita=True, color=AZUL)
     bloque(fig, y, t(
         '1. Medir el tercer stub (cupón C) y ajustar la εr con tres largos.\n'
-        '2. Simular otra vez los anillos con εr ≈ 4,9 y comprobar si el sesgo de +1,3…+1,5 % desaparece.\n'
+        '2. Simular en 3D la Yagi, el Sierpinski y los anillos con εr 4,2, 4,5 y 4,9 y comprobar el desvío de cada uno; averiguar por qué las líneas y los resonadores dan εr distintas.\n'
         '3. Simular la CPWG en 3D con las vías y la masa inferior.\n'
         '4. Medir un anillo (R868) con una muestra de plástico de εr conocida.\n'
         '5. Repetir el Sierpinski con y sin ferrita y medir el resto de antenas del pedido (parche, Koch, J-pole, dipolo).',
         '1. Measure the third stub (coupon C) and fit εr with three lengths.\n'
-        '2. Re-simulate the rings with εr ≈ 4.9 and check whether the +1.3…+1.5 % bias disappears.\n'
+        '2. Simulate the Yagi, the Sierpinski and the rings in 3D with εr 4.2, 4.5 and 4.9 and check each deviation; find out why the lines and the resonators give different εr.\n'
         '3. Simulate the CPWG in 3D with the vias and bottom ground.\n'
         '4. Measure a ring (R868) with a plastic sample of known εr.\n'
         '5. Repeat the Sierpinski with and without a ferrite and measure the remaining antennas of the order (patch, Koch, J-pole, dipole).'), size=9)

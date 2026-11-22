@@ -163,4 +163,4 @@ Separando el conector con los retardos de L17 (0,195 ns) y L64 (0,497 ns), de lo
 
 ## Fe de erratas
 
-(vacía)
+- 22-11-2026 (después de comparar con las antenas): la frase «los anillos apuntan a lo contrario si se interpretan sin la sobre-εeff…» y la conclusión de un FR4 con εr ≈ 4,9–5,0 valen **solo para el análisis cuasi-estático de las líneas y los stubs**. En el simulador 3D, los resonadores medidos piden una εr **menor** que 4,5: S80 ≈ 4,45; S30 ≈ 3,9; anillos ≈ 4,3–4,4; Yagi ≈ 3,9; Sierpinski ≈ 4,2 (sensibilidades de `predicciones_2G4.md` y de los stubs 3D). Simular con 4,9 alejaría las antenas de lo medido. Las dos lecturas no se reconcilian con los datos actuales. Además, en `placas_pedidas_2G4.md` la columna de 2430 MHz del Sierpinski era una simulación (09-11), no una medida: la «discrepancia del 3 % entre medidas» de la primera versión del informe no existe.
