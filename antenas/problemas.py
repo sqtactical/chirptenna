@@ -42,6 +42,12 @@ ESTADO = {
     'bucle': ('pendiente', 'Simulado (868 MHz y 2,4 GHz): adapta con la red en L calculada; η ~40–50 %, banda estrecha'),
     'jpole_koch': ('validada', 'Validada en simulación (868 MHz y 1,2 GHz; 2,4 GHz casi)'),
     'array_fase': ('pendiente', 'Sin simular ni validar (dos dipolos con línea de retardo)'),
+    'dipolo_plegado': ('pendiente', 'Recién añadido, sin simular ni validar'),
+    'moxon': ('pendiente', 'Recién añadido, sin simular ni validar'),
+    'lpda': ('pendiente', 'Recién añadida, sin simular ni validar'),
+    'antena_ranura': ('pendiente', 'Recién añadida, sin simular ni validar'),
+    'espiral': ('pendiente', 'Recién añadida, sin simular ni validar'),
+    'torniquete': ('pendiente', 'Recién añadido, sin simular ni validar'),
     'diedro': ('pendiente', 'Sin simular ni validar (tres placas; modelo de placas giradas)'),
     'reflector_esquina': ('pendiente', 'Sin simular ni validar (tres placas; modelo de placas giradas)'),
     'helice_normal': ('pendiente', 'Sin simular ni validar (hilo helicoidal; tira de flex)'),
@@ -56,6 +62,30 @@ def estado(clave):
 
 # Problemas que no dependen de los parámetros
 FIJOS = {
+    'dipolo_plegado': [
+        ('aviso', 'Sin simular ni medir. La impedancia del lazo (~290 Ω) y el transformador λ/4 son teóricos: hay que centrar simulando. El lazo queda en cortocircuito '
+                  'en continua (vivo a masa por la vía) y se exporta con todo el cobre a masa, como la Yagi de dipolo plegado.'),
+    ],
+    'moxon': [
+        ('aviso', 'Sin simular ni medir. Las cotas salen de un Moxon de hilo en el aire (ancho 0,477 λ, colas y hueco como fracción del ancho) y no están calibradas para el FR4; '
+                  'el reflector queda unido a la tira de masa donde lo cruza la línea. El haz sale hacia el elemento excitado (+y).'),
+    ],
+    'lpda': [
+        ('aviso', 'Sin simular ni medir. El haz sale hacia los dipolos pequeños, o sea hacia el conector: el cable queda delante de la antena. '
+                  'La línea de dos caras es una microstrip de 50 Ω, no la línea de impedancia más alta que usan las log-periódicas de hilo.'),
+    ],
+    'antena_ranura': [
+        ('aviso', 'Sin simular ni medir. La fórmula de la ranura (λ0/(2√((εr+1)/2))) resonaba un ~20 % alta en una simulación de prueba (08-11): hay que centrar. '
+                  'Radia por las dos caras y necesita una masa de ~2 largos de ranura.'),
+    ],
+    'espiral': [
+        ('aviso', 'Sin simular ni medir. Se alimenta con un coaxial soldado por detrás, en el centro (sin balun): el cable altera la cara trasera. '
+                  'La razón axial y el sentido de giro de cada cara están por simular.'),
+    ],
+    'torniquete': [
+        ('aviso', 'Sin simular ni medir. El desfase de 90° sale de la diferencia de largo entre los dos dipolos (la simulación de prueba del 08-11 en GPS L1 no la cerró); '
+                  'se alimenta con un coaxial soldado por detrás, en el centro.'),
+    ],
     'array_fase': [
         ('aviso', 'Sin simular ni medir. La estimación del tamaño de los dipolos es la del bowtie suelto: el acoplo entre los dos la mueve, hay que centrar simulando. '
                   'La colineal en serie con la separación cambiada no servía para inclinar el haz (los dipolos se acoplan por la línea común): aquí cada dipolo tiene su línea.'),

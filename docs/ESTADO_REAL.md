@@ -9,7 +9,7 @@
 
 ## Tipos de antena
 
-32 tipos: **17 validados en simulación**, 10 pendientes de validación y 5 que no funcionan. «Validada» significa que openEMS la da adaptada (S11 ≤ −10 dB en la banda) y radiando; no significa medida.
+38 tipos: **17 validados en simulación**, 16 pendientes de validación y 5 que no funcionan. «Validada» significa que openEMS la da adaptada (S11 ≤ −10 dB en la banda) y radiando; no significa medida.
 
 ### Validados en simulación
 
@@ -37,16 +37,22 @@
 
 | Tipo | Clave | Estado |
 |---|---|---|
+| Antena de ranura | `antena_ranura` | Recién añadida, sin simular ni validar |
 | Array de 2 dipolos bowtie con línea de retardo | `array_fase` | Sin simular ni validar (dos dipolos con línea de retardo) |
 | Array de parches 2×2 / 4×4 (directivo) | `array_parches` | Pendiente de validación |
 | Bucle impreso (pequeño, con condensador y red en π) | `bucle` | Simulado (868 MHz y 2,4 GHz): adapta con la red en L calculada; η ~40–50 %, banda estrecha |
 | Colineal Franklin (horquillas) | `colineal_franklin` | Adapta, pero con poca banda y poca ganancia |
 | Dipolo en V (dos alas) | `diedro` | Sin simular ni validar (tres placas; modelo de placas giradas) |
+| Dipolo plegado | `dipolo_plegado` | Recién añadido, sin simular ni validar |
+| Espiral de Arquímedes | `espiral` | Recién añadida, sin simular ni validar |
 | Hélice cuadrifilar en flex (GPS) | `helice_cuadrifilar` | Solo geometría, vista 3D y tira de flex: no se simula desde la interfaz |
 | Hélice de modo normal en flex | `helice_normal` | Sin simular ni validar (hilo helicoidal; tira de flex) |
+| Log-periódica de dipolos | `lpda` | Recién añadida, sin simular ni validar |
+| Moxon (rectángulo directivo) | `moxon` | Recién añadido, sin simular ni validar |
 | Parche con ranura en U | `parche_ranura` | Sin testear ni validar |
 | Parche de Minkowski | `parche_minkowski` | Pendiente de validación (eficiencia baja en FR4) |
 | Reflector de esquina (dipolo + 2 placas) | `reflector_esquina` | Sin simular ni validar (tres placas; modelo de placas giradas) |
+| Torniquete (dipolos cruzados) | `torniquete` | Recién añadido, sin simular ni validar |
 
 ### No funcionan
 

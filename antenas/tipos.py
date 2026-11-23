@@ -31,7 +31,7 @@ from . import bibanda
 from . import bucle
 from . import dipolos
 from . import tridimensional
-from . import arrays_fase
+from . import arrays_fase, planares
 from . import ajuste
 from . import conector
 from . import integracion
@@ -959,7 +959,68 @@ CATALOGO['helice_cuadrifilar'].parametros = [replace(q, defecto={'diametro': 14,
                                              for q in CATALOGO['helice_cuadrifilar'].parametros]
 
 
-GRUPO_AJUSTE = {'array_fase': 'sin_ajuste', 'diedro': 'sin_ajuste', 'reflector_esquina': 'sin_ajuste', 'helice_normal': 'sin_ajuste', 'helice_cuadrifilar': 'sin_ajuste',
+_P_LINEA = [Parametro('ancho_pista', 'Ancho de los elementos [mm]', 1.5, 0.3, 15, 0.05),
+            Parametro('largo_alimentacion', 'Largo de la línea de 50 Ω hasta los elementos [mm]', 12, 4, 200, 0.5),
+            Parametro('ancho_boom', 'Ancho de la tira de masa bajo la línea [mm]', 8, 4, 30, 0.5)]
+for _t4 in [
+    TipoAntena('dipolo_plegado', 'Dipolo plegado',
+               'Un lazo de media onda cerrado: el conductor alimentado y otro paralelo unidos por los extremos (el de arriba en la cara inferior, con una vía en un extremo). '
+               'Impedancia ~290 Ω, que un transformador λ/4 baja a 50 Ω; más banda que el dipolo recto. Sin validar.', 'dipolo',
+               [Parametro('largo', 'Largo del dipolo [mm]', 47.5, 5, 500, 0.1),
+                Parametro('separacion', 'Separación entre los dos conductores [mm]', 5, 2, 60, 0.5,
+                          ayuda='Entre ejes. Más separación, menos impedancia y más banda'),
+                Parametro('z_transformador', 'Impedancia del transformador λ/4 [Ω]', 120, 60, 200, 1,
+                          ayuda='√(50 Ω · impedancia del lazo): ~120 Ω para un lazo de ~290 Ω')] + _P_LINEA,
+               'largo', precision='±25 % (sin calibrar)'),
+    TipoAntena('moxon', 'Moxon (rectángulo directivo)',
+               'Dos elementos doblados en rectángulo, el excitado y un reflector, con las colas enfrentadas: unos 6 dBi con muy buena relación delante/atrás en una placa '
+               'compacta. El haz sale hacia el elemento excitado (+y). Sin validar.', 'dipolo',
+               [Parametro('ancho', 'Ancho del rectángulo [mm]', 45.3, 5, 500, 0.1),
+                Parametro('cola_excitado', 'Cola del elemento excitado [mm]', 5.2, 0.5, 100, 0.1),
+                Parametro('hueco', 'Hueco entre las colas [mm]', 2.8, 0.5, 50, 0.1,
+                          ayuda='~0,03 λ: acoplo entre el excitado y el reflector'),
+                Parametro('cola_reflector', 'Cola del reflector [mm]', 5.9, 0.5, 100, 0.1)] + _P_LINEA,
+               'ancho', escala_conjunta=('cola_excitado', 'hueco', 'cola_reflector'), precision='±25 % (sin calibrar)'),
+    TipoAntena('lpda', 'Log-periódica de dipolos',
+               'Una fila de dipolos antipodales cuyo largo crece con la distancia al conector, sobre una línea de dos caras: directiva (~6–8 dBi) y de banda ancha '
+               '(más de una octava). El haz sale hacia los dipolos pequeños, o sea hacia el conector. Placa alargada. Sin validar.', 'dipolo',
+               [Parametro('largo_brazo', 'Largo del brazo mayor [mm]', 34.8, 4, 400, 0.1),
+                Parametro('elementos', 'Número de dipolos', 7, 3, 16, 1, True, ayuda='Más dipolos, más banda y placa más larga'),
+                Parametro('tau', 'Razón τ entre elementos', 0.88, 0.7, 0.97, 0.01, ayuda='Más cerca de 1, más ganancia y más elementos para la misma banda'),
+                Parametro('sigma', 'Separación relativa σ', 0.16, 0.05, 0.3, 0.01, ayuda='Distancia entre elementos = 2σ · su largo total')] + _P_LINEA,
+               'largo_brazo', precision='±25 % (sin calibrar)'),
+    TipoAntena('antena_ranura', 'Antena de ranura',
+               'Una ranura de media onda en el plano de masa, alimentada por una microstrip que la cruza y acaba en un stub abierto. Radia por las dos caras, '
+               'con polarización lineal. Sin validar.', 'plano',
+               [Parametro('largo_ranura', 'Largo de la ranura [mm]', 44.4, 5, 500, 0.1),
+                Parametro('ancho_ranura', 'Ancho de la ranura [mm]', 3, 0.5, 30, 0.1),
+                Parametro('largo_stub', 'Largo del stub tras la ranura [mm]', 17, 2, 200, 0.5),
+                Parametro('desplazamiento', 'Desplazamiento de la línea respecto al centro [mm]', 0, -100, 100, 0.5,
+                          ayuda='Mueve el punto de alimentación hacia el extremo de la ranura: baja la impedancia'),
+                Parametro('lado_masa', 'Lado de la masa (en largos de ranura)', 2.2, 1.2, 5, 0.1)],
+               'largo_ranura', precision='±25 % (sin calibrar)'),
+    TipoAntena('espiral', 'Espiral de Arquímedes',
+               'Dos brazos en espiral, uno por cada cara, alimentados en el centro por un coaxial: polarización circular y banda ancha, radia por las dos caras '
+               '(un sentido de giro en cada una). Sin validar.', 'plano',
+               [Parametro('radio', 'Radio exterior [mm]', 14.75, 3, 300, 0.25),
+                Parametro('ancho_pista', 'Ancho del brazo [mm]', 1.0, 0.2, 10, 0.05),
+                Parametro('hueco', 'Hueco entre brazos [mm]', 1.0, 0.2, 10, 0.05),
+                Parametro('sentido', 'Sentido de giro de la espiral', 0, 0, 1, 1, True, opciones={0: 'Antihorario', 1: 'Horario'})],
+               'radio', precision='±30 % (sin calibrar)'),
+    TipoAntena('torniquete', 'Torniquete (dipolos cruzados)',
+               'Dos dipolos cruzados de largos distintos alimentados a la vez por un coaxial en el centro: el desfase de ~90° sale de la diferencia de largo y da '
+               'polarización circular (GPS) sin red de fase. Radia por las dos caras. Sin validar.', 'plano',
+               [Parametro('largo', 'Largo del brazo [mm]', 22.6, 3, 300, 0.1),
+                Parametro('asimetria', 'Asimetría entre los dos dipolos', 0.08, -0.3, 0.3, 0.01,
+                          ayuda='Un dipolo mide L(1 + a) y el otro L(1 − a). El signo elige el sentido de giro'),
+                Parametro('ancho_pista', 'Ancho de los brazos [mm]', 2.0, 0.3, 15, 0.1),
+                Parametro('lado_centro', 'Lado del cuadrado central [mm]', 4.5, 4.2, 20, 0.1)],
+               'largo', precision='±30 % (sin calibrar)'),
+]:
+    CATALOGO[_t4.clave] = _t4
+
+
+GRUPO_AJUSTE = {'dipolo_plegado': 'sin_ajuste', 'moxon': 'sin_ajuste', 'lpda': 'sin_ajuste', 'antena_ranura': 'sin_ajuste', 'espiral': 'sin_ajuste', 'torniquete': 'sin_ajuste', 'array_fase': 'sin_ajuste', 'diedro': 'sin_ajuste', 'reflector_esquina': 'sin_ajuste', 'helice_normal': 'sin_ajuste', 'helice_cuadrifilar': 'sin_ajuste',
                 'monopolo_recto': 'monopolo_pista', 'monopolo_meandro': 'monopolo_pista',
                 'monopolo_koch': 'monopolo_pista', 'monopolo_hilbert': 'monopolo_pista', 'monopolo_flecha': 'sin_ajuste',
                 'monopolo_sierpinski': 'monopolo', 'jpole': 'jpole', 'jpole_koch': 'jpole', 'yagi_koch': 'yagi',
@@ -1005,6 +1066,12 @@ ESCALABLES = {
     'dipolo': ('ancho_pista', 'hueco', 'largo_alimentacion'),
     'dipolo_bowtie': ('ancho_pista', 'hueco', 'largo_alimentacion', 'ancho_flecha'),
     'array_fase': ('separacion', 'largo_alimentacion', 'ancho_pista'),
+    'dipolo_plegado': ('separacion', 'largo_alimentacion', 'ancho_pista'),
+    'moxon': ('largo_alimentacion', 'ancho_pista'),
+    'lpda': ('largo_alimentacion', 'ancho_pista'),
+    'antena_ranura': ('ancho_ranura', 'largo_stub'),
+    'espiral': ('ancho_pista', 'hueco'),
+    'torniquete': ('ancho_pista',),
     'colineal_franklin': ('ancho_pista', 'hueco_horquilla') + _MASA,
     'bucle': ('lado', 'ancho_pista') + _MASA,
 }
@@ -1027,10 +1094,10 @@ for _t in CATALOGO.values():
     # Forma de la placa: los monopolos y la Yagi usan además el margen al borde; en parches y
     # arrays el borde lo fija el margen de masa
     _t.parametros = _t.parametros + (PARAMS_CONTORNO if _t.familia in ('monopolo', 'yagi', 'jpole', 'dipolo', 'colineal', 'vivaldi', 'bucle')
-                                     else [] if _t.familia == 'panel'      # rectangular, con los taladros
+                                     else [] if _t.familia in ('panel', 'plano')      # rectangular, con los taladros (o circular, o cuadrada)
                                      else PARAMS_CONTORNO[:1]) + [PARAM_ESCALADO]
     # J-pole y panel van con coaxial soldado; la COCO, con SMA (el IPEX no encaja con sus dos tiras)
-    if _t.familia not in ('jpole', 'panel') and _t.clave != 'colineal_coco':
+    if _t.familia not in ('jpole', 'panel') and _t.clave not in ('colineal_coco', 'espiral', 'torniquete'):
         _t.parametros = _t.parametros + [PARAM_CONECTOR]
     _t.parametros = _t.parametros + ajuste.parametros_para(GRUPO_AJUSTE[_t.clave])
     if _t.familia in ('yagi', 'panel'):
@@ -1117,6 +1184,8 @@ def generar(clave, parametros=None, nombre_sustrato=None):
         a = dipolos.generar_dipolo(p, s, eps_eff_monopolo(s.er))
     elif clave == 'array_fase':
         a = arrays_fase.generar_array_fase(p, s, eps_eff_monopolo(s.er))
+    elif clave in planares.TIPOS:
+        a = getattr(planares, 'generar_' + planares.TIPOS[clave])(p, s, eps_eff_monopolo(s.er))
     elif clave == 'diedro':
         a = tridimensional.generar_diedro(p, s, eps_eff_monopolo(s.er))
     elif clave == 'reflector_esquina':
@@ -1235,7 +1304,7 @@ def ajustar_ancho_banda(clave, f_obj, bw_necesario, parametros=None, nombre_sust
                'array': tr('usa un sustrato más grueso (o con menos εr, como RO4350B)'),
                'dipolo': tr('usa brazos rectos (iteración 0) o más anchos'),
                'vivaldi': tr('abre más la boca o alarga las aletas'),
-               'colineal': tr('usa menos tramos o elementos (la banda se estrecha al añadirlos)')}[tipo.familia]
+               'colineal': tr('usa menos tramos o elementos (la banda se estrecha al añadirlos)')}.get(tipo.familia, tr('cambia el tamaño o la forma de los elementos'))
     if clave == 'parche_minkowski' or (clave == 'array_parches' and int(p['elemento']) == 1):
         consejo += ', o parches rectangulares (las muescas estrechan la banda)'
     return q, (tr('No llega: {0:.1f} % estimado frente a {1:.1f} % necesario (con margen). Para ganar ancho de banda: {2}.', 100*fbw, 100*objetivo, consejo))
@@ -1321,6 +1390,8 @@ def estimar_f(clave, parametros, nombre_sustrato=None, calibrada=True):
         f = dipolos.estimar_f_dipolo(p, eps_eff_monopolo(s.er))
     elif clave == 'array_fase':
         f = arrays_fase.estimar_f_array_fase(p, nombre_sustrato)
+    elif clave in planares.TIPOS:
+        f = planares.estimar_f(clave, p, s.er, eps_eff_monopolo(s.er))
     elif clave == 'diedro':
         f = tridimensional.estimar_f_diedro(p, eps_eff_monopolo(s.er))
     elif clave == 'reflector_esquina':

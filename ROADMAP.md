@@ -18,7 +18,8 @@ sensor), no solo para generar antenas sueltas con su conector. Eso exige tres co
 ## Principios
 
 - **Medir antes de ampliar.** No se añaden tipos nuevos hasta cerrar la fase 1. Un tipo medido vale más que diez
-  simulados.
+  simulados. *(23-11: excepción pedida por el usuario tras medir los cupones y dos antenas el 22-11: dipolo plegado, Moxon, log-periódica,
+  ranura, espiral y torniquete, marcados «pendiente» hasta simularlos y medirlos; ver `antenas/planares.py`.)*
 - **Menos tipos, mejor hechos.** Cada tipo cuesta galería, avisos, tres traducciones, dos README y manual. Lo que
   no funciona se aparta de la vista.
 - **La malla manda.** Ningún resultado se da por bueno con un solo paso de malla si el tipo es sensible (bibanda,
@@ -51,7 +52,7 @@ parche, dipolo con coaxial y Yagi recta de 2 directores.
   (868 MHz, 2,4 GHz; 5,8 GHz necesita otro analizador) en `materiales.SUSTRATOS`.
 - [x] (11-11, tareas F1.1 y F1.2) **Predicciones escritas** (`docs/desarrollo/medidas/predicciones_2G4.md`) y **herramienta
   `herramientas/comparar_medida.py`** probada con una medida sintética (desviación de 3 % medida como 3,0 %).
-- [ ] **Medir las seis antenas** (Y54–Y59; el meandro y el panel no se pidieron) (S11, banda a −10 dB, R/X) con `vna/medir_antena_pc.py` y guardar los `.s1p`.
+- [ ] **Medir las seis antenas** (hechas el 22-11: Yagi Y54 y Sierpinski Y56; quedan Y55, Y57–Y59; el meandro y el panel no se pidieron) (S11, banda a −10 dB, R/X) con `vna/medir_antena_pc.py` y guardar los `.s1p`.
 - [ ] **Comparar simulación y medida** tipo por tipo: desviación de frecuencia, de banda y de profundidad de S11.
   Herramienta nueva `herramientas/comparar_medida.py <diseño> <s1p>`: superpone las curvas y da los tres números.
 - [ ] **Fijar la malla de referencia**: repetir cada simulación con 2–3 pasos y quedarse con el criterio que más se
@@ -166,4 +167,4 @@ diseñar la antena **dentro** de otra placa.
 - Más tipos fractales por el mero hecho de serlo: Koch no acorta a 868 MHz e Hilbert no adapta; el único fractal
   con una ventaja clara es el Sierpinski de dos bandas.
 - Forzar los parches en FR4 fuera de 5,8 GHz: los limita la pérdida del material, no el diseño.
-- Añadir tipos antes de cerrar la fase 1.
+- Añadir tipos antes de cerrar la fase 1 (salvo la excepción del 23-11 de los seis tipos planares; no sumar más sin medir).
