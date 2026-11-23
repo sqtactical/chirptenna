@@ -48,8 +48,9 @@ ESTADO = {
     'antena_ranura': ('pendiente', 'Simulada a 2,4 GHz: −10,7 dB justos (banda 2364–2479 MHz, 4,7 dBi, η 73 %); sin medir'),
     'espiral': ('pendiente', 'Simulada a 2,4 GHz: −10,1 dB pero con 23 MHz de banda; razón axial de 16 dB (poco circular)'),
     'torniquete': ('pendiente', 'Simulado a 2,4 GHz: −21,8 dB, η 97 %, pero razón axial de 12 dB: adapta sin dar polarización circular'),
-    'monopolo_uwb': ('pendiente', 'Recién añadido, sin simular ni validar'),
-    'parche_cp': ('pendiente', 'Recién añadido, sin simular ni validar'),
+    'monopolo_uwb': ('pendiente', 'Simulado a 2,4 GHz (23-11): −18,0 dB, banda 1763–3418 MHz, 3,2 dBi, η 97 %; sin medir. La banda baja y la alta no se han simulado'),
+    'uwb_cpw': ('pendiente', 'Recién añadido, sin simular ni validar: falta el puerto coplanar en el simulador'),
+    'parche_cp': ('pendiente', 'Simulado a 2,4 GHz (23-11): no adapta (−1,2 dB, η 7,5 %); la alimentación por dos bordes está por revisar'),
     'array_serie': ('pendiente', 'Recién añadido, sin simular ni validar'),
     'antena_siw': ('pendiente', 'Recién añadida, sin simular ni validar'),
     'diedro': ('pendiente', 'Sin simular ni validar (tres placas; modelo de placas giradas)'),
@@ -93,6 +94,10 @@ FIJOS = {
     'monopolo_uwb': [
         ('aviso', 'Sin simular ni medir. El tamaño sale de la fórmula del disco de Ray (f baja ≈ 72 GHz·mm / altura total) y no está calibrado para el FR4; '
                   'el hueco entre la masa y el radiador es lo que más ajusta la adaptación en toda la banda.'),
+    ],
+    'uwb_cpw': [
+        ('aviso', 'Sin simular ni medir. El simulador solo tiene puerto de microstrip (con masa debajo): hay que añadir uno coplanar. El hueco de la línea de 50 Ω '
+                  'se calcula con la fórmula de la CPW sin plano trasero; con tiras estrechas sale por debajo de lo que fabrica JLC.'),
     ],
     'parche_cp': [
         ('aviso', 'Sin simular ni medir. El desfase de 90° es un meandro de λg/4 en una de las dos ramas: solo es exacto en una frecuencia, así que la razón axial '

@@ -1031,8 +1031,26 @@ for _t5 in [
                           ayuda='Es lo que más ajusta la adaptación en toda la banda'),
                 Parametro('largo_masa', 'Largo de la masa bajo la línea [mm]', 15, 5, 80, 0.5),
                 Parametro('ancho_placa', 'Ancho de la masa [mm]', 36, 10, 250, 0.5),
-                Parametro('forma', 'Forma del radiador', 0, 0, 1, 1, True, opciones={0: 'Disco o elipse', 1: 'Octógono'})],
+                Parametro('forma', 'Forma del radiador', 0, 0, 2, 1, True, opciones={0: 'Disco o elipse', 1: 'Octógono', 2: 'Rectángulo biselado'})],
                'radio', precision='±25 % (sin calibrar)'),
+    TipoAntena('uwb_cpw', 'Monopolo UWB con línea coplanar (CPW)',
+               'Un disco, elipse o rectángulo biselado alimentado por una línea coplanar: la tira y las dos masas van en la misma cara y la de abajo queda vacía. '
+               'Más compacta que la microstrip (de ~1,7 a 6 GHz en 70 × 40 mm en la bibliografía); el chaflán de las masas ajusta la banda alta. '
+               'No se simula todavía (falta el puerto coplanar). Sin validar.', 'dipolo',
+               [Parametro('radio', 'Radio horizontal del radiador [mm]', 12, 2, 150, 0.25),
+                Parametro('relacion', 'Relación alto/ancho del radiador', 1.0, 0.5, 1.8, 0.05,
+                          ayuda='1 = disco; más de 1 = elipse alargada, menos de 1 = achatada'),
+                Parametro('hueco', 'Hueco entre la masa y el radiador [mm]', 0.8, 0.3, 8, 0.1,
+                          ayuda='Es lo que más ajusta la adaptación en toda la banda'),
+                Parametro('largo_masa', 'Largo de las masas laterales [mm]', 12, 4, 80, 0.5),
+                Parametro('ancho_masa', 'Ancho de cada masa lateral [mm]', 12, 3, 120, 0.5,
+                          ayuda='Las dos masas laterales hacen de plano de tierra: más anchas bajan algo la frecuencia inferior'),
+                Parametro('chaflan', 'Chaflán de las masas junto al radiador [mm]', 3, 0, 20, 0.25,
+                          ayuda='Un chaflán mayor mejora la banda alta; una pared recta la deja con huecos sin adaptar'),
+                Parametro('ancho_tira', 'Ancho de la tira central [mm]', 3.0, 0.5, 8, 0.1,
+                          ayuda='El hueco de la línea de 50 Ω se calcula con este ancho'),
+                Parametro('forma', 'Forma del radiador', 0, 0, 1, 1, True, opciones={0: 'Disco o elipse', 1: 'Rectángulo biselado'})],
+               'radio', precision='±30 % (sin calibrar)'),
     TipoAntena('parche_cp', 'Parche circular (doble alimentación)',
                'Parche cuadrado alimentado por dos bordes contiguos con una línea λ/4 más larga en uno: polarización circular de verdad (GPS, Iridium), '
                'sin cortar esquinas. La banda de razón axial es estrecha. Sin validar.', 'plano',
@@ -1076,7 +1094,7 @@ for _t5 in [
     CATALOGO[_t5.clave] = _t5
 
 
-GRUPO_AJUSTE = {'monopolo_uwb': 'sin_ajuste', 'parche_cp': 'sin_ajuste', 'array_serie': 'sin_ajuste', 'antena_siw': 'sin_ajuste', 'dipolo_plegado': 'sin_ajuste', 'moxon': 'sin_ajuste', 'lpda': 'sin_ajuste', 'antena_ranura': 'sin_ajuste', 'espiral': 'sin_ajuste', 'torniquete': 'sin_ajuste', 'array_fase': 'sin_ajuste', 'diedro': 'sin_ajuste', 'reflector_esquina': 'sin_ajuste', 'helice_normal': 'sin_ajuste', 'helice_cuadrifilar': 'sin_ajuste',
+GRUPO_AJUSTE = {'monopolo_uwb': 'sin_ajuste', 'uwb_cpw': 'sin_ajuste', 'parche_cp': 'sin_ajuste', 'array_serie': 'sin_ajuste', 'antena_siw': 'sin_ajuste', 'dipolo_plegado': 'sin_ajuste', 'moxon': 'sin_ajuste', 'lpda': 'sin_ajuste', 'antena_ranura': 'sin_ajuste', 'espiral': 'sin_ajuste', 'torniquete': 'sin_ajuste', 'array_fase': 'sin_ajuste', 'diedro': 'sin_ajuste', 'reflector_esquina': 'sin_ajuste', 'helice_normal': 'sin_ajuste', 'helice_cuadrifilar': 'sin_ajuste',
                 'monopolo_recto': 'monopolo_pista', 'monopolo_meandro': 'monopolo_pista',
                 'monopolo_koch': 'monopolo_pista', 'monopolo_hilbert': 'monopolo_pista', 'monopolo_flecha': 'sin_ajuste',
                 'monopolo_sierpinski': 'monopolo', 'jpole': 'jpole', 'jpole_koch': 'jpole', 'yagi_koch': 'yagi',
@@ -1129,6 +1147,7 @@ ESCALABLES = {
     'espiral': ('ancho_pista', 'hueco'),
     'torniquete': ('ancho_pista',),
     'monopolo_uwb': ('hueco', 'largo_masa', 'ancho_placa'),
+    'uwb_cpw': ('hueco', 'largo_masa', 'ancho_masa', 'chaflan'),
     'antena_siw': ('largo_ranura', 'ancho_ranura', 'desplazamiento', 'ancho_taper', 'largo_taper'),
     'colineal_franklin': ('ancho_pista', 'hueco_horquilla') + _MASA,
     'bucle': ('lado', 'ancho_pista') + _MASA,

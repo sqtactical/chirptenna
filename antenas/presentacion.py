@@ -12,6 +12,9 @@ from .i18n import tr
 # Los canales LoRa sueltos van en «Otra» (centro + ancho)
 BANDAS = {'433': (433.05, 434.79), '868': (863.0, 870.0), '915 ISM': (902.0, 928.0), 'LoRa 863–928 MHz': (863.0, 928.0), '1,2 GHz radioaficionado': (1240.0, 1300.0),
           'GPS L1': (1565.42, 1585.42), 'Iridium': (1616.0, 1626.5), '2,4 GHz': (2400.0, 2483.5),
+          # Bandas de solo recepción (sin LNA): la antena pasiva manda el SNR, así que cuentan la ganancia y la eficiencia más que el ancho de banda
+          'UAT 978 MHz': (975.0, 981.0), 'ADS-B 1090 MHz': (1087.0, 1093.0), 'GPS L5': (1166.0, 1187.0),
+          'GNSS L1': (1559.0, 1610.0),
           '5,8 GHz': (5725.0, 5875.0), 'Otra': None}
 
 # Inscripciones de la serigrafía (cara inferior): (clave, texto en la interfaz), en el orden en que se imprimen

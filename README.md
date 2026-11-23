@@ -98,7 +98,8 @@ La placa resultante (render de KiCad): cara superior y cara inferior con el logo
 | Antena de ranura (en la masa) | antena_ranura | 🧪 simulada a 2,4 GHz: −10,7 dB justos, 4,7 dBi, η 73 % |
 | Espiral de Arquímedes | espiral | 🧪 simulada a 2,4 GHz: −10,1 dB con solo 23 MHz de banda; razón axial 16 dB |
 | Torniquete (dipolos cruzados) | torniquete | 🧪 simulado a 2,4 GHz: −21,8 dB, η 97 %, pero razón axial 12 dB (no es circular) |
-| Monopolo plano de banda ancha (UWB) | monopolo_uwb | 🧪 generador y DRC listos; sin simular |
+| Monopolo plano de banda ancha (UWB) | monopolo_uwb | 🧪 simulado a 2,4 GHz (−18 dB, 1,76–3,42 GHz, η 97 %); sin medir |
+| Monopolo UWB con línea coplanar (CPW) | uwb_cpw | 🧪 generador y DRC listos; sin simular (falta el puerto coplanar) |
 | Parche circular de doble alimentación | parche_cp | 🧪 generador y DRC listos; sin simular |
 | Array de parches en serie | array_serie | 🧪 generador y DRC listos; sin simular |
 | Ranuras en guía SIW | antena_siw | 🧪 generador y DRC listos; sin simular |

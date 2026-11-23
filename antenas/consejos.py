@@ -111,6 +111,10 @@ BANDAS = {
     'Radioaficionado 1,2 GHz': (1240e6, 1300e6),
     'GPS L1': (1565.42e6, 1585.42e6),
     'Iridium': (1616e6, 1626.5e6),
+    'UAT 978 MHz': (975e6, 981e6),
+    'ADS-B 1090 MHz': (1087e6, 1093e6),
+    'GPS L5': (1166e6, 1187e6),
+    'GNSS L1': (1559e6, 1610e6),
 }
 
 

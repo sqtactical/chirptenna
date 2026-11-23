@@ -100,7 +100,8 @@ The resulting board (KiCad render): top side and bottom side with the logo and l
 | Slot antenna (in the ground plane) | antena_ranura | 🧪 simulated at 2.4 GHz: barely −10.7 dB, 4.7 dBi, η 73 % |
 | Archimedean spiral | espiral | 🧪 simulated at 2.4 GHz: −10.1 dB with only 23 MHz of band; axial ratio 16 dB |
 | Turnstile (crossed dipoles) | torniquete | 🧪 simulated at 2.4 GHz: −21.8 dB, η 97 %, but axial ratio 12 dB (not circular) |
-| Wideband planar monopole (UWB) | monopolo_uwb | 🧪 generator and DRC ready; not simulated |
+| Wideband planar monopole (UWB) | monopolo_uwb | 🧪 simulated at 2.4 GHz (−18 dB, 1.76–3.42 GHz, η 97 %); not measured |
+| UWB monopole with coplanar line (CPW) | uwb_cpw | 🧪 generator and DRC ready; not simulated (coplanar port missing) |
 | Dual-feed circular patch | parche_cp | 🧪 generator and DRC ready; not simulated |
 | Series-fed patch array | array_serie | 🧪 generator and DRC ready; not simulated |
 | SIW waveguide slot array | antena_siw | 🧪 generator and DRC ready; not simulated |

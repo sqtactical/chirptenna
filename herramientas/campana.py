@@ -39,7 +39,8 @@ TIPOS_POR_BANDA = {
 }
 # Bandas de la tabla que solo se centran (sin exploración de forma): 915 MHz, 1,2 GHz, GPS L1 e Iridium
 LISTA_CENTRAR = ['monopolo_recto', 'monopolo_koch', 'monopolo_meandro', 'monopolo_sierpinski', 'dipolo', 'dipolo_bowtie', 'dipolo_sleeve']
-TIPOS_POR_BANDA.update({b: LISTA_CENTRAR for b in ('915 ISM', '1,2 GHz radioaficionado', 'GPS L1', 'Iridium')})
+TIPOS_POR_BANDA.update({b: LISTA_CENTRAR for b in ('915 ISM', '1,2 GHz radioaficionado', 'GPS L1', 'Iridium', 'UAT 978 MHz', 'ADS-B 1090 MHz',
+                                                       'GPS L5', 'GNSS L1')})
 TIPOS = sorted({t for ts in TIPOS_POR_BANDA.values() for t in ts})
 SALTAR = set()
 

@@ -9,7 +9,7 @@ Las fórmulas de tamaño (`estimar_f_*`) no están calibradas: hay que centrar s
 """
 import math
 
-from shapely.geometry import Point
+from shapely.geometry import Point, Polygon
 from shapely.ops import unary_union
 
 from . import geometria as g
@@ -255,6 +255,78 @@ def estimar_f_uwb(p):
     return K_UWB*72e9/H
 
 
+def _rectangulo_biselado(a, b, yc, bisel=0.5):
+    """Rectángulo de semiancho a y semialto b con las dos esquinas del lado de la alimentación biseladas (el bisel quita `bisel` × a en x y `bisel` × b en y):
+    es el monopolo biselado clásico, que adapta mejor en la parte baja de la banda que el rectángulo recto."""
+    cx, cy = bisel*a, bisel*b
+    return Polygon([(-a + cx, yc - b), (a - cx, yc - b), (a, yc - b + cy), (a, yc + b), (-a, yc + b), (-a, yc - b + cy)])
+
+
+def _k_elipt(k):
+    """Integral elíptica completa de primera especie K(k) por la media aritmético-geométrica."""
+    a, b = 1.0, math.sqrt(1 - k*k)
+    for _ in range(30):
+        a, b = (a + b)/2, math.sqrt(a*b)
+    return math.pi/(2*a)
+
+
+def z_cpw(w, hueco, er):
+    """Impedancia (Ω) de una línea coplanar sin plano trasero de tira `w` y hueco `hueco` (mm) sobre un sustrato grueso: εeff = (εr + 1)/2."""
+    k = w/(w + 2*hueco)
+    return 30*math.pi/math.sqrt((er + 1)/2)*_k_elipt(math.sqrt(1 - k*k))/_k_elipt(k)
+
+
+def hueco_cpw_50(w, er):
+    """Hueco (mm) que da 50 Ω con la tira `w` en una línea coplanar sin plano trasero (bisección)."""
+    lo, hi = 0.05, 10*w
+    for _ in range(60):
+        m = (lo + hi)/2
+        if z_cpw(w, m, er) > 50:
+            hi = m          # más hueco, más impedancia
+        else:
+            lo = m
+    return (lo + hi)/2
+
+
+def generar_uwb_cpw(p, s, eps):
+    """Monopolo plano de banda ancha alimentado por una línea coplanar (CPW): la tira de 50 Ω y las dos masas están en la misma cara, y la cara de
+    abajo queda vacía. Las masas laterales acaban en el radiador con un chaflán (`chaflan`), que es lo que adapta la banda alta. Sin plano trasero
+    el campo no se corta contra el FR4, así que el radiador queda más corto para la misma f que con microstrip."""
+    from shapely import affinity
+    r, rel, gap, lm = p['radio'], p['relacion'], p['hueco'], p['largo_masa']
+    w = max(p['ancho_tira'], 0.5)
+    g_cpw = hueco_cpw_50(w, s.er)
+    chaf = min(p['chaflan'], lm - 1.0)
+    ancho_masa = p['ancho_masa']
+    y_base = lm + gap
+    yc = y_base + r*rel
+    forma = int(p.get('forma', 0))
+    if forma == 1:
+        radiador = _rectangulo_biselado(r, r*rel, yc)
+    else:
+        radiador = affinity.scale(Point(0, yc).buffer(r, 96), 1.0, rel, origin=(0, yc))
+    tira = g.rectangulo(-w/2, BORDE_COBRE, w/2, y_base + 0.5)
+    x_in = w/2 + g_cpw
+    lado = [(x_in, BORDE_COBRE), (x_in + ancho_masa, BORDE_COBRE), (x_in + ancho_masa, lm), (x_in + chaf, lm), (x_in, lm - chaf)]
+    masa = unary_union([Polygon(lado), Polygon([(-x, y) for x, y in lado])])
+    sup = unary_union([tira, radiador, masa])
+    avisos = [tr('Línea coplanar sin plano trasero: la simulación del proyecto aún no tiene un puerto coplanar.')]
+    if g_cpw < 0.15:
+        avisos.append(tr('El hueco de la línea coplanar sale de {0:.2f} mm: más fino de lo que fabrica JLC. Ensancha la tira.', g_cpw))
+    # Cobre trasero solo donde van las vías de masa del SMA: dos retazos bajo las masas laterales, lejos de la línea
+    x_v = x_in + 0.5
+    ata = unary_union([g.rectangulo(x_v, BORDE_COBRE, x_in + ancho_masa, min(6.0, lm)), g.rectangulo(-x_in - ancho_masa, BORDE_COBRE, -x_v, min(6.0, lm))])
+    contorno, sup, ata = _placa_por_linea(sup, ata, p)
+    info = _info(contorno, {'hueco_minimo_mm': round(min(g_cpw, gap), 3), 'pista_minima_mm': round(w, 3), 'hueco_cpw_mm': round(g_cpw, 3),
+                            'radiador_mm': [round(2*r, 2), round(2*r*rel, 2)], 'avisos': avisos,
+                            'sin_simulacion': tr('el puerto coplanar no está en el simulador (el de microstrip necesita masa debajo)'),
+                            'banda_estimada_MHz': [round(estimar_f_uwb(p)/1e6), round(3.5*estimar_f_uwb(p)/1e6)]})
+    aj = dict(ajuste.vacio())
+    aj['islas_masa'] = [masa.intersection(contorno)]        # el exportador pone estas piezas de F.Cu en la net GND (no hay masa abajo)
+    return Antena(tipo='uwb_cpw', parametros=dict(p), capas={'F.Cu': sup, 'B.Cu': ata}, ajuste=aj,
+                  radiador=radiador, contorno=contorno, zona_libre=contorno, puerto=_puerto_linea(w), info=info)
+
+
 def generar_uwb(p, s, eps):
     """Monopolo plano (disco, elipse u octógono) alimentado por una microstrip, sobre una masa parcial en B.Cu que acaba a `hueco` del radiador."""
     from shapely import affinity
@@ -269,6 +341,8 @@ def generar_uwb(p, s, eps):
         c = 0.3*min(a, b)
         radiador = Polygon([(-a + c, yc - b), (a - c, yc - b), (a, yc - b + c), (a, yc + b - c), (a - c, yc + b), (-a + c, yc + b),
                             (-a, yc + b - c), (-a, yc - b + c)])
+    elif int(p.get('forma', 0)) == 2:
+        radiador = _rectangulo_biselado(r, r*rel, yc)
     else:
         radiador = affinity.scale(Point(0, yc).buffer(r, 96), 1.0, rel, origin=(0, yc))
     sup = unary_union([g.rectangulo(-w50/2, BORDE_COBRE, w50/2, y_base + 0.5), radiador])
@@ -440,12 +514,12 @@ def generar_siw(p, s, eps):
 
 
 TIPOS = {'dipolo_plegado': 'plegado', 'moxon': 'moxon', 'lpda': 'lpda', 'antena_ranura': 'ranura', 'espiral': 'espiral', 'torniquete': 'torniquete',
-         'monopolo_uwb': 'uwb', 'parche_cp': 'parche_cp', 'array_serie': 'array_serie', 'antena_siw': 'siw'}
+         'monopolo_uwb': 'uwb', 'uwb_cpw': 'uwb_cpw', 'parche_cp': 'parche_cp', 'array_serie': 'array_serie', 'antena_siw': 'siw'}
 
 
 def estimar_f(clave, p, er, eps, h=1.6):
     """Frecuencia estimada (Hz) del tipo `clave`; `er` es la εr del sustrato y `eps` la εeff de una pista impresa."""
-    if clave == 'monopolo_uwb':
+    if clave in ('monopolo_uwb', 'uwb_cpw'):
         return estimar_f_uwb(p)
     if clave == 'parche_cp':
         return estimar_f_parche_cp(p, er, h)

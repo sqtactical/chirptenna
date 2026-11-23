@@ -9,7 +9,7 @@
 
 ## Tipos de antena
 
-42 tipos: **19 validados en simulación**, 18 pendientes de validación y 5 que no funcionan. «Validada» significa que openEMS la da adaptada (S11 ≤ −10 dB en la banda) y radiando; no significa medida.
+43 tipos: **19 validados en simulación**, 19 pendientes de validación y 5 que no funcionan. «Validada» significa que openEMS la da adaptada (S11 ≤ −10 dB en la banda) y radiando; no significa medida.
 
 ### Validados en simulación
 
@@ -49,9 +49,10 @@
 | Espiral de Arquímedes | `espiral` | Simulada a 2,4 GHz: −10,1 dB pero con 23 MHz de banda; razón axial de 16 dB (poco circular) |
 | Hélice cuadrifilar en flex (GPS) | `helice_cuadrifilar` | Solo geometría, vista 3D y tira de flex: no se simula desde la interfaz |
 | Hélice de modo normal en flex | `helice_normal` | Sin simular ni validar (hilo helicoidal; tira de flex) |
-| Monopolo plano de banda ancha (UWB) | `monopolo_uwb` | Recién añadido, sin simular ni validar |
+| Monopolo UWB con línea coplanar (CPW) | `uwb_cpw` | Recién añadido, sin simular ni validar: falta el puerto coplanar en el simulador |
+| Monopolo plano de banda ancha (UWB) | `monopolo_uwb` | Simulado a 2,4 GHz (23-11): −18,0 dB, banda 1763–3418 MHz, 3,2 dBi, η 97 %; sin medir. La banda baja y la alta no se han simulado |
 | Moxon (rectángulo directivo) | `moxon` | Simulado a 2,4 GHz: −5,9 dB (Z ≈ 16 Ω, 3,9 dBi, η 67 %); falta subir la impedancia con el hueco y las colas |
-| Parche circular (doble alimentación) | `parche_cp` | Recién añadido, sin simular ni validar |
+| Parche circular (doble alimentación) | `parche_cp` | Simulado a 2,4 GHz (23-11): no adapta (−1,2 dB, η 7,5 %); la alimentación por dos bordes está por revisar |
 | Parche con ranura en U | `parche_ranura` | Sin testear ni validar |
 | Parche de Minkowski | `parche_minkowski` | Pendiente de validación (eficiencia baja en FR4) |
 | Ranuras en guía SIW | `antena_siw` | Recién añadida, sin simular ni validar |
