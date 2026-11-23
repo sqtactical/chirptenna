@@ -323,7 +323,11 @@ referencias de los componentes (Z1, Z2, Z3, JP…) se ponen siempre: hacen falta
 
 ### Carcasa 3D (STL)
 
-La tarjeta **Carcasa 3D (STL)** genera la **base** y la **tapa** para imprimir, a la medida de la placa:
+La carcasa se define en **Diseño**, en la tarjeta **Carcasa 3D** (material, relleno, pared, holguras, cierre y tornillo):
+así el material ya está elegido cuando llegas a Simulación, que solo muestra un resumen («PLA 100 % · pared 1,6 mm · …») y un botón
+**Cambiar la carcasa**. Para verla, elige **Carcasa** en el selector de la vista (2D / 3D / Carcasa) y luego **Montada** (cerrada, con
+la placa dentro), **Abierta: base + placa** (sin tapa) o **Explosionada** (base, placa y tapa separadas, con los tornillos); se
+redibuja al cambiar cualquier valor. En **Fabricar**, la tarjeta **Carcasa 3D (STL)** solo genera la **base** y la **tapa** para imprimir, a la medida de la placa:
 reborde de apoyo bajo los cantos, labio de encaje, cuatro orejetas en las esquinas y una abertura
 para el conector. El **cierre** puede ser un tornillo autorroscante, tornillo y tuerca (la tuerca entra por debajo),
 tornillo e inserto roscado de latón, o sin tornillos (la tapa se pega); tornillos M2, M2,5 o M3.

@@ -26,7 +26,7 @@ sys.path.insert(0, RAIZ)
 from nicegui import app, ui, run, background_tasks   # noqa: E402
 
 from antenas import tipos, vista, fabricacion, exportar, consejos, graficas, ajuste, biblioteca, problemas   # noqa: E402
-from antenas import guia, gpu, entorno, importar_kicad, informe, diagrama, carcasa, plastico   # noqa: E402
+from antenas import guia, gpu, entorno, importar_kicad, informe, diagrama, carcasa, plastico, vista_carcasa   # noqa: E402
 from antenas import i18n, simular_matlab, vista3d   # noqa: E402
 from antenas.i18n import tr   # noqa: E402
 from antenas import __version__   # noqa: E402
@@ -417,10 +417,51 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                     with ui.card().classes('w-full'):
                         _titulo_card(tr('Parámetros'), 'tune')
                         cont_params = ui.column().classes('w-full gap-0')
+                    with ui.card().classes('w-full'):
+                        _titulo_card(tr('Carcasa 3D'), 'view_in_ar')
+                        ui.label(tr('Material, pared y cierre de la carcasa que se imprime (STL en Fabricar) y que se puede poner en la simulación. '
+                                    'Elige «Carcasa» en la vista 3D para verla montada, abierta o explosionada con la placa.')).classes('text-caption texto-sec')
+                        car_ctl = {}
+                        car_ctl['material'] = ui.select({**{k: tr(v) for k, v in carcasa.DESCRIPCIONES.items()}, carcasa.PERSONALIZADO: tr('Personalizado (εr y tanδ propias)')},
+                                                        value=estado['carcasa']['material'],
+                                                        label=tr('Material de impresión')).classes('w-full').tooltip(
+                            tr('Valores típicos de hoja técnica a ~2,4 GHz, sin medir: el color, la marca y la humedad los mueven. Mide el tuyo con el cupón C. Nada de fibra de carbono (CF), grafito ni filamentos conductores o ESD: son conductores y apantallan la antena.'))
+                        car_ctl['relleno'] = ui.number(tr('Relleno (%)'), value=estado['carcasa']['relleno'], step=5, format='%.0f', min=carcasa.LIMITES['relleno'][0], max=carcasa.LIMITES['relleno'][1]).classes('w-full').tooltip(
+                            tr('Una pared de 1,6 mm suele ser maciza (100 %). Con menos relleno la εr efectiva baja. No cuenta con el material Personalizado: se supone medido ya con tu relleno.'))
+                        aviso_material = ui.label(tr('Valores GENÉRICOS de hoja técnica y de la literatura, sin medir: cada filamento (marca, color, humedad, fibra de vidrio) es distinto. Mide el tuyo con el cupón C y úsalo como «Personalizado» antes de fiarte de una simulación con carcasa.')).classes('text-caption texto-aviso')
+                        prop_material = ui.label().classes('text-caption texto-sec')
+                        with ui.row().classes('w-full no-wrap gap-2') as fila_material:
+                            car_ctl['er'] = ui.number(tr('εr del plástico'), value=estado['carcasa']['er'], step=0.05, format='%.2f',
+                                                      min=carcasa.LIMITES['er'][0], max=carcasa.LIMITES['er'][1]).classes('grow')
+                            car_ctl['tand'] = ui.number(tr('tanδ del plástico'), value=estado['carcasa']['tand'], step=0.001, format='%.4f',
+                                                        min=carcasa.LIMITES['tand'][0], max=carcasa.LIMITES['tand'][1]).classes('grow')
+                        fila_material.set_visibility(estado['carcasa']['material'] == carcasa.PERSONALIZADO)
+                        car_ctl['relleno'].set_visibility(estado['carcasa']['material'] != carcasa.PERSONALIZADO)
+                        with ui.row().classes('w-full no-wrap gap-2'):
+                            for k_c, txt_c in (('pared', tr('Pared (mm)')), ('holgura', tr('Holgura lateral (mm)'))):
+                                car_ctl[k_c] = ui.number(txt_c, value=estado['carcasa'][k_c], step=0.1, format='%.1f',
+                                                         min=carcasa.LIMITES[k_c][0], max=carcasa.LIMITES[k_c][1]).classes('grow')
+                        with ui.row().classes('w-full no-wrap gap-2'):
+                            for k_c, txt_c in (('espacio_abajo', tr('Aire bajo la placa (mm)')), ('espacio_arriba', tr('Aire sobre la placa (mm)'))):
+                                car_ctl[k_c] = ui.number(txt_c, value=estado['carcasa'][k_c], step=0.5, format='%.1f',
+                                                         min=carcasa.LIMITES[k_c][0], max=carcasa.LIMITES[k_c][1]).classes('grow')
+                        car_ctl['radio'] = ui.number(tr('Radio de las esquinas (mm)'), value=estado['carcasa']['radio'], step=0.5, format='%.1f',
+                                                     min=carcasa.LIMITES['radio'][0], max=carcasa.LIMITES['radio'][1]).classes('w-full')
+                        car_ctl['fijacion'] = ui.select({k: tr(v) for k, v in carcasa.FIJACIONES.items()}, value=estado['carcasa']['fijacion'],
+                                                        label=tr('Cierre de la carcasa')).classes('w-full').tooltip(
+                            tr('Con tornillo hay cuatro orejetas en las esquinas, con un tornillo de metal junto a la placa: la simulación lo incluye (cabeza, caña, '
+                               'tuerca o inserto) y dice cuánto mueve la frecuencia. Pegada no lleva metal.'))
+                        car_ctl['tornillo'] = ui.select(list(carcasa.TORNILLOS), value=estado['carcasa']['tornillo'],
+                                                        label=tr('Tornillo')).classes('w-full')
+                        car_ctl['abertura'] = ui.checkbox(tr('Abertura para el conector'), value=bool(estado['carcasa']['abertura']))
                 with ui.column().classes('grow basis-[320px] min-w-0 gap-2'):
                     with ui.card().classes('w-full'):
                         with ui.row().classes('w-full items-center gap-3'):
-                            tog_vista = ui.toggle({'2d': '2D', '3d': '3D'}, value='2d').props('dense no-caps')
+                            tog_vista = ui.toggle({'2d': '2D', '3d': '3D', 'carcasa': tr('Carcasa')}, value='2d').props('dense no-caps')
+                            tog_vcar = ui.toggle({k: tr(v) for k, v in vista_carcasa.MODOS.items()}, value='montada').props('dense no-caps')
+                            tog_vcar.tooltip(tr('Montada: carcasa cerrada con la placa dentro. Abierta: la base con la placa puesta y sin tapa. '
+                                                'Explosionada: base, placa y tapa separadas, con los tornillos.'))
+                            tog_vcar.set_visibility(False)
                             chk_expl = ui.checkbox(tr('Explosionada'), value=False).tooltip(
                                 tr('Dibuja cada placa a fabricar por separado, en orden y con su cantidad (solo en antenas modulares).'))
                             chk_expl.set_visibility(False)
@@ -465,7 +506,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                            'eficiencia (2 simulaciones más).'))
                     chk_carcasa = ui.checkbox(tr('Ajustar y simular con la carcasa del diseño'),
                                               value=bool(estado['carcasa'].get('simular'))).tooltip(
-                        tr('Pone la carcasa de la pestaña Fabricar (material, pared, holguras) alrededor de la placa y centra la antena con ella '
+                        tr('Pone la carcasa de la pestaña Diseño (material, pared, holguras) alrededor de la placa y centra la antena con ella '
                            'puesta. Dice además cuánto habría resonado sin la carcasa (2 simulaciones más). No vale con MATLAB, módulos ni reflector.'))
                     chk_carcasa.on_value_change(lambda e: (estado['carcasa'].__setitem__('simular', bool(e.value)), marcar_cambio()))
                     chk_gpu = ui.checkbox(tr('Aceleración por GPU (experimental)'), value=gpu_ok)
@@ -490,6 +531,10 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                          'Cada simulación tarda de 1 a 15 min según el tamaño; el ajuste hace 2–5. '
                          'Si el diseño está guardado, el resultado se guarda con él.')
                          ).classes('text-caption texto-sec')
+                with ui.row().classes('w-full items-center gap-2'):
+                    car_ctl_resumen_sim = ui.label().classes('text-caption text-weight-medium')
+                    ui.button(tr('Cambiar la carcasa'), icon='edit', on_click=lambda: setattr(pestanas, 'value', t_diseno)) \
+                        .props('flat dense no-caps color=teal')
                 registro = ui.log(max_lines=200).classes('w-full h-32 text-caption')
             res_sim = ui.column().classes('w-full gap-2 q-mt-sm')
 
@@ -536,39 +581,8 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                     ui.label(tr('Base y tapa para imprimir en 3D, a la medida de la placa: reborde de apoyo, labio de encaje, '
                                 'cierre con tornillo (autorroscante, con tuerca o con inserto) o pegado, y abertura para el conector. La tapa sale boca abajo, lista para imprimir. '
                                 'En Simulación puedes ajustar y simular la antena con la carcasa puesta.')).classes('text-caption texto-sec')
-                    car_ctl = {}
-                    car_ctl['material'] = ui.select({**{k: tr(v) for k, v in carcasa.DESCRIPCIONES.items()}, carcasa.PERSONALIZADO: tr('Personalizado (εr y tanδ propias)')},
-                                                    value=estado['carcasa']['material'],
-                                                    label=tr('Material de impresión')).classes('w-full').tooltip(
-                        tr('Valores típicos de hoja técnica a ~2,4 GHz, sin medir: el color, la marca y la humedad los mueven. Mide el tuyo con el cupón C. Nada de fibra de carbono (CF), grafito ni filamentos conductores o ESD: son conductores y apantallan la antena.'))
-                    car_ctl['relleno'] = ui.number(tr('Relleno (%)'), value=estado['carcasa']['relleno'], step=5, format='%.0f', min=carcasa.LIMITES['relleno'][0], max=carcasa.LIMITES['relleno'][1]).classes('w-full').tooltip(
-                        tr('Una pared de 1,6 mm suele ser maciza (100 %). Con menos relleno la εr efectiva baja. No cuenta con el material Personalizado: se supone medido ya con tu relleno.'))
-                    aviso_material = ui.label(tr('Valores GENÉRICOS de hoja técnica y de la literatura, sin medir: cada filamento (marca, color, humedad, fibra de vidrio) es distinto. Mide el tuyo con el cupón C y úsalo como «Personalizado» antes de fiarte de una simulación con carcasa.')).classes('text-caption texto-aviso')
-                    prop_material = ui.label().classes('text-caption texto-sec')
-                    with ui.row().classes('w-full no-wrap gap-2') as fila_material:
-                        car_ctl['er'] = ui.number(tr('εr del plástico'), value=estado['carcasa']['er'], step=0.05, format='%.2f',
-                                                  min=carcasa.LIMITES['er'][0], max=carcasa.LIMITES['er'][1]).classes('grow')
-                        car_ctl['tand'] = ui.number(tr('tanδ del plástico'), value=estado['carcasa']['tand'], step=0.001, format='%.4f',
-                                                    min=carcasa.LIMITES['tand'][0], max=carcasa.LIMITES['tand'][1]).classes('grow')
-                    fila_material.set_visibility(estado['carcasa']['material'] == carcasa.PERSONALIZADO)
-                    car_ctl['relleno'].set_visibility(estado['carcasa']['material'] != carcasa.PERSONALIZADO)
-                    with ui.row().classes('w-full no-wrap gap-2'):
-                        for k_c, txt_c in (('pared', tr('Pared (mm)')), ('holgura', tr('Holgura lateral (mm)'))):
-                            car_ctl[k_c] = ui.number(txt_c, value=estado['carcasa'][k_c], step=0.1, format='%.1f',
-                                                     min=carcasa.LIMITES[k_c][0], max=carcasa.LIMITES[k_c][1]).classes('grow')
-                    with ui.row().classes('w-full no-wrap gap-2'):
-                        for k_c, txt_c in (('espacio_abajo', tr('Aire bajo la placa (mm)')), ('espacio_arriba', tr('Aire sobre la placa (mm)'))):
-                            car_ctl[k_c] = ui.number(txt_c, value=estado['carcasa'][k_c], step=0.5, format='%.1f',
-                                                     min=carcasa.LIMITES[k_c][0], max=carcasa.LIMITES[k_c][1]).classes('grow')
-                    car_ctl['radio'] = ui.number(tr('Radio de las esquinas (mm)'), value=estado['carcasa']['radio'], step=0.5, format='%.1f',
-                                                 min=carcasa.LIMITES['radio'][0], max=carcasa.LIMITES['radio'][1]).classes('w-full')
-                    car_ctl['fijacion'] = ui.select({k: tr(v) for k, v in carcasa.FIJACIONES.items()}, value=estado['carcasa']['fijacion'],
-                                                    label=tr('Cierre de la carcasa')).classes('w-full').tooltip(
-                        tr('Con tornillo hay cuatro orejetas en las esquinas, con un tornillo de metal junto a la placa: la simulación lo incluye (cabeza, caña, '
-                           'tuerca o inserto) y dice cuánto mueve la frecuencia. Pegada no lleva metal.'))
-                    car_ctl['tornillo'] = ui.select(list(carcasa.TORNILLOS), value=estado['carcasa']['tornillo'],
-                                                    label=tr('Tornillo')).classes('w-full')
-                    car_ctl['abertura'] = ui.checkbox(tr('Abertura para el conector'), value=bool(estado['carcasa']['abertura']))
+                    car_ctl_resumen = ui.label().classes('text-caption text-weight-medium')
+                    ui.label(tr('El material, la pared y el cierre se definen en Diseño (tarjeta «Carcasa 3D»), donde también se ve la carcasa en 3D.')).classes('text-caption texto-sec')
                     btn_stl = ui.button(tr('Generar STL (base y tapa)'), icon='view_in_ar').props('color=positive no-caps').classes('w-full q-mt-sm')
                     res_carcasa = ui.column().classes('w-full gap-1')
                     ui.button(tr('Medir mi plástico (asistente)'), icon='science', on_click=lambda: ir_asistente_materiales()) \
@@ -882,7 +896,16 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
         if a is None:
             return
         en_3d = tog_vista.value == '3d'
+        en_car = tog_vista.value == 'carcasa'
         chk_expl.set_visibility(en_3d and bool(a.modulos))
+        tog_vcar.set_visibility(en_car)
+        if en_car:
+            try:
+                grafico.update_figure(T(vista_carcasa.figura(a, tipos.sustrato(estado['sustrato']).h, estado['carcasa'], tog_vcar.value)))
+                return
+            except Exception as ex:                      # sin carcasa para esta antena: se enseña la vista 3D normal
+                ui.notify(tr('No se puede dibujar la carcasa: {0}', ex), type='warning', multi_line=True)
+                en_3d = True
         if en_3d:
             try:
                 grafico.update_figure(T(vista3d.figura(a, tipos.sustrato(estado['sustrato']).h,
@@ -1974,8 +1997,11 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
         car_ctl['relleno'].set_visibility(estado['carcasa']['material'] != carcasa.PERSONALIZADO)
         mostrar_props_material()
         marcar_cambio()
+        if tog_vista.value == 'carcasa':
+            pintar_diseno()
 
     def mostrar_props_material():
+        car_ctl_resumen.text = car_ctl_resumen_sim.text = carcasa.resumen(estado['carcasa'])
         pers = estado['carcasa']['material'] == carcasa.PERSONALIZADO
         aviso_material.set_visibility(not pers)
         er_m, tand_m = carcasa.propiedades(estado['carcasa'], estado['f_MHz']*1e6)
@@ -2143,6 +2169,8 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
         finally:
             estado['silencio'] = False
         res_carcasa.clear()
+        if tog_vista.value == 'carcasa':
+            pintar_diseno()
 
     def generar_stl():
         a = estado['antena']
@@ -2332,6 +2360,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
             pintar_diseno()
     pestanas.on_value_change(al_entrar_en_diseno)
     tog_vista.on_value_change(lambda e: pintar_diseno())
+    tog_vcar.on_value_change(lambda e: pintar_diseno())
     chk_expl.on_value_change(lambda e: pintar_diseno())
     btn_abrir.on_click(lambda: (n := seleccionado()) and abrir_diseno(n))
     btn_carpeta.on_click(lambda: (n := seleccionado()) and os.startfile(biblioteca.carpeta(n)))

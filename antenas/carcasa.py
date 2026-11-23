@@ -288,15 +288,33 @@ def _para_imprimir(tris, z_max):
     return [[(x, -y, z_max - z) for x, y, z in t] for t in tris]
 
 
-def generar(antena, h, c=None):
-    """Mallas de las dos piezas (la tapa ya boca abajo) y sus datos: {'base': tris, 'tapa': tris, 'dims': {...}}."""
+def montada(antena, h, c=None):
+    """Mallas de las dos piezas en su sitio, alrededor de la placa (z = 0 es la cara inferior de la placa): {'base', 'tapa', 'dims', 'parametros'}."""
     motivo = no_soporta(antena)
     if motivo:
         raise ValueError(motivo)
     c = completar(c)
     piezas, d = _prismas(antena, h, c)
-    base, tapa = malla(piezas['base']), malla(piezas['tapa'])
-    return {'base': base, 'tapa': _para_imprimir(tapa, d['z_arriba']), 'dims': d, 'parametros': c}
+    return {'base': malla(piezas['base']), 'tapa': malla(piezas['tapa']), 'dims': d, 'parametros': c}
+
+
+def generar(antena, h, c=None):
+    """Mallas de las dos piezas (la tapa ya boca abajo) y sus datos: {'base': tris, 'tapa': tris, 'dims': {...}}."""
+    r = montada(antena, h, c)
+    return {**r, 'tapa': _para_imprimir(r['tapa'], r['dims']['z_arriba'])}
+
+
+def resumen(c, f_MHz=None):
+    """Una línea con lo esencial de la carcasa (material, pared, cierre), para mostrarla donde no se edita."""
+    c = completar(c)
+    if c['material'] == PERSONALIZADO:
+        mat = tr('personalizado (εr {0:g}, tanδ {1:g})', c['er'], c['tand'])
+    else:
+        mat = f"{c['material']} {c['relleno']:g} %"
+    cierre = tr(FIJACIONES[c['fijacion']]).split(' (')[0]
+    if c['fijacion'] != 'adhesivo':
+        cierre += f" {c['tornillo']}"
+    return tr('{0} · pared {1:g} mm · {2}', mat, c['pared'], cierre)
 
 
 def exportar_stl(antena, h, carpeta, nombre, c=None):
