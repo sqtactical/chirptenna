@@ -391,6 +391,11 @@ function cambiarParametro(p, valor) {
     estado.parametros.escalado = 0;
     avisar(T('Medidas secundarias pasadas a «Manuales» para respetar el valor que has puesto.'));
   }
+  if (estado.clave === 'vivaldi' && ['ancho_apertura', 'largo_aleta', 'tasa', 'abertura_interior'].includes(p.nombre) &&
+      Number(estado.parametros.perfil ?? 0) !== 0) {
+    estado.parametros.perfil = 0;      // medida puesta a mano: el perfil ya no la describe
+  }
+  if (p.nombre === 'perfil' && valor !== 0) { dimensionar(); return; }
   const integrado = ['integrada', 'placa_x', 'placa_y', 'posicion', 'zona_x', 'zona_y', 'margen_zona'].includes(p.nombre);
   if ((p.nombre === 'escalado' && valor === 1) || p.nombre === 'masa' || p.nombre === 'multibanda' || (p.nombre === 'conector' && t.familia === 'monopolo') ||
       (integrado && (p.nombre === 'integrada' || Number(estado.parametros.integrada ?? 0) === 1))) {

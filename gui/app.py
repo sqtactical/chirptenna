@@ -872,6 +872,17 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                 entradas['escalado'].value = 0
                 estado['silencio'] = False
             ui.notify(tr('Medidas secundarias pasadas a «Manuales» para respetar el valor que has puesto.'))
+        if (estado['clave'] == 'vivaldi' and nombre in tipos.PARAMS_PERFIL_VIVALDI
+                and int(estado['params'].get('perfil', 0) or 0) != 0):
+            # medida de la Vivaldi puesta a mano: el perfil deja de describirla y el próximo ajuste la pisaría
+            estado['params']['perfil'] = 0
+            if 'perfil' in entradas:
+                estado['silencio'] = True
+                entradas['perfil'].value = 0
+                estado['silencio'] = False
+        if nombre == 'perfil' and int(valor) != 0:
+            ajustar()                   # un perfil fija las medidas de la boca y las aletas
+            return
         if nombre == 'escalado' and int(valor) == 1:
             ajustar()                   # vuelve a escalar las medidas con la frecuencia actual
             return

@@ -30,7 +30,7 @@
 | Monopolo recto (referencia) | `monopolo_recto` | Validada en simulación (de 868 MHz a 5,8 GHz) |
 | Panel de dipolos 2×2 / 4×4 sobre reflector (directivo) | `panel_dipolos` | Validada en simulación (2×2 con dipolos o Sierpinski, 2,4 GHz) |
 | Parche rectangular (referencia) | `parche_rectangular` | Validada en simulación (banda estrecha; a 5,8 GHz con ranura) |
-| Vivaldi antipodal | `vivaldi` | Validada en simulación (2,4 y 5,8 GHz) |
+| Vivaldi antipodal | `vivaldi` | Validada en simulación (2,4 GHz en dos perfiles, banda ancha y alta ganancia; 5,8 GHz) |
 | Yagi impresa de doble cara con boom (directiva) | `yagi_boom` | Validada en simulación con elementos rectos (868 MHz, 2,4 y 5,8 GHz) |
 
 ### Pendientes de validación

@@ -73,6 +73,15 @@ class TipoAntena:
 MODOS_MASA = {0: 'Manual', 1: 'Automática λ/4 (recomendada)', 2: 'Automática compacta (λ/8)',
               3: 'Automática mínima (solo cabe el conector)'}
 FRACCION_MASA = {1: 1.0, 2: 0.5}
+# Vivaldi antipodal: dos perfiles simulados a 2441,75 MHz en FR4 de 1,6 mm (GPU, 23-11; `salidas/_barridos/VIV_ganancia*_24GHz`):
+#   banda ancha  (boca 90, aleta 60, tasa 3, separación 0,15): S11 −28,8 dB, banda −10 dB 1483–2795 MHz, 3,85 dBi, η 89 %
+#   alta ganancia (boca 130, aleta 60, tasa 4, separación 0,35): S11 −12,9 dB, banda 2214–2564 MHz, 6,1 dBi, η 88 %
+# En otras bandas las medidas de longitud se escalan con λ (sin simular). Con 0 («Manual») `dimensionar` no las toca.
+PERFILES_VIVALDI_TEXTO = {0: 'Manual', 1: 'Banda ancha (~4 dBi, más de 1 GHz de banda)', 2: 'Alta ganancia (~6 dBi, boca de ~1 λ, menos banda)'}
+PERFILES_VIVALDI = {1: {'ancho_apertura': 90.0, 'largo_aleta': 60.0, 'tasa': 3.0, 'abertura_interior': 0.15},
+                    2: {'ancho_apertura': 130.0, 'largo_aleta': 60.0, 'tasa': 4.0, 'abertura_interior': 0.35}}
+LONGITUDES_VIVALDI = ('ancho_apertura', 'largo_aleta')
+PARAMS_PERFIL_VIVALDI = tuple(PERFILES_VIVALDI[1])
 PARAMS_MASA = [
     Parametro('masa', 'Plano de masa', 1, 0, 3, 1, True, opciones=MODOS_MASA,
               ayuda='Automática: largo según λ/4 (o fracción) y ancho ajustado al radiador'),
@@ -765,10 +774,13 @@ for _td in [
                 Parametro('ancho_boom', 'Ancho de la tira de masa del boom [mm]', 8, 4, 30, 0.5)],
                'largo_brazo'),
     TipoAntena('vivaldi', 'Vivaldi antipodal',
-               'Dos aletas exponenciales, una en cada cara: banda ancha y directiva hacia la boca (~5–7 dBi). '
-               'Grande a 868 MHz.', 'vivaldi',
-               [Parametro('ancho_apertura', 'Ancho de la boca [mm]', 48, 8, 400, 0.5),
-                Parametro('largo_aleta', 'Largo de las aletas [mm]', 55, 8, 500, 0.5),
+               'Dos aletas exponenciales, una en cada cara, directivas hacia la boca. Perfil de banda ancha (~4 dBi, más de 1 GHz de banda a 2,4 GHz) '
+               'o de alta ganancia (~6 dBi, ~0,5 GHz). Grande a 868 MHz.', 'vivaldi',
+               [Parametro('perfil', 'Perfil', 1, 0, 2, 1, True, opciones=PERFILES_VIVALDI_TEXTO,
+                          ayuda='Banda ancha o alta ganancia: fijan la boca, las aletas, la tasa y la separación entre aletas (simulado a 2,4 GHz en FR4; '
+                                'otras bandas, escalado con λ sin validar). «Manual» deja las medidas como las pongas.'),
+                Parametro('ancho_apertura', 'Ancho de la boca [mm]', 90, 8, 400, 0.5),
+                Parametro('largo_aleta', 'Largo de las aletas [mm]', 60, 8, 500, 0.5),
                 Parametro('tasa', 'Tasa de apertura exponencial', 3.0, 1.0, 8.0, 0.1,
                           ayuda='Más tasa: la aleta se abre más tarde y de golpe'),
                 Parametro('abertura_interior', 'Separación entre aletas en la boca (fracción del ancho)', 0.15, 0.05, 0.5, 0.01),
@@ -1417,6 +1429,17 @@ def dimensionar(clave, f_obj, parametros=None, nombre_sustrato=None, fijos=()):
                 p['alto'] = alto
         if aviso is not None:
             p['_aviso'] = aviso
+        return p
+    if clave == 'vivaldi' and int((parametros or {}).get('perfil', 0) or 0) in PERFILES_VIVALDI:
+        p = _dimensionar_una_banda(clave, f_obj, parametros, nombre_sustrato, fijos=fijos)
+        p.pop('_aviso', None)
+        k = F_REFERENCIA/f_obj
+        par = {q.nombre: q for q in CATALOGO[clave].parametros}
+        for nombre, v in PERFILES_VIVALDI[int(p['perfil'])].items():
+            if nombre in fijos:
+                continue
+            v = v*k if nombre in LONGITUDES_VIVALDI else v
+            p[nombre] = round(min(max(v, par[nombre].minimo), par[nombre].maximo), 2)
         return p
     dos = clave in ('jpole', 'ifa') and int((parametros or {}).get('multibanda', 0) or 0) == 1
     # el tamaño de partida, el de una banda (la estimación de dos bandas ya incluye el alargado de la IFA)

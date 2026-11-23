@@ -93,7 +93,7 @@ The resulting board (KiCad render): top side and bottom side with the logo and l
 | Patch with coupled parasitic (flat alternative to stacked) | patch | ❌ does not match in simulation (−0.6 dB, η 7 %) |
 | Inverted-F antenna (F-shaped J-pole) and PIFA | monopole | ✅ validated in simulation (868 MHz, 1.2 GHz, 2.4 and 5.8 GHz) |
 | Sleeve dipole | monopole | ✅ validated in simulation (868 MHz to 5.8 GHz) |
-| Antipodal Vivaldi | vivaldi | ✅ validated in simulation (2.4 GHz −18 dB and 5.8 GHz −12.3 dB; very wide band) |
+| Antipodal Vivaldi | vivaldi | ✅ validated in simulation at 2.4 GHz with two profiles: wideband (−28.8 dB, 1.5–2.8 GHz, 3.9 dBi) and high gain (−12.9 dB, 2.2–2.6 GHz, 6.1 dBi); 5.8 GHz −12.3 dB (earlier design) |
 | Series dipole collinear (microstrip line) | collinear | ✅ validated in simulation at 2.4 GHz (−12.7 dB, 4.1 dBi, η 59 %) and 5.8 GHz (−13.8 dB, 3.5 dBi, η 50 %); on FR4 the gain falls short; **modular** construction (identical boards joined edge to edge, simulated at 2.4 GHz: −12.9 dB, 4.0 dBi, η 61 % with 4 modules), soldered junction not measured |
 | Printed dipole (straight or Koch; printed balun or centre-fed coax) | dipole | ✅ validated (868 MHz to 5.8 GHz) |
 | Array of 2 bowtie dipoles with a delay line (one connector, beam tilt like a sector antenna) | array_fase | ⚠️ not simulated or validated; the series collinear array with `inclinacion` was inconclusive (the dipoles couple through the common line) |

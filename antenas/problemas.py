@@ -28,7 +28,7 @@ ESTADO = {
     'ifa': ('validada', 'Validada en simulación (de 868 MHz a 5,8 GHz)'),
     'pifa': ('validada', 'Validada en simulación (868 MHz, 2,4 y 5,8 GHz)'),
     'dipolo_sleeve': ('validada', 'Validada en simulación (de 868 MHz a 5,8 GHz)'),
-    'vivaldi': ('validada', 'Validada en simulación (2,4 y 5,8 GHz)'),
+    'vivaldi': ('validada', 'Validada en simulación (2,4 GHz en dos perfiles, banda ancha y alta ganancia; 5,8 GHz)'),
     'colineal_dipolos': ('validada', 'Validada en simulación (2,4 GHz)'),
     'yagi_koch': ('no_funciona', 'No funciona: radia hacia atrás'),
     'yagi_boom': ('validada', 'Validada en simulación con elementos rectos (868 MHz, 2,4 y 5,8 GHz)'),
@@ -122,8 +122,10 @@ FIJOS = {
                   'segundo brazo; el cable puede radiar si la manga es corta (usa una ferrita al medir).'),
     ],
     'vivaldi': [
-        ('aviso', 'Simulada a 2,4 GHz (−18 dB, banda muy ancha) y a 5,8 GHz (−12,3 dB con la aleta de 69 mm y la tasa 4), sin medir; la transición de la línea a las aletas '
-                  'puede necesitar ajuste. A 868 MHz la placa sale muy grande y no se ha simulado.'),
+        ('aviso', 'Simulada a 2,4 GHz con dos perfiles, sin medir: banda ancha (boca 90 mm: −28,8 dB, banda 1,5–2,8 GHz, 3,9 dBi, η 89 %) y alta ganancia '
+                  '(boca 130 mm: −12,9 dB, banda 2,2–2,6 GHz, 6,1 dBi, η 88 %; adaptación justa, sensible a la malla). Aletas de más de 90 mm bajan la ganancia por la '
+                  'pérdida del FR4. En otras bandas los perfiles se escalan con λ sin simular; a 5,8 GHz solo está simulado el diseño antiguo (−12,3 dB con aleta de 69 mm y tasa 4). '
+                  'A 868 MHz la placa sale muy grande y no se ha simulado. La transición de la línea a las aletas puede necesitar ajuste.'),
     ],
     'colineal_dipolos': [
         ('aviso', 'Simulada a 2,4 GHz (−12,7 dB, banda 2357–2520 MHz, 4,1 dBi, η 59 %) con el factor de línea por defecto (1,0: '

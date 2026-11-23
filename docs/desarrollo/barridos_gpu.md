@@ -228,3 +228,11 @@ Solo simulación (openEMS en GPU, FR4 de 1,6 mm con εr 4,5): sin medir ninguna 
 | yagi_koch | 2441.75 | A_yagi_koch_24GHz | 1 | -3.1 | **no va (haz atrás)** | 2476.1 | None | 2.84 | 53.5 | `{}` |
 | yagi_koch | 2441.75 | Y_quasi_yagi_it2_24GHz | 7 | -6.8 | **justo** | 2341.1 | [2243, 2443] | 3.21 | 63.2 | `{"iteracion": 2, "directores": 2, "factor_director": 0.8, "separacion_director": 38.607, "alto_cps": 27.0}` |
 | yagi_koch | 2441.75 | Y_quasi_yagi_it3_24GHz | 6 | -2.6 | **no va (haz atrás)** | 2650.5 | None | 1.53 | 56.1 | `{"iteracion": 3, "directores": 2, "factor_director": 0.8, "separacion_director": 26.221, "alto_cps": 12.0}` |
+
+## Vivaldi: perfiles de banda ancha y alta ganancia (23-11, GPU, 2441,75 MHz, FR4 1,6 mm)
+
+Barridos VIV_ganancia_24GHz (boca 56/75/90, aleta 60–150, tasa 3/5), …2 (boca 110/130/150), …3 y …4 (boca 130, tasa y separación entre aletas) en salidas/_barridos/.
+La boca fija la directividad (90 mm: 4,4 dBi; 110: 5,5; 130: 6,3; 150: 6,1) y la separación entre aletas (bertura_interior 0,25–0,4) la adaptación; aletas de más de 90 mm
+bajan la ganancia (η 89 → 74 %). Perfiles (	ipos.PERFILES_VIVALDI): banda ancha (90, 60, tasa 3, 0,15) −28,8 dB, banda 1483–2795 MHz, 3,85 dBi, η 89 %; alta ganancia (130, 60, tasa 4, 0,35)
+−12,9 dB, banda 2214–2564 MHz, 6,13 dBi, η 88 %. Con el paso de malla ×0,85 y ×1,15 (VIV_malla_*): banda ancha −21,2 y −25,3 dB (4,1 y 3,8 dBi); alta ganancia −11,8 y −10,5 dB (6,5 y 6,0 dBi): aguanta, con poco margen.
+Sin simular: otras bandas (escalado con λ), PTFE y medida.
