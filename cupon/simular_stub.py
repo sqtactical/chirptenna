@@ -49,6 +49,7 @@ def main():
     ap.add_argument('--er', type=float, default=4.5)
     ap.add_argument('--tand', type=float, default=0.02)
     ap.add_argument('--muestra', default=None)
+    ap.add_argument('--mesa', default=None, help='εr,tanδ,grosor[mm]: bloque (madera, etc.) pegado bajo la masa, que llena todo el dominio en x e y')
     ap.add_argument('--fmin', type=float, default=300.0)
     ap.add_argument('--fmax', type=float, default=3000.0)
     ap.add_argument('--fin', type=float, default=1e-6)
@@ -60,8 +61,9 @@ def main():
         er_m, tand_m, t_m, ancho_m = mu[:4]
         y0_m = mu[4] if len(mu) > 4 else 4.0              # la muestra empieza a 4 mm del borde (hay un conector)
         y1_m = mu[5] if len(mu) > 5 else largo + 3.0
+    me = [float(v) for v in a.mesa.split(',')] if a.mesa else None
     f0, fc = (a.fmin + a.fmax)/2*1e6, (a.fmax - a.fmin)/2*1e6
-    sufijo = '' if not mu else '_mu' + '_'.join(f'{v:g}' for v in mu)
+    sufijo = ('' if not mu else '_mu' + '_'.join(f'{v:g}' for v in mu)) + ('' if not me else '_mesa' + '_'.join(f'{v:g}' for v in me))
     sim_path = os.path.join(tempfile.gettempdir(), f'fase0_stub_{largo:g}_er{a.er:.3f}_tan{a.tand:g}{sufijo}')
 
     FDTD = openEMS(NrTS=a.pasos, EndCriteria=a.fin)
@@ -76,6 +78,10 @@ def main():
     if mu:
         CSX.AddMaterial('muestra', epsilon=er_m, kappa=2*np.pi*f0*EPS0*er_m*tand_m).AddBox(
             [-ancho_m/2, y0_m, H], [ancho_m/2, y1_m, H + t_m], priority=1)
+    if me:
+        er_t, tand_t, t_t = me
+        CSX.AddMaterial('mesa', epsilon=er_t, kappa=2*np.pi*f0*EPS0*er_t*tand_t).AddBox(
+            [-X - 20, y_a - 20, -t_t], [X + 20, y_b + 20, 0], priority=1)
     CSX.AddMetal('masa').AddBox([-X, y_a, 0], [X, y_b, 0], priority=10)
     cobre = CSX.AddMetal('cobre')
     # línea de alimentación de 50 Ω hasta el borde (el plano de medida) y, como en la placa, el pad del SMA (1,27 mm), la transición cónica y la línea
@@ -88,7 +94,8 @@ def main():
                                      + ([[-ancho_m/2, ancho_m/2]] if mu else [])))
     mesh.AddLine('y', np.concatenate([[y_a - 20, y_b + 20, y_a, y_b, 0.0, largo], np.arange(y_a, y_b + 0.01, 2.0),
                                       np.linspace(largo - 2, largo + 2, 9), [Y_PAD, Y_TAPER]] + ([[y0_m, y1_m]] if mu else [])))
-    mesh.AddLine('z', np.concatenate([np.linspace(0, H, 5), [-15, H + 20]] + ([list(np.linspace(H, H + t_m, int(np.ceil(t_m/0.75)) + 1))] if mu else [])))
+    z_bajo = -15 - (me[2] if me else 0.0)
+    mesh.AddLine('z', np.concatenate([np.linspace(0, H, 5), [z_bajo, H + 20]] + ([[-me[2]]] if me else []) + ([list(np.linspace(H, H + t_m, int(np.ceil(t_m/0.75)) + 1))] if mu else [])))
     mesh.SmoothMeshLines('all', lam_min/20, 1.3)
     print('Malla:', [len(mesh.GetLines(d)) for d in 'xyz'])
     port = FDTD.AddMSLPort(1, cobre, [-W/2, y_a, H], [W/2, y_a + 6, 0], 'y', 'z', excite=1, FeedShift=1.0, MeasPlaneShift=L_ALIM, priority=20)
