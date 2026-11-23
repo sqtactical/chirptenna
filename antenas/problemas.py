@@ -42,12 +42,16 @@ ESTADO = {
     'bucle': ('pendiente', 'Simulado (868 MHz y 2,4 GHz): adapta con la red en L calculada; η ~40–50 %, banda estrecha'),
     'jpole_koch': ('validada', 'Validada en simulación (868 MHz y 1,2 GHz; 2,4 GHz casi)'),
     'array_fase': ('pendiente', 'Sin simular ni validar (dos dipolos con línea de retardo)'),
-    'dipolo_plegado': ('pendiente', 'Recién añadido, sin simular ni validar'),
-    'moxon': ('pendiente', 'Recién añadido, sin simular ni validar'),
-    'lpda': ('pendiente', 'Recién añadida, sin simular ni validar'),
-    'antena_ranura': ('pendiente', 'Recién añadida, sin simular ni validar'),
-    'espiral': ('pendiente', 'Recién añadida, sin simular ni validar'),
-    'torniquete': ('pendiente', 'Recién añadido, sin simular ni validar'),
+    'dipolo_plegado': ('validada', 'Validado en simulación a 2,4 GHz: −16,4 dB, banda 2305–2637 MHz, 2 dBi, η 89 %; sin medir'),
+    'moxon': ('pendiente', 'Simulado a 2,4 GHz: −5,9 dB (Z ≈ 16 Ω, 3,9 dBi, η 67 %); falta subir la impedancia con el hueco y las colas'),
+    'lpda': ('validada', 'Validada en simulación a 2,4 GHz: −22,7 dB, banda 2318–2539 MHz, 6,9 dBi, η 84 %; sin medir'),
+    'antena_ranura': ('pendiente', 'Simulada a 2,4 GHz: −10,7 dB justos (banda 2364–2479 MHz, 4,7 dBi, η 73 %); sin medir'),
+    'espiral': ('pendiente', 'Simulada a 2,4 GHz: −10,1 dB pero con 23 MHz de banda; razón axial de 16 dB (poco circular)'),
+    'torniquete': ('pendiente', 'Simulado a 2,4 GHz: −21,8 dB, η 97 %, pero razón axial de 12 dB: adapta sin dar polarización circular'),
+    'monopolo_uwb': ('pendiente', 'Recién añadido, sin simular ni validar'),
+    'parche_cp': ('pendiente', 'Recién añadido, sin simular ni validar'),
+    'array_serie': ('pendiente', 'Recién añadido, sin simular ni validar'),
+    'antena_siw': ('pendiente', 'Recién añadida, sin simular ni validar'),
     'diedro': ('pendiente', 'Sin simular ni validar (tres placas; modelo de placas giradas)'),
     'reflector_esquina': ('pendiente', 'Sin simular ni validar (tres placas; modelo de placas giradas)'),
     'helice_normal': ('pendiente', 'Sin simular ni validar (hilo helicoidal; tira de flex)'),
@@ -85,6 +89,22 @@ FIJOS = {
     'torniquete': [
         ('aviso', 'Sin simular ni medir. El desfase de 90° sale de la diferencia de largo entre los dos dipolos (la simulación de prueba del 08-11 en GPS L1 no la cerró); '
                   'se alimenta con un coaxial soldado por detrás, en el centro.'),
+    ],
+    'monopolo_uwb': [
+        ('aviso', 'Sin simular ni medir. El tamaño sale de la fórmula del disco de Ray (f baja ≈ 72 GHz·mm / altura total) y no está calibrado para el FR4; '
+                  'el hueco entre la masa y el radiador es lo que más ajusta la adaptación en toda la banda.'),
+    ],
+    'parche_cp': [
+        ('aviso', 'Sin simular ni medir. El desfase de 90° es un meandro de λg/4 en una de las dos ramas: solo es exacto en una frecuencia, así que la razón axial '
+                  'buena es estrecha. Hay que simular la razón axial y el sentido de giro (GPS e Iridium son RHCP) antes de fiarse de «sentido».'),
+    ],
+    'array_serie': [
+        ('aviso', 'Sin simular ni medir. Los parches comparten la corriente de la línea: la adaptación de entrada y el reparto de amplitud no están calculados, '
+                  'solo la separación λg para la fase. Con muchos parches el último recibe poca potencia.'),
+    ],
+    'antena_siw': [
+        ('aviso', 'Sin simular ni medir. Lleva ~200 vías (hilos PEC en la simulación) y la guía se cierra en cortocircuito en continua (vivo y masa unidos por las vías). '
+                  'El largo y el desplazamiento de las ranuras no están calibrados.'),
     ],
     'array_fase': [
         ('aviso', 'Sin simular ni medir. La estimación del tamaño de los dipolos es la del bowtie suelto: el acoplo entre los dos la mueve, hay que centrar simulando. '

@@ -241,11 +241,218 @@ def generar_torniquete(p, s, eps):
                                         'avisos': [tr('Alimentación con un coaxial soldado por detrás, en el centro: el cable perturba la cara trasera.')]}))
 
 
-TIPOS = {'dipolo_plegado': 'plegado', 'moxon': 'moxon', 'lpda': 'lpda', 'antena_ranura': 'ranura', 'espiral': 'espiral', 'torniquete': 'torniquete'}
+# ------------------------------------------------------------------ monopolo plano de banda ancha (UWB)
+K_UWB = 1.0               # f baja = 72 GHz·mm / altura total (Ray, FR4): sin calibrar
+K_PARCHE_CP = 1.0         # modelo de línea de transmisión de un parche cuadrado: sin calibrar
+K_SERIE = 1.0
+K_SIW = 1.0
+RELACION_SIW = 1.35       # f de diseño = 1,35 × la frecuencia de corte de la guía
 
 
-def estimar_f(clave, p, er, eps):
+def estimar_f_uwb(p):
+    """Borde bajo de la banda: f [GHz] ≈ 72 / altura total [mm] (disco de Ray para FR4); la banda sigue hasta ~3-4 veces más."""
+    H = 2*p['radio']*p['relacion'] + p['hueco']
+    return K_UWB*72e9/H
+
+
+def generar_uwb(p, s, eps):
+    """Monopolo plano (disco, elipse u octógono) alimentado por una microstrip, sobre una masa parcial en B.Cu que acaba a `hueco` del radiador."""
+    from shapely import affinity
+    from shapely.geometry import Polygon
+    r, rel, gap, lm = p['radio'], p['relacion'], p['hueco'], p['largo_masa']
+    W = max(p['ancho_placa'], 2*r + 4)
+    w50 = ancho_microstrip(50, s.er, s.h)
+    y_base = lm + gap
+    yc = y_base + r*rel
+    if int(p.get('forma', 0)) == 1:
+        a, b = r, r*rel
+        c = 0.3*min(a, b)
+        radiador = Polygon([(-a + c, yc - b), (a - c, yc - b), (a, yc - b + c), (a, yc + b - c), (a - c, yc + b), (-a + c, yc + b),
+                            (-a, yc + b - c), (-a, yc - b + c)])
+    else:
+        radiador = affinity.scale(Point(0, yc).buffer(r, 96), 1.0, rel, origin=(0, yc))
+    sup = unary_union([g.rectangulo(-w50/2, BORDE_COBRE, w50/2, y_base + 0.5), radiador])
+    inf = g.rectangulo(-W/2, BORDE_COBRE, W/2, lm)
+    avisos = []
+    if lm < 3*s.h:
+        avisos.append(tr('La masa es muy corta frente al grosor del sustrato: sube el largo de la masa.'))
+    contorno, sup, inf = _placa_por_linea(sup, inf, p)
+    info = _info(contorno, {'hueco_minimo_mm': round(gap, 2), 'pista_minima_mm': round(w50, 3),
+                            'radiador_mm': [round(2*r, 2), round(2*r*rel, 2)], 'avisos': avisos,
+                            'banda_estimada_MHz': [round(estimar_f_uwb(p)/1e6), round(3.5*estimar_f_uwb(p)/1e6)]})
+    return Antena(tipo='monopolo_uwb', parametros=dict(p), capas={'F.Cu': sup, 'B.Cu': inf}, ajuste=ajuste.vacio(),
+                  radiador=radiador, contorno=contorno, zona_libre=contorno, puerto=_puerto_linea(w50), info=info)
+
+
+# ------------------------------------------------------------------ parche circular de doble alimentación
+def _dims_parche(L, W, er, h):
+    ee = (er + 1)/2 + (er - 1)/2/math.sqrt(1 + 12*h/W)
+    dL = 0.412*h*(ee + 0.3)*(W/h + 0.264)/((ee - 0.258)*(W/h + 0.8))
+    return ee, dL
+
+
+def estimar_f_parche_cp(p, er, h=1.6):
+    ee, dL = _dims_parche(p['lado'], p['lado'], er, h)
+    return K_PARCHE_CP*C0/(2*(p['lado'] + 2*dL)*1e-3*math.sqrt(ee))
+
+
+def generar_parche_cp(p, s, eps):
+    """Parche cuadrado alimentado por dos bordes contiguos (abajo y a la izquierda) con muesca, cada uno por una línea de `z_ramas` Ω. Las dos
+    salen de una T de la línea de 50 Ω y la de la izquierda lleva un meandro de λg/4: 90° de desfase y polarización circular, sin acoplador."""
+    from shapely import affinity
+    from . import tipos
+    L, z, hm = p['lado'], p['z_ramas'], p['hueco_muesca']
+    w50 = ancho_microstrip(50, s.er, s.h)
+    wz = ancho_microstrip(z, s.er, s.h)
+    f_est = estimar_f_parche_cp(p, s.er, s.h)
+    Rb = tipos._parche_rectangular_dims(f_est, s)[4]
+    d = min(p.get('muesca', 0) or L/math.pi*math.acos(math.sqrt(min(z/Rb, 1.0))), 0.45*L)
+    lam0 = C0/f_est*1e3
+    lam_g = lam0/math.sqrt(eps_eff_microstrip(s.er, s.h, wz))
+    wb = lam_g/8                                         # el meandro añade 2·wb = λg/4
+    a = b = p['separacion_te']
+    hb = max(4*wz, 2.5)
+    xT, yT = -L/2 - b, -L/2 - a
+    parche = g.rectangulo(-L/2, -L/2, L/2, L/2).difference(unary_union([
+        g.rectangulo(-wz/2 - hm, -L/2 - 1, wz/2 + hm, -L/2 + d), g.rectangulo(-L/2 - 1, -wz/2 - hm, -L/2 + d, wz/2 + hm)]))
+    ym = yT + (L/2 + a - hb)/2
+    r1 = g.engordar([(xT, yT), (0, yT), (0, -L/2 + d)], wz)
+    r2 = g.engordar([(xT, yT), (xT, ym), (xT - wb, ym), (xT - wb, ym + hb), (xT, ym + hb), (xT, 0), (-L/2 + d, 0)], wz)
+    y0 = yT - p['largo_alimentacion']
+    entrada = g.rectangulo(xT - w50/2, y0 + BORDE_COBRE, xT + w50/2, yT + w50/2)
+    sup = unary_union([parche, r1, r2, entrada])
+    margen = max(6*s.h, p['margen_masa'])
+    contorno = g.contorno_placa([sup.buffer(margen)], int(p.get('contorno', 1)), recorte=(-1e4, y0, 1e4, 1e4))
+    masa = contorno.buffer(-BORDE_COBRE, join_style='mitre')
+    radiador = unary_union([parche, r1, r2])
+    xp = xT
+    if int(p.get('sentido', 0)) == 1:
+        esp = lambda geo: affinity.scale(geo, -1.0, 1.0, origin=(0, 0))
+        sup, masa, contorno, radiador, xp = esp(sup), esp(masa), esp(contorno), esp(radiador), -xT
+    mv = lambda geo: g.mover(geo, 0, -y0)
+    contorno = mv(contorno)
+    avisos = []
+    if wb < 2*wz:
+        avisos.append(tr('El meandro de desfase es muy corto: la polarización circular será mala.'))
+    info = _info(contorno, {'ancho_linea_50ohm_mm': round(w50, 3), 'pista_minima_mm': round(min(w50, wz), 3), 'hueco_minimo_mm': round(min(hm, hb - wz), 3),
+                            'muesca_mm': round(d, 2), 'radiador_mm': [round(L, 2), round(L, 2)], 'R_borde_estimada_ohm': round(Rb, 1),
+                            'meandro_mm': round(2*wb, 2), 'polarizacion': 'circular', 'avisos': avisos})
+    return Antena(tipo='parche_cp', parametros=dict(p), capas={'F.Cu': mv(sup), 'B.Cu': mv(masa)}, ajuste=ajuste.vacio(),
+                  radiador=mv(radiador), contorno=contorno, zona_libre=None,
+                  puerto={'borde': (xp, 0.0), 'direccion': (0, 1), 'alimentacion': (xp, 2.0), 'ancho_linea': w50}, info=info)
+
+
+# ------------------------------------------------------------------ array de parches alimentado en serie
+def estimar_f_array_serie(p, er, h=1.6):
+    ee, dL = _dims_parche(p['largo'], p['ancho'], er, h)
+    return K_SERIE*C0/(2*(p['largo'] + 2*dL)*1e-3*math.sqrt(ee))
+
+
+def generar_array_serie(p, s, eps):
+    """`elementos` parches en fila (eje y, la alimentación llega por abajo) unidos por líneas estrechas, con los centros a `paso` × λg: radian
+    en fase hacia delante (perpendicular a la placa). Una sola línea, sin red de reparto; el último parche queda abierto."""
+    from . import tipos
+    N, L, W, wl, hm = int(p['elementos']), p['largo'], p['ancho'], p['ancho_enlace'], p['hueco_muesca']
+    w50 = ancho_microstrip(50, s.er, s.h)
+    f_est = estimar_f_array_serie(p, s.er, s.h)
+    ee, _ = _dims_parche(L, W, s.er, s.h)
+    lam_g = C0/f_est*1e3/math.sqrt(ee)
+    paso = max(p['paso']*lam_g, L + 2.0)
+    Rb = tipos._parche_rectangular_dims(f_est, s)[4]
+    d = min(p.get('muesca', 0) or L/math.pi*math.acos(math.sqrt(min(50/Rb, 1.0))), 0.45*L)
+    partes, huecos = [], [g.rectangulo(-w50/2 - hm, -L/2 - 1, w50/2 + hm, -L/2 + d)]
+    for k in range(N):
+        yk = k*paso
+        partes.append(g.rectangulo(-W/2, yk - L/2, W/2, yk + L/2))
+        if k < N - 1:
+            partes.append(g.rectangulo(-wl/2, yk + L/2 - 0.01, wl/2, yk + paso - L/2 + 0.01))
+    sup = unary_union(partes).difference(huecos[0])
+    y0 = -L/2 - p['largo_alimentacion']
+    linea = g.rectangulo(-w50/2, y0 + BORDE_COBRE, w50/2, -L/2 + d + 0.05)
+    sup = unary_union([sup, linea])
+    margen = max(6*s.h, p['margen_masa'])
+    contorno = g.contorno_placa([sup.buffer(margen)], int(p.get('contorno', 1)), recorte=(-1e4, y0, 1e4, 1e4))
+    masa = contorno.buffer(-BORDE_COBRE, join_style='mitre')
+    mv = lambda geo: g.mover(geo, 0, -y0)
+    avisos = []
+    if paso - L < 2.0 + 1e-6:
+        avisos.append(tr('Los parches quedan casi pegados: sube la separación o baja el largo.'))
+    contorno = mv(contorno)
+    info = _info(contorno, {'ancho_linea_50ohm_mm': round(w50, 3), 'pista_minima_mm': round(min(w50, wl), 3), 'hueco_minimo_mm': round(min(hm, paso - L), 3),
+                            'muesca_mm': round(d, 2), 'radiador_mm': [round(W, 2), round((N - 1)*paso + L, 2)], 'paso_mm': round(paso, 2),
+                            'R_borde_estimada_ohm': round(Rb, 1), 'avisos': avisos})
+    return Antena(tipo='array_serie', parametros=dict(p), capas={'F.Cu': mv(sup), 'B.Cu': mv(masa)}, ajuste=ajuste.vacio(),
+                  radiador=mv(sup), contorno=contorno, zona_libre=None,
+                  puerto={'borde': (0.0, 0.0), 'direccion': (0, 1), 'alimentacion': (0.0, 2.0), 'ancho_linea': w50}, info=info)
+
+
+# ------------------------------------------------------------------ guía de onda integrada en el sustrato (SIW) con ranuras
+def estimar_f_siw(p, er):
+    """f de diseño = 1,35 × la de corte de la guía (c / (2 a √εr))."""
+    return K_SIW*RELACION_SIW*C0/(2*p['ancho_guia']*1e-3*math.sqrt(er))
+
+
+def generar_siw(p, s, eps):
+    """Guía SIW (dos filas de vías unidas por la cara superior y la masa) alimentada por una microstrip con un taper. En la cara superior, `elementos`
+    ranuras longitudinales con el desplazamiento alternado, a λg/2: radian en fase hacia delante. Al fondo, una pared de vías a λg/4 de la última."""
+    from . import tipos
+    a, N, ls, ws, off = p['ancho_guia'], int(p['elementos']), p['largo_ranura'], p['ancho_ranura'], p['desplazamiento']
+    paso_v = p['paso_via']
+    w50 = ancho_microstrip(50, s.er, s.h)
+    f_est = estimar_f_siw(p, s.er)
+    lam0 = C0/f_est*1e3
+    fc_term = (lam0/(2*a))**2
+    lam_g = lam0/math.sqrt(max(s.er - fc_term, 0.05))
+    sep = lam_g/2
+    y_t0 = BORDE_COBRE + p['largo_alimentacion']
+    lt, wt = p['largo_taper'], min(p['ancho_taper'], a - 4)
+    y_s = y_t0 + lt
+    ys = [y_s + 0.75*sep + k*sep for k in range(N)]
+    y_fin = ys[-1] + sep/2
+    dv = 1.0
+    top = g.rectangulo(-a/2 - dv, y_s, a/2 + dv, y_fin + dv)
+    ranuras = [g.rectangulo((off if k % 2 == 0 else -off) - ws/2, yk - ls/2, (off if k % 2 == 0 else -off) + ws/2, yk + ls/2) for k, yk in enumerate(ys)]
+    top = top.difference(unary_union(ranuras))
+    from shapely.geometry import Polygon
+    taper = Polygon([(-w50/2, y_t0), (w50/2, y_t0), (wt/2, y_s + 0.01), (-wt/2, y_s + 0.01)])
+    linea = g.rectangulo(-w50/2, BORDE_COBRE, w50/2, y_t0 + 0.01)
+    sup = unary_union([top, taper, linea])
+    nv = max(int((y_fin - y_s)/paso_v), 1)
+    vias = []
+    for i in range(nv + 1):
+        y = y_s + i*(y_fin - y_s)/nv
+        vias += [(-a/2, y), (a/2, y)]
+    nx = max(int(a/paso_v), 1)
+    vias += [(-a/2 + j*a/nx, y_fin) for j in range(1, nx)]
+    margen = max(p['margen_masa'], 2.0)
+    contorno = g.contorno_placa([sup.buffer(margen)], int(p.get('contorno', 1)), recorte=(-1e4, 0, 1e4, 1e4))
+    interior = contorno.buffer(-BORDE_COBRE, join_style='mitre')
+    avisos = []
+    if paso_v > 2.5:
+        avisos.append(tr('Las vías quedan muy separadas (paso > 2 × el diámetro): la guía pierde energía por las paredes.'))
+    if ls > 0.95*sep:
+        avisos.append(tr('Las ranuras son casi tan largas como la separación entre ellas: acórtalas.'))
+    info = _info(contorno, {'ancho_linea_50ohm_mm': round(w50, 3), 'pista_minima_mm': round(min(w50, ws), 3), 'hueco_minimo_mm': round(ws, 2),
+                            'radiador_mm': [round(a + 2*dv, 2), round(y_fin - y_s, 2)], 'lambda_guia_mm': round(lam_g, 2),
+                            'separacion_ranuras_mm': round(sep, 2), 'numero_vias': len(vias), 'avisos': avisos})
+    return Antena(tipo='antena_siw', parametros=dict(p), capas={'F.Cu': sup.intersection(interior), 'B.Cu': interior}, ajuste=ajuste.vacio(),
+                  radiador=top, contorno=contorno, zona_libre=None, puerto=_puerto_linea(w50), vias=vias, info=info)
+
+
+TIPOS = {'dipolo_plegado': 'plegado', 'moxon': 'moxon', 'lpda': 'lpda', 'antena_ranura': 'ranura', 'espiral': 'espiral', 'torniquete': 'torniquete',
+         'monopolo_uwb': 'uwb', 'parche_cp': 'parche_cp', 'array_serie': 'array_serie', 'antena_siw': 'siw'}
+
+
+def estimar_f(clave, p, er, eps, h=1.6):
     """Frecuencia estimada (Hz) del tipo `clave`; `er` es la εr del sustrato y `eps` la εeff de una pista impresa."""
+    if clave == 'monopolo_uwb':
+        return estimar_f_uwb(p)
+    if clave == 'parche_cp':
+        return estimar_f_parche_cp(p, er, h)
+    if clave == 'array_serie':
+        return estimar_f_array_serie(p, er, h)
+    if clave == 'antena_siw':
+        return estimar_f_siw(p, er)
     if clave == 'dipolo_plegado':
         return estimar_f_plegado(p, eps)
     if clave == 'moxon':

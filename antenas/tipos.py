@@ -1019,8 +1019,64 @@ for _t4 in [
 ]:
     CATALOGO[_t4.clave] = _t4
 
+_P_MARGEN = Parametro('margen_masa', 'Margen de masa alrededor [mm]', 8, 2, 60, 0.5)
+for _t5 in [
+    TipoAntena('monopolo_uwb', 'Monopolo plano de banda ancha (UWB)',
+               'Un disco, elipse u octógono sobre una masa parcial, alimentado por una microstrip: cubre de ~2,4 a más de 8 GHz con una sola pieza y '
+               'radia casi como un monopolo (omnidireccional). Sin validar.', 'dipolo',
+               [Parametro('radio', 'Radio horizontal del radiador [mm]', 14, 2, 150, 0.25),
+                Parametro('relacion', 'Relación alto/ancho del radiador', 1.0, 0.5, 1.8, 0.05,
+                          ayuda='1 = disco; más de 1 = elipse alargada, menos de 1 = achatada'),
+                Parametro('hueco', 'Hueco entre la masa y el radiador [mm]', 1.0, 0.3, 8, 0.1,
+                          ayuda='Es lo que más ajusta la adaptación en toda la banda'),
+                Parametro('largo_masa', 'Largo de la masa bajo la línea [mm]', 15, 5, 80, 0.5),
+                Parametro('ancho_placa', 'Ancho de la masa [mm]', 36, 10, 250, 0.5),
+                Parametro('forma', 'Forma del radiador', 0, 0, 1, 1, True, opciones={0: 'Disco o elipse', 1: 'Octógono'})],
+               'radio', precision='±25 % (sin calibrar)'),
+    TipoAntena('parche_cp', 'Parche circular (doble alimentación)',
+               'Parche cuadrado alimentado por dos bordes contiguos con una línea λ/4 más larga en uno: polarización circular de verdad (GPS, Iridium), '
+               'sin cortar esquinas. La banda de razón axial es estrecha. Sin validar.', 'plano',
+               [Parametro('lado', 'Lado del parche [mm]', 29, 3, 400, 0.1),
+                Parametro('z_ramas', 'Impedancia de las dos ramas [Ω]', 100, 60, 150, 1, ayuda='Dos ramas de 100 Ω en paralelo dan 50 Ω en la T'),
+                Parametro('muesca', 'Profundidad de las muescas [mm] (0 = estimada)', 0, 0, 100, 0.1),
+                Parametro('hueco_muesca', 'Hueco de las muescas [mm]', 0.6, 0.2, 5, 0.1),
+                Parametro('separacion_te', 'Distancia de la T a las esquinas [mm]', 4, 2, 40, 0.5),
+                Parametro('largo_alimentacion', 'Largo de la línea de 50 Ω hasta la T [mm]', 12, 4, 100, 0.5),
+                _P_MARGEN,
+                Parametro('sentido', 'Lado con el meandro de retardo', 0, 0, 1, 1, True, opciones={0: 'Izquierdo (un sentido de giro)', 1: 'Derecho (el contrario)'})],
+               'lado', precision='±15 % (sin calibrar)'),
+    TipoAntena('array_serie', 'Array de parches en serie',
+               'Varios parches en fila unidos por líneas estrechas, con los centros a λg: radian en fase hacia delante y dan ~10–12 dBi con una sola '
+               'línea, sin red de reparto. Banda estrecha. Sin validar.', 'plano',
+               [Parametro('largo', 'Largo de cada parche [mm]', 28.6, 3, 400, 0.1),
+                Parametro('ancho', 'Ancho de cada parche [mm]', 37, 3, 400, 0.1),
+                Parametro('elementos', 'Número de parches', 4, 2, 10, 1, True),
+                Parametro('paso', 'Separación entre centros (en λg)', 1.0, 0.8, 1.3, 0.01),
+                Parametro('ancho_enlace', 'Ancho de la línea entre parches [mm]', 0.6, 0.15, 6, 0.05),
+                Parametro('muesca', 'Profundidad de la muesca de entrada [mm] (0 = estimada)', 0, 0, 100, 0.1),
+                Parametro('hueco_muesca', 'Hueco de la muesca [mm]', 0.6, 0.2, 5, 0.1),
+                Parametro('largo_alimentacion', 'Largo de la línea de 50 Ω [mm]', 12, 4, 100, 0.5),
+                _P_MARGEN],
+               'largo', precision='±15 % (sin calibrar)'),
+    TipoAntena('antena_siw', 'Ranuras en guía SIW',
+               'Una guía de onda hecha con dos filas de vías en la propia placa, con ranuras alternadas en la cara superior: ganancia alta con poca pérdida '
+               '(más útil a 5,8 GHz o más). Muchas vías. Sin validar.', 'plano',
+               [Parametro('ancho_guia', 'Ancho de la guía entre filas de vías [mm]', 39, 5, 300, 0.25),
+                Parametro('elementos', 'Número de ranuras', 4, 2, 12, 1, True),
+                Parametro('largo_ranura', 'Largo de cada ranura [mm]', 30, 3, 200, 0.5),
+                Parametro('ancho_ranura', 'Ancho de las ranuras [mm]', 1.5, 0.4, 8, 0.1),
+                Parametro('desplazamiento', 'Desplazamiento de las ranuras del eje [mm]', 4, 0.5, 60, 0.5, ayuda='Más desplazamiento, más radiación por ranura'),
+                Parametro('paso_via', 'Paso entre vías [mm]', 2.0, 1.0, 4, 0.1),
+                Parametro('ancho_taper', 'Ancho final del taper [mm]', 10, 3, 80, 0.5),
+                Parametro('largo_taper', 'Largo del taper [mm]', 15, 4, 100, 0.5),
+                Parametro('largo_alimentacion', 'Largo de la línea de 50 Ω [mm]', 12, 4, 100, 0.5),
+                Parametro('margen_masa', 'Margen alrededor de la guía [mm]', 4, 2, 40, 0.5)],
+               'ancho_guia', precision='±20 % (sin calibrar)'),
+]:
+    CATALOGO[_t5.clave] = _t5
 
-GRUPO_AJUSTE = {'dipolo_plegado': 'sin_ajuste', 'moxon': 'sin_ajuste', 'lpda': 'sin_ajuste', 'antena_ranura': 'sin_ajuste', 'espiral': 'sin_ajuste', 'torniquete': 'sin_ajuste', 'array_fase': 'sin_ajuste', 'diedro': 'sin_ajuste', 'reflector_esquina': 'sin_ajuste', 'helice_normal': 'sin_ajuste', 'helice_cuadrifilar': 'sin_ajuste',
+
+GRUPO_AJUSTE = {'monopolo_uwb': 'sin_ajuste', 'parche_cp': 'sin_ajuste', 'array_serie': 'sin_ajuste', 'antena_siw': 'sin_ajuste', 'dipolo_plegado': 'sin_ajuste', 'moxon': 'sin_ajuste', 'lpda': 'sin_ajuste', 'antena_ranura': 'sin_ajuste', 'espiral': 'sin_ajuste', 'torniquete': 'sin_ajuste', 'array_fase': 'sin_ajuste', 'diedro': 'sin_ajuste', 'reflector_esquina': 'sin_ajuste', 'helice_normal': 'sin_ajuste', 'helice_cuadrifilar': 'sin_ajuste',
                 'monopolo_recto': 'monopolo_pista', 'monopolo_meandro': 'monopolo_pista',
                 'monopolo_koch': 'monopolo_pista', 'monopolo_hilbert': 'monopolo_pista', 'monopolo_flecha': 'sin_ajuste',
                 'monopolo_sierpinski': 'monopolo', 'jpole': 'jpole', 'jpole_koch': 'jpole', 'yagi_koch': 'yagi',
@@ -1072,6 +1128,8 @@ ESCALABLES = {
     'antena_ranura': ('ancho_ranura', 'largo_stub'),
     'espiral': ('ancho_pista', 'hueco'),
     'torniquete': ('ancho_pista',),
+    'monopolo_uwb': ('hueco', 'largo_masa', 'ancho_placa'),
+    'antena_siw': ('largo_ranura', 'ancho_ranura', 'desplazamiento', 'ancho_taper', 'largo_taper'),
     'colineal_franklin': ('ancho_pista', 'hueco_horquilla') + _MASA,
     'bucle': ('lado', 'ancho_pista') + _MASA,
 }
@@ -1391,7 +1449,7 @@ def estimar_f(clave, parametros, nombre_sustrato=None, calibrada=True):
     elif clave == 'array_fase':
         f = arrays_fase.estimar_f_array_fase(p, nombre_sustrato)
     elif clave in planares.TIPOS:
-        f = planares.estimar_f(clave, p, s.er, eps_eff_monopolo(s.er))
+        f = planares.estimar_f(clave, p, s.er, eps_eff_monopolo(s.er), s.h)
     elif clave == 'diedro':
         f = tridimensional.estimar_f_diedro(p, eps_eff_monopolo(s.er))
     elif clave == 'reflector_esquina':

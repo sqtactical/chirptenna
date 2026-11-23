@@ -92,6 +92,16 @@ La placa resultante (render de KiCad): cara superior y cara inferior con el logo
 | Antena F invertida (J-pole en F) y PIFA | monopolo | ✅ validadas en simulación (868 MHz, 1,2 GHz, 2,4 y 5,8 GHz) |
 | Dipolo con manga (sleeve) | monopolo | ✅ validado en simulación (de 868 MHz a 5,8 GHz) |
 | Vivaldi antipodal | vivaldi | ✅ validado en simulación a 2,4 GHz con dos perfiles: banda ancha (−28,8 dB, 1,5–2,8 GHz, 3,9 dBi) y alta ganancia (−12,9 dB, 2,2–2,6 GHz, 6,1 dBi); 5,8 GHz −12,3 dB (diseño anterior) |
+| Dipolo plegado | dipolo_plegado | ✅ validado en simulación a 2,4 GHz (−16,4 dB, banda 2305–2637 MHz, 2 dBi, η 89 %), sin medir |
+| Log-periódica de dipolos | lpda | ✅ validada en simulación a 2,4 GHz (−22,7 dB, banda 2318–2539 MHz, 6,9 dBi, η 84 %), sin medir |
+| Moxon | moxon | 🧪 simulado a 2,4 GHz: −5,9 dB (Z ≈ 16 Ω, 3,9 dBi); falta subir la impedancia |
+| Antena de ranura (en la masa) | antena_ranura | 🧪 simulada a 2,4 GHz: −10,7 dB justos, 4,7 dBi, η 73 % |
+| Espiral de Arquímedes | espiral | 🧪 simulada a 2,4 GHz: −10,1 dB con solo 23 MHz de banda; razón axial 16 dB |
+| Torniquete (dipolos cruzados) | torniquete | 🧪 simulado a 2,4 GHz: −21,8 dB, η 97 %, pero razón axial 12 dB (no es circular) |
+| Monopolo plano de banda ancha (UWB) | monopolo_uwb | 🧪 generador y DRC listos; sin simular |
+| Parche circular de doble alimentación | parche_cp | 🧪 generador y DRC listos; sin simular |
+| Array de parches en serie | array_serie | 🧪 generador y DRC listos; sin simular |
+| Ranuras en guía SIW | antena_siw | 🧪 generador y DRC listos; sin simular |
 | Colineal de dipolos en serie (línea microstrip) | colineal | ✅ validada en simulación a 2,4 GHz (−12,7 dB, 4,1 dBi, η 59 %) y a 5,8 GHz (−13,8 dB, 3,5 dBi, η 50 %); con FR4 la ganancia queda corta; construcción **modular** (placas iguales unidas por el canto, simulada a 2,4 GHz: −12,9 dB, 4,0 dBi, η 61 % con 4 módulos), unión soldada sin medir |
 | Dipolo impreso (recto o de Koch; balun impreso o coaxial al centro) | dipolo | ✅ validado (de 868 MHz a 5,8 GHz; a 1,2 GHz −14,4 dB con la pista de 2,9 mm) |
 | Array de 2 dipolos bowtie con línea de retardo (un conector, inclinación del haz como una sectorial) | array_fase | ⚠️ sin validar ni simular; la colineal en serie con `inclinacion` no concluyó (los dipolos se acoplan por la línea común) |

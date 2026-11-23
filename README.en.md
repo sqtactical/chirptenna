@@ -94,6 +94,16 @@ The resulting board (KiCad render): top side and bottom side with the logo and l
 | Inverted-F antenna (F-shaped J-pole) and PIFA | monopole | ✅ validated in simulation (868 MHz, 1.2 GHz, 2.4 and 5.8 GHz) |
 | Sleeve dipole | monopole | ✅ validated in simulation (868 MHz to 5.8 GHz) |
 | Antipodal Vivaldi | vivaldi | ✅ validated in simulation at 2.4 GHz with two profiles: wideband (−28.8 dB, 1.5–2.8 GHz, 3.9 dBi) and high gain (−12.9 dB, 2.2–2.6 GHz, 6.1 dBi); 5.8 GHz −12.3 dB (earlier design) |
+| Folded dipole | dipolo_plegado | ✅ validated in simulation at 2.4 GHz (−16.4 dB, band 2305–2637 MHz, 2 dBi, η 89 %), not measured |
+| Log-periodic dipole array | lpda | ✅ validated in simulation at 2.4 GHz (−22.7 dB, band 2318–2539 MHz, 6.9 dBi, η 84 %), not measured |
+| Moxon | moxon | 🧪 simulated at 2.4 GHz: −5.9 dB (Z ≈ 16 Ω, 3.9 dBi); impedance still to be raised |
+| Slot antenna (in the ground plane) | antena_ranura | 🧪 simulated at 2.4 GHz: barely −10.7 dB, 4.7 dBi, η 73 % |
+| Archimedean spiral | espiral | 🧪 simulated at 2.4 GHz: −10.1 dB with only 23 MHz of band; axial ratio 16 dB |
+| Turnstile (crossed dipoles) | torniquete | 🧪 simulated at 2.4 GHz: −21.8 dB, η 97 %, but axial ratio 12 dB (not circular) |
+| Wideband planar monopole (UWB) | monopolo_uwb | 🧪 generator and DRC ready; not simulated |
+| Dual-feed circular patch | parche_cp | 🧪 generator and DRC ready; not simulated |
+| Series-fed patch array | array_serie | 🧪 generator and DRC ready; not simulated |
+| SIW waveguide slot array | antena_siw | 🧪 generator and DRC ready; not simulated |
 | Series dipole collinear (microstrip line) | collinear | ✅ validated in simulation at 2.4 GHz (−12.7 dB, 4.1 dBi, η 59 %) and 5.8 GHz (−13.8 dB, 3.5 dBi, η 50 %); on FR4 the gain falls short; **modular** construction (identical boards joined edge to edge, simulated at 2.4 GHz: −12.9 dB, 4.0 dBi, η 61 % with 4 modules), soldered junction not measured |
 | Printed dipole (straight or Koch; printed balun or centre-fed coax) | dipole | ✅ validated (868 MHz to 5.8 GHz) |
 | Array of 2 bowtie dipoles with a delay line (one connector, beam tilt like a sector antenna) | array_fase | ⚠️ not simulated or validated; the series collinear array with `inclinacion` was inconclusive (the dipoles couple through the common line) |

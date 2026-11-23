@@ -9,7 +9,7 @@
 
 ## Tipos de antena
 
-38 tipos: **17 validados en simulación**, 16 pendientes de validación y 5 que no funcionan. «Validada» significa que openEMS la da adaptada (S11 ≤ −10 dB en la banda) y radiando; no significa medida.
+42 tipos: **19 validados en simulación**, 18 pendientes de validación y 5 que no funcionan. «Validada» significa que openEMS la da adaptada (S11 ≤ −10 dB en la banda) y radiando; no significa medida.
 
 ### Validados en simulación
 
@@ -21,8 +21,10 @@
 | Dipolo bowtie (pajarita) | `dipolo_bowtie` | Validada en simulación (bowtie y bowtie de Sierpinski; de 868 MHz a 5,8 GHz) |
 | Dipolo con manga (sleeve) | `dipolo_sleeve` | Validada en simulación (de 868 MHz a 5,8 GHz) |
 | Dipolo impreso (recto o de Koch) | `dipolo` | Validada en simulación (recto y Koch; de 868 MHz a 5,8 GHz) |
+| Dipolo plegado | `dipolo_plegado` | Validado en simulación a 2,4 GHz: −16,4 dB, banda 2305–2637 MHz, 2 dBi, η 89 %; sin medir |
 | J-pole de Koch (fractal) | `jpole_koch` | Validada en simulación (868 MHz y 1,2 GHz; 2,4 GHz casi) |
 | J-pole impresa | `jpole` | Validada en simulación (de 868 MHz a 2,4 GHz) |
+| Log-periódica de dipolos | `lpda` | Validada en simulación a 2,4 GHz: −22,7 dB, banda 2318–2539 MHz, 6,9 dBi, η 84 %; sin medir |
 | Monopolo de Koch | `monopolo_koch` | Validada en simulación (de 868 MHz a 5,8 GHz) |
 | Monopolo de Sierpinski | `monopolo_sierpinski` | Validada en simulación (de 868 MHz a 5,8 GHz) |
 | Monopolo de punta de flecha de Sierpinski | `monopolo_flecha` | Validada en simulación a 2,4 GHz con la iteración 1 (las iteraciones 2 y 3 no adaptan) |
@@ -37,22 +39,24 @@
 
 | Tipo | Clave | Estado |
 |---|---|---|
-| Antena de ranura | `antena_ranura` | Recién añadida, sin simular ni validar |
+| Antena de ranura | `antena_ranura` | Simulada a 2,4 GHz: −10,7 dB justos (banda 2364–2479 MHz, 4,7 dBi, η 73 %); sin medir |
 | Array de 2 dipolos bowtie con línea de retardo | `array_fase` | Sin simular ni validar (dos dipolos con línea de retardo) |
 | Array de parches 2×2 / 4×4 (directivo) | `array_parches` | Pendiente de validación |
+| Array de parches en serie | `array_serie` | Recién añadido, sin simular ni validar |
 | Bucle impreso (pequeño, con condensador y red en π) | `bucle` | Simulado (868 MHz y 2,4 GHz): adapta con la red en L calculada; η ~40–50 %, banda estrecha |
 | Colineal Franklin (horquillas) | `colineal_franklin` | Adapta, pero con poca banda y poca ganancia |
 | Dipolo en V (dos alas) | `diedro` | Sin simular ni validar (tres placas; modelo de placas giradas) |
-| Dipolo plegado | `dipolo_plegado` | Recién añadido, sin simular ni validar |
-| Espiral de Arquímedes | `espiral` | Recién añadida, sin simular ni validar |
+| Espiral de Arquímedes | `espiral` | Simulada a 2,4 GHz: −10,1 dB pero con 23 MHz de banda; razón axial de 16 dB (poco circular) |
 | Hélice cuadrifilar en flex (GPS) | `helice_cuadrifilar` | Solo geometría, vista 3D y tira de flex: no se simula desde la interfaz |
 | Hélice de modo normal en flex | `helice_normal` | Sin simular ni validar (hilo helicoidal; tira de flex) |
-| Log-periódica de dipolos | `lpda` | Recién añadida, sin simular ni validar |
-| Moxon (rectángulo directivo) | `moxon` | Recién añadido, sin simular ni validar |
+| Monopolo plano de banda ancha (UWB) | `monopolo_uwb` | Recién añadido, sin simular ni validar |
+| Moxon (rectángulo directivo) | `moxon` | Simulado a 2,4 GHz: −5,9 dB (Z ≈ 16 Ω, 3,9 dBi, η 67 %); falta subir la impedancia con el hueco y las colas |
+| Parche circular (doble alimentación) | `parche_cp` | Recién añadido, sin simular ni validar |
 | Parche con ranura en U | `parche_ranura` | Sin testear ni validar |
 | Parche de Minkowski | `parche_minkowski` | Pendiente de validación (eficiencia baja en FR4) |
+| Ranuras en guía SIW | `antena_siw` | Recién añadida, sin simular ni validar |
 | Reflector de esquina (dipolo + 2 placas) | `reflector_esquina` | Sin simular ni validar (tres placas; modelo de placas giradas) |
-| Torniquete (dipolos cruzados) | `torniquete` | Recién añadido, sin simular ni validar |
+| Torniquete (dipolos cruzados) | `torniquete` | Simulado a 2,4 GHz: −21,8 dB, η 97 %, pero razón axial de 12 dB: adapta sin dar polarización circular |
 
 ### No funcionan
 
