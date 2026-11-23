@@ -17,6 +17,8 @@ GRUPOS = [
                   'repetidor que apunta a un valle.'),
     ('sin_masa', 'Sin plano de masa', 'No dependen de la placa a la que se conectan: buenas para ir en un mástil o '
                  'separadas del equipo.'),
+    ('rx', 'Solo recepción (RX)', 'Para escuchar sin amplificador: banda ancha (UWB, SDR, ADS-B) o polarización circular (GNSS). '
+             'Cuentan la eficiencia y la ganancia más que el S11. Sin validar.'),
     ('experimental', 'Experimentales', 'Más nuevas o con problemas conocidos: mira el estado de cada una.'),
 ]
 
@@ -87,15 +89,15 @@ TIPOS = {
              ['largo_brazo', 'elementos', 'tau', 'conector']),
     'antena_ranura': ('experimental', 'Ranura de λ/2 en la masa alimentada por microstrip: bidireccional, polarización lineal. Sin validar.',
                       ['largo_ranura', 'largo_stub', 'desplazamiento', 'conector']),
-    'espiral': ('experimental', 'Espiral de dos brazos con coaxial por detrás: polarización circular y banda ancha, bidireccional. Sin validar.',
+    'espiral': ('rx', 'Espiral de dos brazos con coaxial por detrás: polarización circular y banda ancha, bidireccional. Sin validar.',
                 ['radio', 'ancho_pista', 'hueco', 'sentido']),
-    'torniquete': ('experimental', 'Dos dipolos cruzados de distinto largo con un coaxial en el centro: circular (GPS) sin red de fase. Sin validar.',
+    'torniquete': ('rx', 'Dos dipolos cruzados de distinto largo con un coaxial en el centro: circular (GPS) sin red de fase. Sin validar.',
                    ['largo', 'asimetria', 'ancho_pista']),
-    'monopolo_uwb': ('experimental', 'Disco, elipse, octógono o rectángulo biselado sobre masa parcial: banda ancha (de ~2,4 a más de 8 GHz), casi omnidireccional. Simulado a 2,4 GHz.',
+    'monopolo_uwb': ('rx', 'Disco, elipse, octógono o rectángulo biselado sobre masa parcial: banda ancha (de ~2,4 a más de 8 GHz), casi omnidireccional. Simulado a 2,4 GHz.',
                      ['radio', 'relacion', 'hueco', 'largo_masa', 'forma', 'conector']),
-    'uwb_cpw': ('experimental', 'Monopolo de banda ancha con línea coplanar (sin plano trasero): más compacto que el de microstrip. Sin simular: falta el puerto coplanar.',
+    'uwb_cpw': ('rx', 'Monopolo de banda ancha con línea coplanar (sin plano trasero): más compacto que el de microstrip. Sin simular: falta el puerto coplanar.',
                 ['radio', 'relacion', 'hueco', 'chaflan', 'forma', 'conector']),
-    'parche_cp': ('experimental', 'Parche cuadrado con dos alimentaciones y 90° de retardo: polarización circular para GPS o Iridium. Sin validar.',
+    'parche_cp': ('rx', 'Parche cuadrado con dos alimentaciones y 90° de retardo: polarización circular para GPS o Iridium. Sin validar.',
                   ['lado', 'z_ramas', 'sentido', 'conector']),
     'array_serie': ('directiva', 'Parches en fila unidos por una línea: ~10–12 dBi sin red de reparto, banda estrecha. Sin validar.',
                     ['largo', 'ancho', 'elementos', 'paso', 'conector']),
@@ -107,7 +109,7 @@ TIPOS = {
                           ['largo_brazo', 'apertura_diedro', 'separacion', 'ancho_reflector', 'largo_reflector', 'conector']),
     'helice_normal': ('experimental', 'Hélice de modo normal en flex enrollado sobre una placa de masa: monopolo compacto. Sin validar.',
                       ['diametro', 'vueltas', 'altura', 'ancho_placa', 'largo_placa', 'conector']),
-    'helice_cuadrifilar': ('experimental', 'Hélice cuadrifilar en flex enrollado para GPS (circular): geometría y tira, sin simulación aquí.',
+    'helice_cuadrifilar': ('rx', 'Hélice cuadrifilar en flex enrollado para GPS (circular): geometría y tira, sin simulación aquí.',
                            ['diametro', 'vueltas', 'altura', 'sentido']),
 }
 
