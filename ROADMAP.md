@@ -9,7 +9,7 @@ Plan a medio plazo del proyecto (escrito el 11-11-2026, tras la v0.3.0-alpha). E
 Que Chirptenna sirva para **integrar una antena en la PCB de un producto real** (tracker, nodo LoRa, mando,
 sensor), no solo para generar antenas sueltas con su conector. Eso exige tres cosas, por este orden:
 
-1. **Confianza**: que lo simulado coincida con lo medido (hoy todo está validado solo en simulación).
+1. **Confianza**: que lo simulado coincida con lo medido (hoy casi todo está validado en simulación; medidos hasta ahora: los cupones A y B y dos antenas, con +1,0 % y +3,6 % de desvío en f).
 2. **Integración**: que la antena se diseñe con la placa, la masa y el entorno del producto, y se lleve a KiCad
    como parte de ese diseño.
 3. **Adaptación**: que el programa calcule y simule la red de adaptación de cualquier antena, porque dentro de un

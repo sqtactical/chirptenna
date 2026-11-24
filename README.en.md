@@ -6,8 +6,9 @@
 
 *[Versión en castellano](README.md)*
 
-> **Status: alpha (v0.6.0-alpha).** Validated in simulation only: no manufactured board has been
-> measured yet. **Real measurements wanted**: if you build an antenna and measure it, share it with
+> **Status: alpha (v0.6.0-alpha).** Mostly validated in simulation. First measurements (22-11,
+> NanoVNA): coupons A and B and two manufactured antennas, a Sierpinski monopole (resonates 1.0 %
+> above the simulation) and a Yagi (+3.6 %); the other types have not been measured. **Real measurements wanted**: if you build an antenna and measure it, share it with
 > the [“Real measurement”](../../issues/new/choose) template. How to contribute: [CONTRIBUTING.md](CONTRIBUTING.md).
 > Release notes: [CHANGELOG.md](CHANGELOG.md). Roadmap (in Spanish): [ROADMAP.md](ROADMAP.md).
 
@@ -140,9 +141,10 @@ With a new substrate, press “Resize to the frequency” and choose the rules �
 
 ## ⚠️ Known issues
 
-**Everything validated so far is in simulation**, with εr 4.5 for JLC's FR4. No manufactured board
-and no real εr has been measured yet (that is what the coupons are for). Always measure an antenna
-before trusting it. The GUI shows these warnings when you pick the type and when you export.
+**Almost everything validated is in simulation**, with εr 4.5 for JLC's FR4. Coupons A and B and two
+manufactured antennas have been measured (22-11, see `docs/desarrollo/placas_pedidas_2G4.md`): the
+Sierpinski resonates 1 % above the simulation and the Yagi 3.6 % (with half the bandwidth). The real εr
+of the FR4 is still not settled (the stubs give 4.5–5.0). Always measure an antenna before trusting it. The GUI shows these warnings when you pick the type and when you export.
 
 | Type / option | Issue |
 |---|---|

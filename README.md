@@ -6,8 +6,9 @@
 
 *[English version](README.en.md)*
 
-> **Estado: alpha (v0.6.0-alpha).** Validado solo en simulación: todavía no se ha medido ninguna
-> placa fabricada. **Se buscan medidas reales**: si fabricas una antena y la mides, compártela con
+> **Estado: alpha (v0.6.0-alpha).** Validado sobre todo en simulación. Primeras medidas (22-11, NanoVNA):
+> los cupones A y B y dos antenas fabricadas, un monopolo de Sierpinski (resuena +1,0 % respecto a lo simulado) y una
+> Yagi (+3,6 %); el resto de tipos no se ha medido. **Se buscan medidas reales**: si fabricas una antena y la mides, compártela con
 > la plantilla [«Medida real»](../../issues/new/choose). Cómo colaborar: [CONTRIBUTING.md](CONTRIBUTING.md).
 > Cambios de cada versión: [CHANGELOG.md](CHANGELOG.md). Hoja de ruta: [ROADMAP.md](ROADMAP.md).
 
@@ -138,9 +139,10 @@ Con un sustrato nuevo, pulsa «Ajustar tamaño a la frecuencia» y elige las reg
 
 ## ⚠️ Problemas conocidos
 
-**Todo lo validado hasta ahora es en simulación**, con εr 4,5 para el FR4 de JLC. Todavía no se ha
-medido ninguna placa fabricada ni la εr real (para eso están los cupones). Mide siempre la antena
-antes de darla por buena. La interfaz muestra estos avisos al elegir el tipo y al exportar.
+**Casi todo lo validado es en simulación**, con εr 4,5 para el FR4 de JLC. Se han medido los cupones
+A y B y dos antenas fabricadas (22-11, ver `docs/desarrollo/placas_pedidas_2G4.md`): el Sierpinski resuena
+un 1 % por encima de lo simulado y la Yagi un 3,6 % (con banda a la mitad). La εr real del FR4 sigue sin
+cerrarse (los stubs dan 4,5–5,0). Mide siempre la antena antes de darla por buena. La interfaz muestra estos avisos al elegir el tipo y al exportar.
 
 | Tipo / opción | Problema |
 |---|---|
