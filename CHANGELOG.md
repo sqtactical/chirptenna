@@ -7,6 +7,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 *English summary: the interface, the web version, the README file in the download and the manuals no longer say that everything is validated only in simulation: they now say "almost everything" and mention the measured boards.*
 
+### Corregido (24-11)
+
+- Espiral y torniquete: el pad de masa del coaxial quedaba a 0,15 mm del taladro y el DRC de KiCad 10.0.8 daba
+  `hole_clearance` (la CI falló en `66a727c`); ahora queda a 0,30 mm.
+
 ### Documentación (24-11)
 
 - La interfaz, la web, el LÉEME del zip, `MANUAL.md`/`MANUAL.en.md` y `CONTRIBUTING.md` dicen ahora «casi todo validado

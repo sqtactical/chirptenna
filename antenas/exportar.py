@@ -354,7 +354,10 @@ def placa_kicad(antena, ruta, titulo='', etiqueta=None, logo=True):
                        (conv.p(xa + sx*lado/2, ya + sy*lado/2) for sx, sy in ((-1, -1), (1, -1), (1, 1), (-1, 1)))])
             pads.append(f'    (fp_poly (pts {pts}) (stroke (width 0) (type solid)) (fill solid) (layer "{capa}.Mask") '
                         f'(uuid "{_u()}"))')
-        kx, ky = conv.p(xa + antena.puerto['pad_malla_mm']/2 - 0.75, ya)
+        # el pad (1 mm) queda fuera del cobre retirado alrededor del taladro: con taladro de 1,2 mm y malla de 4 mm (espiral,
+        # torniquete) quedaba a 0,15 mm del agujero y KiCad 10.0.8 da hole_clearance (el 10.0.1 no lo veía)
+        dx = max(antena.puerto['pad_malla_mm']/2 - 0.75, antena.puerto['taladro_mm']/2 + HOLGURA_TALADRO + 0.5)
+        kx, ky = conv.p(xa + dx, ya)
         pads.append(f'    (pad "M" smd rect (at {kx - ancla[0]:.4f} {ky - ancla[1]:.4f}) (size 1 1) (layers "B.Cu" "B.Mask") '
                     f'(net 1 "GND") (uuid "{_u()}"))')
     if antena.puerto.get('conector') == conector.SIN:
