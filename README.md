@@ -95,20 +95,20 @@ La placa resultante (render de KiCad): cara superior y cara inferior con el logo
 | Vivaldi antipodal | vivaldi | ✅ validado en simulación a 2,4 GHz con dos perfiles: banda ancha (−28,8 dB, 1,5–2,8 GHz, 3,9 dBi) y alta ganancia (−12,9 dB, 2,2–2,6 GHz, 6,1 dBi); 5,8 GHz −12,3 dB (diseño anterior) |
 | Dipolo plegado | dipolo_plegado | ✅ validado en simulación a 2,4 GHz (−16,4 dB, banda 2305–2637 MHz, 2 dBi, η 89 %), sin medir |
 | Log-periódica de dipolos | lpda | ✅ validada en simulación a 2,4 GHz (−22,7 dB, banda 2318–2539 MHz, 6,9 dBi, η 84 %), sin medir |
-| Moxon | moxon | 🧪 simulado a 2,4 GHz: −5,9 dB (Z ≈ 16 Ω, 3,9 dBi); falta subir la impedancia |
+| Moxon | moxon | 🧪 simulado a 2,4 GHz: −5,9 dB (Z ≈ 16 Ω, 3,9 dBi); ni con transformador λ/4 adapta (−5,6 dB) |
 | Antena de ranura (en la masa) | antena_ranura | 🧪 simulada a 2,4 GHz: −10,7 dB justos, 4,7 dBi, η 73 % |
 | Espiral de Arquímedes (con bobina en serie) | espiral | 🧪 simulada a 2,4 GHz (radio 27,7 mm): razón axial 0,9 dB, η 86 %; con una bobina de 3,5 nH en serie −19,8 dB (por circuito, sin comprobar en FDTD ni medida) |
-| Torniquete (dipolos cruzados) | torniquete | 🧪 simulado a 2,4 GHz: −21,8 dB, η 97 %, pero razón axial 12 dB (no es circular) |
-| Monopolo plano de banda ancha (UWB) | monopolo_uwb | 🧪 simulado a 2,4 GHz (−18 dB, 1,76–3,42 GHz, η 97 %); sin medir |
+| Torniquete (dipolos cruzados) | torniquete | 🧪 simulado a 2,4 GHz: −21,8 dB, η 97 %, pero razón axial 12 dB (no es circular; la asimetría no lo arregla) |
+| Monopolo plano de banda ancha (UWB) | monopolo_uwb | 🧪 simulado: −18 dB a 2,4 GHz (η 97 %) y ≤ −8,6 dB de 2,4 a 8 GHz (no llega a −10 dB en 5–8 GHz); sin medir |
 | Monopolo UWB con línea coplanar (CPW) | uwb_cpw | 🧪 generador y DRC listos; sin simular (falta el puerto coplanar) |
-| Parche circular de doble alimentación | parche_cp | 🧪 generador y DRC listos; sin simular |
+| Parche circular de doble alimentación | parche_cp | ❌ simulado: no adapta (GNSS L1 −5,4 dB, η 26 %, razón axial 10 dB; 2,4 GHz −1,2 dB) |
 | Array de parches en serie | array_serie | 🧪 generador y DRC listos; sin simular |
 | Ranuras en guía SIW | antena_siw | 🧪 generador y DRC listos; sin simular |
 | Colineal de dipolos en serie (línea microstrip) | colineal | ✅ validada en simulación a 2,4 GHz (−12,7 dB, 4,1 dBi, η 59 %) y a 5,8 GHz (−13,8 dB, 3,5 dBi, η 50 %); con FR4 la ganancia queda corta; construcción **modular** (placas iguales unidas por el canto, simulada a 2,4 GHz: −12,9 dB, 4,0 dBi, η 61 % con 4 módulos), unión soldada sin medir |
 | Dipolo impreso (recto o de Koch; balun impreso o coaxial al centro) | dipolo | ✅ validado (de 868 MHz a 5,8 GHz; a 1,2 GHz −14,4 dB con la pista de 2,9 mm) |
 | Array de 2 dipolos bowtie con línea de retardo (un conector, inclinación del haz como una sectorial) | array_fase | ⚠️ sin validar ni simular; la colineal en serie con `inclinacion` no concluyó (los dipolos se acoplan por la línea común) |
 | Dipolo en V (bowtie con los brazos doblados, tres placas soldadas) | diedro | ⚠️ sin validar: probado en simulación a 2,4 GHz con ala de 0° (idéntico al bowtie plano, −23,9 dB) y de 25° (−36 dB, malla gruesa); sin medir |
-| Yagi bibanda (dos Yagi con boom en una placa, 2,4 + 5,8 GHz, misma línea de 50 Ω) | yagi_bibanda | ⚠️ sin validar: solo geometría, sin simular ni medir |
+| Yagi bibanda (dos Yagi con boom en una placa, 2,4 + 5,8 GHz, misma línea de 50 Ω) | yagi_bibanda | ❌ simulada: 5,8 GHz adapta (hasta −20,5 dB) pero 2,4 GHz no (−1,7 dB): la línea hace de stub sobre el dipolo bajo |
 | Yagi en cruz (dos Yagi con boom que se encajan por una ranura, dos conectores) | yagi_cruz | ⚠️ sin validar: solo geometría y vista 3D (dos puertos, no se simula desde la interfaz); sin medir |
 | Reflector de esquina (dipolo bowtie + dos placas reflectoras, tres placas) | reflector_esquina | ⚠️ sin validar: simulado a 2,4 GHz con 90°, S11 −48 dB, D 10,3 dBi, haz de frente (malla gruesa, sin centrar); sin medir |
 | Hélice de modo normal en flex (monopolo helicoidal sobre masa) | helice_normal | ⚠️ sin validar: simulada a 2,4 GHz sin centrar, −6,4 dB; sin medir |

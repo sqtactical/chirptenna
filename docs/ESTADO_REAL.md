@@ -9,7 +9,7 @@
 
 ## Tipos de antena
 
-45 tipos: **19 validados en simulación**, 21 pendientes de validación y 5 que no funcionan. «Validada» significa que openEMS la da adaptada (S11 ≤ −10 dB en la banda) y radiando; no significa medida.
+45 tipos: **19 validados en simulación**, 19 pendientes de validación y 7 que no funcionan. «Validada» significa que openEMS la da adaptada (S11 ≤ −10 dB en la banda) y radiando; no significa medida.
 
 ### Validados en simulación
 
@@ -50,15 +50,13 @@
 | Hélice cuadrifilar en flex (GPS) | `helice_cuadrifilar` | Solo geometría, vista 3D y tira de flex: no se simula desde la interfaz |
 | Hélice de modo normal en flex | `helice_normal` | Sin simular ni validar (hilo helicoidal; tira de flex) |
 | Monopolo UWB con línea coplanar (CPW) | `uwb_cpw` | Recién añadido, sin simular ni validar: falta el puerto coplanar en el simulador |
-| Monopolo plano de banda ancha (UWB) | `monopolo_uwb` | Simulado a 2,4 GHz (23-11): −18,0 dB, banda 1763–3418 MHz, 3,2 dBi, η 97 %; sin medir. La banda baja y la alta no se han simulado |
-| Moxon (rectángulo directivo) | `moxon` | Simulado a 2,4 GHz: −5,9 dB (Z ≈ 16 Ω, 3,9 dBi, η 67 %); falta subir la impedancia con el hueco y las colas |
-| Parche circular (doble alimentación) | `parche_cp` | Simulado a 2,4 GHz (23-11): no adapta (−1,2 dB, η 7,5 %); la alimentación por dos bordes está por revisar |
+| Monopolo plano de banda ancha (UWB) | `monopolo_uwb` | Simulado a 2,4 GHz (23-11): −18,0 dB, banda 1763–3418 MHz, 3,2 dBi, η 97 %. En banda ancha (24-11, radio 14,2 mm): de 2,4 a 8 GHz S11 ≤ −8,6 dB, sin llegar a −10 dB en 5–8 GHz. Sin medir |
+| Moxon (rectángulo directivo) | `moxon` | Simulado a 2,4 GHz: −5,9 dB (Z ≈ 16 Ω, 3,9 dBi, η 67 %); con transformador λ/4 (24-11) sigue en −5,6 dB: la R de entrada queda en 15–25 Ω |
 | Parche con ranura en U | `parche_ranura` | Sin testear ni validar |
 | Parche de Minkowski | `parche_minkowski` | Pendiente de validación (eficiencia baja en FR4) |
 | Ranuras en guía SIW | `antena_siw` | Recién añadida, sin simular ni validar |
 | Reflector de esquina (dipolo + 2 placas) | `reflector_esquina` | Sin simular ni validar (tres placas; modelo de placas giradas) |
-| Torniquete (dipolos cruzados) | `torniquete` | Simulado a 2,4 GHz: −21,8 dB, η 97 %, pero razón axial de 12 dB: adapta sin dar polarización circular |
-| Yagi bibanda (2,4 + 5,8 GHz en una placa) | `yagi_bibanda` | Solo geometría: sin simular (dos Yagi en una placa, 2,4 y 5,8 GHz) |
+| Torniquete (dipolos cruzados) | `torniquete` | Simulado a 2,4 GHz: −21,8 dB, η 97 %, pero razón axial de 12 dB: adapta sin dar polarización circular; la asimetría con el largo recentrado no lo arregla (24-11): hace falta un retardo real |
 | Yagi en cruz (dos placas encajadas) | `yagi_cruz` | Solo geometría y vista 3D: dos placas con dos conectores, no se simula desde la interfaz |
 
 ### No funcionan
@@ -67,9 +65,11 @@
 |---|---|---|
 | Colineal coaxial impresa (COCO) | `colineal_coco` | No adapta bien ni radia con eficiencia en FR4 (−4 dB, η 24–35 %) |
 | Monopolo de Hilbert | `monopolo_hilbert` | No funciona sin red en π |
+| Parche circular (doble alimentación) | `parche_cp` | No adapta: a 2,4 GHz −1,2 dB (η 7,5 %); centrado en GNSS L1 (24-11) −5,4 dB, Z ≈ 20 Ω, η 26 % y razón axial de 10 dB. La alimentación por dos bordes está por revisar |
 | Parche con parásito acoplado (alternativa plana al apilado) | `parche_apilado` | No adapta en simulación (−0,6 dB, η 7 %) |
 | Parche de polarización circular (esquinas cortadas) | `parche_circular` | No adapta ni da polarización circular en simulación (−4 a −6 dB, razón axial ≥ 6 dB) |
 | Quasi-Yagi impresa con dipolo de Koch (directiva) | `yagi_koch` | No funciona: radia hacia atrás |
+| Yagi bibanda (2,4 + 5,8 GHz en una placa) | `yagi_bibanda` | Simulada (24-11): a 5,8 GHz adapta (−10,5 a −20,5 dB) pero a 2,4 GHz no (−1,7 dB en 9 variantes): el tramo de línea hasta el dipolo alto hace de stub sobre el bajo |
 
 ## Límites conocidos
 

@@ -14,7 +14,10 @@ publicado en cada versión, en [`CHANGELOG.md`](CHANGELOG.md). El diario antiguo
 - **Medidas reales (22-11, NanoVNA, calibración `completa_50k_2700M`)**: detalle en
   [`docs/desarrollo/placas_pedidas_2G4.md`](docs/desarrollo/placas_pedidas_2G4.md).
   - Cupones A y B: stub S80 repetible (0,03 %); S30 sale un +6 % sobre la simulación; εr del FR4 entre 4,5 y 5,0, sin
-    cerrar. La causa del 6 % del S30 se estudia con `cupon/simular_placa_B.py` (placa B entera).
+    cerrar. **Placa B entera simulada el 24-11** (tras corregir una ranura de masa en el modelo de `simular_placa_B.py`, que
+    sigue sin commitear en `cupon/`): los vecinos suben el S30 solo un +2,1 % y el S80 un +0,2 %; la razón S30/S80 no casa
+    en ningún modelo, así que la sospecha pasa al cuerpo del SMA. Detalle en
+    `docs/desarrollo/medidas/resultados_stubs_cupon_B.md`.
   - Yagi de 2 directores (Y54): 2534 MHz, +3,6 % sobre lo simulado, −12,1 dB, banda de 88 MHz frente a 166 simulados.
     La simulación de la Yagi depende de la malla (~3 %); falta medirla con ferrita en el cable.
   - Monopolo de Sierpinski (Y56): 2502 MHz, +1,0 %, −34 dB, banda ≥ 425 MHz. Es el tipo mejor validado.
@@ -29,11 +32,15 @@ publicado en cada versión, en [`CHANGELOG.md`](CHANGELOG.md). El diario antiguo
     3,5 nH aplicada por circuito: Z 42,9 − j2,1 Ω, banda −10 dB 1677–3036 MHz, razón axial 1,5 dB (la bobina no está
     comprobada con FDTD ni medida). No funcionan: Moxon (R 15–25 Ω, ni con `z_transformador`), torniquete (razón axial
     12 dB: necesita retardo real), `array_serie` (−3,5 a −7,2 dB). `antena_siw` adapta a 2,4 GHz pero η 12 %
-    (aparcada). Sin simular: `monopolo_uwb`, `parche_cp`, `uwb_cpw` (necesita puerto coplanar).
+    (aparcada). `monopolo_uwb`: −18 dB a 2,4 GHz y, en banda ancha (24-11, `salidas/_barridos/DB_monopolo_uwb`),
+    ≤ −8,6 dB de 2,4 a 8 GHz sin llegar a −10 dB en 5–8 GHz. `parche_cp` no adapta (2,4 GHz −1,2 dB; GNSS L1 centrado
+    −5,4 dB, η 26 %, razón axial 10 dB; `NUEVO_parche_cp_GNSSL1`). Sin simular: `uwb_cpw` (necesita puerto coplanar).
   - Bandas de recepción (UAT 978, ADS-B, GPS L5, GNSS L1) y grupo «Solo recepción» en la galería; el bowtie va mejor en
     todas (−19 a −28 dB).
-  - **Sin simular**: `yagi_cruz` (dos placas encajadas por una ranura, dos puertos; `info['sin_simulacion']`) y
-    `yagi_bibanda` (2,4 + 5,8 GHz en la misma línea).
+  - `yagi_bibanda` simulada el 24-11 (`salidas/_barridos/DB_yagi_bibanda`, 9 variantes): 5,8 GHz adapta (−10,5 a
+    −20,5 dB) pero 2,4 GHz no (−1,7 dB): el tramo de línea hasta el dipolo alto hace de stub sobre el bajo; hace falta
+    otra topología (dipolo alto antes que el bajo, o una trampa). **Sin simular**: `yagi_cruz` (dos placas encajadas por
+    una ranura, dos puertos; `info['sin_simulacion']`: el simulador solo admite un puerto).
   - Carcasa 3D (STL, simulación con carcasa, efecto de los tornillos), medida de plásticos con el cupón C y conexión
     con Chirptenna VNA (`.s1p` simulado): en la 0.6.0, sin probar con una carcasa impresa ni un plástico medido.
 - **Integración (fase 3, 12-11)**: hecho casi todo en parte (antena integrada, importar `.kicad_pcb`, huella con
@@ -41,8 +48,10 @@ publicado en cada versión, en [`CHANGELOG.md`](CHANGELOG.md). El diario antiguo
   real del usuario y en KiCad con interfaz; F3.8 (antena chip) bloqueada sin hoja de datos.
 - **Pruebas**: 323 en `pruebas/` (pytest, sin openEMS); i18n en/fr/de 1686/1686; `comprobar_tipos.py` y
   `prueba_interfaz.py` en la CI; `prueba_web.py` solo en la CI (en local falta Playwright).
-- **GPU**: parada. Sin cola pendiente (las colas antiguas de `salidas/_cola` y `%LOCALAPPDATA%\antenas\cola` están
-  abandonadas; `0008_array_parches` sigue colgada en `en_curso` desde el 02-11 y se puede borrar).
+- **GPU**: parada desde el 24-11 a las 22:53. Sin cola pendiente (las colas antiguas de `salidas/_cola` y
+  `%LOCALAPPDATA%\antenas\cola` están abandonadas; la entrada colgada `0008_array_parches` se borró el 24-11).
+  `mantener_despierto.ps1` no detecta `doble_banda.py` (se cierra a los 10 min): con esa herramienta, pedir otra forma
+  de mantener el equipo despierto.
 
 ## Siguientes pasos
 
@@ -51,9 +60,10 @@ publicado en cada versión, en [`CHANGELOG.md`](CHANGELOG.md). El diario antiguo
 2. **Fase 1 (medir)**: medir Y55, Y57, Y58 y Y59; repetir la Yagi con ferrita; comparar con
    `herramientas/comparar_medida.py`; cerrar la εr del FR4 (stubs + Sierpinski apuntan a 4,2–4,6); después recalibrar
    `calibracion_estimaciones.json` y crear el estado «Medida» (ROADMAP fase 1).
-3. **Simular lo que está sin simular**: `yagi_bibanda` (`barrido.py --modo bayes`), `yagi_cruz` (dos puertos y el
-   desfase de ~87°), `monopolo_uwb` en banda ancha (hace falta un modo de banda ancha en `barrido.py`), `parche_cp`;
-   calibrar las `K_*` de `planares.py`. Comprobar la bobina de la espiral con una L concentrada en la FDTD.
+3. **Lo que queda de simulación**: rediseñar la topología de `yagi_bibanda` (lo simulado el 24-11 no da la banda baja);
+   `yagi_cruz` y `uwb_cpw` necesitan cambios en el simulador (dos puertos, puerto coplanar); afinar el hueco del
+   `monopolo_uwb` para bajar de −10 dB en 5–8 GHz; calibrar las `K_*` de `planares.py`. La bobina de la espiral en FDTD
+   choca con la lección 77 (L pequeñas inestables): seguir por circuito hasta medirla.
 4. **Medidas en los textos (hecho el 24-11)**: interfaz, web, LÉEME del zip, `MANUAL`, `CONTRIBUTING` y README ya dicen
    «casi todo validado solo en simulación» y citan las medidas. Al medir más placas, actualizar esas frases, la tabla
    «Problemas conocidos» de los README y `docs/desarrollo/placas_pedidas_2G4.md`.

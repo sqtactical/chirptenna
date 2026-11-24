@@ -90,8 +90,9 @@ Las tareas F1.1 y F1.2 se pueden hacer **antes** de que lleguen las placas.
 - **Hecho cuando**: hay una εr por frecuencia con su incertidumbre (± la dispersión entre anillo y líneas). Si la
   dispersión supera ±0,15, no sigas: revisa soldaduras y medidas con el usuario.
 - **En curso (22-11-2026)**: cupones A y B medidos. El stub S80 es repetible (0,03 %), pero el S30 sale un +6 % sobre la
-  simulación y los stubs dan εr entre 4,5 y 5,0: la dispersión supera ±0,15, así que no está hecha. Se estudia con
-  `cupon/simular_placa_B.py` (placa B entera); el cupón C queda en standby por decisión del usuario.
+  simulación y los stubs dan εr entre 4,5 y 5,0: la dispersión supera ±0,15, así que no está hecha. La placa B entera
+  (24-11) descarta a los vecinos como causa (+2,1 % en el S30); queda el conector SMA. El cupón C queda en standby por
+  decisión del usuario.
 
 ## F1.5 · Medir las antenas
 

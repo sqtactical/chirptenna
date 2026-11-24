@@ -43,19 +43,19 @@ ESTADO = {
     'jpole_koch': ('validada', 'Validada en simulación (868 MHz y 1,2 GHz; 2,4 GHz casi)'),
     'array_fase': ('pendiente', 'Sin simular ni validar (dos dipolos con línea de retardo)'),
     'dipolo_plegado': ('validada', 'Validado en simulación a 2,4 GHz: −16,4 dB, banda 2305–2637 MHz, 2 dBi, η 89 %; sin medir'),
-    'moxon': ('pendiente', 'Simulado a 2,4 GHz: −5,9 dB (Z ≈ 16 Ω, 3,9 dBi, η 67 %); falta subir la impedancia con el hueco y las colas'),
+    'moxon': ('pendiente', 'Simulado a 2,4 GHz: −5,9 dB (Z ≈ 16 Ω, 3,9 dBi, η 67 %); con transformador λ/4 (24-11) sigue en −5,6 dB: la R de entrada queda en 15–25 Ω'),
     'lpda': ('validada', 'Validada en simulación a 2,4 GHz: −22,7 dB, banda 2318–2539 MHz, 6,9 dBi, η 84 %; sin medir'),
     'antena_ranura': ('pendiente', 'Simulada a 2,4 GHz: −10,7 dB justos (banda 2364–2479 MHz, 4,7 dBi, η 73 %); sin medir'),
     'espiral': ('pendiente', 'Simulada a 2,4 GHz (24-11): radio de 27,7 mm, razón axial 0,9 dB, η 86 %; adapta con una bobina en serie de 3,5 nH (−19,8 dB por circuito, sin comprobar en FDTD ni medido)'),
-    'torniquete': ('pendiente', 'Simulado a 2,4 GHz: −21,8 dB, η 97 %, pero razón axial de 12 dB: adapta sin dar polarización circular'),
-    'monopolo_uwb': ('pendiente', 'Simulado a 2,4 GHz (23-11): −18,0 dB, banda 1763–3418 MHz, 3,2 dBi, η 97 %; sin medir. La banda baja y la alta no se han simulado'),
+    'torniquete': ('pendiente', 'Simulado a 2,4 GHz: −21,8 dB, η 97 %, pero razón axial de 12 dB: adapta sin dar polarización circular; la asimetría con el largo recentrado no lo arregla (24-11): hace falta un retardo real'),
+    'monopolo_uwb': ('pendiente', 'Simulado a 2,4 GHz (23-11): −18,0 dB, banda 1763–3418 MHz, 3,2 dBi, η 97 %. En banda ancha (24-11, radio 14,2 mm): de 2,4 a 8 GHz S11 ≤ −8,6 dB, sin llegar a −10 dB en 5–8 GHz. Sin medir'),
     'uwb_cpw': ('pendiente', 'Recién añadido, sin simular ni validar: falta el puerto coplanar en el simulador'),
-    'parche_cp': ('pendiente', 'Simulado a 2,4 GHz (23-11): no adapta (−1,2 dB, η 7,5 %); la alimentación por dos bordes está por revisar'),
+    'parche_cp': ('no_funciona', 'No adapta: a 2,4 GHz −1,2 dB (η 7,5 %); centrado en GNSS L1 (24-11) −5,4 dB, Z ≈ 20 Ω, η 26 % y razón axial de 10 dB. La alimentación por dos bordes está por revisar'),
     'array_serie': ('pendiente', 'Recién añadido, sin simular ni validar'),
     'antena_siw': ('pendiente', 'Recién añadida, sin simular ni validar'),
     'diedro': ('pendiente', 'Sin simular ni validar (tres placas; modelo de placas giradas)'),
     'reflector_esquina': ('pendiente', 'Sin simular ni validar (tres placas; modelo de placas giradas)'),
-    'yagi_bibanda': ('pendiente', 'Solo geometría: sin simular (dos Yagi en una placa, 2,4 y 5,8 GHz)'),
+    'yagi_bibanda': ('no_funciona', 'Simulada (24-11): a 5,8 GHz adapta (−10,5 a −20,5 dB) pero a 2,4 GHz no (−1,7 dB en 9 variantes): el tramo de línea hasta el dipolo alto hace de stub sobre el bajo'),
     'yagi_cruz': ('pendiente', 'Solo geometría y vista 3D: dos placas con dos conectores, no se simula desde la interfaz'),
     'helice_normal': ('pendiente', 'Sin simular ni validar (hilo helicoidal; tira de flex)'),
     'helice_cuadrifilar': ('pendiente', 'Solo geometría, vista 3D y tira de flex: no se simula desde la interfaz'),
@@ -97,16 +97,14 @@ FIJOS = {
                   'se alimenta con un coaxial soldado por detrás, en el centro.'),
     ],
     'monopolo_uwb': [
-        ('aviso', 'Sin simular ni medir. El tamaño sale de la fórmula del disco de Ray (f baja ≈ 72 GHz·mm / altura total) y no está calibrado para el FR4; '
-                  'el hueco entre la masa y el radiador es lo que más ajusta la adaptación en toda la banda.'),
+        ('aviso', 'Sin medir. El tamaño sale de la fórmula del disco de Ray (f baja ≈ 72 GHz·mm / altura total), sin calibrar para el FR4. En banda ancha (24-11) da S11 ≤ −8,6 dB de 2,4 a 8 GHz, sin llegar a −10 dB en 5–8 GHz; el hueco entre la masa y el radiador es lo que más ajusta la adaptación en toda la banda.'),
     ],
     'uwb_cpw': [
         ('aviso', 'Sin simular ni medir. El simulador solo tiene puerto de microstrip (con masa debajo): hay que añadir uno coplanar. El hueco de la línea de 50 Ω '
                   'se calcula con la fórmula de la CPW sin plano trasero; con tiras estrechas sale por debajo de lo que fabrica JLC.'),
     ],
     'parche_cp': [
-        ('aviso', 'Sin simular ni medir. El desfase de 90° es un meandro de λg/4 en una de las dos ramas: solo es exacto en una frecuencia, así que la razón axial '
-                  'buena es estrecha. Hay que simular la razón axial y el sentido de giro (GPS e Iridium son RHCP) antes de fiarse de «sentido».'),
+        ('aviso', 'No adapta (simulado a 2,4 GHz y en GNSS L1): centrado en GNSS L1 queda en −5,4 dB con Z ≈ 20 Ω, η 26 % y razón axial de 10 dB. El desfase de 90° es un meandro de λg/4 en una de las dos ramas: solo es exacto en una frecuencia, así que la razón axial buena sería estrecha aunque adaptara.'),
     ],
     'array_serie': [
         ('aviso', 'Sin simular ni medir. Los parches comparten la corriente de la línea: la adaptación de entrada y el reparto de amplitud no están calculados, '
@@ -129,9 +127,7 @@ FIJOS = {
                   'simulan como láminas de cobre; el vértice va truncado para dejar pasar la línea de alimentación.'),
     ],
     'yagi_bibanda': [
-        ('aviso', 'Sin simular ni medir. Las dos bandas comparten la línea de 50 Ω y los elementos de la banda baja miden más de λ/2 a la alta: pueden '
-                  'deformar el haz y desadaptar. La experiencia con otras bibandas del proyecto (J-pole, IFA) es que dependen mucho de la malla: simular '
-                  'con varios pasos antes de fiarse.'),
+        ('aviso', 'No funciona en la banda baja (simulada el 24-11): con los dos dipolos en la misma línea, el tramo que sigue hasta el dipolo de 5,8 GHz hace de stub en paralelo sobre el de 2,4 GHz, que se queda en −1,7 dB (9 variantes de largo, ±3 %). La banda alta sí adapta (−10,5 a −20,5 dB). Falta otra topología: el dipolo alto antes que el bajo, o una trampa en la línea.'),
     ],
     'yagi_cruz': [
         ('aviso', 'Dos placas (una con ranura, la otra entra por ella) y dos conectores: sin simular ni medir. La ranura parte por la mitad los directores '

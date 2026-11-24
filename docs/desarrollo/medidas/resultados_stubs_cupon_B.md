@@ -43,6 +43,29 @@ Se apuntan aquí, no en la hoja de predicciones, para respetar su regla 4.
 2. **S30 se desvía por su cercanía al conector.** Predicción: S30 en 3D con el SMA modelado (hoy solo pad y taper) sube ~4–6 % respecto a 1034 MHz.
 3. **La rejilla de 2,67 MHz sesga el cruce del modo 1 de S30.** Predicción: una calibración fina de 900–1300 MHz con 101 puntos da el mismo valor a ±0,3 %.
 
+## Placa B entera en 3D (24-11-2026): los vecinos no explican el S30
+
+`cupon/simular_placa_B.py` (toda la placa leída del `.kicad_pcb`: las otras líneas, el anillo, la CPWG, las vías y los pads de
+los SMA sin soldar; εr 4,5, tanδ 0,02, malla ≤ 1 mm, GPU). **Antes hubo que corregir el modelo**: la masa de la alimentación
+simulada acababa en y = 0 y el B.Cu empieza a 0,5 mm del borde, así que quedaba una ranura de 0,5 mm en la masa bajo el
+conector y el S30 aislado resonaba a ~1460 MHz. Los resultados de la placa B del 23-11 llevaban ese error y no valen.
+
+| Stub · modo | Solo el stub (placa 100 mm) | Placa entera | Efecto de los vecinos | `simular_stub.py` | Medido | Medido / placa entera |
+|---|---|---|---|---|---|---|
+| S80 · 1 | 442,3 | 443,3 | +0,2 % | 452,2 | 454,0 | +2,4 % |
+| S80 · 2 | 1331,9 | 1332,8 | +0,1 % | 1358,7 | 1378,0 | +3,4 % |
+| S80 · 3 | 2228,3 | 2229,9 | +0,1 % | 2261,6 | 2287,0 | +2,6 % |
+| S30 · 1 | 981,1 | 1002,2 | +2,1 % | 1034,0 | 1095,8 | **+9,3 %** |
+
+- **Los vecinos mueven el S30 un +2,1 % y el S80 un +0,2 %**: van en el sentido de la medida, pero no llegan al +6 % que
+  sobra en el S30. La hipótesis «son los vecinos o el margen de 0,5 mm» queda descartada como causa principal.
+- La razón S30/S80 (modo 1) es la que no casa en ningún modelo: medida 2,414, placa entera 2,261, `simular_stub.py` 2,287.
+  Como no depende de la εr, apunta al conector (hipótesis 2: una reactancia fija pesa más en el stub corto).
+- Los dos modelos difieren entre sí un 2–5 % en el valor absoluto (dominio: placa de 100 mm frente a franja de 28 mm que
+  acaba 10 mm después del stub; malla). Para sacar εr hay que comparar dentro del mismo modelo, no mezclar.
+- Siguiente paso posible (sin hacer): modelar el cuerpo del SMA de canto (pines, dieléctrico de PTFE) en `simular_stub.py`
+  y ver si sube el S30 un ~6 % sin mover el S80.
+
 ## Predicciones registradas antes de medir los anillos (22-11-2026, simulación 3D `cupon/simulaciones/`)
 
 Con `vna/medir_s21_pc.py`, calibración `cal_latiguillo_B_22-11` (THRU, sin aislamiento: suelo de S21 ~ −50 dB), puerto A en CH0 y B en CH1:
