@@ -145,8 +145,8 @@ def consejos(antena, f_obj=None, banda=None):
         out.append(('diseño', tr('Por encima de ~3 GHz el FR4 pierde bastante y su εr varía entre lotes: '
                               'considera RO4350B.')))
     if 'FR4' in sustrato:
-        out.append(('medida', tr('La εr del FR4 de JLC está pendiente de medir con el cupón: la frecuencia real '
-                              'puede moverse un ±2–3 %.')))
+        out.append(('medida', tr('La εr del FR4 de JLC aún no está cerrada: las placas medidas dan entre 4,2 y 5,0 (el programa usa '
+                              '4,5), así que la frecuencia real puede moverse un ±2–3 %.')))
     if 'PTFE' in sustrato:
         out.append(('medida', tr('La εr y la tanδ del PTFE son las del laminador (sin medir) y JLC no publica tolerancias: '
                               'mide la frecuencia real con el cupón. Pide la placa en su servicio de alta frecuencia (2 capas, ENIG).')))

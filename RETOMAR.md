@@ -57,7 +57,7 @@ publicado en cada versión, en [`CHANGELOG.md`](CHANGELOG.md). El diario antiguo
 4. **Medidas en los textos (hecho el 24-11)**: interfaz, web, LÉEME del zip, `MANUAL`, `CONTRIBUTING` y README ya dicen
    «casi todo validado solo en simulación» y citan las medidas. Al medir más placas, actualizar esas frases, la tabla
    «Problemas conocidos» de los README y `docs/desarrollo/placas_pedidas_2G4.md`.
-5. **Capturas del README** (`herramientas/capturas_readme.py`): son del 14-11 y no muestran la galería actual.
+5. **Capturas del README**: rehechas el 24-11 (`capturas_readme.py --lanzador herramientas/lanzar_app_claude.py`).
 6. Otras ideas y tareas sin fecha: ROADMAP («Ideas a más largo plazo» y fases 2–5).
 
 ## Cómo ejecutar

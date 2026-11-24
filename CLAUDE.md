@@ -356,12 +356,13 @@ archivos modificados después de la última revisión. La marca de esa revisión
     `pestanas` (cada una con su variante `.body--dark`). **Diseño visual (13-11, inspirado en compilador.albacetemesh.es)**: fondo índigo profundo con acentos dorados tipo ENIG (como un PCB; se evitó el verde para no parecerse a Meshtastic), tarjetas de 17 px con borde, cabecera
     con degradado, pestañas en píldora, portada con «eyebrow» en la galería. Todo con variables CSS de `body.body--light`/`body.body--dark` (`--fondo`, `--tarjeta`, `--texto`,
     `--muted`, `--linea`, `--acento`, `--suave`…) en el `ui.add_css` de `gui/app.py`: usar esas variables en lugar de colores sueltos; los campos son `outlined dense` por
-    `default_props`. Tras tocar el CSS hay que **reiniciar el servidor** (no recarga). Las capturas de `docs/capturas/` (README y manuales) se regeneran con `herramientas/capturas_readme.py` (Edge sin ventana por CDP con espera real: `--screenshot` con tiempo virtual o `--timeout` sale a medio pintar y sin Plotly); datan del 14-11 (diseño nuevo).
+    `default_props`. Tras tocar el CSS hay que **reiniciar el servidor** (no recarga). Las capturas de `docs/capturas/` (README y manuales) se regeneran con `herramientas/capturas_readme.py` (Edge sin ventana por CDP con espera real: `--screenshot` con tiempo virtual o `--timeout` sale a medio pintar y sin Plotly); rehechas el 24-11 (0.6.0, con `--lanzador herramientas/lanzar_app_claude.py`).
 49. **Entorno de la sesión de Claude** (no del usuario): el venv `%LOCALAPPDATA%\antenas` lo creó un proceso de la app de
     Claude y vive virtualizado en `AppData\Local\Packages\Claude_…\LocalCache`; `Path.resolve()` de un archivo da esa ruta
     y la de su carpeta no. Consecuencias: NiceGUI responde **403** a sus módulos ESM (Plotly sale en blanco) y pip falla
-    («Resource name escapes package»). Para verificar la interfaz aquí, lanzarla con un envoltorio que acepte las dos
-    rutas en `is_relative_to` (launch.json «escritorio-prueba», script en el scratchpad); los menús de Quasar no se abren
+    («Resource name escapes package»). Para verificar la interfaz aquí, lanzarla con **`herramientas/lanzar_app_claude.py`**
+    (24-11: cambia `Path.resolve` para devolver la ruta sin virtualizar; con él Plotly sale y `capturas_readme.py --lanzador`
+    funciona); los menús de Quasar no se abren
     con el panel del navegador oculto: usar Edge sin ventana por CDP. En el ordenador del usuario no pasa nada de esto.
 48. **Versión web (Pyodide)**: todas las versiones de Pyodide (0.27–0.29) traen shapely 2.0.7 con **GEOS 3.12**, más
     antiguo que el de escritorio, y uniones o diferencias delicadas (Sierpinski, aperturas de `fabricacion.comprobar`)
@@ -541,8 +542,7 @@ archivos modificados después de la última revisión. La marca de esa revisión
     (mismas coordenadas que la simulación: θ desde +Z, φ desde +X) y la flecha del máximo; es lo que se ve en Simulación (sustituye a `graficas.diagrama_3d`, que queda sin uso en la interfaz).
     El grosor se exagera a ≥ 1,2 % del lado mayor (se dice en el título) y la cámara se aleja con la relación de aspecto. En Diseño: conmutador 2D/3D y casilla «Explosionada» (`gui/app.py` → `pintar_diseno`, que sustituye
     a las tres llamadas a `vista.figura_plotly`). **Un generador nuevo con placas no coplanares (diedro, esquina) tendría que devolver cada placa con su posición y giro**: hoy `_placa` solo desplaza en Y. Sin web todavía
-    (la web dibuja en SVG propio). Verificado en el navegador con figuras HTML sueltas, porque en la sesión de Claude Plotly no carga dentro de NiceGUI (lección 49: 403 a los módulos ESM; el envoltorio de la lección 49 ya no existe
-    y la comparación con `is_relative_to` no bastó).
+    (la web dibuja en SVG propio). Verificado en el navegador con figuras HTML sueltas, porque en la sesión de Claude Plotly no carga dentro de NiceGUI (lección 49: 403 a los módulos ESM; desde el 24-11 `herramientas/lanzar_app_claude.py` lo resuelve).
 83. **Colineal con bowtie (16-11)**: `colineal_dipolos` con `forma` = 1 (`dipolos._brazo_colineal`): cada brazo es un triángulo con la punta (ancho `ancho_brazo`) en la línea y el
     mismo ancho que la U (2·(`separacion_patas` + `ancho_brazo`/2)) en el extremo, en vez de barra y dos patas; sirve en una placa y en modular. `estimar_f_colineal_dipolos` multiplica por
     `K_BOWTIE_COLINEAL` = 0,9 (sin calibrar, como el 0,79 del dipolo bowtie con 70°: este triángulo es de ~41°); el largo por defecto sale ~10 % más corto (25,0 frente a 27,8 mm a 2,4 GHz en FR4)

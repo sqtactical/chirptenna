@@ -35,7 +35,7 @@ class Sustrato:
 # εr del FR4: valor de la calculadora de impedancias de JLC para 2 capas (pendiente de
 # medir con el cupón). RO4350B: εr "de diseño" de Rogers (3,66), no la de proceso (3,48).
 SUSTRATOS = {
-    'FR4 JLC 1,6 mm': Sustrato('FR4 JLC 1,6 mm', 4.5, 0.02, 1.6, nota='εr pendiente de medir con el cupón'),
+    'FR4 JLC 1,6 mm': Sustrato('FR4 JLC 1,6 mm', 4.5, 0.02, 1.6, nota='εr 4,5 sin cerrar: las placas medidas dan 4,2–5,0'),
     'FR4 JLC 1,2 mm': Sustrato('FR4 JLC 1,2 mm', 4.5, 0.02, 1.2),
     'FR4 JLC 1,0 mm': Sustrato('FR4 JLC 1,0 mm', 4.5, 0.02, 1.0),
     'FR4 JLC 0,8 mm': Sustrato('FR4 JLC 0,8 mm', 4.5, 0.02, 0.8),

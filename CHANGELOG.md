@@ -5,7 +5,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ## [Sin publicar]
 
-*English summary: the interface, the web version, the README file in the download and the manuals no longer say that everything is validated only in simulation: they now say "almost everything" and mention the measured boards.*
+## [0.6.0-alpha] · 2026-11-24
+
+*English summary (0.6.0-alpha): a 3D enclosure generator with material, closure and screw options that is also simulated; plastic-property measurement with open stubs read in S11 (cupón C) for ordinary NanoVNAs; a receive-only (RX) gallery group with new GNSS, ADS-B and UAT bands; fourteen new planar and multi-board types (folded dipole, Moxon, log-periodic, slot, spiral, turnstile, UWB monopoles, circularly polarised patch, series array, SIW, crossed Yagi, dual-band Yagi), most of them still not validated. Simulated results at 2.4 GHz: slot −28.6 dB (η 73 %), folded dipole −16.4 dB, log-periodic −22.7 dB, and a large spiral (27.7 mm radius) with a 3.5 nH series coil that gives circular polarisation (axial ratio ~1 dB) and −19.8 dB across the band. The turnstile, the Moxon and the series array do not work yet. First real measurements (22-11, NanoVNA): coupons A and B and two manufactured antennas, a Sierpinski monopole (resonates 1.0 % above the simulation) and a Yagi (+3.6 %, half the simulated bandwidth); the new types of this release are still simulation-only. The interface, the web version and the manuals now say "almost everything is validated only in simulation" and mention the measured boards; the spiral and turnstile exports pass the stricter DRC of KiCad 10.0.8.*
 
 ### Corregido (24-11)
 
@@ -17,11 +19,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 - La interfaz, la web, el LÉEME del zip, `MANUAL.md`/`MANUAL.en.md` y `CONTRIBUTING.md` dicen ahora «casi todo validado
   solo en simulación» y citan las medidas del 22-11 (cupones A y B, monopolo de Sierpinski +1,0 %, Yagi +3,6 %).
 - `RETOMAR.md` reescrito con el estado del 24-11 (lo anterior pasa a `docs/desarrollo/historial.md`) y `ROADMAP.md` al
-  día con las tareas de las fases 3 y 4 hechas el 12-11.
-
-## [0.6.0-alpha] · 2026-11-24
-
-*English summary (0.6.0-alpha): a 3D enclosure generator with material, closure and screw options that is also simulated; plastic-property measurement with open stubs read in S11 (cupón C) for ordinary NanoVNAs; a receive-only (RX) gallery group with new GNSS, ADS-B and UAT bands; fourteen new planar and multi-board types (folded dipole, Moxon, log-periodic, slot, spiral, turnstile, UWB monopoles, circularly polarised patch, series array, SIW, crossed Yagi, dual-band Yagi), most of them still not validated. Simulated results at 2.4 GHz: slot −28.6 dB (η 73 %), folded dipole −16.4 dB, log-periodic −22.7 dB, and a large spiral (27.7 mm radius) with a 3.5 nH series coil that gives circular polarisation (axial ratio ~1 dB) and −19.8 dB across the band. The turnstile, the Moxon and the series array do not work yet. First real measurements (22-11, NanoVNA): coupons A and B and two manufactured antennas, a Sierpinski monopole (resonates 1.0 % above the simulation) and a Yagi (+3.6 %, half the simulated bandwidth); the new types of this release are still simulation-only.*
+  día con las tareas de las fases 3 y 4 hechas el 12-11; manual (es/en) con la recepción y las placas medidas.
 
 ### Tipos nuevos y optimizaciones (23–24-11)
 - **Grupo «Solo recepción (RX)»** en la galería (espiral, torniquete, monopolo UWB, UWB coplanar, parche de polarización circular, hélice cuadrifilar) y bandas nuevas: UAT 978 MHz, ADS-B 1090 MHz, GPS L5 y GNSS L1. Centradas en GPU con monopolo, dipolo, bowtie y sleeve (peor S11 en la banda: el bowtie va de −19 a −28 dB en las cuatro; el monopolo y el dipolo recto quedan justos).
