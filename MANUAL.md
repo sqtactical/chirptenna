@@ -5,7 +5,9 @@
 Este manual explica cómo usar Chirptenna de principio a fin: diseñar una antena, simularla, mandarla a
 fabricar, medirla y **ajustarla** una vez fabricada, con marcas de corte, puentes y la **red en π**.
 
-> **Antes de nada:** Chirptenna está en alpha y lo que calcula está validado **solo en simulación**. La
+> **Antes de nada:** Chirptenna está en alpha y casi todo lo que calcula está validado **solo en simulación**
+> (hasta ahora se han medido los cupones de εr y dos antenas: un monopolo de Sierpinski, a +1 % de lo simulado,
+> y una Yagi, a +3,6 %). La
 > placa real casi nunca sale exactamente en la frecuencia: el FR4 varía de un lote a otro, y la caja, la
 > batería y el cable la desplazan. Por eso las antenas llevan opciones de ajuste y por eso **hay que medir**
 > antes de fiarse.

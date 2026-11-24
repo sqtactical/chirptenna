@@ -241,7 +241,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
             ui.label(tr('Chirptenna')).classes('marca-titulo')
             ui.label(tr('antenas impresas para PCB')).classes('marca-sub gt-xs')
         ui.label(f'v{__version__}').classes('pildora gt-xs') \
-            .tooltip(tr('Alpha: validado solo en simulación. Mide siempre la antena fabricada.'))
+            .tooltip(tr('Alpha: casi todo validado solo en simulación. Mide siempre la antena fabricada.'))
         ui.space()
         sel_idioma = ui.select(i18n.idiomas(), value=i18n.idioma()).props('dense borderless options-dense dark') \
             .classes('text-caption w-28').tooltip(tr('Idioma de la interfaz'))
@@ -363,7 +363,7 @@ def pagina(pestana: str = '', diseno: str = '', tema: str = '', idioma: str = ''
                           on_click=lambda: pestanas.set_value(t_bib)).props('outline no-caps')
             ui.label(tr('Elige el tipo de antena')).classes('text-subtitle1 text-weight-bold q-mt-md')
             ui.label(tr('Al elegirla se dimensiona para la banda de la barra de arriba. Solo verás los parámetros '
-                     'básicos; el resto está en «Ajustes avanzados». Todo está validado solo en simulación.')
+                     'básicos; el resto está en «Ajustes avanzados». Casi todo está validado solo en simulación.')
                      ).classes('text-caption texto-sec')
             for g_clave, g_titulo, g_desc in guia.GRUPOS:
                 claves = [k for k in _orden_galeria() if guia.info_tipo(k)[0] == g_clave]

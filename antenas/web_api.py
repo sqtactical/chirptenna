@@ -190,7 +190,7 @@ Antes de fabricar (la web no comprueba con KiCad)
   4. Comprime los Gerber y los taladros en un .zip y súbelo al fabricante (JLCPCB: 2 capas,
      {sustrato}).
 
-{integrar}Validado solo en simulación: mide la antena fabricada antes de fiarte.
+{integrar}Casi todo está validado solo en simulación: mide la antena fabricada antes de fiarte.
 Manual (ajuste con marcas, puentes y red en π): {url}/blob/main/MANUAL.md
 Generado con Chirptenna (AGPL-3.0): {url}
 """

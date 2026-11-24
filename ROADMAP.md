@@ -19,7 +19,8 @@ sensor), no solo para generar antenas sueltas con su conector. Eso exige tres co
 
 - **Medir antes de ampliar.** No se añaden tipos nuevos hasta cerrar la fase 1. Un tipo medido vale más que diez
   simulados. *(23-11: excepción pedida por el usuario tras medir los cupones y dos antenas el 22-11: dipolo plegado, Moxon, log-periódica,
-  ranura, espiral y torniquete, marcados «pendiente» hasta simularlos y medirlos; ver `antenas/planares.py`.)*
+  ranura, espiral y torniquete, marcados «pendiente» hasta simularlos y medirlos; ver `antenas/planares.py`. El 23–24-11,
+  también a petición suya: cuatro planares más, bandas de recepción, `yagi_cruz` y `yagi_bibanda`, todo sin medir.)*
 - **Menos tipos, mejor hechos.** Cada tipo cuesta galería, avisos, tres traducciones, dos README y manual. Lo que
   no funciona se aparta de la vista.
 - **La malla manda.** Ningún resultado se da por bueno con un solo paso de malla si el tipo es sensible (bibanda,
@@ -44,15 +45,16 @@ Sin hardware se pueden adelantar ya: F1.1, F1.2 y F2.2–F2.6.
 
 ## Fase 1 · Validación en hardware (al llegar el pedido de JLC)
 
-Pedido en camino (2,4 GHz, FR4 1,6 mm): cupones A y B, meandro, Sierpinski, Koch ajustable, J-pole de Koch,
-parche, dipolo con coaxial y Yagi recta de 2 directores.
+Pedido recibido y medido en parte el 22-11 (2,4 GHz, FR4 1,6 mm): cupones A y B, Sierpinski, Koch ajustable, J-pole de
+Koch, parche, dipolo con coaxial y Yagi recta de 2 directores (el meandro no se pidió). Resultados en
+`docs/desarrollo/placas_pedidas_2G4.md`.
 
-- [ ] **εr real del FR4.** Medir los anillos y líneas de los cupones A y B con el NanoVNA; ajustar εr y tanδ en la
+- [ ] (en curso, 22-11: los stubs dan εr 4,5–5,0 y el S30 sale +6 % sin explicar; el Sierpinski apunta a 4,2–4,4) **εr real del FR4.** Medir los anillos y líneas de los cupones A y B con el NanoVNA; ajustar εr y tanδ en la
   simulación del cupón (`cupon/simular_anillo.py`) hasta casar las resonancias. Resultado: εr y tanδ por frecuencia
   (868 MHz, 2,4 GHz; 5,8 GHz necesita otro analizador) en `materiales.SUSTRATOS`.
 - [x] (11-11, tareas F1.1 y F1.2) **Predicciones escritas** (`docs/desarrollo/medidas/predicciones_2G4.md`) y **herramienta
   `herramientas/comparar_medida.py`** probada con una medida sintética (desviación de 3 % medida como 3,0 %).
-- [ ] **Medir las seis antenas** (hechas el 22-11: Yagi Y54 y Sierpinski Y56; quedan Y55, Y57–Y59; el meandro y el panel no se pidieron) (S11, banda a −10 dB, R/X) con `vna/medir_antena_pc.py` y guardar los `.s1p`.
+- [ ] **Medir las seis antenas** (hechas el 22-11: Yagi Y54, +3,6 %, y Sierpinski Y56, +1,0 %; quedan Y55, Y57–Y59 y repetir la Yagi con ferrita; el meandro y el panel no se pidieron) (S11, banda a −10 dB, R/X) con `vna/medir_antena_pc.py` y guardar los `.s1p`.
 - [ ] **Comparar simulación y medida** tipo por tipo: desviación de frecuencia, de banda y de profundidad de S11.
   Herramienta nueva `herramientas/comparar_medida.py <diseño> <s1p>`: superpone las curvas y da los tres números.
 - [ ] **Fijar la malla de referencia**: repetir cada simulación con 2–3 pasos y quedarse con el criterio que más se
@@ -70,7 +72,7 @@ diferencia identificada.
 
 ## Fase 2 · v0.4: consolidar
 
-- [ ] **Subir lo pendiente**: commits locales de PTFE/flex/hélice y del bucle.
+- [x] (publicado en la 0.3.0–0.5.0) **Subir lo pendiente**: commits locales de PTFE/flex/hélice y del bucle.
 - [x] (11-11, F2.2) **Podar la galería**: grupo «Experimental» plegado por defecto con lo que no funciona o es frágil (parches en
   FR4 fuera de 5,8 GHz, Minkowski, circular, ranura en U, apilado, array, COCO, Franklin, Hilbert, flecha it. 3).
   Sigue disponible, pero no es lo primero que ve un usuario nuevo.
@@ -96,34 +98,34 @@ diseñar la antena **dentro** de otra placa.
 - [ ] (F3.1–F3.7, F3.9 y F3.10 hechas el 12-11, algunas en parte; falta F3.8 antenas chip y probar con una placa real) **Modo «antena integrada»**: el usuario da el contorno de su placa (rectángulo con medidas, o importado), la
   esquina o el borde donde va la antena y el tamaño de la zona reservada. El programa elige los tipos que caben
   (IFA, meandro, monopolo, bucle, antena chip) y dimensiona con **la masa real del producto**, no con la mínima.
-- [ ] **Importar una placa de KiCad** (`.kicad_pcb`): leer `Edge.Cuts`, las zonas de masa y las zonas prohibidas;
+- [ ] (12-11, F3.6 hecha en parte: falta una placa real del usuario) **Importar una placa de KiCad** (`.kicad_pcb`): leer `Edge.Cuts`, las zonas de masa y las zonas prohibidas;
   mostrarla en la vista y usarla como plano de masa en la simulación.
-- [ ] **Exportar para integrar**: además de la placa suelta, una **huella con zona de exclusión** (keepout en
+- [ ] (12-11, F3.3 hecha en parte: `kicad-cli` no aplica la exclusión al rellenar; falta probarla en KiCad con interfaz) **Exportar para integrar**: además de la placa suelta, una **huella con zona de exclusión** (keepout en
   todas las capas bajo el radiador, masa retirada, vías de cosido en el borde de la masa) y el punto de
   alimentación con net, lista para colocar en el diseño del usuario. Guía «cómo pegarla en tu placa».
-- [ ] **Alimentación desde un chip, no desde un SMA**: línea de 50 Ω (microstrip o CPWG, calculada con el apilado
+- [ ] (12-11, F3.4 hecha en parte: «Pad de RF», sin CPWG ni punto de prueba U.FL) **Alimentación desde un chip, no desde un SMA**: línea de 50 Ω (microstrip o CPWG, calculada con el apilado
   elegido) desde un pad de RF hasta la antena, con la red en π junto al chip y punto de prueba U.FL opcional.
-- [ ] **Apilados de 4 capas de JLC** (JLC04161H-7628 y similares): la microstrip de 50 Ω pasa de 2,9 mm a ~0,35 mm
+- [ ] (12-11, F3.5 hecha en parte: JLC04161H-7628 con IFA integrada; εr 4,4 sin comprobar en la calculadora de JLC) **Apilados de 4 capas de JLC** (JLC04161H-7628 y similares): la microstrip de 50 Ω pasa de 2,9 mm a ~0,35 mm
   porque la masa está a 0,2 mm. Imprescindible para placas de producto.
-- [ ] **Entorno**: bloques dieléctricos y metálicos en la simulación (carcasa de plástico, batería, pantalla,
+- [x] (12-11, F3.7; carcasa 3D con tornillos el 21-11) **Entorno**: bloques dieléctricos y metálicos en la simulación (carcasa de plástico, batería, pantalla,
   blindaje, mano). Aviso de cuánto se desplaza la frecuencia con cada uno.
-- [ ] **Reglas de integración** en `consejos`: distancia mínima a la batería y a los blindajes, masa bajo el
+- [x] (12-11, F3.10; capítulo 14 del manual) **Reglas de integración** en `consejos`: distancia mínima a la batería y a los blindajes, masa bajo el
   radiador, cosido de vías, por dónde no pasar pistas.
 - [ ] **Antenas chip y cerámicas**: tipo nuevo con la huella, la zona libre y la red recomendada por el fabricante
   (Johanson 2450AT, etc.); modelo simplificado para la simulación.
-- [ ] **Tolerancias de fabricación**: barrido automático de εr ±5 %, grosor ±10 % y sobreataque del cobre; el
+- [x] (12-11, F3.9: «Analizar tolerancias») **Tolerancias de fabricación**: barrido automático de εr ±5 %, grosor ±10 % y sobreataque del cobre; el
   resultado es el margen de banda que sobrevive a la fabricación.
 
 ## Fase 4 · v0.6: adaptación y medida
 
-- [ ] **Red de adaptación para cualquier tipo**: componentes concentrados en la simulación (ya existen para el
+- [ ] (12-11, F4.1 y F4.2 hechas en parte: `z1/z2/z3`, condensadores a masa solo por circuito; la red calculada da −10,3 dB en FDTD frente a −38 dB por circuito) **Red de adaptación para cualquier tipo**: componentes concentrados en la simulación (ya existen para el
   condensador del bucle), valores E24/E96 con sus parásitos y Q reales, y S11 resultante antes de fabricar.
-- [ ] **Asistente de adaptación con medida**: de un `.s1p` medido a la red (L, π o T) con valores comerciales,
+- [ ] (12-11, F4.3 hecha en parte: piezas, banda y peor caso ±5 %; falta una antena real adaptada) **Asistente de adaptación con medida**: de un `.s1p` medido a la red (L, π o T) con valores comerciales,
   sensibilidad a la tolerancia de los componentes y lista de piezas (LCSC).
 - [ ] **De-embedding de la línea** en la medida (hoy solo en la simulación).
 - [ ] **Más analizadores**: LiteVNA y NanoVNA V2 (hasta 6 GHz), para medir 5,8 GHz.
-- [ ] **Informe del diseño en PDF**: geometría, S11, diagrama, ganancia, eficiencia, tolerancias y lista de piezas.
-- [ ] **Exportar el diagrama** 3D y los cortes en formatos de intercambio (CSV, y el formato de antena de
+- [x] (12-11, F4.5: `antenas/informe.py`, botón en Fabricar) **Informe del diseño en PDF**: geometría, S11, diagrama, ganancia, eficiencia, tolerancias y lista de piezas.
+- [ ] (12-11, F4.6 hecha en parte: CSV del diagrama; falta el formato de la herramienta de cobertura del usuario) **Exportar el diagrama** 3D y los cortes en formatos de intercambio (CSV, y el formato de antena de
   herramientas de cobertura de radio).
 
 ## Fase 5 · v1.0

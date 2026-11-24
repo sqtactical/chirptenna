@@ -2,8 +2,8 @@
 
 *English summary at the end.*
 
-Gracias por querer ayudar. Chirptenna está en **alpha**: funciona de principio a fin, pero todo está
-validado solo en simulación. Por eso hay dos formas de colaborar, y la primera no requiere programar.
+Gracias por querer ayudar. Chirptenna está en **alpha**: funciona de principio a fin, pero casi todo está
+validado solo en simulación (de momento se han medido dos antenas y los cupones de εr). Por eso hay dos formas de colaborar, y la primera no requiere programar.
 
 Al participar aceptas el [código de conducta](CODE_OF_CONDUCT.md). Los fallos de seguridad se avisan en
 privado ([SECURITY.md](SECURITY.md)) y las dudas van a [Discussions](https://github.com/sqtactical/chirptenna/discussions).

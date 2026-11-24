@@ -6,7 +6,9 @@ an English mode (selector at the top right), and the names in **bold** are the o
 This manual explains how to use Chirptenna from start to finish: design an antenna, simulate it, send it to be
 manufactured, measure it and **tune** it once built, with cut marks, bridges and the **π network**.
 
-> **First of all:** Chirptenna is in alpha and what it computes is validated **in simulation only**. The real
+> **First of all:** Chirptenna is in alpha and almost everything it computes is validated **in simulation only**
+> (so far the εr coupons and two antennas have been measured: a Sierpinski monopole, +1 % from simulation,
+> and a Yagi, +3.6 %). The real
 > board almost never comes out exactly on frequency: FR4 varies from batch to batch, and the case, the
 > battery and the cable shift it. That is why the antennas have tuning options and why **you have to measure**
 > before trusting them.
