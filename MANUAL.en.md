@@ -574,12 +574,13 @@ To share a design, compress its folder. Another person can copy it into their li
 |---|---|---|
 | A portable Meshtastic node (868/915 MHz) | **Koch monopole** or **meander**, with tuning and π network | Compact, omnidirectional, validated at 868 MHz |
 | The reference antenna for comparison | **Straight monopole** | The most predictable: if this one does not work out, the problem is the measurement or the material |
-| Compact 2.4 GHz | **Koch monopole** or **Sierpinski** | Validated at 2.4 GHz; the Sierpinski has more bandwidth |
+| Compact 2.4 GHz | **Koch monopole** or **Sierpinski** | Validated at 2.4 GHz; the Sierpinski has more bandwidth and is the best checked: a manufactured board resonated +1 % from simulation |
 | LoRa and 2.4 GHz with a single antenna | **Sierpinski monopole** with **Bands = Two bands** | Covers 868/915 MHz and 2.4 GHz in simulation; ~96 × 115 mm board |
-| A point-to-point link | **Yagi with boom** (straight elements) or **2×2/4×4 panel** | 6–7 dBi the Yagi, 12–17 dBi the panel, in simulation |
+| A point-to-point link | **Yagi with boom** (straight elements) or **2×2/4×4 panel** | 6–7 dBi the Yagi, 12–17 dBi the panel, in simulation; a manufactured Yagi resonated 3.6 % higher and with half the bandwidth |
 | An antenna without a ground plane | **Koch J-pole** or **dipole** | They do not depend on the board they are connected to |
 | More omnidirectional gain than a dipole | **Dipole collinear**, with **Construction = modules** | ~4 dBi with 4 dipoles in FR4 (η 61 %); the modular one is joined from boards, for example at 868 MHz |
-| Experimenting | Hilbert, Minkowski, quasi-Yagi, COCO, Franklin | They have known problems: read them first |
+| Receiving GNSS, ADS-B or SDR (no transmitting) | **Receive only** group: **bowtie dipole** or **spiral** | The bowtie matches at −19 to −28 dB on UAT 978, ADS-B, GPS L5 and GNSS L1; the spiral gives circular polarisation (axial ratio ~1.5 dB) with a 3.5 nH series coil. None measured |
+| Experimenting | Hilbert, Minkowski, quasi-Yagi, COCO, Franklin, Moxon, turnstile; not simulated: crossed Yagi, dual-band Yagi, dual-feed patch | They have known problems or have not been simulated: read them first |
 
 The full table of what is validated is in the [README](README.en.md#antenna-types).
 

@@ -643,12 +643,13 @@ Para compartir un diseño, comprime su carpeta. Otra persona puede copiarla en s
 |---|---|---|
 | Un nodo Meshtastic portátil (868/915 MHz) | **Monopolo de Koch** o **meandro**, con ajuste y red en π | Compactos, omnidireccionales, validados a 868 MHz |
 | La antena de referencia para comparar | **Monopolo recto** | El más predecible: si este no sale, el problema es la medida o el material |
-| 2,4 GHz compacto | **Monopolo de Koch** o **Sierpinski** | Validados a 2,4 GHz; el Sierpinski tiene más ancho de banda |
+| 2,4 GHz compacto | **Monopolo de Koch** o **Sierpinski** | Validados a 2,4 GHz; el Sierpinski tiene más ancho de banda y es el mejor contrastado: una placa fabricada resonó a +1 % de lo simulado |
 | LoRa y 2,4 GHz con una sola antena | **Monopolo de Sierpinski** con **Bandas = Dos bandas** | Cubre 868/915 MHz y 2,4 GHz en simulación; placa de ~96 × 115 mm |
-| Un enlace punto a punto | **Yagi con boom** (elementos rectos) o **panel 2×2/4×4** | 6–7 dBi la Yagi, 12–17 dBi el panel, en simulación |
+| Un enlace punto a punto | **Yagi con boom** (elementos rectos) o **panel 2×2/4×4** | 6–7 dBi la Yagi, 12–17 dBi el panel, en simulación; una Yagi fabricada resonó un 3,6 % por encima y con la mitad de banda |
 | Una antena sin plano de masa | **J-pole de Koch** o **dipolo** | No dependen de la placa a la que se conectan |
 | Más ganancia omnidireccional que un dipolo | **Colineal de dipolos**, con **Construcción = módulos** | ~4 dBi con 4 dipolos en FR4 (η 61 %); el modular se une por placas, por ejemplo a 868 MHz |
-| Experimentar | Hilbert, Minkowski, quasi-Yagi, COCO, Franklin | Tienen problemas conocidos: léelos antes |
+| Recibir GNSS, ADS-B o SDR (sin transmitir) | Grupo **Solo recepción**: **dipolo bowtie** o **espiral** | El bowtie adapta de −19 a −28 dB en UAT 978, ADS-B, GPS L5 y GNSS L1; la espiral da polarización circular (razón axial ~1,5 dB) con una bobina de 3,5 nH en serie. Ninguno medido |
+| Experimentar | Hilbert, Minkowski, quasi-Yagi, COCO, Franklin, Moxon, torniquete; sin simular: Yagi en cruz, Yagi bibanda, parche de doble alimentación | Tienen problemas conocidos o no se han simulado: léelos antes |
 
 La tabla completa de qué está validado está en el [README](README.md#tipos-de-antena).
 

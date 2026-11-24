@@ -61,6 +61,8 @@ Las tareas F1.1 y F1.2 se pueden hacer **antes** de que lleguen las placas.
      (`calibrar_pc.py iniciar … → open → short → load → thru → terminar`, un paso por ejecución, pidiendo al usuario
      cada cambio de estándar).
 - **Hecho cuando**: `verificar` da el visto bueno. Apunta la fecha en `RETOMAR.md`.
+- **Usada el 22-11-2026**: las medidas se hicieron con `completa_50k_2700M`, que coincide con la calibración del usuario
+  de 2,35–2,5 GHz en Γ a 0,03 rms (`docs/desarrollo/placas_pedidas_2G4.md`).
 
 ## F1.4 · Medir los cupones y sacar εr
 
@@ -87,6 +89,9 @@ Las tareas F1.1 y F1.2 se pueden hacer **antes** de que lleguen las placas.
      entre estructuras y los `.s1p` usados.
 - **Hecho cuando**: hay una εr por frecuencia con su incertidumbre (± la dispersión entre anillo y líneas). Si la
   dispersión supera ±0,15, no sigas: revisa soldaduras y medidas con el usuario.
+- **En curso (22-11-2026)**: cupones A y B medidos. El stub S80 es repetible (0,03 %), pero el S30 sale un +6 % sobre la
+  simulación y los stubs dan εr entre 4,5 y 5,0: la dispersión supera ±0,15, así que no está hecha. Se estudia con
+  `cupon/simular_placa_B.py` (placa B entera); el cupón C queda en standby por decisión del usuario.
 
 ## F1.5 · Medir las antenas
 
@@ -100,6 +105,8 @@ Las tareas F1.1 y F1.2 se pueden hacer **antes** de que lleguen las placas.
   4. Guarda la medida también en la biblioteca del diseño (`biblioteca.guardar_medida`) si el diseño está en
      «Mis diseños».
 - **Hecho cuando**: hay `.s1p` + `.json` + `.png` de las 6 antenas pedidas en `vna/medidas/`.
+- **En curso (22-11-2026)**: medidas la Yagi Y54 (2534 MHz, +3,6 %) y el Sierpinski Y56 (2502 MHz, +1,0 %), sin ferrita
+  confirmada en el cable. Faltan Y55, Y57, Y58 y Y59, y repetir la Yagi con ferrita.
 
 ## F1.6 · Comparar simulación y medida
 

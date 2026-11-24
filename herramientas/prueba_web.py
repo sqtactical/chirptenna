@@ -2,7 +2,7 @@
 
 1. Construye la web (herramientas/construir_web.py) y la sirve en local.
 2. Abre la página y espera a que la interfaz arranque (Pyodide + núcleo de Chirptenna).
-3. En un Web Worker aparte, genera y exporta los 26 tipos a 868 y 2441,75 MHz con el mismo Pyodide que usa la web.
+3. En un Web Worker aparte, genera y exporta todos los tipos a 868 y 2441,75 MHz con el mismo Pyodide que usa la web.
 4. Pasa el DRC de KiCad a cada .kicad_pcb generado en el navegador (si hay kicad-cli).
 
 Uso (desde la raíz):  python herramientas/prueba_web.py [--sin-drc]
