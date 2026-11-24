@@ -6,7 +6,7 @@
 
 *[Versión en castellano](README.md)*
 
-> **Status: alpha (v0.5.0-alpha).** Validated in simulation only: no manufactured board has been
+> **Status: alpha (v0.6.0-alpha).** Validated in simulation only: no manufactured board has been
 > measured yet. **Real measurements wanted**: if you build an antenna and measure it, share it with
 > the [“Real measurement”](../../issues/new/choose) template. How to contribute: [CONTRIBUTING.md](CONTRIBUTING.md).
 > Release notes: [CHANGELOG.md](CHANGELOG.md). Roadmap (in Spanish): [ROADMAP.md](ROADMAP.md).
@@ -98,7 +98,7 @@ The resulting board (KiCad render): top side and bottom side with the logo and l
 | Log-periodic dipole array | lpda | ✅ validated in simulation at 2.4 GHz (−22.7 dB, band 2318–2539 MHz, 6.9 dBi, η 84 %), not measured |
 | Moxon | moxon | 🧪 simulated at 2.4 GHz: −5.9 dB (Z ≈ 16 Ω, 3.9 dBi); impedance still to be raised |
 | Slot antenna (in the ground plane) | antena_ranura | 🧪 simulated at 2.4 GHz: barely −10.7 dB, 4.7 dBi, η 73 % |
-| Archimedean spiral | espiral | 🧪 simulated at 2.4 GHz: −10.1 dB with only 23 MHz of band; axial ratio 16 dB |
+| Archimedean spiral (with a series coil) | espiral | 🧪 simulated at 2.4 GHz (27.7 mm radius): axial ratio 0.9 dB, η 86 %; −19.8 dB with a 3.5 nH series coil (by circuit, not checked in the FDTD or measured) |
 | Turnstile (crossed dipoles) | torniquete | 🧪 simulated at 2.4 GHz: −21.8 dB, η 97 %, but axial ratio 12 dB (not circular) |
 | Wideband planar monopole (UWB) | monopolo_uwb | 🧪 simulated at 2.4 GHz (−18 dB, 1.76–3.42 GHz, η 97 %); not measured |
 | UWB monopole with coplanar line (CPW) | uwb_cpw | 🧪 generator and DRC ready; not simulated (coplanar port missing) |
@@ -109,6 +109,8 @@ The resulting board (KiCad render): top side and bottom side with the logo and l
 | Printed dipole (straight or Koch; printed balun or centre-fed coax) | dipole | ✅ validated (868 MHz to 5.8 GHz) |
 | Array of 2 bowtie dipoles with a delay line (one connector, beam tilt like a sector antenna) | array_fase | ⚠️ not simulated or validated; the series collinear array with `inclinacion` was inconclusive (the dipoles couple through the common line) |
 | V dipole (bowtie with folded arms, three soldered boards) | diedro | ⚠️ not validated: simulated at 2.4 GHz with 0° wings (identical to the flat bowtie, −23.9 dB) and 25° (−36 dB, coarse mesh); not measured |
+| Dual-band Yagi (two boom Yagis on one board, 2.4 + 5.8 GHz, same 50 Ω line) | yagi_bibanda | ⚠️ not validated: geometry only, not simulated or measured |
+| Crossed Yagi (two boom Yagis interlocking through a slot, two connectors) | yagi_cruz | ⚠️ not validated: geometry and 3D view only (two ports, not simulated from the interface); not measured |
 | Corner reflector (bowtie dipole + two reflector plates, three boards) | reflector_esquina | ⚠️ not validated: simulated at 2.4 GHz with 90°, S11 −48 dB, D 10.3 dBi, beam straight ahead (coarse mesh, uncentred); not measured |
 | Normal-mode helix on flex (helical monopole over a ground board) | helice_normal | ⚠️ not validated: simulated at 2.4 GHz uncentred, −6.4 dB; not measured |
 | Quadrifilar helix on flex (GPS L1) | helice_cuadrifilar | ⚠️ geometry, 3D view and flex strip only: not simulated from the interface (`herramientas/helice_flex.py` simulates it with two ports) |

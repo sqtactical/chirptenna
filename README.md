@@ -6,7 +6,7 @@
 
 *[English version](README.en.md)*
 
-> **Estado: alpha (v0.5.0-alpha).** Validado solo en simulación: todavía no se ha medido ninguna
+> **Estado: alpha (v0.6.0-alpha).** Validado solo en simulación: todavía no se ha medido ninguna
 > placa fabricada. **Se buscan medidas reales**: si fabricas una antena y la mides, compártela con
 > la plantilla [«Medida real»](../../issues/new/choose). Cómo colaborar: [CONTRIBUTING.md](CONTRIBUTING.md).
 > Cambios de cada versión: [CHANGELOG.md](CHANGELOG.md). Hoja de ruta: [ROADMAP.md](ROADMAP.md).
@@ -96,7 +96,7 @@ La placa resultante (render de KiCad): cara superior y cara inferior con el logo
 | Log-periódica de dipolos | lpda | ✅ validada en simulación a 2,4 GHz (−22,7 dB, banda 2318–2539 MHz, 6,9 dBi, η 84 %), sin medir |
 | Moxon | moxon | 🧪 simulado a 2,4 GHz: −5,9 dB (Z ≈ 16 Ω, 3,9 dBi); falta subir la impedancia |
 | Antena de ranura (en la masa) | antena_ranura | 🧪 simulada a 2,4 GHz: −10,7 dB justos, 4,7 dBi, η 73 % |
-| Espiral de Arquímedes | espiral | 🧪 simulada a 2,4 GHz: −10,1 dB con solo 23 MHz de banda; razón axial 16 dB |
+| Espiral de Arquímedes (con bobina en serie) | espiral | 🧪 simulada a 2,4 GHz (radio 27,7 mm): razón axial 0,9 dB, η 86 %; con una bobina de 3,5 nH en serie −19,8 dB (por circuito, sin comprobar en FDTD ni medida) |
 | Torniquete (dipolos cruzados) | torniquete | 🧪 simulado a 2,4 GHz: −21,8 dB, η 97 %, pero razón axial 12 dB (no es circular) |
 | Monopolo plano de banda ancha (UWB) | monopolo_uwb | 🧪 simulado a 2,4 GHz (−18 dB, 1,76–3,42 GHz, η 97 %); sin medir |
 | Monopolo UWB con línea coplanar (CPW) | uwb_cpw | 🧪 generador y DRC listos; sin simular (falta el puerto coplanar) |
@@ -107,6 +107,8 @@ La placa resultante (render de KiCad): cara superior y cara inferior con el logo
 | Dipolo impreso (recto o de Koch; balun impreso o coaxial al centro) | dipolo | ✅ validado (de 868 MHz a 5,8 GHz; a 1,2 GHz −14,4 dB con la pista de 2,9 mm) |
 | Array de 2 dipolos bowtie con línea de retardo (un conector, inclinación del haz como una sectorial) | array_fase | ⚠️ sin validar ni simular; la colineal en serie con `inclinacion` no concluyó (los dipolos se acoplan por la línea común) |
 | Dipolo en V (bowtie con los brazos doblados, tres placas soldadas) | diedro | ⚠️ sin validar: probado en simulación a 2,4 GHz con ala de 0° (idéntico al bowtie plano, −23,9 dB) y de 25° (−36 dB, malla gruesa); sin medir |
+| Yagi bibanda (dos Yagi con boom en una placa, 2,4 + 5,8 GHz, misma línea de 50 Ω) | yagi_bibanda | ⚠️ sin validar: solo geometría, sin simular ni medir |
+| Yagi en cruz (dos Yagi con boom que se encajan por una ranura, dos conectores) | yagi_cruz | ⚠️ sin validar: solo geometría y vista 3D (dos puertos, no se simula desde la interfaz); sin medir |
 | Reflector de esquina (dipolo bowtie + dos placas reflectoras, tres placas) | reflector_esquina | ⚠️ sin validar: simulado a 2,4 GHz con 90°, S11 −48 dB, D 10,3 dBi, haz de frente (malla gruesa, sin centrar); sin medir |
 | Hélice de modo normal en flex (monopolo helicoidal sobre masa) | helice_normal | ⚠️ sin validar: simulada a 2,4 GHz sin centrar, −6,4 dB; sin medir |
 | Hélice cuadrifilar en flex (GPS L1) | helice_cuadrifilar | ⚠️ solo geometría, vista 3D y tira de flex: no se simula desde la interfaz (`herramientas/helice_flex.py` la simula con dos puertos) |

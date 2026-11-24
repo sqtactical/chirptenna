@@ -950,6 +950,29 @@ for _t3 in [
                'tridimensional', [q for q in _PARAMS_HELICE if q.nombre != 'vueltas'] +
                [Parametro('vueltas', 'Vueltas de cada brazo', 0.5, 0.25, 4, 0.25), Parametro('altura', 'Altura de la hélice [mm]', 30, 3, 300, 0.5)],
                'altura', precision='±30 % (sin calibrar)'),
+    TipoAntena('yagi_bibanda', 'Yagi bibanda (2,4 + 5,8 GHz en una placa)',
+               'Dos Yagi con boom en la misma placa, que comparten la línea de 50 Ω: la de la banda baja manda en el tamaño y la de la alta va justo delante. '
+               'Elementos rectos. Sin simular; a la banda alta, los elementos de la baja pueden deformar el haz.', 'yagi',
+               [q for q in CATALOGO['yagi_boom'].parametros
+                if q.nombre in ('largo_brazo', 'ancho_pista', 'ancho_boom', 'largo_alimentacion', 'factor_reflector', 'separacion_reflector',
+                                'directores', 'separacion_director', 'factor_director', 'reduccion_director')] +
+               [Parametro('razon_bandas', 'Razón entre la banda alta y la baja', 2.375, 1.5, 4.0, 0.005,
+                           ayuda='5800/2441,75 = 2,375 para 2,4 y 5,8 GHz'),
+                Parametro('ancho_pista_alto', 'Ancho de los elementos de la banda alta [mm]', 0.8, 0.15, 10, 0.05),
+                Parametro('factor_brazo_alto', 'Corrección del largo de los brazos de la banda alta', 1.0, 0.7, 1.3, 0.01,
+                           ayuda='1 = el brazo de la banda baja dividido por la razón; se afina simulando'),
+                Parametro('separacion_bandas', 'Del dipolo bajo al reflector de la banda alta [mm]', 3.0, 1.0, 60, 0.5),
+                Parametro('directores_alto', 'Directores de la banda alta', 1, 0, 6, 1, True)],
+               'largo_brazo', precision='±25 % (sin calibrar)'),
+    TipoAntena('yagi_cruz', 'Yagi en cruz (dos placas encajadas)',
+               'Dos Yagi con boom que se cruzan en perpendicular: la horizontal lleva una ranura por la que entra la vertical desde delante. Cada una con su '
+               'conector; con ~90° de retardo entre los dos dipolos da polarización circular hacia delante. Sin simular (dos puertos).',
+               'tridimensional',
+               list(CATALOGO['yagi_boom'].parametros) +
+               [Parametro('separacion_b', 'Del dipolo de la placa horizontal al fondo de la ranura [mm]', 3.0, 0.5, 100, 0.5,
+                          ayuda='Fija cuánto queda por delante el dipolo de la placa vertical (el retardo entre los dos)'),
+                Parametro('largo_alimentacion_b', 'Del conector al reflector en la placa vertical [mm]', 4.0, 4, 60, 0.5)],
+               'largo_brazo', precision='±25 % (sin calibrar)'),
 ]:
     CATALOGO[_t3.clave] = _t3
 # valores por defecto: hélice normal para 2,4 GHz (el cable de 31 mm da 2,4 GHz: 2 vueltas de 4 mm y 18 mm de alto); cuadrifilar para GPS L1 (14 mm y 42 mm)
@@ -979,7 +1002,9 @@ for _t4 in [
                 Parametro('cola_excitado', 'Cola del elemento excitado [mm]', 5.2, 0.5, 100, 0.1),
                 Parametro('hueco', 'Hueco entre las colas [mm]', 2.8, 0.5, 50, 0.1,
                           ayuda='~0,03 λ: acoplo entre el excitado y el reflector'),
-                Parametro('cola_reflector', 'Cola del reflector [mm]', 5.9, 0.5, 100, 0.1)] + _P_LINEA,
+                Parametro('cola_reflector', 'Cola del reflector [mm]', 5.9, 0.5, 100, 0.1),
+                Parametro('z_transformador', 'Impedancia del transformador λg/4 [Ω] (0 = sin)', 0, 0, 80, 0.5,
+                          ayuda='El Moxon en FR4 da 15–25 Ω: un tramo λg/4 de √(50·R) Ω junto al dipolo lo lleva a 50 Ω')] + _P_LINEA,
                'ancho', escala_conjunta=('cola_excitado', 'hueco', 'cola_reflector'), precision='±25 % (sin calibrar)'),
     TipoAntena('lpda', 'Log-periódica de dipolos',
                'Una fila de dipolos antipodales cuyo largo crece con la distancia al conector, sobre una línea de dos caras: directiva (~6–8 dBi) y de banda ancha '
@@ -1002,10 +1027,12 @@ for _t4 in [
     TipoAntena('espiral', 'Espiral de Arquímedes',
                'Dos brazos en espiral, uno por cada cara, alimentados en el centro por un coaxial: polarización circular y banda ancha, radia por las dos caras '
                '(un sentido de giro en cada una). Sin validar.', 'plano',
-               [Parametro('radio', 'Radio exterior [mm]', 14.75, 3, 300, 0.25),
+               [Parametro('radio', 'Radio exterior [mm]', 27.75, 3, 300, 0.25),
                 Parametro('ancho_pista', 'Ancho del brazo [mm]', 1.0, 0.2, 10, 0.05),
                 Parametro('hueco', 'Hueco entre brazos [mm]', 1.0, 0.2, 10, 0.05),
-                Parametro('sentido', 'Sentido de giro de la espiral', 0, 0, 1, 1, True, opciones={0: 'Antihorario', 1: 'Horario'})],
+                Parametro('sentido', 'Sentido de giro de la espiral', 0, 0, 1, 1, True, opciones={0: 'Antihorario', 1: 'Horario'}),
+                Parametro('bobina_nH', 'Bobina en serie en el conector [nH] (0 = sin)', 3.5, 0, 50, 0.1,
+                          ayuda='A 2,4 GHz y radio de 27,7 mm la espiral queda capacitiva (Z ≈ 40 − j52 Ω): 3,3–3,6 nH la adaptan a −19 dB')],
                'radio', precision='±30 % (sin calibrar)'),
     TipoAntena('torniquete', 'Torniquete (dipolos cruzados)',
                'Dos dipolos cruzados de largos distintos alimentados a la vez por un coaxial en el centro: el desfase de ~90° sale de la diferencia de largo y da '
@@ -1094,7 +1121,7 @@ for _t5 in [
     CATALOGO[_t5.clave] = _t5
 
 
-GRUPO_AJUSTE = {'monopolo_uwb': 'sin_ajuste', 'uwb_cpw': 'sin_ajuste', 'parche_cp': 'sin_ajuste', 'array_serie': 'sin_ajuste', 'antena_siw': 'sin_ajuste', 'dipolo_plegado': 'sin_ajuste', 'moxon': 'sin_ajuste', 'lpda': 'sin_ajuste', 'antena_ranura': 'sin_ajuste', 'espiral': 'sin_ajuste', 'torniquete': 'sin_ajuste', 'array_fase': 'sin_ajuste', 'diedro': 'sin_ajuste', 'reflector_esquina': 'sin_ajuste', 'helice_normal': 'sin_ajuste', 'helice_cuadrifilar': 'sin_ajuste',
+GRUPO_AJUSTE = {'monopolo_uwb': 'sin_ajuste', 'uwb_cpw': 'sin_ajuste', 'parche_cp': 'sin_ajuste', 'array_serie': 'sin_ajuste', 'antena_siw': 'sin_ajuste', 'dipolo_plegado': 'sin_ajuste', 'moxon': 'sin_ajuste', 'lpda': 'sin_ajuste', 'antena_ranura': 'sin_ajuste', 'espiral': 'sin_ajuste', 'torniquete': 'sin_ajuste', 'array_fase': 'sin_ajuste', 'diedro': 'sin_ajuste', 'reflector_esquina': 'sin_ajuste', 'yagi_cruz': 'sin_ajuste', 'yagi_bibanda': 'sin_ajuste', 'helice_normal': 'sin_ajuste', 'helice_cuadrifilar': 'sin_ajuste',
                 'monopolo_recto': 'monopolo_pista', 'monopolo_meandro': 'monopolo_pista',
                 'monopolo_koch': 'monopolo_pista', 'monopolo_hilbert': 'monopolo_pista', 'monopolo_flecha': 'sin_ajuste',
                 'monopolo_sierpinski': 'monopolo', 'jpole': 'jpole', 'jpole_koch': 'jpole', 'yagi_koch': 'yagi',
@@ -1132,6 +1159,8 @@ ESCALABLES = {
     'colineal_dipolos': ('ancho_brazo', 'largo_entrada', 'separacion_patas'),
     'yagi_koch': ('ancho_pista', 'alto_cps', 'largo_balun', 'ancho_rodeo') + _MASA,
     'yagi_boom': ('ancho_pista', 'separacion_plegado'),
+    'yagi_cruz': ('ancho_pista', 'separacion_plegado'),
+    'yagi_bibanda': ('ancho_pista', 'ancho_pista_alto'),
     'array_parches': ('largo_alimentacion',),
     'panel_dipolos': ('ancho_dipolo',),
     'jpole':('ancho_pista', 'hueco'),
@@ -1144,7 +1173,7 @@ ESCALABLES = {
     'moxon': ('largo_alimentacion', 'ancho_pista'),
     'lpda': ('largo_alimentacion', 'ancho_pista'),
     'antena_ranura': ('ancho_ranura', 'largo_stub'),
-    'espiral': ('ancho_pista', 'hueco'),
+    'espiral': ('ancho_pista', 'hueco', 'bobina_nH'),
     'torniquete': ('ancho_pista',),
     'monopolo_uwb': ('hueco', 'largo_masa', 'ancho_placa'),
     'uwb_cpw': ('hueco', 'largo_masa', 'ancho_masa', 'chaflan'),
@@ -1247,6 +1276,8 @@ def generar(clave, parametros=None, nombre_sustrato=None):
             _marcar_integrada(a, p)
     elif clave == 'yagi_boom':
         a = directivas.generar_yagi_boom(p, s, eps_eff_monopolo(s.er))
+    elif clave == 'yagi_bibanda':
+        a = directivas.generar_yagi_bibanda(p, s, eps_eff_monopolo(s.er))
     elif clave == 'panel_dipolos':
         a = directivas.generar_panel_dipolos(p, s, eps_eff_monopolo(s.er))
     elif tipo.familia == 'yagi':
@@ -1267,6 +1298,10 @@ def generar(clave, parametros=None, nombre_sustrato=None):
         a = tridimensional.generar_diedro(p, s, eps_eff_monopolo(s.er))
     elif clave == 'reflector_esquina':
         a = tridimensional.generar_reflector_esquina(p, s, eps_eff_monopolo(s.er))
+    elif clave == 'yagi_cruz':
+        a = tridimensional.generar_yagi_cruz(p, s, eps_eff_monopolo(s.er))
+    elif clave == 'yagi_bibanda':
+        a = directivas.generar_yagi_bibanda(p, s, eps_eff_monopolo(s.er))
     elif clave == 'helice_normal':
         a = tridimensional.generar_helice_normal(p, s, eps_eff_monopolo(s.er))
     elif clave == 'helice_cuadrifilar':
@@ -1455,6 +1490,8 @@ def estimar_f(clave, parametros, nombre_sustrato=None, calibrada=True):
         f = _f_monopolo(tipo, p, s)
     elif clave == 'yagi_boom':
         f = directivas.estimar_f_yagi_boom(p, eps_eff_monopolo(s.er))
+    elif clave == 'yagi_bibanda':
+        f = directivas.estimar_f_yagi_bibanda(p, eps_eff_monopolo(s.er))
     elif clave == 'panel_dipolos':
         f = directivas.estimar_f_panel(p, eps_eff_monopolo(s.er))
     elif tipo.familia == 'yagi':
@@ -1473,6 +1510,8 @@ def estimar_f(clave, parametros, nombre_sustrato=None, calibrada=True):
         f = tridimensional.estimar_f_diedro(p, eps_eff_monopolo(s.er))
     elif clave == 'reflector_esquina':
         f = tridimensional.estimar_f_reflector(p, eps_eff_monopolo(s.er))
+    elif clave == 'yagi_cruz':
+        f = tridimensional.estimar_f_yagi_cruz(p, eps_eff_monopolo(s.er))
     elif clave == 'helice_normal':
         f = tridimensional.estimar_f_helice_normal(p)
     elif clave == 'helice_cuadrifilar':

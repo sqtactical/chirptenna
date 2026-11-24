@@ -9,7 +9,7 @@
 
 ## Tipos de antena
 
-43 tipos: **19 validados en simulación**, 19 pendientes de validación y 5 que no funcionan. «Validada» significa que openEMS la da adaptada (S11 ≤ −10 dB en la banda) y radiando; no significa medida.
+45 tipos: **19 validados en simulación**, 21 pendientes de validación y 5 que no funcionan. «Validada» significa que openEMS la da adaptada (S11 ≤ −10 dB en la banda) y radiando; no significa medida.
 
 ### Validados en simulación
 
@@ -46,7 +46,7 @@
 | Bucle impreso (pequeño, con condensador y red en π) | `bucle` | Simulado (868 MHz y 2,4 GHz): adapta con la red en L calculada; η ~40–50 %, banda estrecha |
 | Colineal Franklin (horquillas) | `colineal_franklin` | Adapta, pero con poca banda y poca ganancia |
 | Dipolo en V (dos alas) | `diedro` | Sin simular ni validar (tres placas; modelo de placas giradas) |
-| Espiral de Arquímedes | `espiral` | Simulada a 2,4 GHz: −10,1 dB pero con 23 MHz de banda; razón axial de 16 dB (poco circular) |
+| Espiral de Arquímedes | `espiral` | Simulada a 2,4 GHz (24-11): radio de 27,7 mm, razón axial 0,9 dB, η 86 %; adapta con una bobina en serie de 3,5 nH (−19,8 dB por circuito, sin comprobar en FDTD ni medido) |
 | Hélice cuadrifilar en flex (GPS) | `helice_cuadrifilar` | Solo geometría, vista 3D y tira de flex: no se simula desde la interfaz |
 | Hélice de modo normal en flex | `helice_normal` | Sin simular ni validar (hilo helicoidal; tira de flex) |
 | Monopolo UWB con línea coplanar (CPW) | `uwb_cpw` | Recién añadido, sin simular ni validar: falta el puerto coplanar en el simulador |
@@ -58,6 +58,8 @@
 | Ranuras en guía SIW | `antena_siw` | Recién añadida, sin simular ni validar |
 | Reflector de esquina (dipolo + 2 placas) | `reflector_esquina` | Sin simular ni validar (tres placas; modelo de placas giradas) |
 | Torniquete (dipolos cruzados) | `torniquete` | Simulado a 2,4 GHz: −21,8 dB, η 97 %, pero razón axial de 12 dB: adapta sin dar polarización circular |
+| Yagi bibanda (2,4 + 5,8 GHz en una placa) | `yagi_bibanda` | Solo geometría: sin simular (dos Yagi en una placa, 2,4 y 5,8 GHz) |
+| Yagi en cruz (dos placas encajadas) | `yagi_cruz` | Solo geometría y vista 3D: dos placas con dos conectores, no se simula desde la interfaz |
 
 ### No funcionan
 

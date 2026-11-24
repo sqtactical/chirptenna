@@ -23,7 +23,7 @@ K_PLEGADO = 1.0           # f simulada / f de un dipolo recto de la misma longit
 K_MOXON = 1.0             # A = 0,477 λ efectiva (Moxon de hilo en el aire): sin calibrar
 K_LPDA = 1.0              # centro de la banda: λg/4 = media geométrica de los brazos extremos: sin calibrar
 K_RANURA = 1.2            # la ranura de λ0/(2√((εr+1)/2)) resuena un ~20 % alta (herramientas/topologias.py, 08-11)
-K_ESPIRAL = 1.25          # centro de banda / frecuencia con circunferencia exterior = λ efectiva: sin calibrar
+K_ESPIRAL = 2.375         # f de diseño / frecuencia con circunferencia exterior = λ efectiva: radio 27,7 mm a 2,44 GHz (razón axial 0,9 dB con la bobina; 24-11)
 K_TORNIQUETE = 55200.0    # f [MHz] = K / largo del brazo [mm] (GPS L1: 35 mm; herramientas/topologias.py)
 PAD_VIVO = 3.0
 TALADRO_COAX = 1.2
@@ -105,8 +105,17 @@ def generar_moxon(p, s, eps):
     wb = max(p['ancho_boom'], w50 + 3*s.h)
     y_r = BORDE_COBRE + p['largo_alimentacion']
     y_d = y_r + D + C + B
-    sup = unary_union([g.rectangulo(-w50/2, BORDE_COBRE, w50/2, y_d + wp/2),
-                       g.engordar([(0.0, y_d), (A/2, y_d), (A/2, y_d - B)], wp)])
+    zt = float(p.get('z_transformador', 0) or 0)
+    if zt > 0:      # transformador λg/4 justo antes del dipolo: la R del Moxon en FR4 sale baja (15–25 Ω) y Zt = √(50·R)
+        from . import tipos
+        wT = ancho_microstrip(max(zt, 20.0), s.er, s.h)
+        l_t = C0/tipos.estimar_f('moxon', p, s.nombre)*1e3/math.sqrt(eps_eff_microstrip(s.er, s.h, wT))/4
+        l_t = min(l_t, y_d - BORDE_COBRE - 1.0)
+        linea = unary_union([g.rectangulo(-w50/2, BORDE_COBRE, w50/2, y_d - l_t), g.rectangulo(-wT/2, y_d - l_t, wT/2, y_d + wp/2)])
+    else:
+        linea = g.rectangulo(-w50/2, BORDE_COBRE, w50/2, y_d + wp/2)
+    wb = max(wb, (wT if zt > 0 else 0) + 3*s.h)
+    sup = unary_union([linea, g.engordar([(0.0, y_d), (A/2, y_d), (A/2, y_d - B)], wp)])
     inf = unary_union([g.rectangulo(-wb/2, BORDE_COBRE, wb/2, y_d + wp/2),
                        g.engordar([(-A/2, y_r + D), (-A/2, y_r), (A/2, y_r), (A/2, y_r + D)], wp),
                        g.engordar([(0.0, y_d), (-A/2, y_d), (-A/2, y_d - B)], wp)])
@@ -188,7 +197,9 @@ def _puerto_central(w_puerto):
 
 
 def estimar_f_espiral(p, er):
-    """Centro de banda ≈ 1,25 × la frecuencia a la que la circunferencia exterior mide una λ efectiva (medio aire, medio FR4)."""
+    """Frecuencia de diseño ≈ 2,375 × la frecuencia a la que la circunferencia exterior mide una λ efectiva (medio aire, medio FR4): con el radio
+    grande la espiral es circular en la banda pero queda reactiva y se adapta con una bobina en serie (`bobina_nH`). La espiral pequeña (radio
+    de ~14,6 mm a 2,44 GHz) trabaja pegada a su frecuencia de corte y no da circular."""
     return K_ESPIRAL*C0/(2*math.pi*p['radio']*1e-3*math.sqrt((er + 1)/2))
 
 
@@ -215,8 +226,11 @@ def generar_espiral(p, s, eps):
     return Antena(tipo='espiral', parametros=dict(p), capas={'F.Cu': sup, 'B.Cu': inf}, ajuste=ajuste.vacio(),
                   radiador=sup, contorno=contorno, zona_libre=contorno, puerto=_puerto_central(PAD_VIVO),
                   info=_info(contorno, {'hueco_minimo_mm': gap, 'pista_minima_mm': w, 'radiador_mm': [round(2*R, 2), round(2*R, 2)],
-                                        'vueltas': round(n_vueltas, 2),
-                                        'avisos': [tr('Alimentación con un coaxial soldado por detrás, en el centro: el cable perturba la cara trasera.')]}))
+                                        'vueltas': round(n_vueltas, 2), 'bobina_nH': float(p.get('bobina_nH', 0) or 0),
+                                        'avisos': [tr('Alimentación con un coaxial soldado por detrás, en el centro: el cable perturba la cara trasera.')]
+                                        + ([tr('Bobina de {0:.1f} nH en serie con el conductor central del coaxial, junto al pad del centro (alta Q, 0402 o 0603): la espiral '
+                                               'grande resuena capacitiva y la bobina la adapta. Se aplica por circuito en la simulación; ajusta su valor midiendo.',
+                                               float(p['bobina_nH']))] if float(p.get('bobina_nH', 0) or 0) > 0 else [])}))
 
 
 def estimar_f_torniquete(p, er=None):

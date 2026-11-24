@@ -58,6 +58,40 @@ def test_reflector_de_esquina_es_simetrico():
     assert [m['cantidad'] for m in a.modulos] == [1, 2]
 
 
+def test_yagi_cruz_ranura_y_placa_vertical():
+    p = tipos.dimensionar('yagi_cruz', F)
+    p.pop('_aviso', None)
+    a = tipos.generar('yagi_cruz', p)
+    assert abs(tipos.estimar_f('yagi_cruz', p) - F)/F < 0.02
+    assert [m['nombre'] for m in a.modulos] == ['placa_horizontal', 'placa_vertical'] and len(a.placas3d) == 1
+    # la ranura está libre de cobre y la placa vertical queda de pie, cruzando el plano de la horizontal por ella
+    y0 = a.info['inicio_vertical_mm'] + 0.01                     # el valor de info va redondeado
+    from shapely.geometry import box
+    ranura = box(-0.8, y0, 0.8, 1e3)
+    assert a.cobre('F.Cu').intersection(ranura).area == 0 and a.cobre('B.Cu').intersection(ranura).area == 0
+    assert a.contorno.intersection(ranura).area == 0
+    c = pose.caja(a.placas3d[0], 1.6)
+    assert c[0][2] < 0 < c[1][2] and abs(c[1][0] - c[0][0] - 1.6) < 1e-6 and c[0][1] >= y0 - 0.02
+    assert a.info.get('sin_simulacion')
+    assert 45 < a.info['desfase_espacial_grados'] < 130
+
+
+def test_yagi_bibanda_dos_dipolos_en_la_misma_linea():
+    p = tipos.dimensionar('yagi_bibanda', F)
+    p.pop('_aviso', None)
+    a = tipos.generar('yagi_bibanda', p)
+    assert abs(tipos.estimar_f('yagi_bibanda', p) - F)/F < 0.02
+    assert abs(a.info['f_alta_MHz']/a.info['f_baja_MHz'] - p['razon_bandas']) < 1e-3
+    # el dipolo de la banda alta es más corto en la razón de bandas y va delante del de la baja; la línea llega hasta él
+    assert abs(a.info['largo_dipolo_baja_mm']/a.info['largo_dipolo_alta_mm'] - p['razon_bandas']) < 1e-2
+    assert a.info['separacion_dipolos_mm'] > 3
+    # ningún director de F.Cu cruza la pista de 50 Ω: el cobre superior de la línea está en una sola pieza hasta el dipolo alto
+    y_fin = a.puerto['alimentacion'][1]
+    from shapely.geometry import box
+    franja = a.cobre('F.Cu').intersection(box(-1.0, 0, 1.0, y_fin - 1.0))
+    assert franja.geom_type == 'Polygon' or all(g.bounds[2] - g.bounds[0] < 2.1 for g in franja.geoms)
+
+
 def test_helice_normal_hilo_y_tira():
     p, a = _generar('helice_normal')
     pts = a.hilos3d[0]['puntos']

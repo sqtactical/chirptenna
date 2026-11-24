@@ -169,6 +169,67 @@ def generar_reflector_esquina(p, s, eps):
     return a
 
 
+# ------------------------------------------------------------------ Yagi en cruz (dos placas encajadas)
+HOLGURA_RANURA = 0.2       # holgura de la ranura respecto al grosor de la placa que la cruza
+
+
+def estimar_f_yagi_cruz(p, eps):
+    """Cada placa es una Yagi con boom: la frecuencia es la de `yagi_boom` (las ranuras parten los directores y la acoplan algo)."""
+    from . import directivas
+    return directivas.estimar_f_yagi_boom(p, eps)
+
+
+def generar_yagi_cruz(p, s, eps):
+    """Dos Yagi con boom (`yagi_boom`) que se cruzan en perpendicular a lo largo del eje del boom.
+
+    La placa A (horizontal, con la alimentación por detrás) lleva una ranura de ancho h + holgura desde su borde delantero hasta justo después de su dipolo,
+    abierta al frente. La placa B (vertical, la misma Yagi girada 90° alrededor del eje y) entra por esa ranura deslizándose desde delante hasta que su
+    borde trasero topa con el fondo; su boom va a `z_b` por encima de A para dejar sitio a la línea y al conector de A y para que el conector de B quede
+    fuera de la placa A. El dipolo de B queda por delante del de A (`info['desfase_espacial_grados']`): alimentados a la vez, ese retardo da algo de
+    polarización circular hacia delante; con dos cables de distinta longitud se ajusta mejor. Dos puertos: no se simula desde la interfaz."""
+    from . import directivas
+    qa = dict(p)
+    qb = dict(p, largo_alimentacion=p.get('largo_alimentacion_b', 4.0))
+    for k in ('separacion_b', 'largo_alimentacion_b'):
+        qa.pop(k, None)
+        qb.pop(k, None)
+    A = directivas.generar_yagi_boom(qa, s, eps)
+    B = directivas.generar_yagi_boom(qb, s, eps)
+    h = s.h
+    w = float(p['ancho_pista'])
+    y_dA = A.puerto['alimentacion'][1]
+    y_dB = B.puerto['alimentacion'][1]
+    wb = B.info['ancho_boom_mm']
+    y_b0 = y_dA + w/2 + float(p.get('separacion_b', 3.0)) + BORDE_COBRE            # el cobre de A queda a 0,5 mm del fondo de la ranura
+    z_b = h + wb/2 + 1.5                                                        # el boom de B pasa por encima de A
+    ancho = h + HOLGURA_RANURA
+    alto_A = A.contorno.bounds[3]
+    ranura = g.rectangulo(-ancho/2, y_b0, ancho/2, alto_A + 1.0)
+    cont = A.contorno.difference(ranura)
+    libre = ranura.buffer(BORDE_COBRE, join_style='mitre')
+    capas = {c: A.cobre(c).difference(libre) for c in ('F.Cu', 'B.Cu')}
+    pieza_a = replace(A, tipo='yagi_cruz', capas=capas, radiador=unary_union([capas['F.Cu'], capas['B.Cu']]), contorno=cont, zona_libre=None,
+                      modulos=[], placas3d=[], hilos3d=[], cobre_sim=None)
+    pieza_b = replace(B, tipo='yagi_cruz', modulos=[], placas3d=[], hilos3d=[], cobre_sim=None)
+    a = replace(pieza_a, parametros=dict(p))
+    a.placas3d = [{'nombre': 'placa_vertical', 'antena': pieza_b, 'origen': (h/2, y_b0, z_b), 'giros': [(1, -90)], 'fina': True}]
+    a.modulos = [{'nombre': 'placa_horizontal', 'cantidad': 1, 'antena': pieza_a}, {'nombre': 'placa_vertical', 'cantidad': 1, 'antena': pieza_b}]
+    f = estimar_f_yagi_cruz(p, eps)
+    delta = y_b0 + y_dB - y_dA
+    fase = 360.0*delta/(C0/f*1e3)
+    avisos = list(A.info.get('avisos', []))
+    avisos.append(tr('Dos placas que se encajan en cruz: la horizontal lleva una ranura de {0:.1f} mm desde el frente hasta {1:.0f} mm del conector, y la vertical '
+                     'entra por ella desde delante. Cada una lleva su conector (la vertical, por encima de la horizontal).', ancho, y_b0))
+    avisos.append(tr('El dipolo de la placa vertical queda {0:.0f} mm por delante del horizontal ({1:.0f}° en el aire a esta frecuencia): para polarización circular '
+                     'conviene ~90°; ajusta `separacion_b` o alimenta con cables de distinta longitud.', delta, fase))
+    avisos.append(tr('La ranura parte por la mitad los directores de la placa horizontal (el cobre queda a 0,5 mm de la ranura).'))
+    a.info = dict(A.info, avisos=avisos, placas=2, ranura_mm=[round(ancho, 2), round(alto_A + 1.0 - y_b0, 2)], inicio_vertical_mm=round(y_b0, 2),
+                  altura_boom_vertical_mm=round(z_b, 2), desfase_mm=round(delta, 2), desfase_espacial_grados=round(fase, 1),
+                  placa_mm=[round(cont.bounds[2] - cont.bounds[0], 2), round(cont.bounds[3], 2)],
+                  sin_simulacion=tr('tiene dos puertos (uno por placa) y la simulación de la interfaz solo maneja uno'))
+    return a
+
+
 # ------------------------------------------------------------------ hélices
 def _hilo_helice(r, centro, z0, altura, vueltas, sentido, fase0=0.0, paso_mm=1.0):
     """Puntos (n, 3) de una hélice de radio r, con el pie en z0 y a `centro` + r·(cos fase0, sin fase0)."""

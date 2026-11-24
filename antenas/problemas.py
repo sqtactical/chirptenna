@@ -46,7 +46,7 @@ ESTADO = {
     'moxon': ('pendiente', 'Simulado a 2,4 GHz: −5,9 dB (Z ≈ 16 Ω, 3,9 dBi, η 67 %); falta subir la impedancia con el hueco y las colas'),
     'lpda': ('validada', 'Validada en simulación a 2,4 GHz: −22,7 dB, banda 2318–2539 MHz, 6,9 dBi, η 84 %; sin medir'),
     'antena_ranura': ('pendiente', 'Simulada a 2,4 GHz: −10,7 dB justos (banda 2364–2479 MHz, 4,7 dBi, η 73 %); sin medir'),
-    'espiral': ('pendiente', 'Simulada a 2,4 GHz: −10,1 dB pero con 23 MHz de banda; razón axial de 16 dB (poco circular)'),
+    'espiral': ('pendiente', 'Simulada a 2,4 GHz (24-11): radio de 27,7 mm, razón axial 0,9 dB, η 86 %; adapta con una bobina en serie de 3,5 nH (−19,8 dB por circuito, sin comprobar en FDTD ni medido)'),
     'torniquete': ('pendiente', 'Simulado a 2,4 GHz: −21,8 dB, η 97 %, pero razón axial de 12 dB: adapta sin dar polarización circular'),
     'monopolo_uwb': ('pendiente', 'Simulado a 2,4 GHz (23-11): −18,0 dB, banda 1763–3418 MHz, 3,2 dBi, η 97 %; sin medir. La banda baja y la alta no se han simulado'),
     'uwb_cpw': ('pendiente', 'Recién añadido, sin simular ni validar: falta el puerto coplanar en el simulador'),
@@ -55,6 +55,8 @@ ESTADO = {
     'antena_siw': ('pendiente', 'Recién añadida, sin simular ni validar'),
     'diedro': ('pendiente', 'Sin simular ni validar (tres placas; modelo de placas giradas)'),
     'reflector_esquina': ('pendiente', 'Sin simular ni validar (tres placas; modelo de placas giradas)'),
+    'yagi_bibanda': ('pendiente', 'Solo geometría: sin simular (dos Yagi en una placa, 2,4 y 5,8 GHz)'),
+    'yagi_cruz': ('pendiente', 'Solo geometría y vista 3D: dos placas con dos conectores, no se simula desde la interfaz'),
     'helice_normal': ('pendiente', 'Sin simular ni validar (hilo helicoidal; tira de flex)'),
     'helice_cuadrifilar': ('pendiente', 'Solo geometría, vista 3D y tira de flex: no se simula desde la interfaz'),
 }
@@ -86,6 +88,9 @@ FIJOS = {
     'espiral': [
         ('aviso', 'Sin simular ni medir. Se alimenta con un coaxial soldado por detrás, en el centro (sin balun): el cable altera la cara trasera. '
                   'La razón axial y el sentido de giro de cada cara están por simular.'),
+        ('info', 'Con el radio de 27,7 mm la simulación da polarización circular (razón axial 0,9 dB, RHCP hacia +z y LHCP hacia −z, η 86 %, 3,1 dBi) pero '
+                 'la espiral queda reactiva (40 − j52 Ω a 2,44 GHz): una bobina de 3,3–3,6 nH en serie con el coaxial la deja en −19,8 dB en toda la banda '
+                 '(aplicada por circuito, no en la FDTD). Con el radio pequeño (14,6 mm) no es circular.'),
     ],
     'torniquete': [
         ('aviso', 'Sin simular ni medir. El desfase de 90° sale de la diferencia de largo entre los dos dipolos (la simulación de prueba del 08-11 en GPS L1 no la cerró); '
@@ -122,6 +127,15 @@ FIJOS = {
     'reflector_esquina': [
         ('aviso', 'Tres placas (el dipolo y dos reflectores) que se montan a mano con una escuadra: sin simular ni medir. Las placas reflectoras se '
                   'simulan como láminas de cobre; el vértice va truncado para dejar pasar la línea de alimentación.'),
+    ],
+    'yagi_bibanda': [
+        ('aviso', 'Sin simular ni medir. Las dos bandas comparten la línea de 50 Ω y los elementos de la banda baja miden más de λ/2 a la alta: pueden '
+                  'deformar el haz y desadaptar. La experiencia con otras bibandas del proyecto (J-pole, IFA) es que dependen mucho de la malla: simular '
+                  'con varios pasos antes de fiarse.'),
+    ],
+    'yagi_cruz': [
+        ('aviso', 'Dos placas (una con ranura, la otra entra por ella) y dos conectores: sin simular ni medir. La ranura parte por la mitad los directores '
+                  'de la placa horizontal. Para polarización circular hace falta ~90° entre las dos placas (retardo espacial o cables de distinta longitud).'),
     ],
     'helice_normal': [
         ('aviso', 'Hélice de flex enrollada: sin simular ni medir. El flex se simula como un hilo en el aire (sin su dieléctrico) y el largo de hilo '

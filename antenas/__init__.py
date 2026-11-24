@@ -12,4 +12,4 @@ Módulos:
 """
 
 # Versión del programa (alpha: validado solo en simulación). Subirla en cada release de GitHub.
-__version__ = '0.5.0-alpha'
+__version__ = '0.6.0-alpha'

@@ -284,6 +284,88 @@ def generar_yagi_boom(p, s, eps_eff_impreso):
                         'f_sin_cortar_MHz': None, 'ajuste': None})
 
 
+# ------------------------------------------------------------------ Yagi bibanda en una placa
+def estimar_f_yagi_bibanda(p, eps_eff_impreso):
+    """Frecuencia de la banda baja (la de `largo_brazo`): la de la Yagi con boom. La alta es `razon_bandas` veces mayor."""
+    return estimar_f_yagi_boom(dict(p, iteracion=0), eps_eff_impreso)
+
+
+def generar_yagi_bibanda(p, s, eps_eff_impreso):
+    """Dos Yagi con boom en la misma placa, para dos bandas (p. ej. 2,4 y 5,8 GHz): comparten la microstrip de 50 Ω del boom. El dipolo de la banda
+    baja sale de la línea a `largo_alimentacion` + la separación al reflector; justo delante, la línea sigue hasta el dipolo de la banda alta, con su
+    propio reflector (cara inferior, unido a la tira de masa) y sus directores sueltos; los directores de la banda baja van más allá del final de la
+    línea (si no, cruzarían la pista) y se apartan de los de la banda alta cuando coinciden. Elementos rectos. Radia hacia +y en las dos bandas.
+    Sin validar: a la banda alta, los elementos de la baja miden más de λ/2 y pueden deformar el haz."""
+    w50 = ancho_microstrip(50, s.er, s.h)
+    w, w2 = p['ancho_pista'], p['ancho_pista_alto']
+    wb = max(p['ancho_boom'], w50 + 3*s.h, 8.0)
+    razon = float(p['razon_bandas'])
+    f1 = estimar_f_yagi_bibanda(p, eps_eff_impreso)
+    lam1 = lambda0_mm(f1)
+    lam2 = lam1/razon
+    la1 = p['largo_brazo']
+    la2 = la1/razon*float(p.get('factor_brazo_alto', 1.0))
+    y_r1 = BORDE_COBRE + p['largo_alimentacion']
+    y_d1 = y_r1 + p['separacion_reflector']*lam1
+    y_r2 = y_d1 + max(float(p['separacion_bandas']), (w + w2)/2 + 1.0)
+    y_d2 = y_r2 + p['separacion_reflector']*lam2
+    sup = [g.rectangulo(-w50/2, BORDE_COBRE, w50/2, y_d2 + w2/2)]
+    inf = [g.rectangulo(-wb/2, BORDE_COBRE, wb/2, y_d2 + w2/2)]
+    # dipolos: brazo derecho arriba (desde la pista) y brazo izquierdo abajo (desde la masa)
+    sup += [g.engordar([(0.0, y_d1), (la1, y_d1)], w), g.engordar([(0.0, y_d2), (la2, y_d2)], w2)]
+    inf += [g.engordar([(0.0, y_d1), (-la1, y_d1)], w), g.engordar([(0.0, y_d2), (-la2, y_d2)], w2)]
+    # reflectores (cara inferior, unidos a la masa por el centro)
+    inf += [_elemento(0, p['factor_reflector']*2*la1, 60, y_r1, w), _elemento(0, p['factor_reflector']*2*la2, 60, y_r2, w2)]
+    # directores de la banda alta (sueltos, más allá del final de la línea)
+    barras = [(y_d1, w), (y_r1, w), (y_d2, w2), (y_r2, w2)]                    # (y, ancho) de todo lo que ya hay
+    nd2 = int(p['directores_alto'])
+    ld = p['factor_director']*2*la2
+    largos2, y = [], y_d2
+    for k in range(nd2):
+        y += p['separacion_director']*lam2
+        sup.append(_elemento(0, ld, 60, y, w2))
+        barras.append((y, w2))
+        largos2.append(round(ld, 2))
+        ld *= 1 - p.get('reduccion_director', 0.0)
+    # directores de la banda baja: más allá del final de la línea y a ≥ 1 mm de cualquier otra barra
+    nd1 = int(p['directores'])
+    ld = p['factor_director']*2*la1
+    largos1, y, movidos = [], y_d1, 0.0
+    y_min = y_d2 + w2/2 + w/2 + 1.0
+    for k in range(nd1):
+        y_nom = y + p['separacion_director']*lam1
+        y = max(y_nom, y_min if k == 0 else y_nom)
+        while any(abs(y - yb) < (w + wbar)/2 + 1.0 for yb, wbar in barras):
+            y += 0.25
+        movidos = max(movidos, y - y_nom)
+        sup.append(_elemento(0, ld, 60, y, w))
+        barras.append((y, w))
+        largos1.append(round(ld, 2))
+        ld *= 1 - p.get('reduccion_director', 0.0)
+    cobre_sup, cobre_inf = unary_union(sup), unary_union(inf)
+    margen = p.get('margen_borde', 2.0)
+    contorno = g.contorno_placa([unary_union([cobre_sup, cobre_inf]).buffer(margen)], int(p.get('contorno', 1)), recorte=(-1e4, 0, 1e4, 1e4))
+    interior = contorno.buffer(-BORDE_COBRE, join_style='mitre')
+    cobre_sup, cobre_inf = cobre_sup.intersection(interior), cobre_inf.intersection(interior)
+    cx0, _, cx1, alto = contorno.bounds
+    avisos = [tr('Yagi bibanda sin simular: la banda baja manda en el tamaño de la placa; a la banda alta, los elementos de la baja miden más de λ/2 y '
+                 'pueden deformar el haz. Hay que centrar cada banda simulando.')]
+    if movidos > 0.3:
+        avisos.append(tr('Algún director de la banda baja se ha movido {0:.1f} mm para no pisar los elementos de la banda alta.', movidos))
+    if p['factor_reflector'] <= 1.0:
+        avisos.append(tr('Reflector más corto que el dipolo: actuará como director y el haz irá hacia atrás.'))
+    return Antena(tipo='yagi_bibanda', parametros=dict(p), capas={'F.Cu': cobre_sup, 'B.Cu': cobre_inf},
+                  ajuste=ajuste.vacio(), radiador=unary_union([cobre_sup, cobre_inf]), contorno=contorno, zona_libre=None, vias=[],
+                  puerto={'borde': (0.0, 0.0), 'direccion': (0, 1), 'alimentacion': (0.0, y_d2), 'ancho_linea': w50,
+                          'largo_linea_mm': y_d2 - BORDE_COBRE},
+                  info={'ancho_linea_50ohm_mm': round(w50, 3), 'ancho_boom_mm': round(wb, 2), 'placa_mm': [round(cx1 - cx0, 2), round(alto, 2)],
+                        'area_placa_cm2': round(contorno.area/100, 2), 'f_baja_MHz': round(f1/1e6, 1), 'f_alta_MHz': round(f1*razon/1e6, 1),
+                        'largo_dipolo_baja_mm': round(2*la1, 2), 'largo_dipolo_alta_mm': round(2*la2, 2),
+                        'largos_directores_baja_mm': largos1, 'largos_directores_alta_mm': largos2,
+                        'separacion_dipolos_mm': round(y_d2 - y_d1, 2), 'pista_minima_mm': min(w, w2, w50), 'hueco_minimo_mm': 1.0,
+                        'avisos': avisos, 'f_sin_cortar_MHz': None, 'ajuste': None})
+
+
 # ------------------------------------------------------------------ panel de dipolos sobre reflector
 # Sin calibrar: dipolo impreso ancho (acorta) sobre reflector a ~λ/4 (casi no mueve la resonancia)
 K_DIPOLO_PANEL = 0.95

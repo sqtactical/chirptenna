@@ -547,7 +547,35 @@ def simular(antena, sustrato, f_centro, precision='normal', nf2ff=True, progreso
         res_out = aplicar_red_bucle(antena, res_out, f_centro, sustrato)      # bucle con su red en L (por circuito)
     if antena.ajuste and antena.ajuste.get('derivaciones_circuito'):
         res_out = aplicar_derivaciones(antena, res_out, f_centro, sustrato)   # condensadores a masa de la red en π (F4.1)
+    if antena.tipo == 'espiral' and float(antena.parametros.get('bobina_nH', 0) or 0) > 0:
+        res_out = aplicar_bobina_serie(antena, res_out, f_centro)             # espiral con su bobina en serie en el conector
     return res_out
+
+
+Q_BOBINA_SERIE = 40.0
+
+
+def aplicar_bobina_serie(antena, r, f_obj):
+    """Pone por circuito una bobina en serie (`parametros['bobina_nH']`, con su pérdida por la Q) con la impedancia simulada en el puerto central:
+    la espiral grande queda capacitiva (40 − j52 Ω a 2,44 GHz) y la bobina la adapta. La FDTD no la lleva; el diagrama y la ganancia no cambian
+    (la eficiencia sí perdería algo en la bobina: no se descuenta)."""
+    l_nh = float(antena.parametros['bobina_nH'])
+    f = np.asarray(r['f_Hz'], float)
+    w = 2*np.pi*f
+    z = np.asarray(r['zin'], complex) + 1j*w*l_nh*1e-9 + w*l_nh*1e-9/Q_BOBINA_SERIE
+    s11 = (z - 50)/(z + 50)
+    s11_db = 20*np.log10(np.abs(s11) + 1e-12)
+    out = dict(r)
+    out.update({'s11': s11, 'zin': z})
+    fcen, flo, fhi, fmn, smn = centro_banda(f, s11_db, -10.0, (0.6*f_obj, 1.4*f_obj))
+    out.update({'f_min_s11_Hz': fmn, 's11_min_dB': smn})
+    if flo is not None:
+        out.update({'f_resonancia_Hz': fcen, 'banda_Hz': (flo, fhi), 'criterio': tr('centro de la banda a −10 dB')})
+    else:
+        out['banda_Hz'] = (None, None)
+    out['avisos'] = list(r.get('avisos', [])) + [tr('La bobina de {0:.1f} nH en serie con el coaxial se ha aplicado por circuito sobre la impedancia simulada, no en la FDTD.', l_nh)]
+    out['bobina_serie_nH'] = l_nh
+    return out
 
 
 def aplicar_derivaciones(antena, r, f_obj, sustrato):
