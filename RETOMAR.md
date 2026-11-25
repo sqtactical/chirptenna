@@ -10,7 +10,7 @@ publicado en cada versión, en [`CHANGELOG.md`](CHANGELOG.md). El diario antiguo
 - **Versiones.** Publicada: **v0.6.0-alpha** (25-11, pre-release en GitHub sobre `c0d7bf4`, CI verde; web lite
   publicada a mano con `web.yml`). Antes: v0.5.0-alpha (17-11).
 - **Chirptenna Wire** (25-11): spin-off para planos de antenas de varilla con NEC2, en su propio repositorio local
-  `Documentos\Chirptenna-Wire` (solo la propuesta de alcance, `docs/PROPUESTA.md`; sin GitHub todavía). No se desarrolla
+  `Documentos\Chirptenna-Wire` (solo la propuesta de alcance, `docs/PROPUESTA.md`; en GitHub `sqtactical/Chirptenna-Wire`, privado). No se desarrolla
   aquí.
 - **Medidas reales (22-11, NanoVNA, calibración `completa_50k_2700M`)**: detalle en
   [`docs/desarrollo/placas_pedidas_2G4.md`](docs/desarrollo/placas_pedidas_2G4.md).
