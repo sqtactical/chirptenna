@@ -43,6 +43,21 @@ está hecha) en `docs/desarrollo/roadmap/`:
 
 Sin hardware se pueden adelantar ya: F1.1, F1.2 y F2.2–F2.6.
 
+## Avance (25-11-2026)
+
+| Fase | Hechas | En curso o en parte | Sin empezar | Qué la frena |
+|---|---|---|---|---|
+| 1 · Medir | 1 de 9 | 4 (εr, antenas, comparar, malla) | 4 | Medir 4 placas más y explicar el +6 % del S30 (sospecha: el SMA) |
+| 2 · Consolidar | 7 de 9 | — | 2 | Datos de la Yagi comercial B; segundo pedido a JLC |
+| 3 · Integración | 3 de 9 | 5 | 1 (antena chip) | Probar con una placa real del usuario y en KiCad con interfaz |
+| 4 · Adaptación y medida | 1 de 6 | 3 | 2 | Una antena real adaptada; la red en FDTD no casa con el circuito |
+| 5 · v1.0 | 0 de 5 | 1 (2 tipos medidos de 8–10) | 4 | Depende de la fase 1 |
+
+Las fases 2–4 avanzaron sin hardware mientras llegaban las placas; la fase 1 es ahora el cuello de botella. Desde el
+22-11 se añadieron además 14 tipos (planares, RX, Yagi en cruz y bibanda) por petición del usuario, contra el principio
+de «medir antes de ampliar»: de ellos funcionan en simulación el dipolo plegado, la log-periódica, la ranura y la
+espiral con bobina; ninguno está medido.
+
 ## Fase 1 · Validación en hardware (al llegar el pedido de JLC)
 
 Pedido recibido y medido en parte el 22-11 (2,4 GHz, FR4 1,6 mm): cupones A y B, Sierpinski, Koch ajustable, J-pole de
@@ -55,9 +70,9 @@ Koch, parche, dipolo con coaxial y Yagi recta de 2 directores (el meandro no se 
 - [x] (11-11, tareas F1.1 y F1.2) **Predicciones escritas** (`docs/desarrollo/medidas/predicciones_2G4.md`) y **herramienta
   `herramientas/comparar_medida.py`** probada con una medida sintética (desviación de 3 % medida como 3,0 %).
 - [ ] **Medir las seis antenas** (hechas el 22-11: Yagi Y54, +3,6 %, y Sierpinski Y56, +1,0 %; quedan Y55, Y57–Y59 y repetir la Yagi con ferrita; el meandro y el panel no se pidieron) (S11, banda a −10 dB, R/X) con `vna/medir_antena_pc.py` y guardar los `.s1p`.
-- [ ] **Comparar simulación y medida** tipo por tipo: desviación de frecuencia, de banda y de profundidad de S11.
+- [ ] (en curso, 22-11: hecho para la Yagi y el Sierpinski en `placas_pedidas_2G4.md`, con la εr que haría falta en cada una) **Comparar simulación y medida** tipo por tipo: desviación de frecuencia, de banda y de profundidad de S11.
   Herramienta nueva `herramientas/comparar_medida.py <diseño> <s1p>`: superpone las curvas y da los tres números.
-- [ ] **Fijar la malla de referencia**: repetir cada simulación con 2–3 pasos y quedarse con el criterio que más se
+- [ ] (en curso, 22-11: convergencia de la Yagi con 5 pasos de 0,62 a 0,30 mm, que no es monótona con malla gruesa; el Sierpinski es estable a ±0,3 %) **Fijar la malla de referencia**: repetir cada simulación con 2–3 pasos y quedarse con el criterio que más se
   acerque a la medida. Documentarlo como regla de `simulacion.simular`.
 - [ ] **Recalibrar** `calibracion_estimaciones.json` con la εr medida y volver a simular los diseños por defecto.
 - [ ] **Estado «Medida»** en `problemas.ESTADO` y en la galería, con la gráfica medida frente a simulada visible
@@ -68,7 +83,7 @@ Koch, parche, dipolo con coaxial y Yagi recta de 2 directores (el meandro no se 
   módulo LoRa/BLE, para comprobar la eficiencia de forma aproximada.
 
 Criterio de salida: frecuencia simulada a ≤ 2 % de la medida en al menos 5 de los 7 tipos, o la causa de la
-diferencia identificada.
+diferencia identificada. *(25-11: 1 de 2 medidos dentro, el Sierpinski con +1,0 %; la Yagi da +3,6 % sin causa clara.)*
 
 ## Fase 2 · v0.4: consolidar
 
@@ -140,18 +155,18 @@ diseñar la antena **dentro** de otra placa.
 
 | Idea | Para qué | Coste |
 |---|---|---|
-| **UWB y banda ancha en PCB para RX (0,85–6 GHz)** (23-11, estudiado en la bibliografía, sin simular): (a) `monopolo_uwb` en 50, 90 y 150 mm de altura, midiendo el S11 en 0,5–8 GHz (hoy `barrido.py` solo mira la banda objetivo: hace falta un modo de banda ancha) y comparando f baja = 72/H; (b) monopolo plegado en FR4 de 0,85–6 GHz (S11 < −6 dB) y CPW de 70 × 40 mm de 1,7–6 GHz como referencias a reproducir; (c) Vivaldi antipodal «chopped» (800 MHz–6 GHz, direccional); (d) elíptico y biselado con masa CPW achaflanada; (e) por debajo de 400 MHz no hay PCB razonable (λ = 2 m a 144 MHz): cono-disco impreso en 3D con metal o bucle. FR4 pierde eficiencia por encima de ~2 GHz (tanδ 0,02–0,025): mirar η, no solo S11 | Medio |
-| Optimizador automático de varios parámetros (S11 + ganancia + tamaño) con GPU | Dejar de barrer a mano | Alto |
-| **Antenas solo de RX** (pedido del usuario, 23-11, «a estudiar luego»): bucles y ferritas activas, antenas de banda ancha tipo UWB/Vivaldi con LNA, receptores de GPS/ADS-B/SDR, direccionales para radiogoniometría | En solo RX no importa la adaptación a 50 Ω ni la potencia: cuenta el factor de ruido y la ganancia/directividad (G/T), así que se pueden aceptar S11 peores y tamaños mucho menores. Estudiar qué tipos del catálogo valen sin adaptar y si hace falta modelar el LNA o la red activa (no es S11 puro) | Medio |
+| ◐ **UWB y banda ancha en PCB para RX (0,85–6 GHz)** (23-11, estudiado en la bibliografía; 24-11: `monopolo_uwb` simulado de 2,4 a 8 GHz con `doble_banda.py`, ≤ −8,6 dB, sin llegar a −10 dB en 5–8 GHz; `uwb_cpw` sin simular): (a) `monopolo_uwb` en 50, 90 y 150 mm de altura, midiendo el S11 en 0,5–8 GHz (hoy `barrido.py` solo mira la banda objetivo: hace falta un modo de banda ancha) y comparando f baja = 72/H; (b) monopolo plegado en FR4 de 0,85–6 GHz (S11 < −6 dB) y CPW de 70 × 40 mm de 1,7–6 GHz como referencias a reproducir; (c) Vivaldi antipodal «chopped» (800 MHz–6 GHz, direccional); (d) elíptico y biselado con masa CPW achaflanada; (e) por debajo de 400 MHz no hay PCB razonable (λ = 2 m a 144 MHz): cono-disco impreso en 3D con metal o bucle. FR4 pierde eficiencia por encima de ~2 GHz (tanδ 0,02–0,025): mirar η, no solo S11 | Medio |
+| ◐ (16-11: `barrido.py --modo bayes`, GP + EI sobre S11; falta la función objetivo con ganancia y tamaño) Optimizador automático de varios parámetros (S11 + ganancia + tamaño) con GPU | Dejar de barrer a mano | Alto |
+| ◐ (23-11: grupo «Solo recepción» y bandas UAT, ADS-B, GPS L5 y GNSS L1; falta modelar el LNA) **Antenas solo de RX** (pedido del usuario, 23-11, «a estudiar luego»): bucles y ferritas activas, antenas de banda ancha tipo UWB/Vivaldi con LNA, receptores de GPS/ADS-B/SDR, direccionales para radiogoniometría | En solo RX no importa la adaptación a 50 Ω ni la potencia: cuenta el factor de ruido y la ganancia/directividad (G/T), así que se pueden aceptar S11 peores y tamaños mucho menores. Estudiar qué tipos del catálogo valen sin adaptar y si hace falta modelar el LNA o la red activa (no es S11 puro) | Medio |
 | Antena UWB plana de 50 × 50 mm (2,4–10,5 GHz) como las de Amazon: dos triángulos grandes (bowtie plano) alimentados por línea paralela, valla de vías en el borde y SMA de canto | Banda ancha para NanoVNA, UWB y varias bandas con una sola placa; estudiar si encaja como tipo nuevo (bowtie de borde a borde, `vias`, CPS a SMA) y qué ancho de banda da en FR4 | Medio |
-| Parche de GPS de verdad: sonda coaxial con posición variable y razón axial en los resultados | GPS/Iridium con polarización circular | Medio |
+| Parche de GPS de verdad (24-11: `parche_cp`, con dos alimentaciones por borde, no adapta ni da circular en GNSS L1; la espiral con bobina sí da circular en simulación): sonda coaxial con posición variable y razón axial en los resultados | GPS/Iridium con polarización circular | Medio |
 | Dipolo bowtie / Sierpinski con alimentación axial (`alimentacion` = 2 en `dipolos.generar_dipolo`): el SMA en el extremo corto de la placa y la microstrip subiendo por el eje sobre el brazo inferior (que hace de masa), para usarlo de pie con el conector abajo | Dipolo vertical sin plano de tierra y con polarización pura. **Aparcada (24-11)**: para vertical con conector abajo ya sirve el monopolo de Sierpinski con masa (medido: +1,0 % en f, −34 dB, ≥ 425 MHz de banda; con versión de dos bandas). Solo compensa si no cabe la masa. Riesgos: el retorno de la línea va por un brazo radiante, la impedancia y el diagrama cambian, y el coaxial por el eje pide ferrita | Medio |
 | Diplexor impreso 868 MHz / 2,4 GHz | Dos antenas buenas en un solo conector, en vez de una bibanda frágil | Medio |
 | Diversidad y MIMO: dos antenas en la misma placa, aislamiento (S21) y correlación | Wi-Fi, LTE | Alto |
 | Arrays 2×1, 3×3 y 1×N, con y sin reflector | Más ganancia a medida | Medio |
-| Colineal con elementos bowtie y colineales acortadas con fractales | Menos largo a 868 MHz | Medio |
+| ✅ (16–17-11: `forma` bowtie, Sierpinski y U de Koch, `linea_plegada` −28 % de largo; ver `colineal_modular.md`) Colineal con elementos bowtie y colineales acortadas con fractales | Menos largo a 868 MHz | Medio |
 | Más antenas modulares como la colineal (CLAUDE.md lección 79): **Yagi con boom** (cada director = un módulo con su trozo de boom), panel por teselas de 2×2 (hay que partir la red de alimentación) y Franklin (solo después de validarla) | Antenas largas que no caben en una placa o salen caras, sobre todo a 868 MHz; más ganancia añadiendo módulos. Sin medir la unión soldada de la colineal, esperar a la fase 1 | Medio |
-| **Colineal modular con elementos bowtie** (o dipolos acortados) | Más banda por módulo; casi gratis: reutiliza `colineal_dipolos` con `modular` = 1 | Bajo |
+| ✅ (16-11: `forma` = 1 sirve en una placa y en módulos; sin simular la versión modular) **Colineal modular con elementos bowtie** (o dipolos acortados) | Más banda por módulo; casi gratis: reutiliza `colineal_dipolos` con `modular` = 1 | Bajo |
 | **Array alternado de dipolos bowtie con vías** (CLAUDE.md lección 83): (a) **cruzar la línea con dos vías en cada dipolo** (como `colineal_coco`), con los dipolos idénticos (derecho en F.Cu, izquierdo en B.Cu) en vez de cambiar los brazos de cara; eléctricamente equivalente a la `conexion` = 1 actual, así que solo vale para ver si la simetría de las placas importa; (b) **brazos coplanares** (los dos triángulos en F.Cu, uno al vivo y el otro a la masa de B.Cu por una vía que alterna de lado en cada dipolo): dipolo más simétrico respecto al sustrato y B.Cu solo con la masa; cada brazo necesita su hueco para no tocar el vivo. Estudiar solo si la alternada actual (simulaciones `colineal_alt_*_c`) sale mal o con un diagrama asimétrico; (b) es la única que puede cambiar el diagrama o la banda | Comparar con la `conexion` = 1: S11, ganancia, razón axial y simetría del haz | Medio |
 | **Antena de cuerda larga para 868 MHz en tramos** (J-pole o monopolo alargado cortado y soldado de canto) | Radiadores de más de 80 mm que no caben cómodos en una placa; sale de dividir una pista, no de repetir celdas | Bajo |
 | **Array lineal 1×N de parches o dipolos, una placa por elemento** | Más ganancia a medida con una red de alimentación en árbol (más simple que la teselada del panel) | Medio |
