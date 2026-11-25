@@ -7,10 +7,11 @@ publicado en cada versión, en [`CHANGELOG.md`](CHANGELOG.md). El diario antiguo
 
 ## Estado
 
-- **Versiones.** Publicada: **v0.5.0-alpha** (17-11, pre-release en GitHub y web lite). Preparada y empujada:
-  **0.6.0-alpha** (`b5a0674` + `66a727c`, CHANGELOG del 24-11): falta que la CI de `66a727c` salga verde, la etiqueta
-  `v0.6.0-alpha`, `gh release create … --prerelease` y `gh workflow run web.yml --ref main`, con el visto bueno del
-  usuario. Un commit local posterior (ROADMAP, idea del bowtie con alimentación axial) espera para no relanzar la CI.
+- **Versiones.** Publicada: **v0.6.0-alpha** (25-11, pre-release en GitHub sobre `c0d7bf4`, CI verde; web lite
+  publicada a mano con `web.yml`). Antes: v0.5.0-alpha (17-11).
+- **Chirptenna Wire** (25-11): spin-off para planos de antenas de varilla con NEC2, en su propio repositorio local
+  `Documentos\Chirptenna-Wire` (solo la propuesta de alcance, `docs/PROPUESTA.md`; sin GitHub todavía). No se desarrolla
+  aquí.
 - **Medidas reales (22-11, NanoVNA, calibración `completa_50k_2700M`)**: detalle en
   [`docs/desarrollo/placas_pedidas_2G4.md`](docs/desarrollo/placas_pedidas_2G4.md).
   - Cupones A y B: stub S80 repetible (0,03 %); S30 sale un +6 % sobre la simulación; εr del FR4 entre 4,5 y 5,0, sin
@@ -55,8 +56,7 @@ publicado en cada versión, en [`CHANGELOG.md`](CHANGELOG.md). El diario antiguo
 
 ## Siguientes pasos
 
-1. **Release 0.6.0-alpha** cuando la CI esté verde y el usuario lo diga (ver «Cómo ejecutar»). Si `prueba_web.py`
-   falla con `yagi_cruz` o `yagi_bibanda`, arreglarlo antes.
+1. **Release 0.6.0-alpha**: hecha el 25-11.
 2. **Fase 1 (medir)**: medir Y55, Y57, Y58 y Y59; repetir la Yagi con ferrita; comparar con
    `herramientas/comparar_medida.py`; cerrar la εr del FR4 (stubs + Sierpinski apuntan a 4,2–4,6); después recalibrar
    `calibracion_estimaciones.json` y crear el estado «Medida» (ROADMAP fase 1).
