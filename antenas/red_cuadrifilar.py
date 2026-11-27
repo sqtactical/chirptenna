@@ -59,6 +59,20 @@ def eficiencia_red(z_ant, f_Hz, red: dict | None, q_l: float = Q_BOBINA, q_c: fl
     return np.clip(p_ant/p_in, 0.0, 1.0)
 
 
+def perdida_red_dB(z_ant, f_Hz, red: dict | None, q_l: float = Q_BOBINA, q_c: float = Q_CONDENSADOR):
+    """Pérdida por disipación de la red L en dB (positiva). En recepción es lo que añade a la figura de ruido: una pérdida pasiva de L dB a la
+    temperatura de referencia suma L dB a la figura de ruido si va antes del amplificador."""
+    return -10*np.log10(eficiencia_red(z_ant, f_Hz, red, q_l, q_c))
+
+
+def perdida_desadaptacion_dB(z_ant, f_Hz, red: dict | None, q_l: float = Q_BOBINA, q_c: float = Q_CONDENSADOR):
+    """Pérdida de señal por desadaptación en los terminales de cada dipolo (dB, positiva): 10·log10(1/(1 − |Γ|²)). No añade ruido (lo
+    reflejado se pierde en el puerto aislado del híbrido, sin dañar la entrada) pero baja la señal y con ello la relación señal/ruido."""
+    z = np.asarray(z_ant, dtype=complex)
+    z_in = z if red is None else zin_red_l(z, f_Hz, red, q_l, q_c)
+    return -10*np.log10(eficiencia_adaptacion(z_in))
+
+
 def eficiencia_adaptacion(z_in) -> np.ndarray:
     """Potencia que entra en la carga respecto a la incidente: 1 − |Γ|² con Γ respecto a 50 Ω."""
     g = (np.asarray(z_in, dtype=complex) - Z0)/(np.asarray(z_in, dtype=complex) + Z0)

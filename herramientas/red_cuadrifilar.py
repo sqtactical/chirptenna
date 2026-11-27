@@ -1,7 +1,7 @@
 """Red de alimentación de la hélice cuadrifilar (híbrido de 90° + una red en L por dipolo) a partir de la simulación de dos puertos.
 
 Uso (desde la raíz):
-    python herramientas/red_cuadrifilar.py [D=32] [vueltas=0.25] [k=0.59] [sentido=-1] [--f MHz] [--etiqueta E] [--q-l 40] [--q-c 150]
+    python herramientas/red_cuadrifilar.py [D=32] [vueltas=0.25] [k=0.59] [sentido=-1] [--f MHz] [--etiqueta E] [--q-l 40] [--q-c 150] [--centrar] [--sin-tolerancia]
 
 Simula la QHA con `herramientas/helice_flex.py` (dos simulaciones de ~20 s en GPU), toma la impedancia de cada dipolo en toda la
 banda, diseña con `antenas.red_cuadrifilar` la red en L (valores E24) de cada uno y da la eficiencia de adaptación en frecuencia,
@@ -35,20 +35,32 @@ def main():
     par, opt, args, i = {}, {}, sys.argv[1:], 0
     while i < len(args):
         a = args[i]
-        if a.startswith('--'):
+        if a in ('--centrar', '--sin-tolerancia'):
+            opt[a[2:]] = '1'
+        elif a.startswith('--'):
             opt[a[2:]] = args[i + 1]
             i += 1
         elif '=' in a:
             k, v = a.split('=', 1)
             par[k] = float(v.replace(',', '.'))
         i += 1
-    p = dict(hf.DEFECTOS, D=32.0, vueltas=0.25, k=0.59, sentido=-1.0, **par)
+    p = dict(hf.DEFECTOS, **{**dict(D=32.0, vueltas=0.25, k=0.59, sentido=-1.0), **par})
     f_MHz = float(opt.get('f', '1575.42').replace(',', '.'))
     q_l, q_c = float(opt.get('q-l', red.Q_BOBINA)), float(opt.get('q-c', red.Q_CONDENSADOR))
     etiqueta = opt.get('etiqueta', 'QHA_red')
     carpeta = os.path.join(RAIZ, 'salidas', '_barridos', etiqueta)
     os.makedirs(carpeta, exist_ok=True)
     os.environ.setdefault('ANTENAS_GPU', '1')
+    if 'centrar' in opt:                                       # ajusta k para que X = 0 caiga en f0 (dos pasadas, un puerto)
+        for _ in range(2):
+            hh = hashlib.md5(json.dumps([p, f_MHz, 1.0], sort_keys=True).encode()).hexdigest()[:10]
+            s0, _c, j0 = hf.simular_helice(p, f_MHz, 1.0, os.path.join(tempfile.gettempdir(), 'antenas_sim', 'qha_' + hh + '_A'), 1)
+            x0 = np.imag(s0['Z'])
+            cr = np.where((x0[:-1] < 0) & (x0[1:] >= 0))[0]
+            if not len(cr):
+                break
+            p['k'] = round(p['k']*float(s0['f'][cr[0]])/(f_MHz*1e6), 4)
+        print('k centrada:', p['k'], flush=True)
     h = hashlib.md5(json.dumps([p, f_MHz, 1.0], sort_keys=True).encode()).hexdigest()[:10]
     base = os.path.join(tempfile.gettempdir(), 'antenas_sim', 'qha_' + h)
     sA, cA, i0 = hf.simular_helice(p, f_MHz, 1.0, base + '_A', 1)
@@ -82,7 +94,41 @@ def main():
     if peores:
         resumen['razon_axial_cenit_peor_con_5%_dB'] = round(max(a for a, _ in peores), 1)
         resumen['desbalance_peor_dB'] = round(max(abs(d) for _, d in peores), 2)
-    resumen['pol'] = hf.combinar(sA, cA, sB, cB, i0)
+    comb = hf.combinar(sA, cA, sB, cB, i0)
+    resumen['pol'] = comb
+    for umbral in (0.9, 0.8):                                   # ancho de banda con la red diseñada a f0: dónde la eficiencia total supera el umbral
+        buenos = np.where(ev_con['eficiencia_total'] >= umbral)[0]
+        resumen[f'ancho_eficiencia_{int(umbral*100)}%_MHz'] = round(float((f[buenos[-1]] - f[buenos[0]])/1e6), 1) if len(buenos) else 0.0
+    # --- recepción (solo RX): lo que cuenta es la ganancia RHCP hacia el cielo, la pérdida antes del amplificador y la tolerancia al desajuste
+    cur = {int(th): (r_, l_) for th, r_, l_ in comb['curva_theta_RHCP_LHCP_dBi']}
+    pierde_red = float(red.perdida_red_dB(zA[i0], f0, redA, q_l, q_c))
+    pierde_adapt = float(red.perdida_desadaptacion_dB(zA[i0], f0, redA, q_l, q_c))
+    pol_buena = 0 if comb['pol'] == 'RHCP' else 1                     # columna de la polarización de GPS (RHCP) en la curva
+    g_rhcp = {f'elevacion_{90 - th}': cur[th][0] for th in (0, 30, 60, 80, 90) if th in cur}
+    resumen['recepcion'] = {
+        'ganancia_RHCP_dBi_por_elevacion_grados': g_rhcp,
+        'ganancia_LHCP_cenit_dBi': cur[0][1] if 0 in cur else None,
+        'mejor_lóbulo_trasero_RHCP_dBi': max(v[0] for th, v in cur.items() if th >= 110),
+        'perdida_red_dB': round(pierde_red, 3), 'perdida_desadaptacion_dB': round(pierde_adapt, 3),
+        'figura_ruido_añadida_dB': round(pierde_red, 3),
+        'ganancia_RHCP_cenit_menos_perdida_total_dBi': round(cur[0][0] - pierde_red - pierde_adapt, 2) if 0 in cur else None,
+        'nota': 'ideal en el híbrido; la polarización de GPS es RHCP' if comb['pol'] == 'RHCP' else 'la hélice sale LHCP: cambia el sentido (sentido = -1 para RHCP)'}
+    # tolerancia al desajuste (carcasa, mano, tolerancia del flex): la misma red con k ±3 %
+    desv = {}
+    if 'sin-tolerancia' not in opt:
+        for fac in (0.97, 1.03):
+            q = dict(p, k=p['k']*fac)
+            h2 = hashlib.md5(json.dumps([q, f_MHz, 1.0], sort_keys=True).encode()).hexdigest()[:10]
+            b2 = os.path.join(tempfile.gettempdir(), 'antenas_sim', 'qha_' + h2)
+            sA2, cA2, j0 = hf.simular_helice(q, f_MHz, 1.0, b2 + '_A', 1)
+            z2 = sA2['Z']
+            ev2 = red.evaluar(sA2['f'], z2, redA, q_l, q_c)
+            cruces = np.where((np.imag(z2)[:-1] < 0) & (np.imag(z2)[1:] >= 0))[0]
+            desv[f'k_x{fac}'] = {'f_resonancia_MHz': round(float(sA2['f'][cruces[0]]/1e6)) if len(cruces) else None,
+                                 'Z_f0': [round(float(z2[j0].real), 1), round(float(z2[j0].imag), 1)],
+                                 'eficiencia_total_f0': round(float(ev2['eficiencia_total'][j0]), 3),
+                                 'perdida_desadaptacion_dB': round(float(red.perdida_desadaptacion_dB(z2[j0], f0, redA, q_l, q_c)), 2)}
+        resumen['recepcion']['tolerancia_k_3%'] = desv
     json.dump(resumen, open(os.path.join(carpeta, 'red.json'), 'w', encoding='utf-8'), indent=1, ensure_ascii=False, default=float)
     print(json.dumps(resumen, indent=1, ensure_ascii=False, default=float))
 

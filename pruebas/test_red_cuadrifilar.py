@@ -43,9 +43,18 @@ def test_el_tipo_lleva_los_valores_simulados_y_la_red():
     assert p['diametro'] == 32 and p['vueltas'] == 0.25 and p['sentido'] == -1
     assert abs(tipos.estimar_f('helice_cuadrifilar', p) - F0)/F0 < 0.03
     a = tipos.generar('helice_cuadrifilar', p)
-    assert a.info['red_alimentacion'] == tridimensional.RED_QHA and len(a.info['avisos']) == 2
+    assert a.info['red_alimentacion'] == tridimensional.RED_QHA and len(a.info['avisos']) == 3
 
 
 def test_con_otro_diametro_no_hay_red_calculada():
     p = dict(tipos.dimensionar('helice_cuadrifilar', F0, {}), diametro=14, vueltas=0.5)
     assert tridimensional.red_alimentacion_qha(p) is None
+
+
+def test_perdidas_para_recepcion():
+    r = red.disenar_red(Z_DIPOLO, F0)
+    disipa = float(red.perdida_red_dB(Z_DIPOLO, F0, r))
+    assert 0.1 < disipa < 0.3                                    # la red añade ≈ 0,2 dB de ruido con Q 40 y 150
+    assert float(red.perdida_red_dB(Z_DIPOLO, F0, None)) == 0.0
+    assert float(red.perdida_desadaptacion_dB(Z_DIPOLO, F0, None)) > 1.0       # sin red se pierde 1,5 dB de señal
+    assert float(red.perdida_desadaptacion_dB(Z_DIPOLO, F0, r)) < 0.1

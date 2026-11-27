@@ -38,8 +38,11 @@ K_QHA = 0.586             # f = K·c/(4·L brazo): GPU, 28-11, solo con D 32 mm 
 # Red de alimentación de partida (herramientas/red_cuadrifilar.py, 28-11, híbrido de 90° ideal): cada dipolo de la QHA de D 32 mm y ¼ de vuelta da
 # 15,05 + j5,23 Ω a 1575,42 MHz; una red L (bobina en serie junto al dipolo y condensador en derivación hacia el híbrido, valores E24, Q 40 y 150) lo
 # lleva a 50 Ω: eficiencia 0,71 → 0,96, S11 del dipolo ≤ −10 dB de 1556 a 1594 MHz. Solo vale cerca de ese diseño.
+# Recepción (solo RX, mismo diseño): ganancia RHCP 2,9 dBi en el cénit, 2,1 a 60° de elevación, −0,1 a 30° y −2,4 a 10°; lóbulo trasero ≤ −8,5 dBi; la red
+# disipa 0,17–0,19 dB (figura de ruido añadida con el híbrido ideal); ±3 % en el largo del brazo mueve la resonancia ≈ ∓35 MHz y cuesta 0,8–1,5 dB de desadaptación;
+# eficiencia total ≥ 0,9 en 27 MHz y ≥ 0,8 en 49 MHz. Frente a D 24 mm (17 y 36 MHz) y D 14 mm de media vuelta (0 y 6 MHz), D 32 mm es el menos sensible.
 RED_QHA = {'z_dipolo': (15.05, 5.23), 'serie_nH': 1.8, 'derivacion_pF': 3.0, 'eficiencia_sin_red': 0.71, 'eficiencia_con_red': 0.96, 'f_MHz': 1575.42,
-           'D': 32.0, 'vueltas': 0.25}
+           'D': 32.0, 'vueltas': 0.25, 'g_cenit_dBi': 2.9, 'g_60_dBi': 2.1, 'g_30_dBi': -0.1, 'perdida_red_dB': 0.19, 'tolerancia_3pc_dB': (0.8, 1.5)}
 
 
 # ------------------------------------------------------------------ utilidades
@@ -350,6 +353,9 @@ def generar_helice_cuadrifilar(p, s, eps):
         a.info['avisos'].append(tr('Alimentación: un híbrido de 90° (3 dB, el cuarto puerto a 50 Ω) y, en cada dipolo, una bobina de {0:.1f} nH en serie junto a él y un condensador '
                                    'de {1:.1f} pF en derivación hacia el híbrido (≈ 15 Ω a 50 Ω). Simulado con el híbrido ideal: eficiencia de adaptación {2:.2f} (sin red {3:.2f}). '
                                    'La red no está en la placa: se monta aparte.', r['serie_nH'], r['derivacion_pF'], r['eficiencia_con_red'], r['eficiencia_sin_red']))
+        a.info['avisos'].append(tr('Solo recepción: ganancia RHCP de {0:.1f} dBi en el cénit, {1:.1f} dBi a 60° de elevación y {2:.1f} dBi a 30°; la red añade ≈ {3:.2f} dB de ruido. '
+                                   'Es estrecha: ±3 % en el largo del brazo cuesta de {4:.1f} a {5:.1f} dB de desadaptación (la carcasa o la mano la desplazan), así que se afina con la '
+                                   'carcasa puesta.', r['g_cenit_dBi'], r['g_60_dBi'], r['g_30_dBi'], r['perdida_red_dB'], r['tolerancia_3pc_dB'][0], r['tolerancia_3pc_dB'][1]))
     else:
         a.info['avisos'].append(tr('La red de alimentación (híbrido de 90° y una red en L por dipolo) solo está calculada para D = 32 mm, 1/4 de vuelta y GPS L1: '
                                    'con otras medidas hay que recalcularla con herramientas/red_cuadrifilar.py.'))

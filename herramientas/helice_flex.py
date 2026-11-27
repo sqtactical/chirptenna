@@ -203,7 +203,10 @@ def combinar(sA, cA, sB, cB, i0):
         it, ip = np.unravel_index(int(np.argmax(dcp)), dcp.shape)
         # semiespacio superior (θ ≤ 90°): lo que ve un receptor GPS
         sup = theta <= 90
-        res = {'psi_deg': round(math.degrees(psi)), 'pol': pol, 'eficiencia_%': round(100*eta, 1),
+        paso_c = max(1, int(round(10.0/(theta[1] - theta[0]))))           # una fila cada 10° de θ (desde el cénit)
+        cur = [[float(theta[j]), round(10*math.log10(max(float(np.mean(d_r[j, :]))*eta, 1e-9)), 1),
+                round(10*math.log10(max(float(np.mean(d_l[j, :]))*eta, 1e-9)), 1)] for j in range(0, len(theta), paso_c)]
+        res = {'curva_theta_RHCP_LHCP_dBi': cur, 'psi_deg': round(math.degrees(psi)), 'pol': pol, 'eficiencia_%': round(100*eta, 1),
                'directividad_CP_dBi': round(10*math.log10(dcp.max()), 2),
                'ganancia_CP_dBi': round(10*math.log10(max(dcp.max()*eta, 1e-9)), 2),
                'ganancia_CP_cenit_dBi': round(10*math.log10(max(dcp[itz, 0]*eta, 1e-9)), 2),
