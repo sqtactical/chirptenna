@@ -34,7 +34,12 @@ INSET_UNION = 0.5          # el cobre se queda a esta distancia de un canto de u
 K_HELICE_NORMAL = 1.0      # f = K·c/(4·L hilo): sin calibrar
 K_DIEDRO_V = 0.093          # subida de la frecuencia al cerrar la V (ver estimar_f_diedro)
 K_REFLECTOR = 0.898        # f simulada / f del dipolo bowtie suelto con el reflector de 90° (GPU, 17-11)
-K_QHA = 1.0               # f = K·c/(4·L brazo): sin calibrar
+K_QHA = 0.586             # f = K·c/(4·L brazo): GPU, 28-11, solo con D 32 mm y ¼ de vuelta (X = 0 a 1564 MHz con L = 28,1 mm); con otro D o más vueltas, sin calibrar
+# Red de alimentación de partida (herramientas/red_cuadrifilar.py, 28-11, híbrido de 90° ideal): cada dipolo de la QHA de D 32 mm y ¼ de vuelta da
+# 15,05 + j5,23 Ω a 1575,42 MHz; una red L (bobina en serie junto al dipolo y condensador en derivación hacia el híbrido, valores E24, Q 40 y 150) lo
+# lleva a 50 Ω: eficiencia 0,71 → 0,96, S11 del dipolo ≤ −10 dB de 1556 a 1594 MHz. Solo vale cerca de ese diseño.
+RED_QHA = {'z_dipolo': (15.05, 5.23), 'serie_nH': 1.8, 'derivacion_pF': 3.0, 'eficiencia_sin_red': 0.71, 'eficiencia_con_red': 0.96, 'f_MHz': 1575.42,
+           'D': 32.0, 'vueltas': 0.25}
 
 
 # ------------------------------------------------------------------ utilidades
@@ -336,7 +341,25 @@ def generar_helice_cuadrifilar(p, s, eps):
     tira = _tira('helice_cuadrifilar', p, trazas, W, H + 2.0)
     a.modulos = [{'nombre': 'tira_flex', 'cantidad': 1, 'antena': tira}]
     a.info.update(placas=2, largo_brazo_mm=round(longitud_brazo_qha(p), 1), altura_mm=p['altura'], tira_mm=[round(W, 1), round(H + 2, 1)],
-                  sin_simulacion=tr('la alimentación en cuadratura necesita dos puertos: usa herramientas/helice_flex.py'))
-    a.info['avisos'] = [tr('Hélice cuadrifilar: solo geometría, vista 3D y tira de flex. No se simula desde la interfaz (la alimentación en cuadratura es de dos puertos) y '
-                           'falta la red de 90° o el balun.')]
+                  sin_simulacion=tr('la alimentación en cuadratura necesita dos puertos: usa herramientas/helice_flex.py y herramientas/red_cuadrifilar.py'))
+    a.info['red_alimentacion'] = red_alimentacion_qha(p)
+    a.info['avisos'] = [tr('Hélice cuadrifilar: geometría, vista 3D y tira de flex. No se simula desde la interfaz (la alimentación en cuadratura es de dos puertos): '
+                           'usa herramientas/helice_flex.py y herramientas/red_cuadrifilar.py.')]
+    if a.info['red_alimentacion']:
+        r = a.info['red_alimentacion']
+        a.info['avisos'].append(tr('Alimentación: un híbrido de 90° (3 dB, el cuarto puerto a 50 Ω) y, en cada dipolo, una bobina de {0:.1f} nH en serie junto a él y un condensador '
+                                   'de {1:.1f} pF en derivación hacia el híbrido (≈ 15 Ω a 50 Ω). Simulado con el híbrido ideal: eficiencia de adaptación {2:.2f} (sin red {3:.2f}). '
+                                   'La red no está en la placa: se monta aparte.', r['serie_nH'], r['derivacion_pF'], r['eficiencia_con_red'], r['eficiencia_sin_red']))
+    else:
+        a.info['avisos'].append(tr('La red de alimentación (híbrido de 90° y una red en L por dipolo) solo está calculada para D = 32 mm, 1/4 de vuelta y GPS L1: '
+                                   'con otras medidas hay que recalcularla con herramientas/red_cuadrifilar.py.'))
     return a
+
+
+def red_alimentacion_qha(p):
+    """La red de partida (`RED_QHA`) si el diseño es el simulado (D 32 mm, 1/4 de vuelta, a ±5 % de GPS L1); si no, None."""
+    if abs(float(p['diametro']) - RED_QHA['D']) > 1.0 or abs(float(p['vueltas']) - RED_QHA['vueltas']) > 1e-6:
+        return None
+    if abs(estimar_f_helice_cuadrifilar(p) - RED_QHA['f_MHz']*1e6)/(RED_QHA['f_MHz']*1e6) > 0.05:
+        return None
+    return RED_QHA

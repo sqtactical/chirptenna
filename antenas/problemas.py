@@ -138,8 +138,9 @@ FIJOS = {
                   'para resonar sale de una fórmula sin calibrar.'),
     ],
     'helice_cuadrifilar': [
-        ('aviso', 'Solo geometría: la alimentación en cuadratura y la red de 90° no están hechas y no se simula desde la interfaz '
-                  '(herramientas/helice_flex.py la simula con dos puertos).'),
+        ('aviso', 'No se simula desde la interfaz (la alimentación en cuadratura es de dos puertos): herramientas/helice_flex.py la simula y '
+                  'herramientas/red_cuadrifilar.py calcula el híbrido de 90° y la red en L de cada dipolo (D 32 mm, ¼ de vuelta: razón axial 0 dB en el cénit, '
+                  '≈ 3 dBi RHCP, eficiencia de adaptación 0,96). Híbrido ideal, flex sin su dieléctrico y sin medir.'),
     ],
     'monopolo_recto': [
         ('info', 'Con el conector IPEX a 2,4 GHz la masa automática da −6,9 dB; con la masa manual (largo 25 mm, ancho 40 mm) '

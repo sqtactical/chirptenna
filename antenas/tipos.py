@@ -975,10 +975,11 @@ for _t3 in [
                'largo_brazo', precision='±25 % (sin calibrar)'),
 ]:
     CATALOGO[_t3.clave] = _t3
-# valores por defecto: hélice normal para 2,4 GHz (el cable de 31 mm da 2,4 GHz: 2 vueltas de 4 mm y 18 mm de alto); cuadrifilar para GPS L1 (14 mm y 42 mm)
+# valores por defecto: hélice normal para 2,4 GHz (el cable de 31 mm da 2,4 GHz: 2 vueltas de 4 mm y 18 mm de alto); cuadrifilar para GPS L1 (D 32 mm, ¼ de vuelta, 12,5 mm de alto, a izquierdas = RHCP en el modelo: la simulada del 28-11)
 CATALOGO['helice_normal'].parametros = [replace(q, defecto={'diametro': 4, 'vueltas': 2, 'altura': 18}[q.nombre]) if q.nombre in ('diametro', 'vueltas', 'altura') else q
                                         for q in CATALOGO['helice_normal'].parametros]
-CATALOGO['helice_cuadrifilar'].parametros = [replace(q, defecto={'diametro': 14, 'altura': 42}[q.nombre]) if q.nombre in ('diametro', 'altura') else q
+CATALOGO['helice_cuadrifilar'].parametros = [replace(q, defecto={'diametro': 32, 'altura': 12.5, 'vueltas': 0.25, 'sentido': -1}[q.nombre])
+                                             if q.nombre in ('diametro', 'altura', 'vueltas', 'sentido') else q
                                              for q in CATALOGO['helice_cuadrifilar'].parametros]
 
 

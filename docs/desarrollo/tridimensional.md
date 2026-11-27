@@ -35,7 +35,7 @@ Todo está simulado a 2,4 GHz con malla gruesa (paso 1,2 mm, precisión «rápid
 - Centrar cada tipo (la estimación de frecuencia no está calibrada), simular en GPU con malla fina y verificar la malla.
 - Modelar la unión soldada y la escuadra o pieza que fija el ángulo; medir el diagrama de la V según el ángulo.
 - El reflector de esquina con una Yagi pequeña delante, el vértice sin truncar y con la línea por una ranura.
-- La red de 90° o el balun de la cuadrifilar y su simulación desde la interfaz; el flex de la hélice se simula sin su dieléctrico.
+- De la cuadrifilar: su simulación desde la interfaz, los componentes de la red (híbrido de 90° y una red L por dipolo) sobre la placa, y medirla; el flex de la hélice se simula sin su dieléctrico. **La red está calculada (28-11)**: con D 32 mm y ¼ de vuelta cada dipolo da 15,05 + j5,23 Ω a 1575,42 MHz; una bobina de 1,8 nH en serie junto al dipolo y un condensador de 3,0 pF en derivación hacia el híbrido (E24, Q 40 y 150) suben la eficiencia de adaptación de 0,71 a 0,96, con S11 del dipolo ≤ −10 dB de 1556 a 1594 MHz y razón axial de 0 dB en el cénit (con ±5 % en los componentes sigue en 0,0 dB y el desbalance de amplitud es de 0,02 dB). Con un híbrido de 90° ideal y ramas iguales la S11 del receptor es buena aunque los dipolos no lo estén (lo reflejado se pierde en el puerto aislado): la red mejora la potencia que llega a la antena. `herramientas/red_cuadrifilar.py` la recalcula para otros parámetros (dos simulaciones de ~20 s en GPU). Con `sentido` = −1 (a izquierdas en el modelo) la polarización sale RHCP, la de GPS; con +1, LHCP. `K_QHA` = 0,586 solo vale para ese diseño.
 - Web: la web lite genera las placas y la tira, pero no tiene vista 3D.
 
 
