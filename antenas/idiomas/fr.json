@@ -285,6 +285,7 @@
   "Carcasa explosionada: base, placa y tapa": "Boîtier éclaté : base, carte et couvercle",
   "Carcasa montada con la placa dentro": "Boîtier monté avec la carte à l’intérieur",
   "Carcasa, mano y batería cambian la antena: en simulación, a 2,4 GHz, una carcasa de ABS baja la frecuencia un ~7 %, y la mano la baja un ~4 % y deja la eficiencia en el 25 %. Márcalas en Simulación → Entorno y ajusta con ellas puestas.": "Le boîtier, la main et la batterie modifient l'antenne : en simulation, à 2,4 GHz, un boîtier en ABS abaisse la fréquence d'environ 7 %, et la main l'abaisse d'environ 4 % et laisse l'efficacité à 25 %. Cochez-les dans Simulation → Environnement et ajustez avec eux en place.",
+  "Carcasa: un tubo de plástico con base y tapa baja la resonancia (PLA de 1,6 mm a 1 mm de la tira: {0:.0f} %; a 4 mm: {1:.0f} %; a 0,5 mm: {2:.0f} %) y con D = 32 mm el brazo ya no se puede acortar tanto (no llegaría a dar el cuarto de vuelta): dentro de una carcasa usa D ≈ 28 mm.": "Boîtier : un tube en plastique avec base et couvercle fait baisser la résonance (PLA de 1,6 mm à 1 mm de la bande : {0:.0f} % ; à 4 mm : {1:.0f} % ; à 0,5 mm : {2:.0f} %) et avec D = 32 mm on ne peut plus raccourcir autant le brin (il n'atteindrait pas le quart de tour) : dans un boîtier, utilisez D ≈ 28 mm.",
   "Cargando Python (Pyodide)…": "Chargement de Python (Pyodide)…",
   "Cargando el generador de Chirptenna…": "Chargement du générateur de Chirptenna…",
   "Cargando ezdxf (DXF)…": "Chargement d'ezdxf (DXF)…",

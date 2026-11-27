@@ -285,6 +285,7 @@
   "Carcasa explosionada: base, placa y tapa": "Exploded enclosure: base, board and lid",
   "Carcasa montada con la placa dentro": "Assembled enclosure with the board inside",
   "Carcasa, mano y batería cambian la antena: en simulación, a 2,4 GHz, una carcasa de ABS baja la frecuencia un ~7 %, y la mano la baja un ~4 % y deja la eficiencia en el 25 %. Márcalas en Simulación → Entorno y ajusta con ellas puestas.": "Case, hand and battery change the antenna: in simulation, at 2.4 GHz, an ABS case lowers the frequency by ~7 %, and the hand lowers it by ~4 % and leaves the efficiency at 25 %. Select them in Simulation → Environment and tune with them in place.",
+  "Carcasa: un tubo de plástico con base y tapa baja la resonancia (PLA de 1,6 mm a 1 mm de la tira: {0:.0f} %; a 4 mm: {1:.0f} %; a 0,5 mm: {2:.0f} %) y con D = 32 mm el brazo ya no se puede acortar tanto (no llegaría a dar el cuarto de vuelta): dentro de una carcasa usa D ≈ 28 mm.": "Case: a plastic tube with base and cap lowers the resonance (1.6 mm PLA at 1 mm from the strip: {0:.0f} %; at 4 mm: {1:.0f} %; at 0.5 mm: {2:.0f} %) and with D = 32 mm the arm can no longer be shortened that much (it would not reach the quarter turn): inside a case use D ≈ 28 mm.",
   "Cargando Python (Pyodide)…": "Loading Python (Pyodide)…",
   "Cargando el generador de Chirptenna…": "Loading the Chirptenna generator…",
   "Cargando ezdxf (DXF)…": "Loading ezdxf (DXF)…",

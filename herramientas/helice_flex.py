@@ -12,6 +12,8 @@ Uso (desde la raíz):
     vueltas  vueltas de cada brazo (defecto 0,5)
     sentido  +1 hélice a derechas, −1 a izquierdas (defecto +1)
     ancho    ancho de la tira, mm (defecto 1,0; solo para el dibujo: el modelo es un hilo, de radio equivalente ancho/4)
+    pared    grosor de la carcasa, mm (defecto 0: sin carcasa): tubo de plástico con base y tapa de ese grosor; holgura = aire entre la tira y el tubo (defecto 1 mm),
+             er y tand = propiedades del plástico (defecto 2,8 y 0,01: PLA/PETG a 1,5 GHz, valores típicos sin medir)
   --f MHz     frecuencia (defecto 1575,42: GPS L1)
   --res mm    paso de malla en la antena (defecto 1,0)
   --dibujar   solo dibuja la tira plana (PNG y DXF en salidas/_barridos/<E>) y no simula
@@ -40,7 +42,9 @@ os.chdir(RAIZ)
 sys.path.insert(0, RAIZ)
 
 C0 = 299792458.0
-DEFECTOS = {'D': 14.0, 'k': 1.0, 'vueltas': 0.5, 'sentido': 1.0, 'ancho': 1.0}
+DEFECTOS = {'D': 14.0, 'k': 1.0, 'vueltas': 0.5, 'sentido': 1.0, 'ancho': 1.0,
+            # carcasa (tubo de plástico con base y tapa que rodea la hélice; pared = 0: sin carcasa): grosor de la pared, hueco entre la tira y el tubo, εr y tanδ
+            'pared': 0.0, 'holgura': 1.0, 'er': 2.8, 'tand': 0.01}
 
 
 def dimensiones(f_MHz, p):
@@ -132,15 +136,25 @@ def simular_helice(p, f_MHz, res, sim_dir, puerto_activo):
     mesh.SetDeltaUnit(1e-3)
     gap = 0.5
     # malla: fina junto a la antena, más gruesa hacia fuera
-    for dim, fijas in (('x', [-r - 2, -gap, 0, gap, r + 2]), ('y', [-r - 2, -gap, 0, gap, r + 2]), ('z', [-2, 0, h, h + 2])):
+    pared, hueco_c = float(p.get('pared', 0.0)), float(p.get('holgura', 1.0))
+    rc_in, rc_out = r + hueco_c, r + hueco_c + pared
+    extra_xy = [-rc_out, -rc_in, rc_in, rc_out] if pared > 0 else []
+    extra_z = [-pared, h + hueco_c, h + hueco_c + pared] if pared > 0 else []
+    for dim, fijas in (('x', [-r - 2, -gap, 0, gap, r + 2] + extra_xy), ('y', [-r - 2, -gap, 0, gap, r + 2] + extra_xy), ('z', [-2, 0, h, h + 2] + extra_z)):
         mesh.AddLine(dim, fijas)
         mesh.SmoothMeshLines(dim, res)
     margen = lam_min*1.3
-    mesh.AddLine('x', [-r - margen, r + margen])
-    mesh.AddLine('y', [-r - margen, r + margen])
-    mesh.AddLine('z', [-margen, h + margen])
+    mesh.AddLine('x', [-rc_out - margen, rc_out + margen])
+    mesh.AddLine('y', [-rc_out - margen, rc_out + margen])
+    mesh.AddLine('z', [-margen - pared, h + margen + hueco_c + pared])
     for dim in 'xyz':
         mesh.SmoothMeshLines(dim, lam_min/20, ratio=1.4)
+    if pared > 0:                                              # tubo con base y tapa: un cilindro de plástico y, dentro, otro de aire (más prioridad que el plástico y menos que el metal)
+        kappa = 2*math.pi*f0*8.854187817e-12*float(p['er'])*float(p['tand'])
+        plastico = CSX.AddMaterial('carcasa', epsilon=float(p['er']), kappa=kappa)
+        plastico.AddCylinder([0, 0, -pared], [0, 0, h + hueco_c + pared], rc_out, priority=5)
+        aire = CSX.AddMaterial('aire_carcasa', epsilon=1.0)
+        aire.AddCylinder([0, 0, 0], [0, 0, h + hueco_c], rc_in, priority=6)
     metal = CSX.AddMetal('hilos')
     for k in range(4):
         metal.AddCurve(brazo(p, h, k, res/2), priority=10)

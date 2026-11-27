@@ -285,6 +285,7 @@
   "Carcasa explosionada: base, placa y tapa": "Gehäuse-Explosionsansicht: Unterteil, Platine und Deckel",
   "Carcasa montada con la placa dentro": "Montiertes Gehäuse mit Platine darin",
   "Carcasa, mano y batería cambian la antena: en simulación, a 2,4 GHz, una carcasa de ABS baja la frecuencia un ~7 %, y la mano la baja un ~4 % y deja la eficiencia en el 25 %. Márcalas en Simulación → Entorno y ajusta con ellas puestas.": "Gehäuse, Hand und Akku verändern die Antenne: In der Simulation senkt bei 2,4 GHz ein ABS-Gehäuse die Frequenz um ~7 %, die Hand um ~4 % und lässt den Wirkungsgrad bei 25 %. Wähle sie unter Simulation → Umgebung aus und stimme mit ihnen ab.",
+  "Carcasa: un tubo de plástico con base y tapa baja la resonancia (PLA de 1,6 mm a 1 mm de la tira: {0:.0f} %; a 4 mm: {1:.0f} %; a 0,5 mm: {2:.0f} %) y con D = 32 mm el brazo ya no se puede acortar tanto (no llegaría a dar el cuarto de vuelta): dentro de una carcasa usa D ≈ 28 mm.": "Gehäuse: ein Kunststoffrohr mit Boden und Deckel senkt die Resonanz (1,6 mm PLA in 1 mm Abstand vom Streifen: {0:.0f} %; bei 4 mm: {1:.0f} %; bei 0,5 mm: {2:.0f} %), und mit D = 32 mm lässt sich der Arm nicht mehr so weit kürzen (er käme nicht auf die Viertelwindung): im Gehäuse D ≈ 28 mm verwenden.",
   "Cargando Python (Pyodide)…": "Python (Pyodide) wird geladen…",
   "Cargando el generador de Chirptenna…": "Der Chirptenna-Generator wird geladen…",
   "Cargando ezdxf (DXF)…": "ezdxf (DXF) wird geladen…",

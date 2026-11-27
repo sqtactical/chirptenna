@@ -43,7 +43,7 @@ def test_el_tipo_lleva_los_valores_simulados_y_la_red():
     assert p['diametro'] == 32 and p['vueltas'] == 0.25 and p['sentido'] == -1
     assert abs(tipos.estimar_f('helice_cuadrifilar', p) - F0)/F0 < 0.03
     a = tipos.generar('helice_cuadrifilar', p)
-    assert a.info['red_alimentacion'] == tridimensional.RED_QHA and len(a.info['avisos']) == 3
+    assert a.info['red_alimentacion'] == tridimensional.RED_QHA and len(a.info['avisos']) == 4
 
 
 def test_con_otro_diametro_no_hay_red_calculada():
@@ -58,3 +58,10 @@ def test_perdidas_para_recepcion():
     assert float(red.perdida_red_dB(Z_DIPOLO, F0, None)) == 0.0
     assert float(red.perdida_desadaptacion_dB(Z_DIPOLO, F0, None)) > 1.0       # sin red se pierde 1,5 dB de señal
     assert float(red.perdida_desadaptacion_dB(Z_DIPOLO, F0, r)) < 0.1
+
+
+def test_la_carcasa_baja_la_resonancia_mas_cuanto_mas_cerca():
+    f = tridimensional.factor_carcasa_qha
+    assert f(0.2) < f(0.5) < f(1.0) < f(2.0) < f(4.0) < f(8.0) < 1.0
+    assert abs(f(1.0) - 0.9365) < 1e-9 and f(0.0) == f(0.2) and f(100.0) == f(8.0)
+    assert 0.9365 < f(1.5) < 0.9515                                # interpolado

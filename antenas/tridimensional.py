@@ -356,10 +356,31 @@ def generar_helice_cuadrifilar(p, s, eps):
         a.info['avisos'].append(tr('Solo recepción: ganancia RHCP de {0:.1f} dBi en el cénit, {1:.1f} dBi a 60° de elevación y {2:.1f} dBi a 30°; la red añade ≈ {3:.2f} dB de ruido. '
                                    'Es estrecha: ±3 % en el largo del brazo cuesta de {4:.1f} a {5:.1f} dB de desadaptación (la carcasa o la mano la desplazan), así que se afina con la '
                                    'carcasa puesta.', r['g_cenit_dBi'], r['g_60_dBi'], r['g_30_dBi'], r['perdida_red_dB'], r['tolerancia_3pc_dB'][0], r['tolerancia_3pc_dB'][1]))
+        a.info['avisos'].append(tr('Carcasa: un tubo de plástico con base y tapa baja la resonancia (PLA de 1,6 mm a 1 mm de la tira: {0:.0f} %; a 4 mm: {1:.0f} %; a 0,5 mm: {2:.0f} %) y con D = 32 mm '
+                                   'el brazo ya no se puede acortar tanto (no llegaría a dar el cuarto de vuelta): dentro de una carcasa usa D ≈ 28 mm.',
+                                   100*(factor_carcasa_qha(1.0) - 1), 100*(factor_carcasa_qha(4.0) - 1), 100*(factor_carcasa_qha(0.5) - 1)))
     else:
         a.info['avisos'].append(tr('La red de alimentación (híbrido de 90° y una red en L por dipolo) solo está calculada para D = 32 mm, 1/4 de vuelta y GPS L1: '
                                    'con otras medidas hay que recalcularla con herramientas/red_cuadrifilar.py.'))
     return a
+
+
+# Efecto de una carcasa de plástico (tubo con base y tapa del mismo grosor alrededor de la hélice; herramientas/carcasa_helice.py, GPU, malla de 0,6 mm, D 32 mm y
+# ¼ de vuelta, PLA de 1,6 mm): holgura entre la tira y el tubo (mm) → factor de la frecuencia de resonancia (con / sin carcasa). Con malla de 1 mm sale 2–4 puntos más;
+# es orientativo (±2 puntos). Otros grosores y materiales: pared 0,8/1,2/2,4/3,2 mm → 0,958/0,955/0,927/0,915 (a 1 mm); PETG/ABS 0,934; PA12 0,929; PA con fibra de vidrio 0,910.
+CARCASA_QHA_HOLGURA = ((0.2, 0.839), (0.5, 0.899), (1.0, 0.9365), (2.0, 0.9515), (4.0, 0.966), (8.0, 0.989))
+
+
+def factor_carcasa_qha(holgura_mm):
+    """Factor por el que se multiplica la frecuencia de resonancia de la QHA al meterla en un tubo de PLA de 1,6 mm a `holgura_mm` de la tira
+    (interpolado en la tabla `CARCASA_QHA_HOLGURA`; fuera de rango, el extremo). Para recentrarla hay que acortar el brazo por ese mismo factor."""
+    tabla = CARCASA_QHA_HOLGURA
+    if holgura_mm <= tabla[0][0]:
+        return tabla[0][1]
+    for (h0, f0), (h1, f1) in zip(tabla, tabla[1:]):
+        if holgura_mm <= h1:
+            return f0 + (f1 - f0)*(holgura_mm - h0)/(h1 - h0)
+    return tabla[-1][1]
 
 
 def red_alimentacion_qha(p):
